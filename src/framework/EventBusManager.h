@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Poco/Runnable.h"
 #include "Poco/Logger.h"
+#include "Poco/Runnable.h"
 #include "Poco/Thread.h"
 
 namespace OpenWifi {
@@ -16,13 +16,12 @@ namespace OpenWifi {
 		void run() final;
 		void Start();
 		void Stop();
-		inline Poco::Logger & Logger() { return Logger_; }
+		inline Poco::Logger &Logger() { return Logger_; }
 
 	  private:
-		mutable std::atomic_bool 	Running_ = false;
-		Poco::Thread		Thread_;
-		Poco::Logger		&Logger_;
+		mutable std::atomic_bool Running_ = false;
+		Poco::Thread Thread_;
+		Poco::Logger &Logger_;
 	};
 
 } // namespace OpenWifi
-

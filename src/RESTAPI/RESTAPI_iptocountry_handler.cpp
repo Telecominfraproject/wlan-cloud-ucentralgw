@@ -8,19 +8,19 @@
 namespace OpenWifi {
 
 	void RESTAPI_iptocountry_handler::DoGet() {
-		auto IPList = GetParameter("iplist","");
+		auto IPList = GetParameter("iplist", "");
 
-		if(IPList.empty()) {
+		if (IPList.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
-		auto IPAddresses = Poco::StringTokenizer(IPList,",");
-		Poco::JSON::Object	Answer;
+		auto IPAddresses = Poco::StringTokenizer(IPList, ",");
+		Poco::JSON::Object Answer;
 
 		Answer.set("enabled", FindCountryFromIP()->Enabled());
-		Poco::JSON::Array	Countries;
+		Poco::JSON::Array Countries;
 
-		for(const auto &i:IPAddresses) {
+		for (const auto &i : IPAddresses) {
 			Countries.add(FindCountryFromIP()->Get(i));
 		}
 		Answer.set("countryCodes", Countries);
@@ -28,4 +28,4 @@ namespace OpenWifi {
 		return ReturnObject(Answer);
 	}
 
-}
+} // namespace OpenWifi

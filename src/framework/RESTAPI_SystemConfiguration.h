@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "framework/RESTAPI_Handler.h"
 #include "framework/MicroServiceFuncs.h"
+#include "framework/RESTAPI_Handler.h"
 
 using namespace std::chrono_literals;
 
@@ -14,8 +14,8 @@ namespace OpenWifi {
 	class RESTAPI_system_configuration : public RESTAPIHandler {
 	  public:
 		RESTAPI_system_configuration(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L,
-									 RESTAPI_GenericServerAccounting &Server, uint64_t TransactionId,
-									 bool Internal)
+									 RESTAPI_GenericServerAccounting &Server,
+									 uint64_t TransactionId, bool Internal)
 			: RESTAPIHandler(bindings, L,
 							 std::vector<std::string>{Poco::Net::HTTPRequest::HTTP_PUT,
 													  Poco::Net::HTTPRequest::HTTP_GET,
@@ -27,21 +27,18 @@ namespace OpenWifi {
 
 		inline void DoPost() final {}
 
-		inline void DoGet() final {
+		inline void DoGet() final { return OK(); }
 
-			return OK();
-		}
-
-		inline void DoPut() final{
-			if(UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+		inline void DoPut() final {
+			if (UserInfo_.userinfo.userRole != SecurityObjects::ROOT) {
 				return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 			}
 
 			return OK();
 		};
 
-		inline void DoDelete() final{
-			if(UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+		inline void DoDelete() final {
+			if (UserInfo_.userinfo.userRole != SecurityObjects::ROOT) {
 				return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 			}
 			MicroServiceDeleteOverrideConfiguration();
@@ -49,4 +46,4 @@ namespace OpenWifi {
 		};
 	};
 
-}
+} // namespace OpenWifi

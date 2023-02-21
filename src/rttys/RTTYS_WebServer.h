@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "Poco/Net/SocketReactor.h"
-#include "Poco/Net/WebSocket.h"
+#include "Poco/Logger.h"
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
-#include "Poco/Logger.h"
+#include "Poco/Net/SocketReactor.h"
+#include "Poco/Net/WebSocket.h"
 
 namespace OpenWifi {
 	class RTTYS_Client_WebSocketRequestHandler : public Poco::Net::HTTPRequestHandler {
@@ -19,20 +19,18 @@ namespace OpenWifi {
 						   Poco::Net::HTTPServerResponse &response) override;
 
 	  private:
-		Poco::Logger 				&Logger_;
+		Poco::Logger &Logger_;
 	};
 
 	class PageRequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit PageRequestHandler(Poco::Logger &L)
-			: Logger_(L) {
-		}
+		explicit PageRequestHandler(Poco::Logger &L) : Logger_(L) {}
 
 		void handleRequest(Poco::Net::HTTPServerRequest &request,
 						   Poco::Net::HTTPServerResponse &response) override;
 
 	  private:
-		Poco::Logger & Logger_;
+		Poco::Logger &Logger_;
 		inline Poco::Logger &Logger() { return Logger_; }
 	};
 
@@ -44,6 +42,6 @@ namespace OpenWifi {
 		createRequestHandler(const Poco::Net::HTTPServerRequest &request) override;
 
 	  private:
-		Poco::Logger 				&Logger_;
+		Poco::Logger &Logger_;
 	};
-}
+} // namespace OpenWifi

@@ -11,16 +11,12 @@
 
 namespace OpenWifi {
 
-	const static std::string DB_HealthCheckSelectFields{"SerialNumber, UUID, Data, Sanity, Recorded"};
+	const static std::string DB_HealthCheckSelectFields{
+		"SerialNumber, UUID, Data, Sanity, Recorded"};
 	const static std::string DB_HealthCheckInsertValues{"?,?,?,?,?"};
 
-	typedef Poco::Tuple<
-		std::string,
-		uint64_t,
-		std::string,
-		uint64_t,
-		uint64_t
-	> HealthCheckRecordTuple;
+	typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t>
+		HealthCheckRecordTuple;
 	typedef std::vector<HealthCheckRecordTuple> HealthCheckRecordList;
 
 	void ConvertHealthCheckRecord(const HealthCheckRecordTuple &R, GWObjects::HealthCheck &H) {
@@ -42,29 +38,25 @@ namespace OpenWifi {
 	bool Storage::AddHealthCheckData(const GWObjects::HealthCheck &Check) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-			Poco::Data::Statement   Insert(Sess);
+			Poco::Data::Statement Insert(Sess);
 
-			std::string St{"INSERT INTO HealthChecks ( " +
-				DB_HealthCheckSelectFields +
-				" ) VALUES( " +
-				DB_HealthCheckInsertValues +
-				" )"};
+			std::string St{"INSERT INTO HealthChecks ( " + DB_HealthCheckSelectFields +
+						   " ) VALUES( " + DB_HealthCheckInsertValues + " )"};
 
-			HealthCheckRecordTuple 		R;
+			HealthCheckRecordTuple R;
 			ConvertHealthCheckRecord(Check, R);
-			Insert  << 	ConvertParams(St),
-				Poco::Data::Keywords::use(R);
+			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
 			return true;
-		}
-		catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-	bool Storage::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
-									 uint64_t HowMany,
+	bool Storage::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
+									 uint64_t Offset, uint64_t HowMany,
 									 std::vector<GWObjects::HealthCheck> &Checks) {
 		try {
 			HealthCheckRecordList Records;
@@ -74,68 +66,72 @@ namespace OpenWifi {
 
 			std::string Prefix{"SELECT " + DB_HealthCheckSelectFields + " FROM HealthChecks "};
 			std::string Statement = SerialNumber.empty()
-									? Prefix + std::string(DatesIncluded ? "WHERE " : "")
-									: Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
-									  std::string(DatesIncluded ? " AND " : "");
+										? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+										: Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+											  std::string(DatesIncluded ? " AND " : "");
 
 			std::string DateSelector;
 			if (FromDate && ToDate) {
-				DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
+				DateSelector = " Recorded>=" + std::to_string(FromDate) +
+							   " AND Recorded<=" + std::to_string(ToDate);
 			} else if (FromDate) {
 				DateSelector = " Recorded>=" + std::to_string(FromDate);
 			} else if (ToDate) {
 				DateSelector = " Recorded<=" + std::to_string(ToDate);
 			}
 
-			Poco::Data::Statement   Select(Sess);
+			Poco::Data::Statement Select(Sess);
 
-			Select << Statement + DateSelector + " ORDER BY Recorded ASC " + ComputeRange(Offset,HowMany),
+			Select << Statement + DateSelector + " ORDER BY Recorded ASC " +
+						  ComputeRange(Offset, HowMany),
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
-			for (const auto &i: Records) {
+			for (const auto &i : Records) {
 				GWObjects::HealthCheck R;
-				ConvertHealthCheckRecord(i,R);
+				ConvertHealthCheckRecord(i, R);
 				Checks.push_back(R);
 			}
 			Select.reset(Sess);
 			return true;
-		}
-		catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-	bool Storage::GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::HealthCheck> &Checks) {
+	bool Storage::GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany,
+										   std::vector<GWObjects::HealthCheck> &Checks) {
 
 		try {
-			HealthCheckRecordList 	Records;
-			Poco::Data::Session 	Sess = Pool_->get();
-			Poco::Data::Statement   Select(Sess);
+			HealthCheckRecordList Records;
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Select(Sess);
 
-			std::string st{"SELECT " + DB_HealthCheckSelectFields + " FROM HealthChecks WHERE SerialNumber=? ORDER BY Recorded DESC "};
+			std::string st{"SELECT " + DB_HealthCheckSelectFields +
+						   " FROM HealthChecks WHERE SerialNumber=? ORDER BY Recorded DESC "};
 
-			Select << 	ConvertParams(st) + ComputeRange(0,HowMany),
-						Poco::Data::Keywords::into(Records),
-						Poco::Data::Keywords::use(SerialNumber);
+			Select << ConvertParams(st) + ComputeRange(0, HowMany),
+				Poco::Data::Keywords::into(Records), Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
-			for (const auto &i: Records) {
+			for (const auto &i : Records) {
 				GWObjects::HealthCheck R;
-				ConvertHealthCheckRecord(i,R);
+				ConvertHealthCheckRecord(i, R);
 				Checks.push_back(R);
 			}
 			Select.reset(Sess);
 			return true;
-		}
-		catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-	bool Storage::DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+	bool Storage::DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate,
+										uint64_t ToDate) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -143,29 +139,30 @@ namespace OpenWifi {
 
 			std::string Prefix{"DELETE FROM HealthChecks "};
 			std::string Statement = SerialNumber.empty()
-									? Prefix + std::string(DatesIncluded ? "WHERE " : "")
-									: Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
-									  std::string(DatesIncluded ? " AND " : "");
+										? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+										: Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+											  std::string(DatesIncluded ? " AND " : "");
 
 			std::string DateSelector;
 			if (FromDate && ToDate) {
-				DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
+				DateSelector = " Recorded>=" + std::to_string(FromDate) +
+							   " AND Recorded<=" + std::to_string(ToDate);
 			} else if (FromDate) {
 				DateSelector = " Recorded>=" + std::to_string(FromDate);
 			} else if (ToDate) {
 				DateSelector = " Recorded<=" + std::to_string(ToDate);
 			}
 
-			Poco::Data::Statement   Delete(Sess);
+			Poco::Data::Statement Delete(Sess);
 
 			Delete << Statement + DateSelector;
 
 			Delete.execute();
 
 			return true;
-		}
-		catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
@@ -176,14 +173,14 @@ namespace OpenWifi {
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St1{"delete from HealthChecks where recorded<?"};
-			Delete << ConvertParams(St1),
-				Poco::Data::Keywords::use(Date);
+			Delete << ConvertParams(St1), Poco::Data::Keywords::use(Date);
 			Delete.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-}
+} // namespace OpenWifi

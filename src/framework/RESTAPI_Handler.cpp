@@ -4,5 +4,4 @@
 
 #include "RESTAPI_Handler.h"
 
-namespace OpenWifi {
-} // namespace OpenWifi
+namespace OpenWifi {} // namespace OpenWifi

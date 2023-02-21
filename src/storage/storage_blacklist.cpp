@@ -6,9 +6,9 @@
 //	Arilia Wireless Inc.
 //
 
+#include "Poco/Data/RecordSet.h"
 #include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
-#include "Poco/Data/RecordSet.h"
 #include "fmt/format.h"
 
 namespace OpenWifi {
@@ -22,34 +22,31 @@ namespace OpenWifi {
 					")", Poco::Data::Keywords::now;
 	 */
 
-	const static std::string DB_BlackListDeviceSelectFields{	"SerialNumber,"
-																   "Reason, "
-																   "Created, "
-																   "Author "};
+	const static std::string DB_BlackListDeviceSelectFields{"SerialNumber,"
+															"Reason, "
+															"Created, "
+															"Author "};
 
-	const static std::string DB_BlackListDeviceUpdateFields{	"SerialNumber=?, "
-																   "Reason=?, "
-																   "Created=?, "
-																   "Author=? "};
+	const static std::string DB_BlackListDeviceUpdateFields{"SerialNumber=?, "
+															"Reason=?, "
+															"Created=?, "
+															"Author=? "};
 
 	const static std::string DB_BlackListDeviceInsertValues{" VALUES(?,?,?,?) "};
 
-	typedef Poco::Tuple<
-		std::string,
-		std::string,
-		uint64_t,
-		std::string
-	> BlackListDeviceRecordTuple;
+	typedef Poco::Tuple<std::string, std::string, uint64_t, std::string> BlackListDeviceRecordTuple;
 	typedef std::vector<BlackListDeviceRecordTuple> BlackListDeviceRecordList;
 
-	void ConvertBlackListDeviceRecord(const BlackListDeviceRecordTuple & R, GWObjects::BlackListedDevice &D) {
+	void ConvertBlackListDeviceRecord(const BlackListDeviceRecordTuple &R,
+									  GWObjects::BlackListedDevice &D) {
 		D.serialNumber = Poco::toLower(R.get<0>());
 		D.reason = R.get<1>();
 		D.created = R.get<2>();
 		D.author = R.get<3>();
 	}
 
-	void ConvertBlackListDeviceRecord(const GWObjects::BlackListedDevice &D, BlackListDeviceRecordTuple & R) {
+	void ConvertBlackListDeviceRecord(const GWObjects::BlackListedDevice &D,
+									  BlackListDeviceRecordTuple &R) {
 		R.set<0>(Poco::toLower(D.serialNumber));
 		R.set<1>(D.reason);
 		R.set<2>(D.created);
@@ -57,13 +54,13 @@ namespace OpenWifi {
 	}
 
 	struct DeviceDetails {
-		std::string 	reason;
-		std::string 	author;
-		std::uint64_t 	created;
+		std::string reason;
+		std::string author;
+		std::uint64_t created;
 	};
 
-	static std::map<std::string, DeviceDetails>	BlackListDevices;
-	static std::recursive_mutex					BlackListMutex;
+	static std::map<std::string, DeviceDetails> BlackListDevices;
+	static std::recursive_mutex BlackListMutex;
 
 	bool Storage::InitializeBlackListCache() {
 		try {
@@ -73,42 +70,46 @@ namespace OpenWifi {
 			Select << "SELECT SerialNumber, Reason, Author, Created FROM BlackList";
 			Select.execute();
 
-			Poco::Data::RecordSet   RSet(Select);
+			Poco::Data::RecordSet RSet(Select);
 
 			bool More = RSet.moveFirst();
-			while(More) {
+			while (More) {
 				auto SerialNumber = RSet[0].convert<std::string>();
-				auto Reason  = RSet[1].convert<std::string>();
-				auto Author  = RSet[2].convert<std::string>();
+				auto Reason = RSet[1].convert<std::string>();
+				auto Author = RSet[2].convert<std::string>();
 				auto Created = RSet[3].convert<std::uint64_t>();
-				BlackListDevices[SerialNumber] = DeviceDetails{ .reason = Reason, .author = Author, .created = Created };
+				BlackListDevices[SerialNumber] =
+					DeviceDetails{.reason = Reason, .author = Author, .created = Created};
 				More = RSet.moveNext();
 			}
 			return true;
-		} catch(const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-	bool Storage::AddBlackListDevice(GWObjects::BlackListedDevice &  Device) {
+	bool Storage::AddBlackListDevice(GWObjects::BlackListedDevice &Device) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Insert(Sess);
 
-			std::string St{"INSERT INTO BlackList (" + DB_BlackListDeviceSelectFields + ") " + DB_BlackListDeviceInsertValues };
+			std::string St{"INSERT INTO BlackList (" + DB_BlackListDeviceSelectFields + ") " +
+						   DB_BlackListDeviceInsertValues};
 
 			BlackListDeviceRecordTuple T;
-			ConvertBlackListDeviceRecord(Device,T);
-			Insert << ConvertParams(St),
-				Poco::Data::Keywords::use(T);
+			ConvertBlackListDeviceRecord(Device, T);
+			Insert << ConvertParams(St), Poco::Data::Keywords::use(T);
 			Insert.execute();
 
-			std::lock_guard	G(BlackListMutex);
-			BlackListDevices[Device.serialNumber] = DeviceDetails{ .reason = Device.reason, .author = Device.author, .created = Device.created };
+			std::lock_guard G(BlackListMutex);
+			BlackListDevices[Device.serialNumber] = DeviceDetails{
+				.reason = Device.reason, .author = Device.author, .created = Device.created};
 			return true;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
@@ -120,7 +121,8 @@ namespace OpenWifi {
 			}
 			return true;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
@@ -133,63 +135,68 @@ namespace OpenWifi {
 			std::string St{"DELETE FROM BlackList WHERE SerialNumber=?"};
 
 			Poco::toLowerInPlace(SerialNumber);
-			Delete << ConvertParams(St),
-				Poco::Data::Keywords::use(SerialNumber);
+			Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber);
 			Delete.execute();
 
-			std::lock_guard	G(BlackListMutex);
+			std::lock_guard G(BlackListMutex);
 			BlackListDevices.erase(SerialNumber);
 			return true;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-	bool Storage::GetBlackListDevice(std::string & SerialNumber, GWObjects::BlackListedDevice &Device) {
+	bool Storage::GetBlackListDevice(std::string &SerialNumber,
+									 GWObjects::BlackListedDevice &Device) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
 			Poco::toLowerInPlace(SerialNumber);
-			std::string st{"SELECT " + DB_BlackListDeviceSelectFields +  " FROM BlackList where SerialNumber=? "};
+			std::string st{"SELECT " + DB_BlackListDeviceSelectFields +
+						   " FROM BlackList where SerialNumber=? "};
 
-			BlackListDeviceRecordTuple	T;
-			Select << 	ConvertParams(st),
-						Poco::Data::Keywords::into(T),
-						Poco::Data::Keywords::use(SerialNumber);
+			BlackListDeviceRecordTuple T;
+			Select << ConvertParams(st), Poco::Data::Keywords::into(T),
+				Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
-			if(Select.rowsExtracted()==1)
-				ConvertBlackListDeviceRecord(T,Device);
+			if (Select.rowsExtracted() == 1)
+				ConvertBlackListDeviceRecord(T, Device);
 
-			return Select.rowsExtracted()==1;
+			return Select.rowsExtracted() == 1;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-	bool Storage::UpdateBlackListDevice(std::string & SerialNumber, GWObjects::BlackListedDevice & Device) {
+	bool Storage::UpdateBlackListDevice(std::string &SerialNumber,
+										GWObjects::BlackListedDevice &Device) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			std::string St{"UPDATE BlackList SET " + DB_BlackListDeviceUpdateFields + " where serialNumber=?" };
+			std::string St{"UPDATE BlackList SET " + DB_BlackListDeviceUpdateFields +
+						   " where serialNumber=?"};
 
 			BlackListDeviceRecordTuple T;
-			ConvertBlackListDeviceRecord(Device,T);
-			Update << ConvertParams(St),
-				Poco::Data::Keywords::use(T),
+			ConvertBlackListDeviceRecord(Device, T);
+			Update << ConvertParams(St), Poco::Data::Keywords::use(T),
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
 
-			std::lock_guard	G(BlackListMutex);
-			BlackListDevices[Device.serialNumber] = DeviceDetails{ .reason = Device.reason, .author = Device.author, .created = Device.created };
+			std::lock_guard G(BlackListMutex);
+			BlackListDevices[Device.serialNumber] = DeviceDetails{
+				.reason = Device.reason, .author = Device.author, .created = Device.created};
 
 			return true;
 
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
@@ -202,32 +209,35 @@ namespace OpenWifi {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			Select << "SELECT " + DB_BlackListDeviceSelectFields + " FROM BlackList ORDER BY SerialNumber ASC "
-						+ ComputeRange(Offset,HowMany),
+			Select << "SELECT " + DB_BlackListDeviceSelectFields +
+						  " FROM BlackList ORDER BY SerialNumber ASC " +
+						  ComputeRange(Offset, HowMany),
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
 			for (auto i : Records) {
 				GWObjects::BlackListedDevice R;
-				ConvertBlackListDeviceRecord(i,R);
+				ConvertBlackListDeviceRecord(i, R);
 				Devices.push_back(R);
 			}
 			return true;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
 	uint64_t Storage::GetBlackListDeviceCount() {
-		std::lock_guard	G(BlackListMutex);
+		std::lock_guard G(BlackListMutex);
 		return BlackListDevices.size();
 	}
 
-	bool Storage::IsBlackListed(const std::string &SerialNumber, std::string &reason, std::string &author, std::uint64_t &created) {
-		std::lock_guard	G(BlackListMutex);
+	bool Storage::IsBlackListed(const std::string &SerialNumber, std::string &reason,
+								std::string &author, std::uint64_t &created) {
+		std::lock_guard G(BlackListMutex);
 		auto DeviceHint = BlackListDevices.find(Poco::toLower(SerialNumber));
-		if(DeviceHint == end(BlackListDevices))
+		if (DeviceHint == end(BlackListDevices))
 			return false;
 		reason = DeviceHint->second.reason;
 		author = DeviceHint->second.author;
@@ -240,4 +250,4 @@ namespace OpenWifi {
 		auto DeviceHint = BlackListDevices.find(Poco::toLower(SerialNumber));
 		return DeviceHint != end(BlackListDevices);
 	}
-}
+} // namespace OpenWifi

@@ -5,7 +5,4 @@
 #include "framework/UI_WebSocketClientNotifications.h"
 #include "framework/UI_WebSocketClientServer.h"
 
-namespace OpenWifi {
-
-}
-
+namespace OpenWifi {}

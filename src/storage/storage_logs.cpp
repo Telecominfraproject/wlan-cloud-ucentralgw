@@ -10,21 +10,16 @@
 #include "fmt/format.h"
 
 namespace OpenWifi {
-	const static std::string DB_LogsSelectFields{"SerialNumber, Log, Data, Severity, Recorded, LogType, UUID"};
+	const static std::string DB_LogsSelectFields{
+		"SerialNumber, Log, Data, Severity, Recorded, LogType, UUID"};
 	const static std::string DB_LogsInsertValues{"?,?,?,?,?,?,?"};
 
-	typedef Poco::Tuple<
-		std::string,
-		std::string,
-		std::string,
-		uint64_t,
-		uint64_t,
-		uint64_t,
-		uint64_t
-	> DeviceLogsRecordTuple;
-	typedef std::vector<DeviceLogsRecordTuple >	DeviceLogsRecordList;
+	typedef Poco::Tuple<std::string, std::string, std::string, uint64_t, uint64_t, uint64_t,
+						uint64_t>
+		DeviceLogsRecordTuple;
+	typedef std::vector<DeviceLogsRecordTuple> DeviceLogsRecordList;
 
-	void ConvertLogsRecord( const DeviceLogsRecordTuple & R, GWObjects::DeviceLog & Log ) {
+	void ConvertLogsRecord(const DeviceLogsRecordTuple &R, GWObjects::DeviceLog &Log) {
 		Log.SerialNumber = R.get<0>();
 		Log.Log = R.get<1>();
 		Log.Data = R.get<2>();
@@ -34,7 +29,7 @@ namespace OpenWifi {
 		Log.UUID = R.get<6>();
 	}
 
-	void ConvertLogsRecord( const GWObjects::DeviceLog & Log , DeviceLogsRecordTuple & R ) {
+	void ConvertLogsRecord(const GWObjects::DeviceLog &Log, DeviceLogsRecordTuple &R) {
 		R.set<0>(Log.SerialNumber);
 		R.set<1>(Log.Log);
 		R.set<2>(Log.Data);
@@ -44,34 +39,31 @@ namespace OpenWifi {
 		R.set<6>(Log.UUID);
 	}
 
-	bool Storage::AddLog(const GWObjects::DeviceLog & Log) {
+	bool Storage::AddLog(const GWObjects::DeviceLog &Log) {
 		try {
 
-			Poco::Data::Session     Sess = Pool_->get();
-			Poco::Data::Statement   Insert(Sess);
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Insert(Sess);
 
-			std::string St{"INSERT INTO DeviceLogs (" +
-				DB_LogsSelectFields +
-				") values( " +
-				DB_LogsInsertValues + " )"};
+			std::string St{"INSERT INTO DeviceLogs (" + DB_LogsSelectFields + ") values( " +
+						   DB_LogsInsertValues + " )"};
 
-			DeviceLogsRecordTuple	R;
+			DeviceLogsRecordTuple R;
 			ConvertLogsRecord(Log, R);
 
-			Insert << ConvertParams(St) ,
-				Poco::Data::Keywords::use(R);
+			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
 			return true;
-		}
-		catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-	bool Storage::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
-							 uint64_t HowMany,
-							 std::vector<GWObjects::DeviceLog> &Stats, uint64_t Type ) {
+	bool Storage::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
+							 uint64_t Offset, uint64_t HowMany,
+							 std::vector<GWObjects::DeviceLog> &Stats, uint64_t Type) {
 		try {
 			DeviceLogsRecordList Records;
 			Poco::Data::Session Sess = Pool_->get();
@@ -81,13 +73,14 @@ namespace OpenWifi {
 
 			std::string Prefix{"SELECT " + DB_LogsSelectFields + " FROM DeviceLogs  "};
 			std::string Statement = SerialNumber.empty()
-									? Prefix + std::string(DatesIncluded ? "WHERE " : "")
-									: Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
-									  std::string(DatesIncluded ? " AND " : "") ;
+										? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+										: Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+											  std::string(DatesIncluded ? " AND " : "");
 
 			std::string DateSelector;
 			if (FromDate && ToDate) {
-				DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
+				DateSelector = " Recorded>=" + std::to_string(FromDate) +
+							   " AND Recorded<=" + std::to_string(ToDate);
 			} else if (FromDate) {
 				DateSelector = " Recorded>=" + std::to_string(FromDate);
 			} else if (ToDate) {
@@ -95,28 +88,30 @@ namespace OpenWifi {
 			}
 
 			std::string TypeSelector;
-			TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string(Type);
-			Poco::Data::Statement   Select(Sess);
+			TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=") + std::to_string(Type);
+			Poco::Data::Statement Select(Sess);
 
-			Select << Statement + DateSelector + TypeSelector + " ORDER BY Recorded DESC " + ComputeRange(Offset, HowMany),
+			Select << Statement + DateSelector + TypeSelector + " ORDER BY Recorded DESC " +
+						  ComputeRange(Offset, HowMany),
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
-			for (const auto &i: Records) {
+			for (const auto &i : Records) {
 				GWObjects::DeviceLog R;
-				ConvertLogsRecord(i,R);
+				ConvertLogsRecord(i, R);
 				Stats.push_back(R);
 			}
 			Select.reset(Sess);
 			return true;
-		}
-		catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-	bool Storage::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type) {
+	bool Storage::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
+								uint64_t Type) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -125,13 +120,14 @@ namespace OpenWifi {
 
 			std::string Prefix{"DELETE FROM DeviceLogs "};
 			std::string StatementStr = SerialNumber.empty()
-									   ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
-									   : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
-										 std::string(DatesIncluded ? " AND " : "");
+										   ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+										   : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+												 std::string(DatesIncluded ? " AND " : "");
 
 			std::string DateSelector;
 			if (FromDate && ToDate) {
-				DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
+				DateSelector = " Recorded>=" + std::to_string(FromDate) +
+							   " AND Recorded<=" + std::to_string(ToDate);
 			} else if (FromDate) {
 				DateSelector = " Recorded>=" + std::to_string(FromDate);
 			} else if (ToDate) {
@@ -139,46 +135,47 @@ namespace OpenWifi {
 			}
 
 			std::string TypeSelector;
-			TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string(Type);
+			TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=") + std::to_string(Type);
 
-			Poco::Data::Statement   Delete(Sess);
+			Poco::Data::Statement Delete(Sess);
 			Delete << StatementStr + DateSelector + TypeSelector;
 
 			Delete.execute();
 			Delete.reset(Sess);
 
 			return true;
-		}
-		catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-	bool Storage::GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::DeviceLog> &Stats, uint64_t Type) {
+	bool Storage::GetNewestLogData(std::string &SerialNumber, uint64_t HowMany,
+								   std::vector<GWObjects::DeviceLog> &Stats, uint64_t Type) {
 		try {
-			DeviceLogsRecordList 	Records;
-			Poco::Data::Session 	Sess = Pool_->get();
-			Poco::Data::Statement   Select(Sess);
+			DeviceLogsRecordList Records;
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Select(Sess);
 
-
-			std::string st{"SELECT " + DB_LogsSelectFields + " FROM DeviceLogs WHERE SerialNumber=? AND LogType=? ORDER BY Recorded DESC " + ComputeRange(0, HowMany)};
-			Select << 	ConvertParams(st),
-						Poco::Data::Keywords::into(Records),
-						Poco::Data::Keywords::use(SerialNumber),
-						Poco::Data::Keywords::use(Type);
+			std::string st{
+				"SELECT " + DB_LogsSelectFields +
+				" FROM DeviceLogs WHERE SerialNumber=? AND LogType=? ORDER BY Recorded DESC " +
+				ComputeRange(0, HowMany)};
+			Select << ConvertParams(st), Poco::Data::Keywords::into(Records),
+				Poco::Data::Keywords::use(SerialNumber), Poco::Data::Keywords::use(Type);
 			Select.execute();
 
-			for (const auto &i: Records) {
+			for (const auto &i : Records) {
 				GWObjects::DeviceLog R;
-				ConvertLogsRecord(i,R);
+				ConvertLogsRecord(i, R);
 				Stats.push_back(R);
 			}
 			Select.reset(Sess);
 			return true;
-		}
-		catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
@@ -193,10 +190,10 @@ namespace OpenWifi {
 			Delete.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
 		}
 		return false;
 	}
 
-}
-
+} // namespace OpenWifi

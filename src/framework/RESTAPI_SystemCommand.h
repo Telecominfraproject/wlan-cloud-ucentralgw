@@ -14,19 +14,19 @@ namespace OpenWifi {
 
 	class RESTAPI_system_command : public RESTAPIHandler {
 	  public:
-		RESTAPI_system_command(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServerAccounting & Server, uint64_t TransactionId, bool Internal)
+		RESTAPI_system_command(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L,
+							   RESTAPI_GenericServerAccounting &Server, uint64_t TransactionId,
+							   bool Internal)
 			: RESTAPIHandler(bindings, L,
 							 std::vector<std::string>{Poco::Net::HTTPRequest::HTTP_POST,
 													  Poco::Net::HTTPRequest::HTTP_GET,
 													  Poco::Net::HTTPRequest::HTTP_OPTIONS},
-							 Server,
-							 TransactionId,
-							 Internal) {}
-		static auto PathName() { return std::list<std::string>{"/api/v1/system"};}
+							 Server, TransactionId, Internal) {}
+		static auto PathName() { return std::list<std::string>{"/api/v1/system"}; }
 
 		inline void DoGet() {
 			std::string Arg;
-			if(HasParameter("command",Arg) && Arg=="info") {
+			if (HasParameter("command", Arg) && Arg == "info") {
 				Poco::JSON::Object Answer;
 				Answer.set(RESTAPI::Protocol::VERSION, MicroServiceVersion());
 				Answer.set(RESTAPI::Protocol::UPTIME, MicroServiceUptimeTotalSeconds());
@@ -36,19 +36,19 @@ namespace OpenWifi {
 				Answer.set(RESTAPI::Protocol::HOSTNAME, Poco::Environment::nodeName());
 				Answer.set(RESTAPI::Protocol::UI, MicroServiceGetUIURI());
 
-				Poco::JSON::Array   Certificates;
+				Poco::JSON::Array Certificates;
 				auto SubSystems = MicroServiceGetFullSubSystems();
-				std::set<std::string>   CertNames;
+				std::set<std::string> CertNames;
 
-				for(const auto &i:SubSystems) {
-					auto Hosts=i->HostSize();
-					for(uint64_t j=0;j<Hosts;++j) {
+				for (const auto &i : SubSystems) {
+					auto Hosts = i->HostSize();
+					for (uint64_t j = 0; j < Hosts; ++j) {
 						auto CertFileName = i->Host(j).CertFile();
-						if(!CertFileName.empty()) {
-							Poco::File  F1(CertFileName);
-							if(F1.exists()) {
+						if (!CertFileName.empty()) {
+							Poco::File F1(CertFileName);
+							if (F1.exists()) {
 								auto InsertResult = CertNames.insert(CertFileName);
-								if(InsertResult.second) {
+								if (InsertResult.second) {
 									Poco::JSON::Object Inner;
 									Poco::Path F(CertFileName);
 									Inner.set("filename", F.getFileName());
@@ -64,8 +64,8 @@ namespace OpenWifi {
 				Answer.set("certificates", Certificates);
 				return ReturnObject(Answer);
 			}
-			if(GetBoolParameter("extraConfiguration")) {
-				Poco::JSON::Object  Answer;
+			if (GetBoolParameter("extraConfiguration")) {
+				Poco::JSON::Object Answer;
 				MicroServiceGetExtraConfiguration(Answer);
 				return ReturnObject(Answer);
 			}
@@ -73,7 +73,7 @@ namespace OpenWifi {
 		}
 
 		inline void DoPost() final {
-			const auto & Obj = ParsedBody_;
+			const auto &Obj = ParsedBody_;
 			if (Obj->has(RESTAPI::Protocol::COMMAND)) {
 				auto Command = Poco::toLower(Obj->get(RESTAPI::Protocol::COMMAND).toString());
 				if (Command == RESTAPI::Protocol::SETLOGLEVEL) {
@@ -88,7 +88,8 @@ namespace OpenWifi {
 								auto Name = GetS(RESTAPI::Protocol::TAG, InnerObj);
 								auto Value = GetS(RESTAPI::Protocol::VALUE, InnerObj);
 								MicroServiceSetSubsystemLogLevel(Name, Value);
-								poco_information(Logger_,
+								poco_information(
+									Logger_,
 									fmt::format("Setting log level for {} at {}", Name, Value));
 							}
 						}
@@ -109,7 +110,7 @@ namespace OpenWifi {
 				} else if (Command == RESTAPI::Protocol::GETLOGLEVELNAMES) {
 					Poco::JSON::Object Result;
 					Poco::JSON::Array LevelNamesArray;
-					const Types::StringVec &LevelNames =  MicroServiceGetLogLevelNames();
+					const Types::StringVec &LevelNames = MicroServiceGetLogLevelNames();
 					for (const auto &i : LevelNames)
 						LevelNamesArray.add(i);
 					Result.set(RESTAPI::Protocol::LIST, LevelNamesArray);
@@ -117,7 +118,7 @@ namespace OpenWifi {
 				} else if (Command == RESTAPI::Protocol::GETSUBSYSTEMNAMES) {
 					Poco::JSON::Object Result;
 					Poco::JSON::Array LevelNamesArray;
-					const Types::StringVec &SubSystemNames =  MicroServiceGetSubSystems();
+					const Types::StringVec &SubSystemNames = MicroServiceGetSubSystems();
 					for (const auto &i : SubSystemNames)
 						LevelNamesArray.add(i);
 					Result.set(RESTAPI::Protocol::LIST, LevelNamesArray);
@@ -131,10 +132,10 @@ namespace OpenWifi {
 						std::vector<std::string> Names;
 						for (const auto &i : *SubSystems)
 							Names.push_back(i.toString());
-						std::thread	ReloadThread([Names](){
+						std::thread ReloadThread([Names]() {
 							std::this_thread::sleep_for(10000ms);
-							for(const auto &i:Names) {
-								if(i=="daemon")
+							for (const auto &i : Names) {
+								if (i == "daemon")
 									MicroServiceReload();
 								else
 									MicroServiceReload(i);
@@ -150,8 +151,8 @@ namespace OpenWifi {
 			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
-		void DoPut() final {};
-		void DoDelete() final {};
+		void DoPut() final{};
+		void DoDelete() final{};
 	};
 
-}
+} // namespace OpenWifi

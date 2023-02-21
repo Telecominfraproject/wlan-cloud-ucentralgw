@@ -8,71 +8,52 @@
 
 #include <fstream>
 
-#include "Poco/File.h"
 #include "Poco/Data/LOBStream.h"
 #include "Poco/Data/RecordSet.h"
+#include "Poco/File.h"
 
-#include "Daemon.h"
 #include "AP_WS_Server.h"
-#include "StorageService.h"
-#include "FileUploader.h"
-#include "framework/utils.h"
 #include "CommandManager.h"
+#include "Daemon.h"
+#include "FileUploader.h"
+#include "StorageService.h"
+#include "framework/utils.h"
 
 namespace OpenWifi {
 
-const static std::string	DB_Command_SelectFields{
-				"UUID, "
-				"SerialNumber, "
-				"Command, "
-				"Status, "
-				"SubmittedBy, "
-				"Results, "
-				"Details, "
-				"ErrorText, "
-				"Submitted, "
-				"Executed, "
-				"Completed, "
-				"RunAt, "
-				"ErrorCode, "
-				"Custom, "
-				"WaitingForFile, "
-				"AttachDate, "
-				"AttachSize, "
-				"AttachType,"
-				"executionTime, "
-				"LastTry, "
-				"deferred "
-};
+	const static std::string DB_Command_SelectFields{"UUID, "
+													 "SerialNumber, "
+													 "Command, "
+													 "Status, "
+													 "SubmittedBy, "
+													 "Results, "
+													 "Details, "
+													 "ErrorText, "
+													 "Submitted, "
+													 "Executed, "
+													 "Completed, "
+													 "RunAt, "
+													 "ErrorCode, "
+													 "Custom, "
+													 "WaitingForFile, "
+													 "AttachDate, "
+													 "AttachSize, "
+													 "AttachType,"
+													 "executionTime, "
+													 "LastTry, "
+													 "deferred "};
 
-const static std::string 	DB_Command_InsertValues{"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"};
+	const static std::string DB_Command_InsertValues{"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"};
 
-typedef Poco::Tuple<
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			std::string,
-			double,
-			uint64_t,
-			bool
-		> CommandDetailsRecordTuple;
+	typedef Poco::Tuple<std::string, std::string, std::string, std::string, std::string,
+						std::string, std::string, std::string, uint64_t, uint64_t, uint64_t,
+						uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, std::string,
+						double, uint64_t, bool>
+		CommandDetailsRecordTuple;
 	typedef std::vector<CommandDetailsRecordTuple> CommandDetailsRecordList;
 
-	void ConvertCommandRecord(const CommandDetailsRecordTuple &R, GWObjects::CommandDetails & Command) {
+	void ConvertCommandRecord(const CommandDetailsRecordTuple &R,
+							  GWObjects::CommandDetails &Command) {
 		Command.UUID = R.get<0>();
 		Command.SerialNumber = R.get<1>();
 		Command.Command = R.get<2>();
@@ -96,7 +77,8 @@ typedef Poco::Tuple<
 		Command.deferred = R.get<20>();
 	}
 
-	void ConvertCommandRecord(const GWObjects::CommandDetails & Command, CommandDetailsRecordTuple &R) {
+	void ConvertCommandRecord(const GWObjects::CommandDetails &Command,
+							  CommandDetailsRecordTuple &R) {
 		R.set<0>(Command.UUID);
 		R.set<1>(Command.SerialNumber);
 		R.set<2>(Command.Command);
@@ -120,36 +102,36 @@ typedef Poco::Tuple<
 		R.set<20>(Command.deferred);
 	}
 
-	bool Storage::RemoveOldCommands(std::string & SerialNumber, std::string & Command) {
+	bool Storage::RemoveOldCommands(std::string &SerialNumber, std::string &Command) {
 		try {
-			Poco::Data::Session 	Sess = Pool_->get();
-			Poco::Data::Statement 	Delete(Sess);
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Delete(Sess);
 
-			std::string St{"delete from CommandList where SerialNumber=? and command=? and completed=0"};
-			Delete << ConvertParams(St),
-				Poco::Data::Keywords::use(SerialNumber),
+			std::string St{
+				"delete from CommandList where SerialNumber=? and command=? and completed=0"};
+			Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber),
 				Poco::Data::Keywords::use(Command);
 			Delete.execute();
 			Delete.reset(Sess);
 
 			return true;
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return false;
 	}
 
-	bool Storage::AddCommand(std::string &SerialNumber, GWObjects::CommandDetails &Command, CommandExecutionType Type) {
+	bool Storage::AddCommand(std::string &SerialNumber, GWObjects::CommandDetails &Command,
+							 CommandExecutionType Type) {
 		try {
 			auto Now = Utils::Now();
 
 			Command.Status = to_string(Type);
-			if(	Type==CommandExecutionType::COMMAND_COMPLETED	||
-				Type==CommandExecutionType::COMMAND_TIMEDOUT	||
-				Type==CommandExecutionType::COMMAND_FAILED		||
-				Type==CommandExecutionType::COMMAND_EXPIRED		||
-				Type==CommandExecutionType::COMMAND_EXECUTED
-				) {
+			if (Type == CommandExecutionType::COMMAND_COMPLETED ||
+				Type == CommandExecutionType::COMMAND_TIMEDOUT ||
+				Type == CommandExecutionType::COMMAND_FAILED ||
+				Type == CommandExecutionType::COMMAND_EXPIRED ||
+				Type == CommandExecutionType::COMMAND_EXECUTED) {
 				Command.Executed = Now;
 			}
 
@@ -158,15 +140,13 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Insert(Sess);
 
-			std::string St{"INSERT INTO CommandList ( " +
-						   DB_Command_SelectFields + " ) VALUES( " +
+			std::string St{"INSERT INTO CommandList ( " + DB_Command_SelectFields + " ) VALUES( " +
 						   DB_Command_InsertValues + " )"};
 
 			CommandDetailsRecordTuple R;
 			ConvertCommandRecord(Command, R);
 
-			Insert << ConvertParams(St),
-				Poco::Data::Keywords::use(R);
+			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
 
 			return true;
@@ -186,13 +166,12 @@ typedef Poco::Tuple<
 
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-			std::string Fields{
-				"SELECT " + DB_Command_SelectFields + " FROM CommandList " };
+			std::string Fields{"SELECT " + DB_Command_SelectFields + " FROM CommandList "};
 
 			std::string IntroStatement = SerialNumber.empty()
 											 ? Fields + std::string(DatesIncluded ? "WHERE " : "")
-											 : Fields + "WHERE SerialNumber='" + SerialNumber + "'" +
-												   std::string(DatesIncluded ? " AND " : "");
+											 : Fields + "WHERE SerialNumber='" + SerialNumber +
+												   "'" + std::string(DatesIncluded ? " AND " : "");
 
 			std::string DateSelector;
 			if (FromDate && ToDate) {
@@ -206,11 +185,10 @@ typedef Poco::Tuple<
 
 			Poco::Data::Statement Select(Sess);
 
-			std::string FullQuery = IntroStatement + DateSelector +
-					" ORDER BY Submitted ASC " + ComputeRange(Offset, HowMany);
+			std::string FullQuery = IntroStatement + DateSelector + " ORDER BY Submitted ASC " +
+									ComputeRange(Offset, HowMany);
 
-			Select << 	FullQuery,
-				Poco::Data::Keywords::into(Records);
+			Select << FullQuery, Poco::Data::Keywords::into(Records);
 			Select.execute();
 			for (const auto &i : Records) {
 				GWObjects::CommandDetails R;
@@ -270,17 +248,16 @@ typedef Poco::Tuple<
 			bool Done = false;
 
 			while (Commands.size() < HowMany && !Done) {
-				std::string st{	"SELECT " +
-								   DB_Command_SelectFields +
-								   " FROM CommandList ORDER BY UUID ASC WHERE Executed=0" };
-				Select << 	ConvertParams(st) + ComputeRange(Offset, HowMany),
-							Poco::Data::Keywords::into(Records);
+				std::string st{"SELECT " + DB_Command_SelectFields +
+							   " FROM CommandList ORDER BY UUID ASC WHERE Executed=0"};
+				Select << ConvertParams(st) + ComputeRange(Offset, HowMany),
+					Poco::Data::Keywords::into(Records);
 				Select.execute();
 
 				for (const auto &i : Records) {
 					Offset++;
 					GWObjects::CommandDetails R;
-					ConvertCommandRecord(i,R);
+					ConvertCommandRecord(i, R);
 					if (AP_WS_Server()->Connected(Utils::SerialNumberToInt(R.SerialNumber)))
 						Commands.push_back(R);
 				}
@@ -303,7 +280,8 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			std::string St{"UPDATE CommandList SET Status=?,  Executed=?,  Completed=?,  Results=?,  ErrorText=?,  ErrorCode=?  WHERE UUID=?"};
+			std::string St{"UPDATE CommandList SET Status=?,  Executed=?,  Completed=?,  "
+						   "Results=?,  ErrorText=?,  ErrorCode=?  WHERE UUID=?"};
 
 			Update << ConvertParams(St), Poco::Data::Keywords::use(Command.Status),
 				Poco::Data::Keywords::use(Command.Executed),
@@ -332,10 +310,8 @@ typedef Poco::Tuple<
 
 			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE UUID=?"};
 
-			Update << ConvertParams(St),
-				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(Status),
-				Poco::Data::Keywords::use( CommandUUID);
+			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Status), Poco::Data::Keywords::use(CommandUUID);
 			Update.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -349,14 +325,13 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			auto Now = Utils::Now(), Window = Now-CommandManager()->CommandTimeout();
+			auto Now = Utils::Now(), Window = Now - CommandManager()->CommandTimeout();
 			auto Status = to_string(Storage::CommandExecutionType::COMMAND_EXPIRED);
 
-			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE submitted<? and executed=0"};
-			Update << ConvertParams(St),
-				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(Status),
-				Poco::Data::Keywords::use(Window);
+			std::string St{
+				"UPDATE CommandList SET Executed=?, Status=? WHERE submitted<? and executed=0"};
+			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Status), Poco::Data::Keywords::use(Window);
 			Update.execute();
 			Update.reset(Sess);
 
@@ -373,8 +348,7 @@ typedef Poco::Tuple<
 			auto Now = Utils::Now();
 			std::string St{"UPDATE CommandList SET LastTry=? WHERE UUID=?"};
 
-			Update << ConvertParams(St),
-				Poco::Data::Keywords::use(Now),
+			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(CommandUUID);
 			Update.execute();
 			return true;
@@ -389,10 +363,10 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			auto Now = Utils::Now(), Window = Now-CommandManager()->CommandTimeout();
-			std::string St{"UPDATE CommandList SET Executed=?, Status='timedout' WHERE Submitted<? and completed=0"};
-			Update << ConvertParams(St),
-				Poco::Data::Keywords::use(Now),
+			auto Now = Utils::Now(), Window = Now - CommandManager()->CommandTimeout();
+			std::string St{"UPDATE CommandList SET Executed=?, Status='timedout' WHERE Submitted<? "
+						   "and completed=0"};
+			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(Window);
 			Update.execute();
 			Update.reset(Sess);
@@ -410,10 +384,8 @@ typedef Poco::Tuple<
 			auto Status = to_string(Storage::CommandExecutionType::COMMAND_TIMEDOUT);
 			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE UUID=?"};
 
-			Update << ConvertParams(St),
-				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(Status),
-				Poco::Data::Keywords::use(CommandUUID);
+			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Status), Poco::Data::Keywords::use(CommandUUID);
 			Update.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -428,16 +400,12 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			std::string St{
-				"SELECT " +
-				DB_Command_SelectFields +
-				" FROM CommandList WHERE UUID=?"};
+			std::string St{"SELECT " + DB_Command_SelectFields + " FROM CommandList WHERE UUID=?"};
 			auto tmp_uuid = UUID;
 			CommandDetailsRecordTuple R;
-			Select << ConvertParams(St),
-				Poco::Data::Keywords::into(R),
+			Select << ConvertParams(St), Poco::Data::Keywords::into(R),
 				Poco::Data::Keywords::use(tmp_uuid);
-			ConvertCommandRecord(R,Command);
+			ConvertCommandRecord(R, Command);
 			Select.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -468,24 +436,24 @@ typedef Poco::Tuple<
 		return false;
 	}
 
-	bool Storage::GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::CommandDetails> &Commands) {
+	bool Storage::GetNewestCommands(std::string &SerialNumber, uint64_t HowMany,
+									std::vector<GWObjects::CommandDetails> &Commands) {
 		try {
 			CommandDetailsRecordList Records;
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			std::string st{"SELECT " +
-							   DB_Command_SelectFields +
-							   " FROM CommandList WHERE SerialNumber=? ORDER BY Submitted DESC " + ComputeRange(0, HowMany)};
-			Select << 	ConvertParams(st),
-						Poco::Data::Keywords::into(Records),
-						Poco::Data::Keywords::use(SerialNumber);
+			std::string st{"SELECT " + DB_Command_SelectFields +
+						   " FROM CommandList WHERE SerialNumber=? ORDER BY Submitted DESC " +
+						   ComputeRange(0, HowMany)};
+			Select << ConvertParams(st), Poco::Data::Keywords::into(Records),
+				Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
 			for (auto i : Records) {
 				GWObjects::CommandDetails R;
-				ConvertCommandRecord(i,R);
+				ConvertCommandRecord(i, R);
 				Commands.push_back(R);
 			}
 			Select.reset(Sess);
@@ -504,22 +472,21 @@ typedef Poco::Tuple<
 			Poco::Data::Statement Select(Sess);
 
 			auto Now = Utils::Now();
-			std::string St{
-				"SELECT " +
-				DB_Command_SelectFields
-				+ " FROM CommandList "
-				" WHERE ((RunAt<=?) And (Executed=0) And (LastTry=0 or (" + std::to_string(Now) + "-LastTry)>" + std::to_string(CommandManager()->CommandRetry())+ ")) ORDER BY Submitted ASC "};
+			std::string St{"SELECT " + DB_Command_SelectFields +
+						   " FROM CommandList "
+						   " WHERE ((RunAt<=?) And (Executed=0) And (LastTry=0 or (" +
+						   std::to_string(Now) + "-LastTry)>" +
+						   std::to_string(CommandManager()->CommandRetry()) +
+						   ")) ORDER BY Submitted ASC "};
 			CommandDetailsRecordList Records;
 
 			std::string SS = ConvertParams(St) + ComputeRange(Offset, HowMany);
-			Select << SS,
-				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::use(Now);
+			Select << SS, Poco::Data::Keywords::into(Records), Poco::Data::Keywords::use(Now);
 			Select.execute();
 
-			for(const auto &i : Records) {
+			for (const auto &i : Records) {
 				GWObjects::CommandDetails R;
-				ConvertCommandRecord(i,R);
+				ConvertCommandRecord(i, R);
 				if (AP_WS_Server()->Connected(Utils::SerialNumberToInt(R.SerialNumber)))
 					Commands.push_back(R);
 			}
@@ -552,7 +519,7 @@ typedef Poco::Tuple<
 	}
 
 	bool Storage::CommandCompleted(std::string &UUID, Poco::JSON::Object::Ptr ReturnVars,
-								   const std::chrono::duration<double, std::milli> & execution_time,
+								   const std::chrono::duration<double, std::milli> &execution_time,
 								   bool FullCommand) {
 		try {
 
@@ -583,16 +550,13 @@ typedef Poco::Tuple<
 			Poco::Data::Statement Update(Sess);
 
 			auto Status = to_string(Storage::CommandExecutionType::COMMAND_COMPLETED);
-			std::string St{"UPDATE CommandList SET Completed=?, ErrorCode=?, ErrorText=?, Results=?, Status=?, executionTime=? WHERE UUID=?"};
+			std::string St{"UPDATE CommandList SET Completed=?, ErrorCode=?, ErrorText=?, "
+						   "Results=?, Status=?, executionTime=? WHERE UUID=?"};
 			double tET{execution_time.count()};
-			Update << ConvertParams(St),
-				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(ErrorCode),
-				Poco::Data::Keywords::use(ErrorText),
-				Poco::Data::Keywords::use(ResultStr),
-				Poco::Data::Keywords::use(Status),
-				Poco::Data::Keywords::use(tET),
-				Poco::Data::Keywords::use(UUID);
+			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(ErrorCode), Poco::Data::Keywords::use(ErrorText),
+				Poco::Data::Keywords::use(ResultStr), Poco::Data::Keywords::use(Status),
+				Poco::Data::Keywords::use(tET), Poco::Data::Keywords::use(UUID);
 			Update.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -602,16 +566,15 @@ typedef Poco::Tuple<
 	}
 
 	/*
-	bool Storage::SetCommandStatus(std::string & CommandUUID, std::uint64_t Error, const char *ErrorText) {
-		try {
-			Poco::Data::Session Sess = Pool_->get();
-			auto Now = Utils::Now();
-			uint64_t Size = 0, WaitForFile = 0;
+	bool Storage::SetCommandStatus(std::string & CommandUUID, std::uint64_t Error, const char
+	*ErrorText) { try { Poco::Data::Session Sess = Pool_->get(); auto Now = Utils::Now(); uint64_t
+	Size = 0, WaitForFile = 0;
 
 			Poco::Data::Statement Update(Sess);
 
 			std::string St{
-				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=?, ErrorText=?, Completed=?  WHERE UUID=?"};
+				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=?, ErrorText=?,
+	Completed=?  WHERE UUID=?"};
 
 			Update << ConvertParams(St),
 				Poco::Data::Keywords::use(WaitForFile),
@@ -629,7 +592,7 @@ typedef Poco::Tuple<
 	}
 */
 
-	bool Storage::CancelWaitFile( std::string & UUID, std::string & ErrorText ) {
+	bool Storage::CancelWaitFile(std::string &UUID, std::string &ErrorText) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			auto Now = Utils::Now();
@@ -637,15 +600,12 @@ typedef Poco::Tuple<
 
 			Poco::Data::Statement Update(Sess);
 
-			std::string St{
-				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=?, ErrorText=?, Completed=?  WHERE UUID=?"};
+			std::string St{"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=?, "
+						   "ErrorText=?, Completed=?  WHERE UUID=?"};
 
-			Update << ConvertParams(St),
-				Poco::Data::Keywords::use(WaitForFile),
-				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(Size),
-				Poco::Data::Keywords::use(ErrorText),
-				Poco::Data::Keywords::use(Now),
+			Update << ConvertParams(St), Poco::Data::Keywords::use(WaitForFile),
+				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(Size),
+				Poco::Data::Keywords::use(ErrorText), Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
 			return true;
@@ -655,7 +615,8 @@ typedef Poco::Tuple<
 		return false;
 	}
 
-	bool Storage::AttachFileDataToCommand(std::string & UUID, const std::stringstream & FileContent, const std::string &Type) {
+	bool Storage::AttachFileDataToCommand(std::string &UUID, const std::stringstream &FileContent,
+										  const std::string &Type) {
 		try {
 			auto Now = Utils::Now();
 			uint64_t WaitForFile = 0;
@@ -668,21 +629,20 @@ typedef Poco::Tuple<
 
 			//	Get the existing command
 
+			StatementStr =
+				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?";
 
-			StatementStr = "UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?";
-
-			Statement << ConvertParams(StatementStr),
-				Poco::Data::Keywords::use(WaitForFile),
-				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(Size),
+			Statement << ConvertParams(StatementStr), Poco::Data::Keywords::use(WaitForFile),
+				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(Size),
 				Poco::Data::Keywords::use(UUID);
 			Statement.execute();
 
 			if (Size < FileUploader()->MaxSize()) {
 
-				Poco::Data::BLOB 		TheBlob;
+				Poco::Data::BLOB TheBlob;
 
-				TheBlob.appendRaw((const unsigned char *)FileContent.str().c_str(),FileContent.str().size());
+				TheBlob.appendRaw((const unsigned char *)FileContent.str().c_str(),
+								  FileContent.str().size());
 
 				Poco::Data::Statement Insert(Sess);
 				std::string FileType{Type};
@@ -691,13 +651,12 @@ typedef Poco::Tuple<
 					"INSERT INTO FileUploads (UUID,Type,Created,FileContent) VALUES(?,?,?,?)"};
 
 				Insert << ConvertParams(St2), Poco::Data::Keywords::use(UUID),
-					Poco::Data::Keywords::use(FileType),
-					Poco::Data::Keywords::use(Now),
+					Poco::Data::Keywords::use(FileType), Poco::Data::Keywords::use(Now),
 					Poco::Data::Keywords::use(TheBlob);
 				Insert.execute();
 				return true;
 			} else {
-				poco_warning(Logger(),fmt::format("File {} is too large.", UUID));
+				poco_warning(Logger(), fmt::format("File {} is too large.", UUID));
 			}
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -705,7 +664,8 @@ typedef Poco::Tuple<
 		return false;
 	}
 
-	bool Storage::GetAttachedFileContent(std::string &UUID, const std::string & SerialNumber, std::string &FileContent, std::string &Type) {
+	bool Storage::GetAttachedFileContent(std::string &UUID, const std::string &SerialNumber,
+										 std::string &FileContent, std::string &Type) {
 		try {
 			Poco::Data::BLOB L;
 			/*
@@ -720,28 +680,24 @@ typedef Poco::Tuple<
 			std::string TmpSerialNumber;
 			std::string st1{"SELECT SerialNumber, Command FROM CommandList WHERE UUID=?"};
 			std::string Command;
-			Select1	<< 	ConvertParams(st1),
-				Poco::Data::Keywords::into(TmpSerialNumber),
-				Poco::Data::Keywords::into(Command),
-				Poco::Data::Keywords::use(UUID);
+			Select1 << ConvertParams(st1), Poco::Data::Keywords::into(TmpSerialNumber),
+				Poco::Data::Keywords::into(Command), Poco::Data::Keywords::use(UUID);
 			Select1.execute();
 
-			if(TmpSerialNumber!=SerialNumber) {
+			if (TmpSerialNumber != SerialNumber) {
 				return false;
 			}
 
 			std::string St2{"SELECT FileContent, Type FROM FileUploads WHERE UUID=?"};
 			Poco::Data::Statement Select2(Sess);
-			Select2 << ConvertParams(St2),
-				Poco::Data::Keywords::into(L),
-				Poco::Data::Keywords::into(Type),
-				Poco::Data::Keywords::use(UUID);
+			Select2 << ConvertParams(St2), Poco::Data::Keywords::into(L),
+				Poco::Data::Keywords::into(Type), Poco::Data::Keywords::use(UUID);
 			Select2.execute();
-			FileContent.assign(L.content().begin(),L.content().end());
+			FileContent.assign(L.content().begin(), L.content().end());
 
-			if(Command=="script")
+			if (Command == "script")
 				Type = "gzip";
-			else if(Command=="trace")
+			else if (Command == "trace")
 				Type = "pcap";
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -759,10 +715,8 @@ typedef Poco::Tuple<
 			auto Status = to_string(Storage::CommandExecutionType::COMMAND_COMPLETED);
 			std::string St{"UPDATE CommandList SET Completed=?, Results=?, Status=? WHERE UUID=?"};
 
-			Update << ConvertParams(St),
-				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(Result),
-				Poco::Data::Keywords::use(Status),
+			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Result), Poco::Data::Keywords::use(Status),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
 			return true;
@@ -823,26 +777,26 @@ typedef Poco::Tuple<
 
 	bool Storage::AnalyzeCommands(Types::CountedMap &R) {
 		try {
-			Poco::Data::Session     Sess = Pool_->get();
-			Poco::Data::Statement   Select(Sess);
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Select(Sess);
 
 			Select << "SELECT Command from CommandList";
 			Select.execute();
 
-			Poco::Data::RecordSet   RSet(Select);
+			Poco::Data::RecordSet RSet(Select);
 
 			bool More = RSet.moveFirst();
-			while(More) {
+			while (More) {
 				auto Command = RSet[0].convert<std::string>();
-				if(!Command.empty())
-					UpdateCountedMap(R,Command);
+				if (!Command.empty())
+					UpdateCountedMap(R, Command);
 				More = RSet.moveNext();
 			}
 			return true;
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return false;
 	}
 
-}
+} // namespace OpenWifi

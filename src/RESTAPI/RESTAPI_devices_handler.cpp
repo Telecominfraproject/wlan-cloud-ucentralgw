@@ -9,47 +9,46 @@
 #include "Poco/Array.h"
 #include "Poco/JSON/Stringifier.h"
 
+#include "AP_WS_Server.h"
+#include "Poco/StringTokenizer.h"
+#include "RESTAPI/RESTAPI_device_helper.h"
 #include "RESTAPI_devices_handler.h"
 #include "StorageService.h"
-#include "framework/ow_constants.h"
-#include "RESTAPI/RESTAPI_device_helper.h"
-#include "Poco/StringTokenizer.h"
 #include "framework/orm.h"
-#include "AP_WS_Server.h"
+#include "framework/ow_constants.h"
 
 namespace OpenWifi {
 
-
 	bool PrepareOrderBy(const std::string &OrderByListRaw, std::string &OrderByString) {
 		auto OrderByList = ORM::Escape(OrderByListRaw);
-		auto items = Poco::StringTokenizer(OrderByList,",");
+		auto items = Poco::StringTokenizer(OrderByList, ",");
 		std::string ItemList;
 
 		Types::StringVec Fields;
 		Storage::GetDeviceDbFieldList(Fields);
 
 		std::set<std::string> FieldNames;
-		for(const auto &field:Fields)
+		for (const auto &field : Fields)
 			FieldNames.insert(Poco::toLower(field));
 
-		for(const auto &i:items) {
-			auto T = Poco::StringTokenizer(i,":");
-			if(T.count()!=2) {
+		for (const auto &i : items) {
+			auto T = Poco::StringTokenizer(i, ":");
+			if (T.count() != 2) {
 				return false;
 			}
-			if(T[1]!="a" && T[1]!="d") {
+			if (T[1] != "a" && T[1] != "d") {
 				return false;
 			}
-			if(!ItemList.empty())
+			if (!ItemList.empty())
 				ItemList += " , ";
 			auto hint = FieldNames.find(Poco::toLower(T[0]));
-			if(hint==FieldNames.end()) {
+			if (hint == FieldNames.end()) {
 				return false;
 			}
-			ItemList += T[0] + (T[1]=="a" ? " ASC" : " DESC");
+			ItemList += T[0] + (T[1] == "a" ? " ASC" : " DESC");
 		}
 
-		if(!ItemList.empty()) {
+		if (!ItemList.empty()) {
 			OrderByString = " ORDER BY " + ItemList;
 		}
 		return true;
@@ -57,46 +56,47 @@ namespace OpenWifi {
 
 	void RESTAPI_devices_handler::DoGet() {
 
-		if(GetBoolParameter("connectionStatistics")) {
-			GWObjects::DeviceConnectionStatistics	DCS;
-			Poco::JSON::Object	Answer;
+		if (GetBoolParameter("connectionStatistics")) {
+			GWObjects::DeviceConnectionStatistics DCS;
+			Poco::JSON::Object Answer;
 
-			AP_WS_Server()->AverageDeviceStatistics(DCS.connectedDevices,DCS.averageConnectionTime, DCS.connectingDevices);
+			AP_WS_Server()->AverageDeviceStatistics(DCS.connectedDevices, DCS.averageConnectionTime,
+													DCS.connectingDevices);
 			DCS.to_json(Answer);
 			return ReturnObject(Answer);
 		}
 
-		if(GetBoolParameter("orderSpec")) {
+		if (GetBoolParameter("orderSpec")) {
 			Types::StringVec Fields;
 			Storage::GetDeviceDbFieldList(Fields);
-			std::sort(Fields.begin(),Fields.end());
-			Poco::JSON::Object	Answer;
-			RESTAPI_utils::field_to_json(Answer,"list",Fields);
+			std::sort(Fields.begin(), Fields.end());
+			Poco::JSON::Object Answer;
+			RESTAPI_utils::field_to_json(Answer, "list", Fields);
 			return ReturnObject(Answer);
 		}
 
 		std::string OrderBy{" ORDER BY serialNumber ASC "}, Arg;
-		if(HasParameter("orderBy",Arg)) {
-			if(!PrepareOrderBy(Arg,OrderBy)) {
+		if (HasParameter("orderBy", Arg)) {
+			if (!PrepareOrderBy(Arg, OrderBy)) {
 				return BadRequest(RESTAPI::Errors::InvalidLOrderBy);
 			}
 		}
 
 		auto serialOnly = GetBoolParameter(RESTAPI::Protocol::SERIALONLY, false);
 		auto deviceWithStatus = GetBoolParameter(RESTAPI::Protocol::DEVICEWITHSTATUS, false);
-		auto completeInfo = GetBoolParameter("completeInfo",false);
+		auto completeInfo = GetBoolParameter("completeInfo", false);
 
 		Poco::JSON::Object RetObj;
 		if (!QB_.Select.empty()) {
 			Poco::JSON::Array Objects;
 			for (auto &i : SelectedRecords()) {
 				auto SerialNumber = i;
-				if(!Utils::ValidSerialNumber(i))
+				if (!Utils::ValidSerialNumber(i))
 					continue;
 				GWObjects::Device D;
 				if (StorageService()->GetDevice(SerialNumber, D)) {
-					if(completeInfo) {
-						Poco::JSON::Object	FullDeviceInfo;
+					if (completeInfo) {
+						Poco::JSON::Object FullDeviceInfo;
 						CompleteDeviceInfo(D, FullDeviceInfo);
 						Objects.add(FullDeviceInfo);
 					} else {
@@ -108,8 +108,7 @@ namespace OpenWifi {
 						Objects.add(Obj);
 					}
 				} else {
-					Logger_.error(
-						fmt::format("DEVICE({}): device in select cannot be found.", i));
+					Logger_.error(fmt::format("DEVICE({}): device in select cannot be found.", i));
 				}
 			}
 			if (deviceWithStatus)
@@ -149,4 +148,4 @@ namespace OpenWifi {
 		}
 		ReturnObject(RetObj);
 	}
-}
+} // namespace OpenWifi

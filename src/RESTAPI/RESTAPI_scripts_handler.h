@@ -22,4 +22,4 @@ namespace OpenWifi {
 		void DoPost() final{};
 		void DoPut() final{};
 	};
-}
+} // namespace OpenWifi

@@ -6,305 +6,293 @@
 #include "framework/RESTAPI_utils.h"
 #include "framework/utils.h"
 
-using OpenWifi::RESTAPI_utils::field_to_json;
 using OpenWifi::RESTAPI_utils::field_from_json;
+using OpenWifi::RESTAPI_utils::field_to_json;
 
 namespace OpenWifi::FMSObjects {
 
-    void Firmware::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj, "id", id);
-        field_to_json(Obj, "release", release);
-        field_to_json(Obj, "deviceType", deviceType);
-        field_to_json(Obj, "description", description);
-        field_to_json(Obj, "revision", revision);
-        field_to_json(Obj, "uri", uri);
-        field_to_json(Obj, "image", image);
-        field_to_json(Obj, "imageDate", imageDate);
-        field_to_json(Obj, "size", size);
-        field_to_json(Obj, "downloadCount", downloadCount);
-        field_to_json(Obj, "firmwareHash", firmwareHash);
-        field_to_json(Obj, "owner", owner);
-        field_to_json(Obj, "location", location);
-        field_to_json(Obj, "uploader", uploader);
-        field_to_json(Obj, "digest", digest);
-        field_to_json(Obj, "latest", latest);
-        field_to_json(Obj, "notes", notes);
-        field_to_json(Obj, "created", created);
-    };
+	void Firmware::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "id", id);
+		field_to_json(Obj, "release", release);
+		field_to_json(Obj, "deviceType", deviceType);
+		field_to_json(Obj, "description", description);
+		field_to_json(Obj, "revision", revision);
+		field_to_json(Obj, "uri", uri);
+		field_to_json(Obj, "image", image);
+		field_to_json(Obj, "imageDate", imageDate);
+		field_to_json(Obj, "size", size);
+		field_to_json(Obj, "downloadCount", downloadCount);
+		field_to_json(Obj, "firmwareHash", firmwareHash);
+		field_to_json(Obj, "owner", owner);
+		field_to_json(Obj, "location", location);
+		field_to_json(Obj, "uploader", uploader);
+		field_to_json(Obj, "digest", digest);
+		field_to_json(Obj, "latest", latest);
+		field_to_json(Obj, "notes", notes);
+		field_to_json(Obj, "created", created);
+	};
 
-    bool Firmware::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj, "id", id);
-            field_from_json(Obj, "release", release);
-            field_from_json(Obj, "deviceType", deviceType);
-            field_from_json(Obj, "description", description);
-            field_from_json(Obj, "revision", revision);
-            field_from_json(Obj, "uri", uri);
-            field_from_json(Obj, "image", image);
-            field_from_json(Obj, "imageDate", imageDate);
-            field_from_json(Obj, "size", size);
-            field_from_json(Obj, "downloadCount", downloadCount);
-            field_from_json(Obj, "firmwareHash", firmwareHash);
-            field_from_json(Obj, "owner", owner);
-            field_from_json(Obj, "location", location);
-            field_from_json(Obj, "uploader", uploader);
-            field_from_json(Obj, "digest", digest);
-            field_from_json(Obj, "latest", latest);
-            field_from_json(Obj, "notes", notes);
-            field_from_json(Obj, "created", created);
-            return true;
-        } catch (...) {
+	bool Firmware::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "id", id);
+			field_from_json(Obj, "release", release);
+			field_from_json(Obj, "deviceType", deviceType);
+			field_from_json(Obj, "description", description);
+			field_from_json(Obj, "revision", revision);
+			field_from_json(Obj, "uri", uri);
+			field_from_json(Obj, "image", image);
+			field_from_json(Obj, "imageDate", imageDate);
+			field_from_json(Obj, "size", size);
+			field_from_json(Obj, "downloadCount", downloadCount);
+			field_from_json(Obj, "firmwareHash", firmwareHash);
+			field_from_json(Obj, "owner", owner);
+			field_from_json(Obj, "location", location);
+			field_from_json(Obj, "uploader", uploader);
+			field_from_json(Obj, "digest", digest);
+			field_from_json(Obj, "latest", latest);
+			field_from_json(Obj, "notes", notes);
+			field_from_json(Obj, "created", created);
+			return true;
+		} catch (...) {
+		}
+		return true;
+	}
 
-        }
-        return true;
-    }
+	void FirmwareList::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "firmwares", firmwares);
+	}
 
-    void FirmwareList::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj,"firmwares",firmwares);
-    }
+	bool FirmwareList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "firmwares", firmwares);
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-    bool FirmwareList::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj, "firmwares", firmwares);
-            return true;
-        } catch (...) {
+	void DeviceType::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "id", id);
+		field_to_json(Obj, "deviceType", deviceType);
+		field_to_json(Obj, "manufacturer", manufacturer);
+		field_to_json(Obj, "model", model);
+		field_to_json(Obj, "policy", policy);
+		field_to_json(Obj, "notes", notes);
+		field_to_json(Obj, "lastUpdate", lastUpdate);
+		field_to_json(Obj, "created", created);
+		field_to_json(Obj, "id", id);
+		field_to_json(Obj, "id", id);
+		field_to_json(Obj, "id", id);
+	}
 
-        }
-        return false;
-    }
+	bool DeviceType::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "id", id);
+			field_from_json(Obj, "deviceType", deviceType);
+			field_from_json(Obj, "manufacturer", manufacturer);
+			field_from_json(Obj, "model", model);
+			field_from_json(Obj, "policy", policy);
+			field_from_json(Obj, "notes", notes);
+			field_from_json(Obj, "lastUpdate", lastUpdate);
+			field_from_json(Obj, "created", created);
+			field_from_json(Obj, "id", id);
+			field_from_json(Obj, "id", id);
+			field_from_json(Obj, "id", id);
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-    void DeviceType::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj, "id", id);
-        field_to_json(Obj, "deviceType", deviceType);
-        field_to_json(Obj, "manufacturer", manufacturer);
-        field_to_json(Obj, "model", model);
-        field_to_json(Obj, "policy", policy);
-        field_to_json(Obj, "notes", notes);
-        field_to_json(Obj, "lastUpdate", lastUpdate);
-        field_to_json(Obj, "created", created);
-        field_to_json(Obj, "id", id);
-        field_to_json(Obj, "id", id);
-        field_to_json(Obj, "id", id);
-    }
+	void DeviceTypeList::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "deviceTypes", deviceTypes);
+	}
 
-    bool DeviceType::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj, "id", id);
-            field_from_json(Obj, "deviceType", deviceType);
-            field_from_json(Obj, "manufacturer", manufacturer);
-            field_from_json(Obj, "model", model);
-            field_from_json(Obj, "policy", policy);
-            field_from_json(Obj, "notes", notes);
-            field_from_json(Obj, "lastUpdate", lastUpdate);
-            field_from_json(Obj, "created", created);
-            field_from_json(Obj, "id", id);
-            field_from_json(Obj, "id", id);
-            field_from_json(Obj, "id", id);
-            return true;
-        } catch (...) {
+	bool DeviceTypeList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "deviceTypes", deviceTypes);
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-        }
-        return false;
-    }
+	void RevisionHistoryEntry::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "id", id);
+		field_to_json(Obj, "serialNumber", serialNumber);
+		field_to_json(Obj, "fromRelease", fromRelease);
+		field_to_json(Obj, "toRelease", toRelease);
+		field_to_json(Obj, "commandUUID", commandUUID);
+		field_to_json(Obj, "revisionId", revisionId);
+		field_to_json(Obj, "upgraded", upgraded);
+	}
 
-    void DeviceTypeList::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj,"deviceTypes", deviceTypes);
-    }
+	bool RevisionHistoryEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "id", id);
+			field_from_json(Obj, "serialNumber", serialNumber);
+			field_from_json(Obj, "fromRelease", fromRelease);
+			field_from_json(Obj, "toRelease", toRelease);
+			field_from_json(Obj, "commandUUID", commandUUID);
+			field_from_json(Obj, "revisionId", revisionId);
+			field_from_json(Obj, "upgraded", upgraded);
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-    bool DeviceTypeList::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj,"deviceTypes", deviceTypes);
-            return true;
-        } catch(...) {
+	void RevisionHistoryEntryList::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "deviceTypes", history);
+	}
 
-        }
-        return false;
-    }
+	bool RevisionHistoryEntryList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "deviceTypes", history);
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-    void RevisionHistoryEntry::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj, "id", id);
-        field_to_json(Obj, "serialNumber", serialNumber);
-        field_to_json(Obj, "fromRelease", fromRelease);
-        field_to_json(Obj, "toRelease", toRelease);
-        field_to_json(Obj, "commandUUID", commandUUID);
-        field_to_json(Obj, "revisionId", revisionId);
-        field_to_json(Obj, "upgraded", upgraded);
-    }
+	void FirmwareAgeDetails::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "latestId", latestId);
+		field_to_json(Obj, "image", image);
+		field_to_json(Obj, "imageDate", imageDate);
+		field_to_json(Obj, "revision", revision);
+		field_to_json(Obj, "uri", uri);
+		field_to_json(Obj, "age", age);
+		field_to_json(Obj, "latest", latest);
+	}
 
-    bool RevisionHistoryEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj, "id", id);
-            field_from_json(Obj, "serialNumber", serialNumber);
-            field_from_json(Obj, "fromRelease", fromRelease);
-            field_from_json(Obj, "toRelease", toRelease);
-            field_from_json(Obj, "commandUUID", commandUUID);
-            field_from_json(Obj, "revisionId", revisionId);
-            field_from_json(Obj, "upgraded", upgraded);
-            return true;
-        } catch(...) {
+	bool FirmwareAgeDetails::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "latestId", latestId);
+			field_from_json(Obj, "image", image);
+			field_from_json(Obj, "imageDate", imageDate);
+			field_from_json(Obj, "revision", revision);
+			field_from_json(Obj, "uri", uri);
+			field_from_json(Obj, "age", age);
+			field_from_json(Obj, "latest", latest);
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-        }
-        return false;
-    }
+	void DeviceConnectionInformation::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "serialNumber", serialNumber);
+		field_to_json(Obj, "revision", revision);
+		field_to_json(Obj, "deviceType", deviceType);
+		field_to_json(Obj, "endPoint", endPoint);
+		field_to_json(Obj, "lastUpdate", lastUpdate);
+		field_to_json(Obj, "status", status);
+	}
 
-    void RevisionHistoryEntryList::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj,"deviceTypes", history);
-    }
+	bool DeviceConnectionInformation::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serialNumber", serialNumber);
+			field_from_json(Obj, "revision", revision);
+			field_from_json(Obj, "deviceType", deviceType);
+			field_from_json(Obj, "endPoint", endPoint);
+			field_from_json(Obj, "lastUpdate", lastUpdate);
+			field_from_json(Obj, "status", status);
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-    bool RevisionHistoryEntryList::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj,"deviceTypes", history);
-            return true;
-        } catch(...) {
+	void DeviceReport::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "ouis", OUI_);
+		field_to_json(Obj, "revisions", Revisions_);
+		field_to_json(Obj, "deviceTypes", DeviceTypes_);
+		field_to_json(Obj, "status", Status_);
+		field_to_json(Obj, "endPoints", EndPoints_);
+		field_to_json(Obj, "usingLatest", UsingLatest_);
+		field_to_json(Obj, "unknownFirmwares", UnknownFirmwares_);
+		field_to_json(Obj, "snapshot", snapshot);
+		field_to_json(Obj, "numberOfDevices", numberOfDevices);
+		field_to_json(Obj, "totalSecondsOld", totalSecondsOld_);
+	}
 
-        }
-        return false;
-    }
+	void DeviceReport::reset() {
+		OUI_.clear();
+		Revisions_.clear();
+		DeviceTypes_.clear();
+		Status_.clear();
+		EndPoints_.clear();
+		UsingLatest_.clear();
+		UnknownFirmwares_.clear();
+		totalSecondsOld_.clear();
+		numberOfDevices = 0;
+		snapshot = Utils::Now();
+	}
 
-    void FirmwareAgeDetails::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj,"latestId", latestId);
-        field_to_json(Obj,"image", image);
-        field_to_json(Obj,"imageDate", imageDate);
-        field_to_json(Obj,"revision", revision);
-        field_to_json(Obj,"uri", uri);
-        field_to_json(Obj,"age", age);
-        field_to_json(Obj,"latest",latest);
-    }
+	bool DeviceReport::from_json([[maybe_unused]] const Poco::JSON::Object::Ptr &Obj) {
+		try {
 
-    bool FirmwareAgeDetails::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj,"latestId", latestId);
-            field_from_json(Obj,"image", image);
-            field_from_json(Obj,"imageDate", imageDate);
-            field_from_json(Obj,"revision", revision);
-            field_from_json(Obj,"uri", uri);
-            field_from_json(Obj,"age", age);
-            field_from_json(Obj,"latest", latest);
-            return true;
-        } catch(...) {
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-        }
-        return false;
-    }
+	void DeviceInformation::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "serialNumber", serialNumber);
+		field_to_json(Obj, "history", history);
+		field_to_json(Obj, "currentFirmware", currentFirmware);
+		field_to_json(Obj, "currentFirmwareDate", currentFirmwareDate);
+		field_to_json(Obj, "latestFirmware", latestFirmware);
+		field_to_json(Obj, "latestFirmwareDate", latestFirmwareDate);
+		field_to_json(Obj, "latestFirmwareAvailable", latestFirmwareAvailable);
+		field_to_json(Obj, "latestFirmwareURI", latestFirmwareURI);
+	}
 
-    void DeviceConnectionInformation::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj, "serialNumber", serialNumber);
-        field_to_json(Obj, "revision", revision);
-        field_to_json(Obj, "deviceType", deviceType);
-        field_to_json(Obj, "endPoint", endPoint);
-        field_to_json(Obj, "lastUpdate", lastUpdate);
-        field_to_json(Obj, "status", status);
-    }
+	bool DeviceInformation::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serialNumber", serialNumber);
+			field_from_json(Obj, "history", history);
+			field_from_json(Obj, "currentFirmware", currentFirmware);
+			field_from_json(Obj, "currentFirmwareDate", currentFirmwareDate);
+			field_from_json(Obj, "latestFirmware", latestFirmware);
+			field_from_json(Obj, "latestFirmwareDate", latestFirmwareDate);
+			field_from_json(Obj, "latestFirmwareAvailable", latestFirmwareAvailable);
+			field_from_json(Obj, "latestFirmwareURI", latestFirmwareURI);
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-    bool DeviceConnectionInformation::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj, "serialNumber", serialNumber);
-            field_from_json(Obj, "revision", revision);
-            field_from_json(Obj, "deviceType", deviceType);
-            field_from_json(Obj, "endPoint", endPoint);
-            field_from_json(Obj, "lastUpdate", lastUpdate);
-            field_from_json(Obj, "status", status);
-            return true;
-        } catch(...) {
+	void DeviceCurrentInfo::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "serialNumber", serialNumber);
+		field_to_json(Obj, "revision", revision);
+		field_to_json(Obj, "upgraded", upgraded);
+	}
 
-        }
-        return false;
-    }
+	bool DeviceCurrentInfo::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serialNumber", serialNumber);
+			field_from_json(Obj, "revision", revision);
+			field_from_json(Obj, "upgraded", upgraded);
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-    void DeviceReport::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj, "ouis",OUI_);
-        field_to_json(Obj, "revisions", Revisions_);
-        field_to_json(Obj, "deviceTypes", DeviceTypes_);
-        field_to_json(Obj, "status", Status_);
-        field_to_json(Obj, "endPoints", EndPoints_);
-        field_to_json(Obj, "usingLatest", UsingLatest_);
-        field_to_json(Obj, "unknownFirmwares", UnknownFirmwares_);
-        field_to_json(Obj,"snapshot",snapshot);
-        field_to_json(Obj,"numberOfDevices",numberOfDevices);
-        field_to_json(Obj, "totalSecondsOld", totalSecondsOld_);
-    }
+	void DeviceCurrentInfoList::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "devices", devices);
+	}
 
-    void DeviceReport::reset() {
-        OUI_.clear();
-        Revisions_.clear();
-        DeviceTypes_.clear();
-        Status_.clear();
-        EndPoints_.clear();
-        UsingLatest_.clear();
-        UnknownFirmwares_.clear();
-        totalSecondsOld_.clear();
-        numberOfDevices = 0 ;
-        snapshot = Utils::Now();
-    }
+	bool DeviceCurrentInfoList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "devices", devices);
+			return true;
+		} catch (...) {
+		}
+		return false;
+	}
 
-    bool DeviceReport::from_json([[maybe_unused]] const Poco::JSON::Object::Ptr &Obj) {
-        try {
-
-            return true;
-        } catch (...) {
-
-        }
-        return false;
-    }
-
-    void DeviceInformation::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj, "serialNumber",serialNumber);
-        field_to_json(Obj, "history", history);
-        field_to_json(Obj, "currentFirmware", currentFirmware);
-        field_to_json(Obj, "currentFirmwareDate", currentFirmwareDate);
-        field_to_json(Obj, "latestFirmware", latestFirmware);
-        field_to_json(Obj, "latestFirmwareDate", latestFirmwareDate);
-        field_to_json(Obj, "latestFirmwareAvailable",latestFirmwareAvailable);
-        field_to_json(Obj, "latestFirmwareURI",latestFirmwareURI);
-    }
-
-    bool DeviceInformation::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj, "serialNumber",serialNumber);
-            field_from_json(Obj, "history", history);
-            field_from_json(Obj, "currentFirmware", currentFirmware);
-            field_from_json(Obj, "currentFirmwareDate", currentFirmwareDate);
-            field_from_json(Obj, "latestFirmware", latestFirmware);
-            field_from_json(Obj, "latestFirmwareDate", latestFirmwareDate);
-            field_from_json(Obj, "latestFirmwareAvailable",latestFirmwareAvailable);
-            field_from_json(Obj, "latestFirmwareURI",latestFirmwareURI);
-            return true;
-        } catch(...) {
-
-        }
-        return false;
-    }
-
-    void DeviceCurrentInfo::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj, "serialNumber",serialNumber);
-        field_to_json(Obj, "revision", revision);
-        field_to_json(Obj, "upgraded", upgraded);
-    }
-
-    bool DeviceCurrentInfo::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj, "serialNumber",serialNumber);
-            field_from_json(Obj, "revision", revision);
-            field_from_json(Obj, "upgraded", upgraded);
-            return true;
-        } catch(...) {
-
-        }
-        return false;
-    }
-
-    void DeviceCurrentInfoList::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj, "devices",devices);
-    }
-
-    bool DeviceCurrentInfoList::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj, "devices",devices);
-            return true;
-        } catch(...) {
-
-        }
-        return false;
-    }
-
-}
+} // namespace OpenWifi::FMSObjects

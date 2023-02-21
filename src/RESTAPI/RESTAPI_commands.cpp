@@ -13,7 +13,7 @@
 namespace OpenWifi {
 	void RESTAPI_commands::DoGet() {
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
-		if(!Utils::NormalizeMac(SerialNumber)) {
+		if (!Utils::NormalizeMac(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -21,15 +21,15 @@ namespace OpenWifi {
 		if (QB_.Newest) {
 			StorageService()->GetNewestCommands(SerialNumber, QB_.Limit, Commands);
 		} else {
-			StorageService()->GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit,
-								   Commands);
+			StorageService()->GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset,
+										  QB_.Limit, Commands);
 		}
 		return Object(RESTAPI::Protocol::COMMANDS, Commands);
 	}
 
 	void RESTAPI_commands::DoDelete() {
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
-		if(!Utils::NormalizeMac(SerialNumber)) {
+		if (!Utils::NormalizeMac(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -38,4 +38,4 @@ namespace OpenWifi {
 		}
 		InternalError(RESTAPI::Errors::NoRecordsDeleted);
 	}
-}
+} // namespace OpenWifi

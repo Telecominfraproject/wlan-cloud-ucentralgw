@@ -6,36 +6,29 @@
 
 #include "framework/SubSystemServer.h"
 
-#include "Poco/Net/SSLManager.h"
-#include "Poco/DateTimeFormatter.h"
 #include "Poco/DateTimeFormat.h"
+#include "Poco/DateTimeFormatter.h"
+#include "Poco/Net/SSLManager.h"
 
 #include "framework/MicroServiceFuncs.h"
 
 namespace OpenWifi {
 
-	PropertiesFileServerEntry::PropertiesFileServerEntry(std::string Address, uint32_t port, std::string Key_file,
-							  std::string Cert_file, std::string RootCa, std::string Issuer,
-							  std::string ClientCas, std::string Cas,
-							  std::string Key_file_password, std::string Name,
-							  Poco::Net::Context::VerificationMode M,
-							  int backlog)
-		: address_(std::move(Address)),
-		  port_(port),
-		  cert_file_(std::move(Cert_file)),
-		  key_file_(std::move(Key_file)),
-		  root_ca_(std::move(RootCa)),
-		  key_file_password_(std::move(Key_file_password)),
-		  issuer_cert_file_(std::move(Issuer)),
-		  client_cas_(std::move(ClientCas)),
-		  cas_(std::move(Cas)),
-		  name_(std::move(Name)),
-		  backlog_(backlog),
-		  level_(M) {
+	PropertiesFileServerEntry::PropertiesFileServerEntry(
+		std::string Address, uint32_t port, std::string Key_file, std::string Cert_file,
+		std::string RootCa, std::string Issuer, std::string ClientCas, std::string Cas,
+		std::string Key_file_password, std::string Name, Poco::Net::Context::VerificationMode M,
+		int backlog)
+		: address_(std::move(Address)), port_(port), cert_file_(std::move(Cert_file)),
+		  key_file_(std::move(Key_file)), root_ca_(std::move(RootCa)),
+		  key_file_password_(std::move(Key_file_password)), issuer_cert_file_(std::move(Issuer)),
+		  client_cas_(std::move(ClientCas)), cas_(std::move(Cas)), name_(std::move(Name)),
+		  backlog_(backlog), level_(M){
 
-	  };
+							 };
 
-	[[nodiscard]] Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco::Logger &L) const {
+	[[nodiscard]] Poco::Net::SecureServerSocket
+	PropertiesFileServerEntry::CreateSecureSocket(Poco::Logger &L) const {
 		Poco::Net::Context::Params P;
 
 		P.verificationMode = level_;
@@ -45,11 +38,13 @@ namespace OpenWifi {
 		P.dhUse2048Bits = true;
 		P.caLocation = cas_;
 
-		auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
+		auto Context = Poco::AutoPtr<Poco::Net::Context>(
+			new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
 
-		if(!key_file_password_.empty()) {
-			auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(key_file_password_,L));
-			Poco::Net::SSLManager::instance().initializeServer(PassphraseHandler, nullptr,Context);
+		if (!key_file_password_.empty()) {
+			auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>(
+				new MyPrivateKeyPassphraseHandler(key_file_password_, L));
+			Poco::Net::SSLManager::instance().initializeServer(PassphraseHandler, nullptr, Context);
 		}
 
 		if (!cert_file_.empty() && !key_file_.empty()) {
@@ -111,7 +106,8 @@ namespace OpenWifi {
 		}
 	}
 
-	[[nodiscard]] Poco::Net::ServerSocket PropertiesFileServerEntry::CreateSocket([[maybe_unused]] Poco::Logger &L) const {
+	[[nodiscard]] Poco::Net::ServerSocket
+	PropertiesFileServerEntry::CreateSocket([[maybe_unused]] Poco::Logger &L) const {
 		Poco::Net::Context::Params P;
 
 		if (address_ == "*") {
@@ -127,20 +123,25 @@ namespace OpenWifi {
 		}
 	}
 
-	void PropertiesFileServerEntry::LogCertInfo(Poco::Logger &L, const Poco::Crypto::X509Certificate &C) const {
-		L.information("=============================================================================================");
+	void PropertiesFileServerEntry::LogCertInfo(Poco::Logger &L,
+												const Poco::Crypto::X509Certificate &C) const {
+		L.information("============================================================================"
+					  "=================");
 		L.information(fmt::format(">          Issuer: {}", C.issuerName()));
-		L.information("---------------------------------------------------------------------------------------------");
+		L.information("----------------------------------------------------------------------------"
+					  "-----------------");
 		L.information(fmt::format(">     Common Name: {}",
 								  C.issuerName(Poco::Crypto::X509Certificate::NID_COMMON_NAME)));
 		L.information(fmt::format(">         Country: {}",
 								  C.issuerName(Poco::Crypto::X509Certificate::NID_COUNTRY)));
 		L.information(fmt::format(">        Locality: {}",
 								  C.issuerName(Poco::Crypto::X509Certificate::NID_LOCALITY_NAME)));
-		L.information(fmt::format(">      State/Prov: {}",
-								  C.issuerName(Poco::Crypto::X509Certificate::NID_STATE_OR_PROVINCE)));
-		L.information(fmt::format(">        Org name: {}",
-								  C.issuerName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_NAME)));
+		L.information(
+			fmt::format(">      State/Prov: {}",
+						C.issuerName(Poco::Crypto::X509Certificate::NID_STATE_OR_PROVINCE)));
+		L.information(
+			fmt::format(">        Org name: {}",
+						C.issuerName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_NAME)));
 		L.information(
 			fmt::format(">        Org unit: {}",
 						C.issuerName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_UNIT_NAME)));
@@ -149,9 +150,11 @@ namespace OpenWifi {
 						C.issuerName(Poco::Crypto::X509Certificate::NID_PKCS9_EMAIL_ADDRESS)));
 		L.information(fmt::format(">         Serial#: {}",
 								  C.issuerName(Poco::Crypto::X509Certificate::NID_SERIAL_NUMBER)));
-		L.information("---------------------------------------------------------------------------------------------");
+		L.information("----------------------------------------------------------------------------"
+					  "-----------------");
 		L.information(fmt::format(">         Subject: {}", C.subjectName()));
-		L.information("---------------------------------------------------------------------------------------------");
+		L.information("----------------------------------------------------------------------------"
+					  "-----------------");
 		L.information(fmt::format(">     Common Name: {}",
 								  C.subjectName(Poco::Crypto::X509Certificate::NID_COMMON_NAME)));
 		L.information(fmt::format(">         Country: {}",
@@ -172,52 +175,66 @@ namespace OpenWifi {
 						C.subjectName(Poco::Crypto::X509Certificate::NID_PKCS9_EMAIL_ADDRESS)));
 		L.information(fmt::format(">         Serial#: {}",
 								  C.subjectName(Poco::Crypto::X509Certificate::NID_SERIAL_NUMBER)));
-		L.information("---------------------------------------------------------------------------------------------");
+		L.information("----------------------------------------------------------------------------"
+					  "-----------------");
 		L.information(fmt::format(">  Signature Algo: {}", C.signatureAlgorithm()));
-		auto From = Poco::DateTimeFormatter::format(C.validFrom(), Poco::DateTimeFormat::HTTP_FORMAT);
+		auto From =
+			Poco::DateTimeFormatter::format(C.validFrom(), Poco::DateTimeFormat::HTTP_FORMAT);
 		L.information(fmt::format(">      Valid from: {}", From));
 		auto Expires =
 			Poco::DateTimeFormatter::format(C.expiresOn(), Poco::DateTimeFormat::HTTP_FORMAT);
 		L.information(fmt::format(">      Expires on: {}", Expires));
 		L.information(fmt::format(">         Version: {}", (int)C.version()));
 		L.information(fmt::format(">        Serial #: {}", C.serialNumber()));
-		L.information("=============================================================================================");
+		L.information("============================================================================"
+					  "=================");
 	}
 
 	void PropertiesFileServerEntry::LogCert(Poco::Logger &L) const {
 		try {
 			Poco::Crypto::X509Certificate C(cert_file_);
-			L.information("=============================================================================================");
-			L.information("=============================================================================================");
+			L.information("========================================================================"
+						  "=====================");
+			L.information("========================================================================"
+						  "=====================");
 			L.information(fmt::format("Certificate Filename: {}", cert_file_));
 			LogCertInfo(L, C);
-			L.information("=============================================================================================");
+			L.information("========================================================================"
+						  "=====================");
 
 			if (!issuer_cert_file_.empty()) {
 				Poco::Crypto::X509Certificate C1(issuer_cert_file_);
-				L.information("=============================================================================================");
-				L.information("=============================================================================================");
+				L.information("===================================================================="
+							  "=========================");
+				L.information("===================================================================="
+							  "=========================");
 				L.information(fmt::format("Issues Certificate Filename: {}", issuer_cert_file_));
 				LogCertInfo(L, C1);
-				L.information("=============================================================================================");
+				L.information("===================================================================="
+							  "=========================");
 			}
 
 			if (!client_cas_.empty()) {
 				std::vector<Poco::Crypto::X509Certificate> Certs =
 					Poco::Net::X509Certificate::readPEM(client_cas_);
 
-				L.information("=============================================================================================");
-				L.information("=============================================================================================");
+				L.information("===================================================================="
+							  "=========================");
+				L.information("===================================================================="
+							  "=========================");
 				L.information(fmt::format("Client CAs Filename: {}", client_cas_));
-				L.information("=============================================================================================");
+				L.information("===================================================================="
+							  "=========================");
 				auto i = 1;
 				for (const auto &C3 : Certs) {
 					L.information(fmt::format(" Index: {}", i));
-					L.information("=============================================================================================");
+					L.information("================================================================"
+								  "=============================");
 					LogCertInfo(L, C3);
 					i++;
 				}
-				L.information("=============================================================================================");
+				L.information("===================================================================="
+							  "=========================");
 			}
 
 		} catch (const Poco::Exception &E) {
@@ -230,28 +247,31 @@ namespace OpenWifi {
 			std::vector<Poco::Crypto::X509Certificate> Certs =
 				Poco::Net::X509Certificate::readPEM(root_ca_);
 
-			L.information("=============================================================================================");
-			L.information("=============================================================================================");
+			L.information("========================================================================"
+						  "=====================");
+			L.information("========================================================================"
+						  "=====================");
 			L.information(fmt::format("CA Filename: {}", root_ca_));
-			L.information("=============================================================================================");
+			L.information("========================================================================"
+						  "=====================");
 			auto i = 1;
 			for (const auto &C : Certs) {
 				L.information(fmt::format(" Index: {}", i));
-				L.information("=============================================================================================");
+				L.information("===================================================================="
+							  "=========================");
 				LogCertInfo(L, C);
 				i++;
 			}
-			L.information("=============================================================================================");
+			L.information("========================================================================"
+						  "=====================");
 		} catch (const Poco::Exception &E) {
 			L.log(E);
 		}
 	}
 
 	SubSystemServer::SubSystemServer(const std::string &Name, const std::string &LoggingPrefix,
-											const std::string &SubSystemConfigPrefix):
-		Name_(Name),
-		LoggerPrefix_(LoggingPrefix),
-		SubSystemConfigPrefix_(SubSystemConfigPrefix) {
+									 const std::string &SubSystemConfigPrefix)
+		: Name_(Name), LoggerPrefix_(LoggingPrefix), SubSystemConfigPrefix_(SubSystemConfigPrefix) {
 	}
 
 	void SubSystemServer::initialize([[maybe_unused]] Poco::Util::Application &self) {
@@ -259,10 +279,13 @@ namespace OpenWifi {
 		bool good = true;
 
 		auto NewLevel = MicroServiceConfigGetString("logging.level." + Name_, "");
-		if(NewLevel.empty())
-			Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
+		if (NewLevel.empty())
+			Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(
+				LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
 		else
-			Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::parseLevel(NewLevel)));
+			Logger_ = std::make_unique<LoggerWrapper>(
+				Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(),
+									 Poco::Logger::parseLevel(NewLevel)));
 
 		ConfigServersList_.clear();
 		while (good) {
@@ -297,24 +320,18 @@ namespace OpenWifi {
 				} else if (L == "once")
 					M = Poco::Net::Context::VERIFY_ONCE;
 
-				PropertiesFileServerEntry entry(MicroServiceConfigGetString(address, ""),
-												MicroServiceConfigGetInt(port, 0),
-												MicroServiceConfigPath(key, ""),
-												MicroServiceConfigPath(cert, ""),
-												MicroServiceConfigPath(rootca, ""),
-												MicroServiceConfigPath(issuer, ""),
-												MicroServiceConfigPath(clientcas, ""),
-												MicroServiceConfigPath(cas, ""),
-												MicroServiceConfigGetString(key_password, ""),
-												MicroServiceConfigGetString(name, ""), M,
-												(int)MicroServiceConfigGetInt(backlog, 64));
+				PropertiesFileServerEntry entry(
+					MicroServiceConfigGetString(address, ""), MicroServiceConfigGetInt(port, 0),
+					MicroServiceConfigPath(key, ""), MicroServiceConfigPath(cert, ""),
+					MicroServiceConfigPath(rootca, ""), MicroServiceConfigPath(issuer, ""),
+					MicroServiceConfigPath(clientcas, ""), MicroServiceConfigPath(cas, ""),
+					MicroServiceConfigGetString(key_password, ""),
+					MicroServiceConfigGetString(name, ""), M,
+					(int)MicroServiceConfigGetInt(backlog, 64));
 				ConfigServersList_.push_back(entry);
 				i++;
 			}
 		}
 	}
-
-
-
 
 } // namespace OpenWifi

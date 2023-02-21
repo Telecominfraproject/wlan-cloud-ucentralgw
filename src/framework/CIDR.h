@@ -21,13 +21,13 @@ namespace OpenWifi::CIDR {
 	}
 
 	static bool cidr6_match(const in6_addr &address, const in6_addr &network, uint8_t bits) {
-	#ifdef __linux__
+#ifdef __linux__
 		const uint32_t *a = address.s6_addr32;
 		const uint32_t *n = network.s6_addr32;
-	#else
+#else
 		const uint32_t *a = address.__u6_addr.__u6_addr32;
 		const uint32_t *n = network.__u6_addr.__u6_addr32;
-	#endif
+#endif
 		int bits_whole, bits_incomplete;
 		bits_whole = bits >> 5;		   // number of whole u32
 		bits_incomplete = bits & 0x1F; // number of bits in incomplete u32
@@ -152,4 +152,4 @@ namespace OpenWifi::CIDR {
 	[[nodiscard]] inline bool ValidateIpRanges(const Types::StringVec &Ranges) {
 		return std::all_of(cbegin(Ranges), cend(Ranges), ValidateRange);
 	}
-}
+} // namespace OpenWifi::CIDR

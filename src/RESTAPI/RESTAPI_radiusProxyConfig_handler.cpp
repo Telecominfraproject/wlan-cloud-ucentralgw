@@ -3,8 +3,8 @@
 //
 
 #include "RESTAPI_radiusProxyConfig_handler.h"
-#include "RESTObjects/RESTAPI_GWobjects.h"
 #include "RADIUS_proxy_server.h"
+#include "RESTObjects/RESTAPI_GWobjects.h"
 
 namespace OpenWifi {
 
@@ -12,7 +12,7 @@ namespace OpenWifi {
 		Logger_.information(fmt::format("GET-RADIUS-PROXY-CONFIG: TID={} user={} thr_id={}",
 										TransactionId_, Requester(),
 										Poco::Thread::current()->id()));
-		GWObjects::RadiusProxyPoolList	C;
+		GWObjects::RadiusProxyPoolList C;
 		RADIUS_proxy_server()->GetConfig(C);
 		return Object(C);
 	}
@@ -21,7 +21,8 @@ namespace OpenWifi {
 		Logger_.information(fmt::format("DELETE-RADIUS-PROXY-CONFIG: TID={} user={} thr_id={}",
 										TransactionId_, Requester(),
 										Poco::Thread::current()->id()));
-		if(!Internal_ && (UserInfo_.userinfo.userRole!=SecurityObjects::ROOT && UserInfo_.userinfo.userRole!=SecurityObjects::ADMIN)) {
+		if (!Internal_ && (UserInfo_.userinfo.userRole != SecurityObjects::ROOT &&
+						   UserInfo_.userinfo.userRole != SecurityObjects::ADMIN)) {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 		RADIUS_proxy_server()->DeleteConfig();
@@ -32,50 +33,54 @@ namespace OpenWifi {
 		Logger_.information(fmt::format("MODIFY-RADIUS-PROXY-CONFIG: TID={} user={} thr_id={}",
 										TransactionId_, Requester(),
 										Poco::Thread::current()->id()));
-		if(!Internal_ && (UserInfo_.userinfo.userRole!=SecurityObjects::ROOT && UserInfo_.userinfo.userRole!=SecurityObjects::ADMIN)) {
+		if (!Internal_ && (UserInfo_.userinfo.userRole != SecurityObjects::ROOT &&
+						   UserInfo_.userinfo.userRole != SecurityObjects::ADMIN)) {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
-		GWObjects::RadiusProxyPoolList	C;
-		if(!C.from_json(ParsedBody_) || C.pools.empty()) {
+		GWObjects::RadiusProxyPoolList C;
+		if (!C.from_json(ParsedBody_) || C.pools.empty()) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
 		//	Logically validate the config.
-		for(const auto &pool:C.pools) {
-			if(pool.name.empty()) {
+		for (const auto &pool : C.pools) {
+			if (pool.name.empty()) {
 				return BadRequest(RESTAPI::Errors::PoolNameInvalid);
 			}
-			for(const auto &config:{pool.acctConfig,pool.authConfig,pool.coaConfig}) {
-				if(config.servers.empty())
+			for (const auto &config : {pool.acctConfig, pool.authConfig, pool.coaConfig}) {
+				if (config.servers.empty())
 					continue;
-				if(config.strategy!="random" && config.strategy!="round_robin" && config.strategy!="weighted") {
+				if (config.strategy != "random" && config.strategy != "round_robin" &&
+					config.strategy != "weighted") {
 					return BadRequest(RESTAPI::Errors::InvalidRadiusProxyStrategy);
 				}
-				if(config.monitorMethod!="none" && config.monitorMethod!="https" && config.monitorMethod!="radius") {
+				if (config.monitorMethod != "none" && config.monitorMethod != "https" &&
+					config.monitorMethod != "radius") {
 					return BadRequest(RESTAPI::Errors::InvalidRadiusProxyMonitorMethod);
 				}
-				if(config.servers.empty()) {
+				if (config.servers.empty()) {
 					return BadRequest(RESTAPI::Errors::MustHaveAtLeastOneRadiusServer);
 				}
 
-				for(auto &server:config.servers) {
-					Poco::Net::IPAddress	Addr;
-					if(!Poco::Net::IPAddress::tryParse(server.ip,Addr) || server.port==0) {
+				for (auto &server : config.servers) {
+					Poco::Net::IPAddress Addr;
+					if (!Poco::Net::IPAddress::tryParse(server.ip, Addr) || server.port == 0) {
 						return BadRequest(RESTAPI::Errors::InvalidRadiusServerEntry);
 					}
-					if(config.strategy=="weighted" && server.weight==0) {
+					if (config.strategy == "weighted" && server.weight == 0) {
 						return BadRequest(RESTAPI::Errors::InvalidRadiusServerWeigth);
 					}
 				}
 			}
 		}
 
-		Logger_.information(fmt::format("MODIFY-RADIUS-PROXY-CONFIG: TID={} user={} thr_id={}. Applying new RADIUS Proxy config.",
+		Logger_.information(fmt::format("MODIFY-RADIUS-PROXY-CONFIG: TID={} user={} thr_id={}. "
+										"Applying new RADIUS Proxy config.",
 										TransactionId_, Requester(),
 										Poco::Thread::current()->id()));
 		RADIUS_proxy_server()->SetConfig(C);
 		return Object(C);
 	}
 
-}
+} // namespace OpenWifi

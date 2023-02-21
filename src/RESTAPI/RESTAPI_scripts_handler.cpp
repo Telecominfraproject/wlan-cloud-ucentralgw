@@ -9,10 +9,10 @@
 namespace OpenWifi {
 
 	void RESTAPI_scripts_handler::DoGet() {
-		GWObjects::ScriptEntryList	L;
+		GWObjects::ScriptEntryList L;
 
-		StorageService()->ScriptDB().GetRecords(QB_.Offset,QB_.Limit,L.scripts);
-		Poco::JSON::Object	Answer;
+		StorageService()->ScriptDB().GetRecords(QB_.Offset, QB_.Limit, L.scripts);
+		Poco::JSON::Object Answer;
 		L.to_json(Answer);
 		return ReturnObject(Answer);
 	}

@@ -8,7 +8,7 @@
 namespace OpenWifi {
 	void RESTAPI_ouis::DoGet() {
 		Poco::JSON::Array Objects;
-		auto Select = GetParameter("macList","");
+		auto Select = GetParameter("macList", "");
 		std::vector<std::string> Macs = Utils::Split(Select);
 		for (auto &i : Macs) {
 			Poco::JSON::Object O;
@@ -17,8 +17,8 @@ namespace OpenWifi {
 			O.set("value", Manufacturer);
 			Objects.add(O);
 		}
-		Poco::JSON::Object	RetObj;
-		RetObj.set("tagList",Objects);
+		Poco::JSON::Object RetObj;
+		RetObj.set("tagList", Objects);
 		ReturnObject(RetObj);
 	}
-}
+} // namespace OpenWifi

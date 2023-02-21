@@ -4,37 +4,37 @@
 
 #pragma once
 
+#include "AP_WS_Server.h"
 #include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
-#include "AP_WS_Server.h"
 
 namespace OpenWifi {
 
-	inline void CompleteDeviceInfo(const GWObjects::Device & Device, Poco::JSON::Object & Answer) {
-		GWObjects::ConnectionState	CS;
-		AP_WS_Server()->GetState(Device.SerialNumber,CS);
-		GWObjects::HealthCheck		HC;
+	inline void CompleteDeviceInfo(const GWObjects::Device &Device, Poco::JSON::Object &Answer) {
+		GWObjects::ConnectionState CS;
+		AP_WS_Server()->GetState(Device.SerialNumber, CS);
+		GWObjects::HealthCheck HC;
 		AP_WS_Server()->GetHealthcheck(Device.SerialNumber, HC);
-		std::string 	Stats;
+		std::string Stats;
 		AP_WS_Server()->GetStatistics(Device.SerialNumber, Stats);
 
-		Poco::JSON::Object	DeviceInfo;
+		Poco::JSON::Object DeviceInfo;
 		Device.to_json(DeviceInfo);
 		Answer.set("deviceInfo", DeviceInfo);
-		Poco::JSON::Object	CSInfo;
+		Poco::JSON::Object CSInfo;
 		CS.to_json(CSInfo);
-		Answer.set("connectionInfo",CSInfo);
-		Poco::JSON::Object	HCInfo;
+		Answer.set("connectionInfo", CSInfo);
+		Poco::JSON::Object HCInfo;
 		HC.to_json(HCInfo);
-		Answer.set("healthCheckInfo",HCInfo);
+		Answer.set("healthCheckInfo", HCInfo);
 		try {
 			Poco::JSON::Parser P;
 			auto StatsInfo = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
 			Answer.set("statsInfo", StatsInfo);
 		} catch (...) {
-			Poco::JSON::Object	Empty;
+			Poco::JSON::Object Empty;
 			Answer.set("statsInfo", Empty);
 		}
 	}
 
-}
+} // namespace OpenWifi

@@ -12,9 +12,9 @@
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
-#include "framework/ow_constants.h"
 #include "framework/ConfigurationValidator.h"
 #include "framework/orm.h"
+#include "framework/ow_constants.h"
 #include "framework/utils.h"
 
 namespace OpenWifi {
@@ -29,7 +29,7 @@ namespace OpenWifi {
 
 	void RESTAPI_default_configuration::DoDelete() {
 		std::string Name = ORM::Escape(GetBinding(RESTAPI::Protocol::NAME, ""));
-		if(Name.empty()) {
+		if (Name.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
@@ -42,11 +42,11 @@ namespace OpenWifi {
 	void RESTAPI_default_configuration::DoPost() {
 		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
 
-		if(Name.empty()) {
+		if (Name.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
-		if(StorageService()->DefaultConfigurationAlreadyExists(Name)) {
+		if (StorageService()->DefaultConfigurationAlreadyExists(Name)) {
 			return BadRequest(RESTAPI::Errors::DefConfigNameExists);
 		}
 
@@ -56,12 +56,13 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
-		if(DefConfig.Models.empty()) {
+		if (DefConfig.Models.empty()) {
 			return BadRequest(RESTAPI::Errors::ModelIDListCannotBeEmpty);
 		}
 
 		std::vector<std::string> Error;
-		if (!ValidateUCentralConfiguration(DefConfig.Configuration, Error, GetBoolParameter("strict",false))) {
+		if (!ValidateUCentralConfiguration(DefConfig.Configuration, Error,
+										   GetBoolParameter("strict", false))) {
 			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 		}
 
@@ -77,36 +78,37 @@ namespace OpenWifi {
 		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
 
 		const auto &Obj = ParsedBody_;
-		GWObjects::DefaultConfiguration 		NewConfig;
+		GWObjects::DefaultConfiguration NewConfig;
 		if (!NewConfig.from_json(Obj)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
-		GWObjects::DefaultConfiguration 		Existing;
-		if(!StorageService()->GetDefaultConfiguration(Name,Existing)) {
+		GWObjects::DefaultConfiguration Existing;
+		if (!StorageService()->GetDefaultConfiguration(Name, Existing)) {
 			return NotFound();
 		}
 
 		if (!NewConfig.Configuration.empty()) {
 			std::vector<std::string> Error;
-			if(!ValidateUCentralConfiguration(NewConfig.Configuration, Error, GetBoolParameter("strict",false))) {
+			if (!ValidateUCentralConfiguration(NewConfig.Configuration, Error,
+											   GetBoolParameter("strict", false))) {
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 			}
 			Existing.Configuration = NewConfig.Configuration;
 		}
 
 		Existing.LastModified = Utils::Now();
-		AssignIfPresent(Obj,"description",Existing.Description);
-		if(Obj->has("modelIds"))
+		AssignIfPresent(Obj, "description", Existing.Description);
+		if (Obj->has("modelIds"))
 			Existing.Models = NewConfig.Models;
 
 		if (StorageService()->UpdateDefaultConfiguration(Name, Existing)) {
-			GWObjects::DefaultConfiguration	ModifiedConfig;
+			GWObjects::DefaultConfiguration ModifiedConfig;
 
-			StorageService()->GetDefaultConfiguration(Name,ModifiedConfig);
+			StorageService()->GetDefaultConfiguration(Name, ModifiedConfig);
 			return Object(ModifiedConfig);
 		}
 
 		BadRequest(RESTAPI::Errors::RecordNotUpdated);
 	}
-}
+} // namespace OpenWifi

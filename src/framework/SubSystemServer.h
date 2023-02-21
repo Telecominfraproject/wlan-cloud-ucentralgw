@@ -4,32 +4,30 @@
 
 #pragma once
 
-#include <string>
 #include <mutex>
+#include <string>
 
-#include "Poco/Util/Application.h"
 #include "Poco/Net/Context.h"
-#include "Poco/Net/SecureServerSocket.h"
 #include "Poco/Net/PrivateKeyPassphraseHandler.h"
+#include "Poco/Net/SecureServerSocket.h"
+#include "Poco/Util/Application.h"
 
 namespace OpenWifi {
 
 	class MyPrivateKeyPassphraseHandler : public Poco::Net::PrivateKeyPassphraseHandler {
 	  public:
-		explicit MyPrivateKeyPassphraseHandler(const std::string &Password, Poco::Logger & Logger):
-			PrivateKeyPassphraseHandler(true),
-			Password_(Password),
-			Logger_(Logger) {
-		}
+		explicit MyPrivateKeyPassphraseHandler(const std::string &Password, Poco::Logger &Logger)
+			: PrivateKeyPassphraseHandler(true), Password_(Password), Logger_(Logger) {}
 
-		void onPrivateKeyRequested([[maybe_unused]] const void * pSender,std::string & privateKey) {
-			poco_information(Logger_,"Returning key passphrase.");
+		void onPrivateKeyRequested([[maybe_unused]] const void *pSender, std::string &privateKey) {
+			poco_information(Logger_, "Returning key passphrase.");
 			privateKey = Password_;
 		};
-		inline Poco::Logger & Logger() { return Logger_; }
+		inline Poco::Logger &Logger() { return Logger_; }
+
 	  private:
 		std::string Password_;
-		Poco::Logger & Logger_;
+		Poco::Logger &Logger_;
 	};
 
 	class PropertiesFileServerEntry {
@@ -76,24 +74,24 @@ namespace OpenWifi {
 
 	class SubSystemServer : public Poco::Util::Application::Subsystem {
 	  public:
-		SubSystemServer(const std::string & Name, const std::string &LoggingPrefix,
-						const std::string & SubSystemConfigPrefix);
+		SubSystemServer(const std::string &Name, const std::string &LoggingPrefix,
+						const std::string &SubSystemConfigPrefix);
 
 		void initialize(Poco::Util::Application &self) override;
-		inline void uninitialize() override {
-		}
+		inline void uninitialize() override {}
 		inline void reinitialize([[maybe_unused]] Poco::Util::Application &self) override {
-			poco_information(Logger_->L_,"Reloading of this subsystem is not supported.");
+			poco_information(Logger_->L_, "Reloading of this subsystem is not supported.");
 		}
-		inline void defineOptions([[maybe_unused]] Poco::Util::OptionSet &options) override {
-		}
-		inline const std::string & Name() const { return Name_; };
-		inline const char * name() const override { return Name_.c_str(); }
+		inline void defineOptions([[maybe_unused]] Poco::Util::OptionSet &options) override {}
+		inline const std::string &Name() const { return Name_; };
+		inline const char *name() const override { return Name_.c_str(); }
 
-		inline const PropertiesFileServerEntry & Host(uint64_t index) { return ConfigServersList_[index]; };
+		inline const PropertiesFileServerEntry &Host(uint64_t index) {
+			return ConfigServersList_[index];
+		};
 		inline uint64_t HostSize() const { return ConfigServersList_.size(); }
-		inline Poco::Logger & Logger() const { return Logger_->L_; }
-		inline void SetLoggingLevel(const std::string & levelName) {
+		inline Poco::Logger &Logger() const { return Logger_->L_; }
+		inline void SetLoggingLevel(const std::string &levelName) {
 			Logger_->L_.setLevel(Poco::Logger::parseLevel(levelName));
 		}
 		inline int GetLoggingLevel() { return Logger_->L_.getLevel(); }
@@ -102,23 +100,21 @@ namespace OpenWifi {
 		virtual void Stop() = 0;
 
 		struct LoggerWrapper {
-			Poco::Logger & L_;
-			LoggerWrapper(Poco::Logger &L) :
- 				L_(L) {
-			}
+			Poco::Logger &L_;
+			LoggerWrapper(Poco::Logger &L) : L_(L) {}
 		};
 
 	  protected:
-		std::recursive_mutex 			Mutex_;
+		std::recursive_mutex Mutex_;
 		std::vector<PropertiesFileServerEntry> ConfigServersList_;
 
 	  private:
-		std::unique_ptr<LoggerWrapper>  Logger_;
-		std::string 					Name_;
-		std::string         			LoggerPrefix_;
-		std::string 					SubSystemConfigPrefix_;
+		std::unique_ptr<LoggerWrapper> Logger_;
+		std::string Name_;
+		std::string LoggerPrefix_;
+		std::string SubSystemConfigPrefix_;
 	};
 
-	typedef std::vector<SubSystemServer *>          SubSystemVec;
+	typedef std::vector<SubSystemServer *> SubSystemVec;
 
 } // namespace OpenWifi

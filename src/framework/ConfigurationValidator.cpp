@@ -2,8 +2,8 @@
 // Created by stephane bourque on 2021-09-14.
 //
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <regex>
 
 #include "ConfigurationValidator.h"
@@ -17,14 +17,15 @@
 #include "fmt/format.h"
 
 #include <valijson/adapters/poco_json_adapter.hpp>
-#include <valijson/utils/poco_json_utils.hpp>
+#include <valijson/constraints/constraint.hpp>
 #include <valijson/schema.hpp>
 #include <valijson/schema_parser.hpp>
+#include <valijson/utils/poco_json_utils.hpp>
 #include <valijson/validator.hpp>
-#include <valijson/constraints/constraint.hpp>
 
 static const std::string GitUCentralJSONSchemaFile{
-	"https://raw.githubusercontent.com/Telecominfraproject/wlan-ucentral-schema/main/ucentral.schema.json"};
+	"https://raw.githubusercontent.com/Telecominfraproject/wlan-ucentral-schema/main/"
+	"ucentral.schema.json"};
 
 static std::string DefaultUCentralSchema = R"foo(
 
@@ -3184,7 +3185,6 @@ static std::string DefaultUCentralSchema = R"foo(
 
 )foo";
 
-
 static inline bool IsIPv4(const std::string &value) {
 	Poco::Net::IPAddress A;
 	return ((Poco::Net::IPAddress::tryParse(value, A) && A.family() == Poco::Net::IPAddress::IPv4));
@@ -3242,57 +3242,68 @@ bool ExternalValijsonFormatChecker(const std::string &format, const std::string 
 	if (format == "uc-cidr4") {
 		if (IsCIDRv4(value))
 			return true;
-		if(results) results->pushError(context,fmt::format("{} is not a valid CIDR IPv4 block",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid CIDR IPv4 block", value));
 	} else if (format == "uc-cidr6") {
 		if (IsCIDRv6(value))
 			return true;
-		if(results) results->pushError(context,fmt::format("{} is not a valid CIDR IPv6 block",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid CIDR IPv6 block", value));
 	} else if (format == "uc-cidr") {
 		if (IsCIDR(value))
 			return true;
-		if(results) results->pushError(context,fmt::format("{} is not a valid CIDR block",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid CIDR block", value));
 	} else if (format == "uc-mac") {
 		if (std::regex_match(value, mac_regex))
 			return true;
-		if(results) results->pushError(context,fmt::format("{} is not a valid MAC address",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid MAC address", value));
 	} else if (format == "uc-timeout") {
 		if (std::regex_match(value, uc_timeout_regex))
 			return true;
-		if(results) results->pushError(context,fmt::format("{} is not a valid timeout value",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid timeout value", value));
 	} else if (format == "uc-host") {
 		if (IsIP(value))
 			return true;
 		if (std::regex_match(value, host_regex))
 			return true;
-		if(results) results->pushError(context,fmt::format("{} is not a valid hostname",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid hostname", value));
 	} else if (format == "fqdn" || format == "uc-fqdn") {
 		if (std::regex_match(value, host_regex))
 			return true;
-		if(results) results->pushError(context,fmt::format("{} is not a valid FQDN",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid FQDN", value));
 	} else if (format == "uc-base64") {
 		std::string s{value};
 		Poco::trimInPlace(s);
 		if ((s.size() % 4 == 0) && std::regex_match(s, b64_regex))
 			return true;
-		if(results) results->pushError(context,fmt::format("{} is not a valid base 64 value",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid base 64 value", value));
 	} else if (format == "uri") {
 		try {
 			Poco::URI uri(value);
 			return true;
 		} catch (...) {
 		}
-		if(results) results->pushError(context,fmt::format("{} is not a valid URL",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid URL", value));
 	} else if (format == "uc-portrange") {
 		try {
 			if (IsPortRangeIsValid(value))
 				return true;
 		} catch (...) {
 		}
-		if(results) results->pushError(context,fmt::format("{} is not a valid post range",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid post range", value));
 	} else if (format == "ip") {
 		if (IsIP(value))
 			return true;
-		if(results) results->pushError(context,fmt::format("{} is not a valid IP address",value));
+		if (results)
+			results->pushError(context, fmt::format("{} is not a valid IP address", value));
 	}
 	return true;
 }
@@ -3304,9 +3315,7 @@ namespace OpenWifi {
 		return 0;
 	}
 
-	void ConfigurationValidator::Stop() {
-
-	}
+	void ConfigurationValidator::Stop() {}
 
 	bool ConfigurationValidator::SetSchema(const std::string &SchemaStr) {
 		try {
@@ -3318,9 +3327,9 @@ namespace OpenWifi {
 			SchemaParser_->populateSchema(*PocoJsonAdapter_, *RootSchema_);
 			Initialized_ = Working_ = true;
 			return true;
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-		} catch(...) {
+		} catch (...) {
 			Logger().error("Validation schema is invalid, falling back.");
 		}
 		return false;
@@ -3331,7 +3340,7 @@ namespace OpenWifi {
 			return;
 
 		std::string GitSchema;
-		if(MicroServiceConfigGetBool("ucentral.datamodel.internal",true)) {
+		if (MicroServiceConfigGetBool("ucentral.datamodel.internal", true)) {
 			SetSchema(DefaultUCentralSchema);
 			poco_information(Logger(), "Using uCentral validation from built-in default.");
 			return;
@@ -3339,34 +3348,35 @@ namespace OpenWifi {
 
 		try {
 			auto GitURI =
-			   MicroServiceConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
-				if(Utils::wgets(GitURI, GitSchema) && SetSchema(GitSchema)) {
-					poco_information(Logger(),"Using uCentral data model validation schema from GIT.");
+				MicroServiceConfigGetString("ucentral.datamodel.uri", GitUCentralJSONSchemaFile);
+			if (Utils::wgets(GitURI, GitSchema) && SetSchema(GitSchema)) {
+				poco_information(Logger(), "Using uCentral data model validation schema from GIT.");
+				return;
+			} else {
+				std::string FileName{MicroServiceDataDirectory() + "/ucentral.schema.json"};
+				std::ifstream input(FileName);
+				std::stringstream schema_file;
+				schema_file << input.rdbuf();
+				input.close();
+				if (SetSchema(schema_file.str())) {
+					poco_information(
+						Logger(), "Using uCentral data model validation schema from local file.");
 					return;
-				} else {
-					std::string FileName{ MicroServiceDataDirectory() + "/ucentral.schema.json" };
-					std::ifstream       input(FileName);
-					std::stringstream   schema_file;
-					schema_file << input.rdbuf();
-					input.close();
-					if(SetSchema(schema_file.str())) {
-						poco_information(Logger(),
-										 "Using uCentral data model validation schema from local file.");
-						return;
-					}
 				}
+			}
 		} catch (const Poco::Exception &E) {
 
 		} catch (...) {
-
 		}
 		SetSchema(DefaultUCentralSchema);
-		poco_information(Logger(),"Using uCentral data model validation schema from built-in default.");
+		poco_information(Logger(),
+						 "Using uCentral data model validation schema from built-in default.");
 	}
 
-    bool ConfigurationValidator::Validate(const std::string &C, std::vector<std::string> &Errors, bool Strict) {
-        if(Working_) {
-            try {
+	bool ConfigurationValidator::Validate(const std::string &C, std::vector<std::string> &Errors,
+										  bool Strict) {
+		if (Working_) {
+			try {
 				Poco::JSON::Parser P;
 				auto Doc = P.parse(C).extract<Poco::JSON::Object::Ptr>();
 				valijson::adapters::PocoJsonAdapter Tester(Doc);
@@ -3375,27 +3385,28 @@ namespace OpenWifi {
 				if (Validator.validate(*RootSchema_, Tester, &Results)) {
 					return true;
 				}
-				for(const auto &error:Results) {
+				for (const auto &error : Results) {
 					Errors.push_back(error.description);
 				}
 				return false;
-			} catch(const Poco::Exception &E) {
+			} catch (const Poco::Exception &E) {
 				Logger().log(E);
-            } catch(const std::exception &E) {
-				Logger().warning(fmt::format("Error wile validating a configuration (1): {}", E.what()));
-            } catch(...) {
+			} catch (const std::exception &E) {
+				Logger().warning(
+					fmt::format("Error wile validating a configuration (1): {}", E.what()));
+			} catch (...) {
 				Logger().warning("Error wile validating a configuration (2)");
-            }
-        }
-		if(Strict)
+			}
+		}
+		if (Strict)
 			return false;
-        return true;
-    }
+		return true;
+	}
 
-    void ConfigurationValidator::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
-		poco_information(Logger(),"Reinitializing.");
-        Working_ = Initialized_ = false;
-        Init();
-    }
+	void ConfigurationValidator::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
+		poco_information(Logger(), "Reinitializing.");
+		Working_ = Initialized_ = false;
+		Init();
+	}
 
-}
+} // namespace OpenWifi

@@ -29,14 +29,15 @@ namespace OpenWifi {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
-			if ( dbType_== pgsql || dbType_ == sqlite) {
+			if (dbType_ == pgsql || dbType_ == sqlite) {
 				Sess << "CREATE TABLE IF NOT EXISTS Statistics ("
 						"SerialNumber VARCHAR(30), "
 						"UUID INTEGER, "
 						"Data TEXT, "
 						"Recorded BIGINT)",
 					Poco::Data::Keywords::now;
-				Sess << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)",
+				Sess << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, "
+						"Recorded ASC)",
 					Poco::Data::Keywords::now;
 			} else if (dbType_ == mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS Statistics ("
@@ -48,7 +49,7 @@ namespace OpenWifi {
 					Poco::Data::Keywords::now;
 			}
 			return 0;
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return -1;
@@ -58,7 +59,7 @@ namespace OpenWifi {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
-			if(dbType_==mysql) {
+			if (dbType_ == mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS Devices ("
 						"SerialNumber  	VARCHAR(30) UNIQUE PRIMARY KEY, "
 						"DeviceType    	VARCHAR(32), "
@@ -88,8 +89,9 @@ namespace OpenWifi {
 						"restrictionDetails TEXT, "
 						"pendingUUID	BIGINT "
 						",INDEX DeviceOwner (Owner ASC),"
-						"INDEX LocationIndex (Location ASC))", Poco::Data::Keywords::now;
-			} else if(dbType_==sqlite || dbType_==pgsql) {
+						"INDEX LocationIndex (Location ASC))",
+					Poco::Data::Keywords::now;
+			} else if (dbType_ == sqlite || dbType_ == pgsql) {
 				Sess << "CREATE TABLE IF NOT EXISTS Devices ("
 						"SerialNumber  	VARCHAR(30) UNIQUE PRIMARY KEY, "
 						"DeviceType    	VARCHAR(32), "
@@ -118,9 +120,12 @@ namespace OpenWifi {
 						"pendingConfigurationCmd VARCHAR(64), "
 						"restrictionDetails TEXT,"
 						"pendingUUID 	BIGINT "
-						")", Poco::Data::Keywords::now;
-				Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)", Poco::Data::Keywords::now;
-				Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)", Poco::Data::Keywords::now;
+						")",
+					Poco::Data::Keywords::now;
+				Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)",
+					Poco::Data::Keywords::now;
+				Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)",
+					Poco::Data::Keywords::now;
 			}
 
 			// we must upgrade old DBs
@@ -133,10 +138,9 @@ namespace OpenWifi {
 				"alter table devices add column pendingConfiguration TEXT",
 				"alter table devices add column pendingConfigurationCmd VARCHAR(64)",
 				"alter table devices add column restrictionDetails TEXT",
-				"alter table devices add column pendingUUID bigint"
-			};
+				"alter table devices add column pendingUUID bigint"};
 
-			for(const auto &i:Script) {
+			for (const auto &i : Script) {
 				try {
 					Sess << i, Poco::Data::Keywords::now;
 				} catch (...) {
@@ -144,7 +148,7 @@ namespace OpenWifi {
 			}
 			return 0;
 
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return -1;
@@ -154,7 +158,7 @@ namespace OpenWifi {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
-			if(dbType_==pgsql || dbType_==sqlite || dbType_==mysql) {
+			if (dbType_ == pgsql || dbType_ == sqlite || dbType_ == mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS Capabilities ("
 						"SerialNumber VARCHAR(30) PRIMARY KEY, "
 						"Capabilities TEXT, "
@@ -165,7 +169,7 @@ namespace OpenWifi {
 			}
 
 			return 0;
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return -1;
@@ -175,7 +179,7 @@ namespace OpenWifi {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
-			if(dbType_==mysql) {
+			if (dbType_ == mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS HealthChecks ("
 						"SerialNumber VARCHAR(30), "
 						"UUID          BIGINT, "
@@ -183,18 +187,22 @@ namespace OpenWifi {
 						"Sanity BIGINT , "
 						"Recorded BIGINT, "
 						"INDEX HealthSerial (SerialNumber ASC, Recorded ASC)"
-						")", Poco::Data::Keywords::now;
-			} else if(dbType_==sqlite || dbType_==pgsql) {
+						")",
+					Poco::Data::Keywords::now;
+			} else if (dbType_ == sqlite || dbType_ == pgsql) {
 				Sess << "CREATE TABLE IF NOT EXISTS HealthChecks ("
 						"SerialNumber VARCHAR(30), "
 						"UUID          BIGINT, "
 						"Data TEXT, "
 						"Sanity BIGINT , "
-						"Recorded BIGINT) ", Poco::Data::Keywords::now;
-				Sess << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", Poco::Data::Keywords::now;
+						"Recorded BIGINT) ",
+					Poco::Data::Keywords::now;
+				Sess << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber "
+						"ASC, Recorded ASC)",
+					Poco::Data::Keywords::now;
 			}
 			return 0;
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return -1;
@@ -204,7 +212,7 @@ namespace OpenWifi {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
-			if(dbType_==mysql) {
+			if (dbType_ == mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
 						"SerialNumber   VARCHAR(30), "
 						"Log            TEXT, "
@@ -214,8 +222,9 @@ namespace OpenWifi {
 						"LogType        BIGINT, "
 						"UUID	        BIGINT, "
 						"INDEX LogSerial (SerialNumber ASC, Recorded ASC)"
-						")", Poco::Data::Keywords::now;
-			} else if(dbType_==pgsql || dbType_==sqlite) {
+						")",
+					Poco::Data::Keywords::now;
+			} else if (dbType_ == pgsql || dbType_ == sqlite) {
 				Sess << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
 						"SerialNumber   VARCHAR(30), "
 						"Log            TEXT, "
@@ -224,12 +233,15 @@ namespace OpenWifi {
 						"Recorded       BIGINT, "
 						"LogType        BIGINT, "
 						"UUID	        BIGINT  "
-						")", Poco::Data::Keywords::now;
-				Sess << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", Poco::Data::Keywords::now;
+						")",
+					Poco::Data::Keywords::now;
+				Sess << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, "
+						"Recorded ASC)",
+					Poco::Data::Keywords::now;
 			}
 
 			return 0;
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return -1;
@@ -239,17 +251,18 @@ namespace OpenWifi {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
-			if(dbType_==pgsql || dbType_==sqlite || dbType_==mysql) {
+			if (dbType_ == pgsql || dbType_ == sqlite || dbType_ == mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
 						"Name VARCHAR(30) PRIMARY KEY, "
 						"Configuration TEXT, "
 						"Models TEXT, "
 						"Description TEXT, "
 						"Created BIGINT , "
-						"LastModified BIGINT)", Poco::Data::Keywords::now;
+						"LastModified BIGINT)",
+					Poco::Data::Keywords::now;
 			}
 			return 0;
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return -1;
@@ -261,7 +274,7 @@ namespace OpenWifi {
 	int Storage::Create_CommandList() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-			if(dbType_==mysql) {
+			if (dbType_ == mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS CommandList ("
 						"UUID           VARCHAR(64) PRIMARY KEY, "
 						"SerialNumber   VARCHAR(30), "
@@ -282,8 +295,9 @@ namespace OpenWifi {
 						"AttachSize     BIGINT,"
 						"AttachType     VARCHAR(64),"
 						"INDEX CommandListIndex (SerialNumber ASC, Submitted ASC)"
-						")", Poco::Data::Keywords::now;
-			} else if (dbType_==pgsql || dbType_==sqlite) {
+						")",
+					Poco::Data::Keywords::now;
+			} else if (dbType_ == pgsql || dbType_ == sqlite) {
 				Sess << "CREATE TABLE IF NOT EXISTS CommandList ("
 						"UUID           VARCHAR(64) PRIMARY KEY, "
 						"SerialNumber   VARCHAR(30), "
@@ -303,21 +317,23 @@ namespace OpenWifi {
 						"AttachDate     BIGINT,"
 						"AttachSize     BIGINT,"
 						"AttachType     VARCHAR(64)"
-						")", Poco::Data::Keywords::now;
-				Sess << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", Poco::Data::Keywords::now;
+						")",
+					Poco::Data::Keywords::now;
+				Sess << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber "
+						"ASC, Submitted ASC)",
+					Poco::Data::Keywords::now;
 			}
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 
 		std::vector<std::string> Script{
-			dbType_ == mysql ?	"alter table CommandList add column executionTime float default 0.00" :
-							 	"alter table CommandList add column executionTime real default 0.00",
-								"alter table CommandList add column LastTry bigint default 0",
-								"alter table CommandList add column deferred BOOLEAN default false"
-		};
+			dbType_ == mysql ? "alter table CommandList add column executionTime float default 0.00"
+							 : "alter table CommandList add column executionTime real default 0.00",
+			"alter table CommandList add column LastTry bigint default 0",
+			"alter table CommandList add column deferred BOOLEAN default false"};
 
-		for(const auto &i:Script) {
+		for (const auto &i : Script) {
 			try {
 				Poco::Data::Session Sess = Pool_->get();
 				Sess << i, Poco::Data::Keywords::now;
@@ -334,16 +350,17 @@ namespace OpenWifi {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
-			if(dbType_==mysql || dbType_==pgsql || dbType_==sqlite) {
+			if (dbType_ == mysql || dbType_ == pgsql || dbType_ == sqlite) {
 				Sess << "CREATE TABLE IF NOT EXISTS BlackList ("
 						"SerialNumber	VARCHAR(30) PRIMARY KEY, "
 						"Reason			TEXT, "
 						"Created		BIGINT, "
 						"Author			VARCHAR(64)"
-						")", Poco::Data::Keywords::now;
+						")",
+					Poco::Data::Keywords::now;
 			}
 			return 0;
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return -1;
@@ -353,34 +370,37 @@ namespace OpenWifi {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
-			if(dbType_==sqlite) {
+			if (dbType_ == sqlite) {
 				Sess << "CREATE TABLE IF NOT EXISTS FileUploads ("
 						"UUID			VARCHAR(64) PRIMARY KEY, "
 						"Type			VARCHAR(32), "
 						"Created 		BIGINT, "
 						"FileContent	BLOB"
-						") ", Poco::Data::Keywords::now;
-			} else if(dbType_==mysql) {
+						") ",
+					Poco::Data::Keywords::now;
+			} else if (dbType_ == mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS FileUploads ("
 						"UUID			VARCHAR(64) PRIMARY KEY, "
 						"Type			VARCHAR(32), "
 						"Created 		BIGINT, "
 						"FileContent	LONGBLOB"
-						") ", Poco::Data::Keywords::now;
-			} else if(dbType_==pgsql) {
+						") ",
+					Poco::Data::Keywords::now;
+			} else if (dbType_ == pgsql) {
 				Sess << "CREATE TABLE IF NOT EXISTS FileUploads ("
 						"UUID			VARCHAR(64) PRIMARY KEY, "
 						"Type			VARCHAR(32), "
 						"Created 		BIGINT, "
 						"FileContent	BYTEA"
-						") ", Poco::Data::Keywords::now;
+						") ",
+					Poco::Data::Keywords::now;
 			}
 
 			return 0;
-		} catch(const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return -1;
 	}
 
-}
+} // namespace OpenWifi
