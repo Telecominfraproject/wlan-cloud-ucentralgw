@@ -3,12 +3,11 @@
 //
 
 #include "AP_WS_Connection.h"
-#include "StorageService.h"
 #include "CommandManager.h"
+#include "StorageService.h"
 
-#include "framework/ow_constants.h"
-#include "framework/MicroServiceFuncs.h"
 #include "fmt/format.h"
+#include "framework/MicroServiceFuncs.h"
 #include "framework/ow_constants.h"
 
 namespace OpenWifi {
@@ -52,16 +51,24 @@ namespace OpenWifi {
 				Poco::JSON::Stringifier::stringify(Params, O);
 				Cmd.Details = O.str();
 				bool Sent;
-				CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(), APCommands::Commands::reboot, SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent, false, false);
-				StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
-				poco_information(Logger_, fmt::format("RECOVERY({}): Recovery mode received, need for a reboot.", CId_));
+				CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(),
+											  APCommands::Commands::reboot, SerialNumber_,
+											  Cmd.Command, Params, Cmd.UUID, Sent, false, false);
+				StorageService()->AddCommand(SerialNumber_, Cmd,
+											 Storage::CommandExecutionType::COMMAND_EXECUTED);
+				poco_information(
+					Logger_,
+					fmt::format("RECOVERY({}): Recovery mode received, need for a reboot.", CId_));
 			} else {
-				poco_information(Logger_, fmt::format(
-											   "RECOVERY({}): Recovery mode received, no need for a reboot.", CId_));
+				poco_information(
+					Logger_,
+					fmt::format("RECOVERY({}): Recovery mode received, no need for a reboot.",
+								CId_));
 			}
 		} else {
-			poco_warning(Logger_, fmt::format("RECOVERY({}): Recovery missing one of serialnumber, firmware, uuid, loglines, reboot",
-											   CId_));
+			poco_warning(Logger_, fmt::format("RECOVERY({}): Recovery missing one of serialnumber, "
+											  "firmware, uuid, loglines, reboot",
+											  CId_));
 		}
 	}
-}
+} // namespace OpenWifi

@@ -9,8 +9,9 @@
 namespace OpenWifi {
 	class SDKCalls {
 	  public:
-		static bool GetProvisioningConfiguration(const std::string & SerialNumber, std::string & Config);
+		static bool GetProvisioningConfiguration(const std::string &SerialNumber,
+												 std::string &Config);
+
 	  private:
 	};
-}
-
+} // namespace OpenWifi

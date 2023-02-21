@@ -5,16 +5,17 @@
 #include "AP_WS_Connection.h"
 #include "StorageService.h"
 
+#include "fmt/format.h"
 #include "framework/KafkaManager.h"
 #include "framework/utils.h"
-#include "fmt/format.h"
 
 namespace OpenWifi {
 
 	void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
 		if (!State_.Connected) {
-			poco_warning(Logger_, fmt::format(
-									   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
+			poco_warning(Logger_,
+						 fmt::format("INVALID-PROTOCOL({}): Device '{}' is not following protocol",
+									 CId_, CN_));
 			Errors_++;
 			return;
 		}
@@ -31,16 +32,14 @@ namespace OpenWifi {
 				request_uuid = ParamsObj->get(uCentralProtocol::REQUEST_UUID).toString();
 
 			if (request_uuid.empty()) {
-				poco_trace(Logger_,
-						   fmt::format("HEALTHCHECK({}): UUID={} Updating.", CId_, UUID));
+				poco_trace(Logger_, fmt::format("HEALTHCHECK({}): UUID={} Updating.", CId_, UUID));
 			} else {
-				poco_trace(Logger_,
-						   fmt::format("HEALTHCHECK({}): UUID={} Updating for CMD={}.", CId_,
-									   UUID, request_uuid));
+				poco_trace(Logger_, fmt::format("HEALTHCHECK({}): UUID={} Updating for CMD={}.",
+												CId_, UUID, request_uuid));
 			}
 
 			uint64_t UpgradedUUID;
-			LookForUpgrade(UUID,UpgradedUUID);
+			LookForUpgrade(UUID, UpgradedUUID);
 			State_.UUID = UpgradedUUID;
 
 			GWObjects::HealthCheck Check;
@@ -71,4 +70,4 @@ namespace OpenWifi {
 		}
 	}
 
-}
+} // namespace OpenWifi

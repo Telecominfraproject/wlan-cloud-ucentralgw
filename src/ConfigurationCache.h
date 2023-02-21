@@ -5,14 +5,13 @@
 #pragma once
 
 #include <map>
-#include <string>
 #include <mutex>
+#include <string>
 
 namespace OpenWifi {
 	class ConfigurationCache {
 	  public:
-
-		static ConfigurationCache & instance() {
+		static ConfigurationCache &instance() {
 			static ConfigurationCache instance;
 			return instance;
 		}
@@ -20,30 +19,30 @@ namespace OpenWifi {
 		inline uint64_t CurrentConfig(uint64_t SerialNumber) {
 			std::lock_guard G(Mutex_);
 			const auto Hint = Cache_.find(SerialNumber);
-			if(Hint==end(Cache_))
+			if (Hint == end(Cache_))
 				return 0;
 			return Hint->second;
 		}
 
 		inline void Add(uint64_t SerialNumber, uint64_t Id) {
-			std::lock_guard	G(Mutex_);
-			Cache_[SerialNumber]=Id;
+			std::lock_guard G(Mutex_);
+			Cache_[SerialNumber] = Id;
 		}
 
 	  private:
-		std::recursive_mutex					Mutex_;
-		std::map<uint64_t,uint64_t>	Cache_;
+		std::recursive_mutex Mutex_;
+		std::map<uint64_t, uint64_t> Cache_;
 	};
 
 	inline uint64_t GetCurrentConfigurationID(uint64_t SerialNumber) {
 		return ConfigurationCache::instance().CurrentConfig(SerialNumber);
 	}
 
-	inline void SetCurrentConfigurationID(const std::string & SerialNumber, uint64_t ID) {
+	inline void SetCurrentConfigurationID(const std::string &SerialNumber, uint64_t ID) {
 		return ConfigurationCache::instance().Add(Utils::SerialNumberToInt(SerialNumber), ID);
 	}
 
 	inline void SetCurrentConfigurationID(uint64_t SerialNumber, uint64_t ID) {
 		return ConfigurationCache::instance().Add(SerialNumber, ID);
 	}
-}
+} // namespace OpenWifi

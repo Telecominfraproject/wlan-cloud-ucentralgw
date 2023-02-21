@@ -7,7 +7,7 @@
 namespace OpenWifi {
 
 	void GWKafkaEvents::Send() {
-		if(KafkaManager()->Enabled()) {
+		if (KafkaManager()->Enabled()) {
 			Poco::JSON::Object Event;
 			Event.set("type", type_);
 			Event.set("timestamp", timestamp_);

@@ -9,10 +9,12 @@
 
 namespace OpenWifi {
 
-	void AP_WS_Connection::Process_deviceupdate(Poco::JSON::Object::Ptr ParamsObj, std::string &Serial) {
+	void AP_WS_Connection::Process_deviceupdate(Poco::JSON::Object::Ptr ParamsObj,
+												std::string &Serial) {
 		if (!State_.Connected) {
-			poco_warning(Logger_, fmt::format(
-									   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
+			poco_warning(Logger_,
+						 fmt::format("INVALID-PROTOCOL({}): Device '{}' is not following protocol",
+									 CId_, CN_));
 			Errors_++;
 			return;
 		}
@@ -20,8 +22,10 @@ namespace OpenWifi {
 			auto Password = ParamsObj->get("currentPassword").toString();
 
 			StorageService()->SetDevicePassword(Serial, Password);
-			poco_trace(Logger_, fmt::format("DEVICEUPDATE({}): Device is updating its login password.", Serial));
+			poco_trace(
+				Logger_,
+				fmt::format("DEVICEUPDATE({}): Device is updating its login password.", Serial));
 		}
 	}
 
-}
+} // namespace OpenWifi

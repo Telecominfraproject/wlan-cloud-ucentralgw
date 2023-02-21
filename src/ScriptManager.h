@@ -19,16 +19,12 @@ namespace OpenWifi {
 		void Stop();
 
 	  private:
-		std::string 		ScriptDir_;
+		std::string ScriptDir_;
 
-		explicit ScriptManager() noexcept:
-			SubSystemServer("ScriptManager", "SCRIPT-MGR", "script.manager")
-		{
-		}
-
+		explicit ScriptManager() noexcept
+			: SubSystemServer("ScriptManager", "SCRIPT-MGR", "script.manager") {}
 	};
 
 	inline auto ScriptManager() { return ScriptManager::instance(); }
 
 } // namespace OpenWifi
-

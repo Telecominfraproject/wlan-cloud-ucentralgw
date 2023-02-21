@@ -5,8 +5,8 @@
 #include "AP_WS_Connection.h"
 #include "StorageService.h"
 
-#include "framework/ow_constants.h"
 #include "fmt/format.h"
+#include "framework/ow_constants.h"
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_crashlog(Poco::JSON::Object::Ptr ParamsObj) {
@@ -34,4 +34,4 @@ namespace OpenWifi {
 			return;
 		}
 	}
-}
+} // namespace OpenWifi

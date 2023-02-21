@@ -7,17 +7,17 @@
 //
 #include <fstream>
 
+#include "Poco/File.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
-#include "Poco/File.h"
 
 #include "CentralConfig.h"
 #include "Daemon.h"
 
 namespace OpenWifi::Config {
 
-	const static std::string BasicConfig {
-R"lit(
+	const static std::string BasicConfig{
+		R"lit(
 {
   "interfaces": [
     {
@@ -150,10 +150,11 @@ R"lit(
 
 	void Config::SetBasicConfigFile() {
 		try {
-			Poco::File DefaultConfigFileName{MicroService::instance().DataDir() + "/default_config.json"};
+			Poco::File DefaultConfigFileName{MicroService::instance().DataDir() +
+											 "/default_config.json"};
 			DefaultConfiguration_ = BasicConfig;
-			std::ofstream OS(DefaultConfigFileName.path(), std::ios::binary | std::ios::trunc );
-			std::istringstream	IS(DefaultConfiguration_);
+			std::ofstream OS(DefaultConfigFileName.path(), std::ios::binary | std::ios::trunc);
+			std::istringstream IS(DefaultConfiguration_);
 			Poco::StreamCopier::copyStream(IS, OS);
 		} catch (...) {
 			DefaultConfiguration_ = BasicConfig;
@@ -161,22 +162,23 @@ R"lit(
 	}
 
 	Config::Config() {
-		if(DefaultConfiguration_.empty())
+		if (DefaultConfiguration_.empty())
 			Init();
 		Config_ = DefaultConfiguration_;
 	}
 
 	void Config::Init() {
-		if(DefaultConfiguration_.empty()) {
+		if (DefaultConfiguration_.empty()) {
 			//	open the file
 			try {
-				Poco::File DefaultConfigFileName{MicroService::instance().DataDir()+"/default_config.json"};
+				Poco::File DefaultConfigFileName{MicroService::instance().DataDir() +
+												 "/default_config.json"};
 				if (!DefaultConfigFileName.exists()) {
 					SetBasicConfigFile();
 				} else {
-					std::ifstream F(DefaultConfigFileName.path(),std::ios::binary | std::ios::in);
+					std::ifstream F(DefaultConfigFileName.path(), std::ios::binary | std::ios::in);
 					std::ostringstream C;
-					Poco::StreamCopier::copyStream(F,C);
+					Poco::StreamCopier::copyStream(F, C);
 					DefaultConfiguration_ = C.str();
 				}
 			} catch (...) {
@@ -185,101 +187,89 @@ R"lit(
 		}
 	}
 
-    bool Config::SetUUID(uint64_t UUID) {
-        try {
-            Poco::JSON::Parser Parser;
-            auto Object = Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
+	bool Config::SetUUID(uint64_t UUID) {
+		try {
+			Poco::JSON::Parser Parser;
+			auto Object = Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
 			Object->set("uuid", UUID);
 			std::ostringstream NewConfig;
-            Poco::JSON::Stringifier Stringifier;
+			Poco::JSON::Stringifier Stringifier;
 			Stringifier.condense(Object, NewConfig);
 			Config_ = NewConfig.str();
 			return true;
-        }
-        catch(const Poco::Exception &E)
-        {
-            std::cout << __func__ << ": new Configuration failed with " << E.displayText() << std::endl;
-        }
-        return false;
-    }
+		} catch (const Poco::Exception &E) {
+			std::cout << __func__ << ": new Configuration failed with " << E.displayText()
+					  << std::endl;
+		}
+		return false;
+	}
 
-    bool Config::Valid() {
-        try {
-            Poco::JSON::Parser Parser;
-            auto object = Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
-            if(object->has("uuid"))
-                return true;
-            return false;
-        }
-        catch (...)
-        {
+	bool Config::Valid() {
+		try {
+			Poco::JSON::Parser Parser;
+			auto object = Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
+			if (object->has("uuid"))
+				return true;
 			return false;
-        }
-    }
+		} catch (...) {
+			return false;
+		}
+	}
 
 	Poco::JSON::Object::Ptr Config::to_json() {
-        Poco::JSON::Parser Parser;
-        return Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
-    }
+		Poco::JSON::Parser Parser;
+		return Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
+	}
 
 	std::string Config::Default() {
-		if(DefaultConfiguration_.empty())
+		if (DefaultConfiguration_.empty())
 			Init();
 		return DefaultConfiguration_;
 	}
 
-/*    std::string Capabilities::Default() {
-        return std::string(R"lit({"model":{"id":"linksys,ea8300","name":"Linksys EA8300 (Dallas)"},
-                        "network":{"lan":{"ifname":"eth0","protocol":"static"},"wan":{"ifname":"eth1","protocol":"dhcp"}},
-                        "switch":{"switch0":{"enable":true,"reset":true,"ports":[{"num":0,"device":"eth0","need_tag":false,
-                        "want_untag":true},{"num":1,"role":"lan"},{"num":2,"role":"lan"},{"num":3,"role":"lan"},{"num":4,"role":"lan"}],
-                        "roles":[{"role":"lan","ports":"1 2 3 4 0","device":"eth0"}]}},
-                        "wifi":{"soc/40000000.pci/pci0000:00/0000:00:00.0/0000:01:00.0":{"band":["5u"],"ht_capa":6639,
-                        "vht_capa":865696178,"htmode":["HT20","HT40","VHT20","VHT40","VHT80"],"tx_ant":3,"rx_ant":3,
-                        "channels":[100,104,108,112,116,120,124,128,132,136,140,144,149,153,157,161,165]},
-                        "platform/soc/a000000.wifi":{"band":["2"],"ht_capa":6639,"vht_capa":865687986,
-                        "htmode":["HT20","HT40","VHT20","VHT40","VHT80"],"tx_ant":3,"rx_ant":3,"channels":[1,2,3,4,5,6,7,8,9,10,11]},
-                        "platform/soc/a800000.wifi":{"band":["5l"],"ht_capa":6639,"vht_capa":865687986,"htmode":["HT20","HT40","VHT20","VHT40","VHT80"],
-                        "tx_ant":3,"rx_ant":3,"channels":[36,40,44,48,52,56,60,64]}}})lit");
-    }
-*/
+	/*    std::string Capabilities::Default() {
+			return std::string(R"lit({"model":{"id":"linksys,ea8300","name":"Linksys EA8300
+	   (Dallas)"},
+							"network":{"lan":{"ifname":"eth0","protocol":"static"},"wan":{"ifname":"eth1","protocol":"dhcp"}},
+							"switch":{"switch0":{"enable":true,"reset":true,"ports":[{"num":0,"device":"eth0","need_tag":false,
+							"want_untag":true},{"num":1,"role":"lan"},{"num":2,"role":"lan"},{"num":3,"role":"lan"},{"num":4,"role":"lan"}],
+							"roles":[{"role":"lan","ports":"1 2 3 4 0","device":"eth0"}]}},
+							"wifi":{"soc/40000000.pci/pci0000:00/0000:00:00.0/0000:01:00.0":{"band":["5u"],"ht_capa":6639,
+							"vht_capa":865696178,"htmode":["HT20","HT40","VHT20","VHT40","VHT80"],"tx_ant":3,"rx_ant":3,
+							"channels":[100,104,108,112,116,120,124,128,132,136,140,144,149,153,157,161,165]},
+							"platform/soc/a000000.wifi":{"band":["2"],"ht_capa":6639,"vht_capa":865687986,
+							"htmode":["HT20","HT40","VHT20","VHT40","VHT80"],"tx_ant":3,"rx_ant":3,"channels":[1,2,3,4,5,6,7,8,9,10,11]},
+							"platform/soc/a800000.wifi":{"band":["5l"],"ht_capa":6639,"vht_capa":865687986,"htmode":["HT20","HT40","VHT20","VHT40","VHT80"],
+							"tx_ant":3,"rx_ant":3,"channels":[36,40,44,48,52,56,60,64]}}})lit");
+		}
+	*/
 
-    Capabilities::Capabilities(const Poco::JSON::Object::Ptr &Caps) {
-        try {
+	Capabilities::Capabilities(const Poco::JSON::Object::Ptr &Caps) {
+		try {
 
-            if(Caps->has("compatible"))
+			if (Caps->has("compatible"))
 				Compatible_ = Caps->get("compatible").toString();
 
-			if(Caps->has("model"))
+			if (Caps->has("model"))
 				Model_ = Caps->get("model").toString();
 
-			if(Caps->has("platform"))
+			if (Caps->has("platform"))
 				Platform_ = Caps->get("platform").toString();
 
-            std::ostringstream OS;
-            Caps->stringify(OS);
-            AsString_ = OS.str();
-        }
-        catch ( const Poco::Exception & E )
-        {
-            Daemon()->logger().log(E);
-        }
-    }
-
-	const std::string & Capabilities::Compatible() const {
-		return Compatible_;
+			std::ostringstream OS;
+			Caps->stringify(OS);
+			AsString_ = OS.str();
+		} catch (const Poco::Exception &E) {
+			Daemon()->logger().log(E);
+		}
 	}
 
-	const std::string & Capabilities::Model() const {
-		return Model_;
-	}
+	const std::string &Capabilities::Compatible() const { return Compatible_; }
 
-	const std::string & Capabilities::Platform() const {
-		return Platform_;
-	}
+	const std::string &Capabilities::Model() const { return Model_; }
 
-	const std::string & Capabilities::AsString() const {
-        return AsString_;
-    }
+	const std::string &Capabilities::Platform() const { return Platform_; }
 
-} // namespace
+	const std::string &Capabilities::AsString() const { return AsString_; }
+
+} // namespace OpenWifi::Config

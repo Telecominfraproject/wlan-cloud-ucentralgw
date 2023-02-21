@@ -7,23 +7,22 @@
 
 namespace OpenWifi {
 
-	GwWebSocketClient::GwWebSocketClient(Poco::Logger &Logger):
-		 Logger_(Logger){
+	GwWebSocketClient::GwWebSocketClient(Poco::Logger &Logger) : Logger_(Logger) {
 		UI_WebSocketClientServer()->SetProcessor(this);
 	}
 
-	GwWebSocketClient::~GwWebSocketClient() {
-		UI_WebSocketClientServer()->SetProcessor(nullptr);
-	}
+	GwWebSocketClient::~GwWebSocketClient() { UI_WebSocketClientServer()->SetProcessor(nullptr); }
 
-	void GwWebSocketClient::Processor(const Poco::JSON::Object::Ptr &O, std::string &Answer, bool &Done, [[maybe_unused]] const SecurityObjects::UserInfo &UserInfo) {
+	void GwWebSocketClient::Processor(const Poco::JSON::Object::Ptr &O, std::string &Answer,
+									  bool &Done,
+									  [[maybe_unused]] const SecurityObjects::UserInfo &UserInfo) {
 		try {
 			if (O->has("command")) {
 				auto Command = O->get("command").toString();
 				if (Command == "serial_number_search" && O->has("serial_prefix")) {
-					ws_command_serial_number_search(O,Done,Answer);
-				} else if (Command=="exit") {
-					ws_command_exit(O,Done,Answer);
+					ws_command_serial_number_search(O, Done, Answer);
+				} else if (Command == "exit") {
+					ws_command_exit(O, Done, Answer);
 				} else {
 					ws_command_invalid(O, Done, Answer);
 				}
@@ -34,7 +33,7 @@ namespace OpenWifi {
 	}
 
 	void GwWebSocketClient::ws_command_serial_number_search(const Poco::JSON::Object::Ptr &O,
-															  bool &Done, std::string &Answer) {
+															bool &Done, std::string &Answer) {
 		Done = false;
 		auto Prefix = O->get("serial_prefix").toString();
 		if (!Prefix.empty() && Prefix.length() < 13) {
@@ -51,13 +50,15 @@ namespace OpenWifi {
 		}
 	}
 
-	void GwWebSocketClient::ws_command_exit([[maybe_unused]] const Poco::JSON::Object::Ptr &O, bool &Done, std::string &Answer) {
+	void GwWebSocketClient::ws_command_exit([[maybe_unused]] const Poco::JSON::Object::Ptr &O,
+											bool &Done, std::string &Answer) {
 		Done = true;
 		Answer = R"lit({ "closing" : "Goodbye! Aurevoir! Hasta la vista!" })lit";
 	}
 
-	void GwWebSocketClient::ws_command_invalid([[maybe_unused]] const Poco::JSON::Object::Ptr &O, bool &Done, std::string &Answer) {
+	void GwWebSocketClient::ws_command_invalid([[maybe_unused]] const Poco::JSON::Object::Ptr &O,
+											   bool &Done, std::string &Answer) {
 		Done = false;
 		Answer = std::string{R"lit({ "error" : "invalid command" })lit"};
 	}
-}
+} // namespace OpenWifi

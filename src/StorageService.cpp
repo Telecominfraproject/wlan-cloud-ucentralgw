@@ -10,25 +10,26 @@
 
 namespace OpenWifi {
 
-    int Storage::Start() {
-		std::lock_guard		Guard(Mutex_);
+	int Storage::Start() {
+		std::lock_guard Guard(Mutex_);
 		StorageClass::Start();
 
 		Create_Tables();
-        InitializeBlackListCache();
+		InitializeBlackListCache();
 
-		ScriptDB_ = std::make_unique<OpenWifi::ScriptDB>("Scripts", "scr", dbType_,*Pool_, Logger());
+		ScriptDB_ =
+			std::make_unique<OpenWifi::ScriptDB>("Scripts", "scr", dbType_, *Pool_, Logger());
 		ScriptDB_->Create();
 		ScriptDB_->Initialize();
 
 		return 0;
-    }
+	}
 
-    void Storage::Stop() {
-    	std::lock_guard		Guard(Mutex_);
-        poco_notice(Logger(),"Stopping...");
+	void Storage::Stop() {
+		std::lock_guard Guard(Mutex_);
+		poco_notice(Logger(), "Stopping...");
 		StorageClass::Stop();
-		poco_notice(Logger(),"Stopped...");
-    }
-}
-// namespace
+		poco_notice(Logger(), "Stopped...");
+	}
+} // namespace OpenWifi
+  // namespace

@@ -3,8 +3,8 @@
 //
 
 #include "AP_WS_Connection.h"
-#include "StorageService.h"
 #include "StateUtils.h"
+#include "StorageService.h"
 
 #include "UI_GW_WebSocketNotifications.h"
 
@@ -16,8 +16,9 @@
 namespace OpenWifi {
 	void AP_WS_Connection::Process_state(Poco::JSON::Object::Ptr ParamsObj) {
 		if (!State_.Connected) {
-			poco_warning(Logger_, fmt::format(
-									   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
+			poco_warning(Logger_,
+						 fmt::format("INVALID-PROTOCOL({}): Device '{}' is not following protocol",
+									 CId_, CN_));
 			Errors_++;
 			return;
 		}
@@ -34,12 +35,12 @@ namespace OpenWifi {
 			if (request_uuid.empty()) {
 				poco_trace(Logger_, fmt::format("STATE({}): UUID={} Updating.", CId_, UUID));
 			} else {
-				poco_trace(Logger_, fmt::format("STATE({}): UUID={} Updating for CMD={}.",
-												 CId_, UUID, request_uuid));
+				poco_trace(Logger_, fmt::format("STATE({}): UUID={} Updating for CMD={}.", CId_,
+												UUID, request_uuid));
 			}
 
 			uint64_t UpgradedUUID;
-			LookForUpgrade(UUID,UpgradedUUID);
+			LookForUpgrade(UUID, UpgradedUUID);
 			State_.UUID = UpgradedUUID;
 			SetLastStats(StateStr);
 
@@ -51,10 +52,8 @@ namespace OpenWifi {
 				StorageService()->SetCommandResult(request_uuid, StateStr);
 			}
 
-			StateUtils::ComputeAssociations(StateObj, 	State_.Associations_2G,
-														State_.Associations_5G,
-														State_.Associations_6G
-											);
+			StateUtils::ComputeAssociations(StateObj, State_.Associations_2G,
+											State_.Associations_5G, State_.Associations_6G);
 
 			if (KafkaManager()->Enabled()) {
 				Poco::JSON::Stringifier Stringify;
@@ -63,12 +62,14 @@ namespace OpenWifi {
 				KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, OS.str());
 			}
 
-			GWWebSocketNotifications::SingleDevice_t	N;
+			GWWebSocketNotifications::SingleDevice_t N;
 			N.content.serialNumber = SerialNumber_;
 			GWWebSocketNotifications::DeviceStatistics(N);
 
 		} else {
-			poco_warning(Logger_, fmt::format("STATE({}): Invalid request. Missing serial, uuid, or state", CId_));
+			poco_warning(
+				Logger_,
+				fmt::format("STATE({}): Invalid request. Missing serial, uuid, or state", CId_));
 		}
 	}
-}
+} // namespace OpenWifi

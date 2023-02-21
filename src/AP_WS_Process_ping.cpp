@@ -15,4 +15,4 @@ namespace OpenWifi {
 			poco_warning(Logger_, fmt::format("PING({}): Missing parameter.", CId_));
 		}
 	}
-}
+} // namespace OpenWifi

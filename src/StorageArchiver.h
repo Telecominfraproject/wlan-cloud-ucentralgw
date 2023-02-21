@@ -13,52 +13,50 @@
 
 namespace OpenWifi {
 
-    static const std::list<std::string>		AllInternalDBNames{"healthchecks", "statistics", "devicelogs" , "commandlist", "fileuploads"};
+	static const std::list<std::string> AllInternalDBNames{
+		"healthchecks", "statistics", "devicelogs", "commandlist", "fileuploads"};
 
-    class Archiver {
-      public:
-
-		explicit Archiver(Poco::Logger &Logger):
-			Logger_(Logger) {
-			for(const auto &db:AllInternalDBNames) {
-				DBs_[db] = 7 ;
+	class Archiver {
+	  public:
+		explicit Archiver(Poco::Logger &Logger) : Logger_(Logger) {
+			for (const auto &db : AllInternalDBNames) {
+				DBs_[db] = 7;
 			}
 		}
 
-    	void onTimer(Poco::Timer & timer);
-    	inline void AddDb(const std::string &dbname, std::uint64_t retain) {
+		void onTimer(Poco::Timer &timer);
+		inline void AddDb(const std::string &dbname, std::uint64_t retain) {
 			DBs_[dbname] = retain;
 		}
-		inline Poco::Logger & Logger() { return Logger_; }
-      private:
-		Poco::Logger							&Logger_;
-    	std::map<std::string,std::uint64_t>		DBs_;
-    };
+		inline Poco::Logger &Logger() { return Logger_; }
 
-    class StorageArchiver : public SubSystemServer {
+	  private:
+		Poco::Logger &Logger_;
+		std::map<std::string, std::uint64_t> DBs_;
+	};
 
-        public:
-            static auto instance() {
-                static auto instance_ = new StorageArchiver;
-                return instance_;
-            }
+	class StorageArchiver : public SubSystemServer {
 
-            int 	Start() override;
-            void 	Stop() override;
-            inline bool Enabled() const { return Enabled_; }
+	  public:
+		static auto instance() {
+			static auto instance_ = new StorageArchiver;
+			return instance_;
+		}
 
-        private:
-            std::atomic_bool 				Enabled_ = false;
-            Poco::Timer                     Timer_;
-            std::unique_ptr<Archiver>       Archiver_;
-            std::unique_ptr<Poco::TimerCallback<Archiver>>   ArchiverCallback_;
+		int Start() override;
+		void Stop() override;
+		inline bool Enabled() const { return Enabled_; }
 
-            StorageArchiver() noexcept:
-                SubSystemServer("StorageArchiver", "STORAGE-ARCHIVE", "archiver")
-            {
-            }
-    };
+	  private:
+		std::atomic_bool Enabled_ = false;
+		Poco::Timer Timer_;
+		std::unique_ptr<Archiver> Archiver_;
+		std::unique_ptr<Poco::TimerCallback<Archiver>> ArchiverCallback_;
 
-    inline auto StorageArchiver() { return StorageArchiver::instance(); }
+		StorageArchiver() noexcept
+			: SubSystemServer("StorageArchiver", "STORAGE-ARCHIVE", "archiver") {}
+	};
 
-}  // namespace
+	inline auto StorageArchiver() { return StorageArchiver::instance(); }
+
+} // namespace OpenWifi

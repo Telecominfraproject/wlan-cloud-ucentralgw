@@ -4,16 +4,16 @@
 #include "AP_WS_Connection.h"
 #include "StorageService.h"
 
-#include "framework/ow_constants.h"
 #include "fmt/format.h"
 #include "framework/KafkaManager.h"
+#include "framework/ow_constants.h"
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_wifiscan(Poco::JSON::Object::Ptr ParamsObj) {
 		if (!State_.Connected) {
-			poco_warning(
-				Logger_,
-				fmt::format("INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
+			poco_warning(Logger_,
+						 fmt::format("INVALID-PROTOCOL({}): Device '{}' is not following protocol",
+									 CId_, CN_));
 			Errors_++;
 			return;
 		}
@@ -29,4 +29,4 @@ namespace OpenWifi {
 			}
 		}
 	}
-}
+} // namespace OpenWifi

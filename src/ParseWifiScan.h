@@ -4,104 +4,109 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
 #include <map>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "nlohmann/json.hpp"
 
 namespace OpenWifi {
 
-#define OUI_ENCAP_ETHER     0x000000    /* encapsulated Ethernet */
-#define OUI_XEROX           0x000006    /* Xerox */
-#define OUI_CISCO           0x00000C    /* Cisco (future use) */
-#define OUI_IANA            0x00005E    /* the IANA */
-#define OUI_NORTEL          0x000081    /* Nortel SONMP */
-#define OUI_CISCO_90        0x0000F8    /* Cisco (IOS 9.0 and above?) */
-#define OUI_CISCO_2         0x000142    /* Cisco */
-#define OUI_CISCO_3         0x000143    /* Cisco */
-#define OUI_FORCE10         0x0001E8    /* Force10 */
-#define OUI_ERICSSON        0x0001EC    /* Ericsson Group */
-#define OUI_CATENA          0x00025A    /* Catena Networks */
-#define OUI_ATHEROS         0x00037F    /* Atheros Communications */
-#define OUI_ORACLE          0x0003BA    /* Oracle */
-#define OUI_AVAYA_EXTREME   0x00040D    /* Avaya Extreme access point */
-#define OUI_EXTREME_MESH    0x000512    /* Extreme MESH */
-#define OUI_SONY_ERICSSON   0x000AD9    /* Sony Ericsson Mobile Communications AB */
-#define OUI_ARUBA           0x000B86    /* Aruba Networks */
-#define OUI_ROUTERBOARD     0x000C42    /* Formerly listed as Mikrotik, however this OUI is owned by Routerboard*/
-#define OUI_MERU            0x000CE6    /* Meru Network (Fortinet) */
-#define OUI_SONY_ERICSSON_2 0x000E07    /* Sony Ericsson Mobile Communications AB */
-#define OUI_PROFINET        0x000ECF    /* PROFIBUS Nutzerorganisation e.V. */
-#define OUI_RSN             0x000FAC    /* Wi-Fi : RSN */
-#define OUI_SONY_ERICSSON_3 0x000FDE    /* Sony Ericsson Mobile Communications AB */
-#define OUI_FORTINET        0x00090F    /* Fortinet */
-#define OUI_CIMETRICS       0x001090    /* Cimetrics, Inc. */
-#define OUI_IEEE_802_3      0x00120F    /* IEEE 802.3 */
-#define OUI_MEDIA_ENDPOINT  0x0012BB    /* Media (TIA TR-41 Committee) */
-#define OUI_SONY_ERICSSON_4 0x0012EE    /* Sony Ericsson Mobile Communications AB */
-#define OUI_ERICSSON_MOBILE 0x0015E0    /* Ericsson Mobile Platforms */
-#define OUI_SONY_ERICSSON_5 0x001620    /* Sony Ericsson Mobile Communications AB */
-#define OUI_SONY_ERICSSON_6 0x0016B8    /* Sony Ericsson Mobile Communications AB */
-#define OUI_APPLE_AWDL      0x0017F2    /* Apple AWDL */
-#define OUI_SONY_ERICSSON_7 0x001813    /* Sony Ericsson Mobile Communications AB */
-#define OUI_BLUETOOTH       0x001958    /* Bluetooth SIG */
-#define OUI_SONY_ERICSSON_8 0x001963    /* Sony Ericsson Mobile Communications AB */
-#define OUI_AEROHIVE        0x001977    /* Aerohive AP to AP communication */
-#define OUI_ITU_T           0x0019a7    /* International Telecommunication Union (ITU) Telecommunication Standardization Sector */
-#define OUI_DCBX            0x001B21    /* Data Center Bridging Capabilities Exchange Protocol */
-#define OUI_CISCO_UBI       0x001B67    /* Cisco/Ubiquisys */
-#define OUI_IEEE_802_1QBG   0x001B3F    /* IEEE 802.1 Qbg */
-#define OUI_NINTENDO        0x001F32
-#define OUI_TURBOCELL       0x0020F6    /* KarlNet, who brought you Turbocell */
-#define OUI_AVAYA           0x00400D    /* Avaya */
-#define OUI_CISCOWL         0x004096    /* Cisco Wireless (Aironet) */
-#define OUI_MARVELL         0x005043    /* Marvell Semiconductor */
-#define OUI_WPAWME          0x0050F2    /* Wi-Fi : WPA / WME */
-#define OUI_ERICSSON_2      0x008037    /* Ericsson Group */
-#define OUI_HP_2            0x00805F    /* Hewlett-Packard */
-#define OUI_IEEE_802_1      0x0080C2    /* IEEE 802.1 Committee */
-#define OUI_PRE11N          0x00904C    /* Wi-Fi : 802.11 Pre-N */
-#define OUI_ATM_FORUM       0x00A03E    /* ATM Forum */
-#define OUI_ZEBRA_EXTREME   0x00A0F8    /* Extreme/WING (Zebra) */
-#define OUI_EXTREME         0x00E02B    /* Extreme EDP/ESRP */
-#define OUI_CABLE_BPDU      0x00E02F    /* DOCSIS spanning tree BPDU */
-#define OUI_FOUNDRY         0x00E052    /* Foundry */
-#define OUI_SIEMENS         0x080006    /* Siemens AG */
-#define OUI_APPLE_ATALK     0x080007    /* Appletalk */
-#define OUI_HP              0x080009    /* Hewlett-Packard */
-#define OUI_CERN            0x080030    /* CERN, The European Organization for Nuclear Research */
-#define OUI_IEEE_C37_238    0x1C129D    /* IEEE PES PSRC/SUB Working Group H7/Sub C7 (IEEE PC37.238) */
-#define OUI_HYTEC_GER       0x30B216    /* Hytec Geraetebau GmbH */
-#define OUI_ZIGBEE          0x4A191B    /* ZigBee Alliance */
-#define OUI_WFA             0x506F9A    /* Wi-Fi Alliance */
-#define OUI_MIST            0x5C5B35    /* Mist Systems */
-#define OUI_RUCKUS          0x001392    /* Ruckus Networks */
-#define OUI_SMPTE           0x6897E8    /* Society of Motion Picture and Television Engineers */
-#define OUI_SGDSN           0x6A5C35    /* Secrétariat Général de la Défense et de la Sécurité Nationale http://www.sgdsn.gouv.fr */
-#define OUI_ONOS            0xA42305    /* Open Networking Laboratory (ONOS) */
-#define OUI_3GPP2           0xCF0002    /* 3GPP2 */
-#define OUI_AVAYA_EXTREME2  0xD88466    /* Avaya Extreme Fabric */
+#define OUI_ENCAP_ETHER 0x000000   /* encapsulated Ethernet */
+#define OUI_XEROX 0x000006		   /* Xerox */
+#define OUI_CISCO 0x00000C		   /* Cisco (future use) */
+#define OUI_IANA 0x00005E		   /* the IANA */
+#define OUI_NORTEL 0x000081		   /* Nortel SONMP */
+#define OUI_CISCO_90 0x0000F8	   /* Cisco (IOS 9.0 and above?) */
+#define OUI_CISCO_2 0x000142	   /* Cisco */
+#define OUI_CISCO_3 0x000143	   /* Cisco */
+#define OUI_FORCE10 0x0001E8	   /* Force10 */
+#define OUI_ERICSSON 0x0001EC	   /* Ericsson Group */
+#define OUI_CATENA 0x00025A		   /* Catena Networks */
+#define OUI_ATHEROS 0x00037F	   /* Atheros Communications */
+#define OUI_ORACLE 0x0003BA		   /* Oracle */
+#define OUI_AVAYA_EXTREME 0x00040D /* Avaya Extreme access point */
+#define OUI_EXTREME_MESH 0x000512  /* Extreme MESH */
+#define OUI_SONY_ERICSSON 0x000AD9 /* Sony Ericsson Mobile Communications AB */
+#define OUI_ARUBA 0x000B86		   /* Aruba Networks */
+#define OUI_ROUTERBOARD                                                                            \
+	0x000C42			  /* Formerly listed as Mikrotik, however this OUI is owned by Routerboard*/
+#define OUI_MERU 0x000CE6 /* Meru Network (Fortinet) */
+#define OUI_SONY_ERICSSON_2 0x000E07 /* Sony Ericsson Mobile Communications AB */
+#define OUI_PROFINET 0x000ECF		 /* PROFIBUS Nutzerorganisation e.V. */
+#define OUI_RSN 0x000FAC			 /* Wi-Fi : RSN */
+#define OUI_SONY_ERICSSON_3 0x000FDE /* Sony Ericsson Mobile Communications AB */
+#define OUI_FORTINET 0x00090F		 /* Fortinet */
+#define OUI_CIMETRICS 0x001090		 /* Cimetrics, Inc. */
+#define OUI_IEEE_802_3 0x00120F		 /* IEEE 802.3 */
+#define OUI_MEDIA_ENDPOINT 0x0012BB	 /* Media (TIA TR-41 Committee) */
+#define OUI_SONY_ERICSSON_4 0x0012EE /* Sony Ericsson Mobile Communications AB */
+#define OUI_ERICSSON_MOBILE 0x0015E0 /* Ericsson Mobile Platforms */
+#define OUI_SONY_ERICSSON_5 0x001620 /* Sony Ericsson Mobile Communications AB */
+#define OUI_SONY_ERICSSON_6 0x0016B8 /* Sony Ericsson Mobile Communications AB */
+#define OUI_APPLE_AWDL 0x0017F2		 /* Apple AWDL */
+#define OUI_SONY_ERICSSON_7 0x001813 /* Sony Ericsson Mobile Communications AB */
+#define OUI_BLUETOOTH 0x001958		 /* Bluetooth SIG */
+#define OUI_SONY_ERICSSON_8 0x001963 /* Sony Ericsson Mobile Communications AB */
+#define OUI_AEROHIVE 0x001977		 /* Aerohive AP to AP communication */
+#define OUI_ITU_T                                                                                  \
+	0x0019a7 /* International Telecommunication Union (ITU) Telecommunication Standardization      \
+				Sector */
+#define OUI_DCBX 0x001B21		   /* Data Center Bridging Capabilities Exchange Protocol */
+#define OUI_CISCO_UBI 0x001B67	   /* Cisco/Ubiquisys */
+#define OUI_IEEE_802_1QBG 0x001B3F /* IEEE 802.1 Qbg */
+#define OUI_NINTENDO 0x001F32
+#define OUI_TURBOCELL 0x0020F6	   /* KarlNet, who brought you Turbocell */
+#define OUI_AVAYA 0x00400D		   /* Avaya */
+#define OUI_CISCOWL 0x004096	   /* Cisco Wireless (Aironet) */
+#define OUI_MARVELL 0x005043	   /* Marvell Semiconductor */
+#define OUI_WPAWME 0x0050F2		   /* Wi-Fi : WPA / WME */
+#define OUI_ERICSSON_2 0x008037	   /* Ericsson Group */
+#define OUI_HP_2 0x00805F		   /* Hewlett-Packard */
+#define OUI_IEEE_802_1 0x0080C2	   /* IEEE 802.1 Committee */
+#define OUI_PRE11N 0x00904C		   /* Wi-Fi : 802.11 Pre-N */
+#define OUI_ATM_FORUM 0x00A03E	   /* ATM Forum */
+#define OUI_ZEBRA_EXTREME 0x00A0F8 /* Extreme/WING (Zebra) */
+#define OUI_EXTREME 0x00E02B	   /* Extreme EDP/ESRP */
+#define OUI_CABLE_BPDU 0x00E02F	   /* DOCSIS spanning tree BPDU */
+#define OUI_FOUNDRY 0x00E052	   /* Foundry */
+#define OUI_SIEMENS 0x080006	   /* Siemens AG */
+#define OUI_APPLE_ATALK 0x080007   /* Appletalk */
+#define OUI_HP 0x080009			   /* Hewlett-Packard */
+#define OUI_CERN 0x080030		   /* CERN, The European Organization for Nuclear Research */
+#define OUI_IEEE_C37_238 0x1C129D  /* IEEE PES PSRC/SUB Working Group H7/Sub C7 (IEEE PC37.238) */
+#define OUI_HYTEC_GER 0x30B216	   /* Hytec Geraetebau GmbH */
+#define OUI_ZIGBEE 0x4A191B		   /* ZigBee Alliance */
+#define OUI_WFA 0x506F9A		   /* Wi-Fi Alliance */
+#define OUI_MIST 0x5C5B35		   /* Mist Systems */
+#define OUI_RUCKUS 0x001392		   /* Ruckus Networks */
+#define OUI_SMPTE 0x6897E8		   /* Society of Motion Picture and Television Engineers */
+#define OUI_SGDSN                                                                                  \
+	0x6A5C35			   /* Secrétariat Général de la Défense et de la Sécurité Nationale  \
+							  http://www.sgdsn.gouv.fr */
+#define OUI_ONOS 0xA42305  /* Open Networking Laboratory (ONOS) */
+#define OUI_3GPP2 0xCF0002 /* 3GPP2 */
+#define OUI_AVAYA_EXTREME2 0xD88466 /* Avaya Extreme Fabric */
 
 /*
-* COMPOSE_FRAME_TYPE() values for management frames.
+ * COMPOSE_FRAME_TYPE() values for management frames.
  */
-#define MGT_ASSOC_REQ          0x00  /* association request        */
-#define MGT_ASSOC_RESP         0x01  /* association response       */
-#define MGT_REASSOC_REQ        0x02  /* reassociation request      */
-#define MGT_REASSOC_RESP       0x03  /* reassociation response     */
-#define MGT_PROBE_REQ          0x04  /* Probe request              */
-#define MGT_PROBE_RESP         0x05  /* Probe response             */
-#define MGT_MEASUREMENT_PILOT  0x06  /* Measurement Pilot          */
-#define MGT_BEACON             0x08  /* Beacon frame               */
-#define MGT_ATIM               0x09  /* ATIM                       */
-#define MGT_DISASS             0x0A  /* Disassociation             */
-#define MGT_AUTHENTICATION     0x0B  /* Authentication             */
-#define MGT_DEAUTHENTICATION   0x0C  /* Deauthentication           */
-#define MGT_ACTION             0x0D  /* Action                     */
-#define MGT_ACTION_NO_ACK      0x0E  /* Action No Ack              */
-#define MGT_ARUBA_WLAN         0x0F  /* Aruba WLAN Specific        */
+#define MGT_ASSOC_REQ 0x00		   /* association request        */
+#define MGT_ASSOC_RESP 0x01		   /* association response       */
+#define MGT_REASSOC_REQ 0x02	   /* reassociation request      */
+#define MGT_REASSOC_RESP 0x03	   /* reassociation response     */
+#define MGT_PROBE_REQ 0x04		   /* Probe request              */
+#define MGT_PROBE_RESP 0x05		   /* Probe response             */
+#define MGT_MEASUREMENT_PILOT 0x06 /* Measurement Pilot          */
+#define MGT_BEACON 0x08			   /* Beacon frame               */
+#define MGT_ATIM 0x09			   /* ATIM                       */
+#define MGT_DISASS 0x0A			   /* Disassociation             */
+#define MGT_AUTHENTICATION 0x0B	   /* Authentication             */
+#define MGT_DEAUTHENTICATION 0x0C  /* Deauthentication           */
+#define MGT_ACTION 0x0D			   /* Action                     */
+#define MGT_ACTION_NO_ACK 0x0E	   /* Action No Ack              */
+#define MGT_ARUBA_WLAN 0x0F		   /* Aruba WLAN Specific        */
 
 /* WFA vendor specific subtypes */
 #define WFA_SUBTYPE_P2P 9
@@ -178,7 +183,7 @@ namespace OpenWifi {
 		WLAN_EID_DIAGNOSTIC_REQUEST = 80,
 		WLAN_EID_DIAGNOSTIC_REPORT = 81,
 		WLAN_EID_LOCATION_PARAMS = 82,
-		WLAN_EID_NON_TX_BSSID_CAP =  83,
+		WLAN_EID_NON_TX_BSSID_CAP = 83,
 		WLAN_EID_SSID_LIST = 84,
 		WLAN_EID_MULTI_BSSID_IDX = 85,
 		WLAN_EID_FMS_DESCRIPTOR = 86,
@@ -345,7 +350,6 @@ namespace OpenWifi {
 		WLAN_EID_EXT_EHT_CAPABILITY = 108,
 	};
 
-
 	inline std::vector<unsigned char> Base64Decode2Vec(const std::string &F) {
 		std::istringstream ifs(F);
 		Poco::Base64Decoder b64in(ifs);
@@ -359,332 +363,234 @@ namespace OpenWifi {
 		return r;
 	}
 
-	using value_string = std::vector<std::pair<uint,const char *>>;
+	using value_string = std::vector<std::pair<uint, const char *>>;
 
-	static const value_string txbf_antenna_flags = {
-		{0x00, "1 TX antenna sounding"},
-		{0x01, "2 TX antenna sounding"},
-		{0x02, "3 TX antenna sounding"},
-		{0x03, "4 TX antenna sounding"},
-		{0x00, NULL}
-	};
+	static const value_string txbf_antenna_flags = {{0x00, "1 TX antenna sounding"},
+													{0x01, "2 TX antenna sounding"},
+													{0x02, "3 TX antenna sounding"},
+													{0x03, "4 TX antenna sounding"},
+													{0x00, NULL}};
 
 	static const value_string txbf_feedback_flags = {
 		{0x00, "not supported"},
 		{0x01, "delayed feedback capable"},
 		{0x02, "immediate feedback capable"},
 		{0x03, "delayed and immediate feedback capable"},
-		{0x00, NULL}
-	};
+		{0x00, NULL}};
 
-	static const value_string txbf_calib_flag = {
-		{0x00, "incapable"},
-		{0x01, "Limited involvement, cannot initiate"},
-		{0x02, "Limited involvement, can initiate"},
-		{0x03, "Fully capable"},
-		{0x00, NULL}
-	};
+	static const value_string txbf_calib_flag = {{0x00, "incapable"},
+												 {0x01, "Limited involvement, cannot initiate"},
+												 {0x02, "Limited involvement, can initiate"},
+												 {0x03, "Fully capable"},
+												 {0x00, NULL}};
 
-	static const value_string txbf_csi_max_rows_bf_flags = {
-		{0x00, "1 row of CSI"},
-		{0x01, "2 rows of CSI"},
-		{0x02, "3 rows of CSI"},
-		{0x03, "4 rows of CSI"},
-		{0x00, NULL}
-	};
+	static const value_string txbf_csi_max_rows_bf_flags = {{0x00, "1 row of CSI"},
+															{0x01, "2 rows of CSI"},
+															{0x02, "3 rows of CSI"},
+															{0x03, "4 rows of CSI"},
+															{0x00, NULL}};
 
-	static const value_string txbf_chan_est_flags = {
-		{0x00, "1 space time stream"},
-		{0x01, "2 space time streams"},
-		{0x02, "3 space time streams"},
-		{0x03, "4 space time streams"},
-		{0x00, NULL}
-	};
+	static const value_string txbf_chan_est_flags = {{0x00, "1 space time stream"},
+													 {0x01, "2 space time streams"},
+													 {0x02, "3 space time streams"},
+													 {0x03, "4 space time streams"},
+													 {0x00, NULL}};
 
-	static const value_string txbf_min_group_flags = {
-		{0x00, "No grouping supported"},
-		{0x01, "Groups of 1,2 supported"},
-		{0x02, "Groups of 1,4 supported"},
-		{0x03, "Groups of 1,2,4 supported"},
-		{0x00, NULL}
-	};
+	static const value_string txbf_min_group_flags = {{0x00, "No grouping supported"},
+													  {0x01, "Groups of 1,2 supported"},
+													  {0x02, "Groups of 1,4 supported"},
+													  {0x03, "Groups of 1,2,4 supported"},
+													  {0x00, NULL}};
 
 	static const value_string vht_max_mpdu_length_flag = {
-		{0x00, "3 895"},
-		{0x01, "7 991"},
-		{0x02, "11 454"},
-		{0x03, "Reserved"},
-		{0x00, NULL}
-	};
+		{0x00, "3 895"}, {0x01, "7 991"}, {0x02, "11 454"}, {0x03, "Reserved"}, {0x00, NULL}};
 
 	static const value_string vht_supported_chan_width_set_flag = {
 		{0x00, "Neither 160MHz nor 80+80 supported"},
 		{0x01, "160MHz supported"},
 		{0x02, "160MHz and 80+80 Supported"},
 		{0x03, "Reserved"},
-		{0x00, NULL}
-	};
+		{0x00, NULL}};
 
-	static const value_string vht_rx_stbc_flag = {
-		{0x00, "None"},
-		{0x01, "1 Spatial Stream Supported"},
-		{0x02, "1 to 2 Spatial Stream Supported"},
-		{0x03, "1 to 3 Spatial Stream Supported"},
-		{0x04, "1 to 4 Spatial Stream Supported"},
-		{0x02, "160MHz and 80+80 Supported"},
-		{0x05, "Reserved"},
-		{0x06, "Reserved"},
-		{0x07, "Reserved"},
-		{0x00, NULL}
-	};
+	static const value_string vht_rx_stbc_flag = {{0x00, "None"},
+												  {0x01, "1 Spatial Stream Supported"},
+												  {0x02, "1 to 2 Spatial Stream Supported"},
+												  {0x03, "1 to 3 Spatial Stream Supported"},
+												  {0x04, "1 to 4 Spatial Stream Supported"},
+												  {0x02, "160MHz and 80+80 Supported"},
+												  {0x05, "Reserved"},
+												  {0x06, "Reserved"},
+												  {0x07, "Reserved"},
+												  {0x00, NULL}};
 
-	static const value_string num_plus_one_3bit_flag = {
-		{0x00, "1"},
-		{0x01, "2"},
-		{0x02, "3"},
-		{0x03, "4"},
-		{0x04, "5"},
-		{0x05, "6"},
-		{0x06, "7"},
-		{0x07, "8"},
-		{0x00, NULL}
-	};
+	static const value_string num_plus_one_3bit_flag = {{0x00, "1"}, {0x01, "2"}, {0x02, "3"},
+														{0x03, "4"}, {0x04, "5"}, {0x05, "6"},
+														{0x06, "7"}, {0x07, "8"}, {0x00, NULL}};
 
 	static const value_string vht_max_ampdu_flag = {
-		{0x00, "8 191"},
-		{0x01, "16 383"},
-		{0x02, "32 767"},
-		{0x03, "65,535"},
-		{0x04, "131 071"},
-		{0x05, "262 143"},
-		{0x06, "524 287"},
-		{0x07, "1 048 575"},
-		{0x00, NULL}
-	};
+		{0x00, "8 191"},   {0x01, "16 383"},	{0x02, "32 767"},
+		{0x03, "65,535"},  {0x04, "131 071"},	{0x05, "262 143"},
+		{0x06, "524 287"}, {0x07, "1 048 575"}, {0x00, NULL}};
 
 	static const value_string vht_link_adapt_flag = {
 		{0x00, "No Feedback"},
 		{0x01, "Reserved (logically only solicited feedback)"},
 		{0x02, "Unsolicited feedback only"},
 		{0x03, "Both (can provide unsolicited feedback and respond to VHT MRQ)"},
-		{0x00, NULL}
-	};
+		{0x00, NULL}};
 
 	static const value_string ieee80211_supported_rates_vals = {
-		{ 0x02, "1" },
-		{ 0x03, "1.5" },
-		{ 0x04, "2" },
-		{ 0x05, "2.5" },
-		{ 0x06, "3" },
-		{ 0x09, "4.5" },
-		{ 0x0B, "5.5" },
-		{ 0x0C, "6" },
-		{ 0x12, "9" },
-		{ 0x16, "11" },
-		{ 0x18, "12" },
-		{ 0x1B, "13.5" },
-		{ 0x24, "18" },
-		{ 0x2C, "22" },
-		{ 0x30, "24" },
-		{ 0x36, "27" },
-		{ 0x42, "33" },
-		{ 0x48, "36" },
-		{ 0x60, "48" },
-		{ 0x6C, "54" },
-		{ 0x82, "1(B)" },
-		{ 0x83, "1.5(B)" },
-		{ 0x84, "2(B)" },
-		{ 0x85, "2.5(B)" },
-		{ 0x86, "3(B)" },
-		{ 0x89, "4.5(B)" },
-		{ 0x8B, "5.5(B)" },
-		{ 0x8C, "6(B)" },
-		{ 0x92, "9(B)" },
-		{ 0x96, "11(B)" },
-		{ 0x98, "12(B)" },
-		{ 0x9B, "13.5(B)" },
-		{ 0xA4, "18(B)" },
-		{ 0xAC, "22(B)" },
-		{ 0xB0, "24(B)" },
-		{ 0xB6, "27(B)" },
-		{ 0xC2, "33(B)" },
-		{ 0xC8, "36(B)" },
-		{ 0xE0, "48(B)" },
-		{ 0xEC, "54(B)" },
-		{ 0xFF, "BSS requires support for mandatory features of HT PHY (IEEE 802.11 - Clause 20)" },
-		{ 0,    NULL}
-	};
+		{0x02, "1"},
+		{0x03, "1.5"},
+		{0x04, "2"},
+		{0x05, "2.5"},
+		{0x06, "3"},
+		{0x09, "4.5"},
+		{0x0B, "5.5"},
+		{0x0C, "6"},
+		{0x12, "9"},
+		{0x16, "11"},
+		{0x18, "12"},
+		{0x1B, "13.5"},
+		{0x24, "18"},
+		{0x2C, "22"},
+		{0x30, "24"},
+		{0x36, "27"},
+		{0x42, "33"},
+		{0x48, "36"},
+		{0x60, "48"},
+		{0x6C, "54"},
+		{0x82, "1(B)"},
+		{0x83, "1.5(B)"},
+		{0x84, "2(B)"},
+		{0x85, "2.5(B)"},
+		{0x86, "3(B)"},
+		{0x89, "4.5(B)"},
+		{0x8B, "5.5(B)"},
+		{0x8C, "6(B)"},
+		{0x92, "9(B)"},
+		{0x96, "11(B)"},
+		{0x98, "12(B)"},
+		{0x9B, "13.5(B)"},
+		{0xA4, "18(B)"},
+		{0xAC, "22(B)"},
+		{0xB0, "24(B)"},
+		{0xB6, "27(B)"},
+		{0xC2, "33(B)"},
+		{0xC8, "36(B)"},
+		{0xE0, "48(B)"},
+		{0xEC, "54(B)"},
+		{0xFF, "BSS requires support for mandatory features of HT PHY (IEEE 802.11 - Clause 20)"},
+		{0, NULL}};
 
 	static const value_string environment_vals = {
-		{ 0x20, "Any" },
-		{ 0x4f, "Outdoor" },
-		{ 0x49, "Indoor" },
-		{ 0,    NULL }
-	};
+		{0x20, "Any"}, {0x4f, "Outdoor"}, {0x49, "Indoor"}, {0, NULL}};
 
 	static const value_string service_interval_granularity_vals = {
-		{ 0, "5 ms" },
-		{ 1, "10 ms" },
-		{ 2, "15 ms" },
-		{ 3, "20 ms" },
-		{ 4, "25 ms" },
-		{ 5, "30 ms" },
-		{ 6, "35 ms" },
-		{ 7, "40 ms" },
-		{ 0x00, NULL }
-	};
+		{0, "5 ms"},  {1, "10 ms"}, {2, "15 ms"}, {3, "20 ms"}, {4, "25 ms"},
+		{5, "30 ms"}, {6, "35 ms"}, {7, "40 ms"}, {0x00, NULL}};
 
 	static const value_string ieee80211_rsn_cipher_vals = {
-		{0, "NONE"},
-		{1, "WEP (40-bit)"},
-		{2, "TKIP"},
-		{3, "AES (OCB)"},
-		{4, "AES (CCM)"},
-		{5, "WEP (104-bit)"},
-		{6, "BIP"},
-		{7, "Group addressed traffic not allowed"},
-		{0, NULL}
-	};
+		{0, "NONE"},	  {1, "WEP (40-bit)"},
+		{2, "TKIP"},	  {3, "AES (OCB)"},
+		{4, "AES (CCM)"}, {5, "WEP (104-bit)"},
+		{6, "BIP"},		  {7, "Group addressed traffic not allowed"},
+		{0, NULL}};
 
-	static const value_string ieee80211_rsn_keymgmt_vals = {
-		{0, "NONE"},
-		{1, "WPA"},
-		{2, "PSK"},
-		{3, "FT over IEEE 802.1X"},
+	static const value_string ieee80211_rsn_keymgmt_vals = {{0, "NONE"},
+															{1, "WPA"},
+															{2, "PSK"},
+															{3, "FT over IEEE 802.1X"},
 
-		{4, "FT using PSK"},
-		{5, "WPA (SHA256)"},
-		{6, "PSK (SHA256)"},
-		{7, "TDLS / TPK Handshake"},
-		{0, NULL}
-	};
+															{4, "FT using PSK"},
+															{5, "WPA (SHA256)"},
+															{6, "PSK (SHA256)"},
+															{7, "TDLS / TPK Handshake"},
+															{0, NULL}};
 
 	static const value_string rsn_cap_replay_counter = {
 		{0x00, "1 replay counter per PTKSA/GTKSA/STAKeySA"},
 		{0x01, "2 replay counters per PTKSA/GTKSA/STAKeySA"},
 		{0x02, "4 replay counters per PTKSA/GTKSA/STAKeySA"},
 		{0x03, "16 replay counters per PTKSA/GTKSA/STAKeySA"},
-		{0, NULL}
-	};
+		{0, NULL}};
 
 	static const value_string ieee802111_wfa_ie_type_vals = {
-		{ 1, "WPA Information Element" },
-		{ 2, "WMM/WME" },
-		{ 4, "WPS" },
-		{ 0, NULL }
-	};
+		{1, "WPA Information Element"}, {2, "WMM/WME"}, {4, "WPS"}, {0, NULL}};
 
 	static const value_string ieee80211_wfa_ie_wpa_cipher_vals = {
-		{ 0, "NONE" },
-		{ 1, "WEP (40-bit)" },
-		{ 2, "TKIP" },
-		{ 3, "AES (OCB)" },
-		{ 4, "AES (CCM)" },
-		{ 5, "WEP (104-bit)" },
-		{ 6, "BIP" },
-		{ 7, "Group addressed traffic not allowed" },
-		{ 0, NULL }
-	};
+		{0, "NONE"},	  {1, "WEP (40-bit)"},
+		{2, "TKIP"},	  {3, "AES (OCB)"},
+		{4, "AES (CCM)"}, {5, "WEP (104-bit)"},
+		{6, "BIP"},		  {7, "Group addressed traffic not allowed"},
+		{0, NULL}};
 
-	static const value_string ieee80211_wfa_ie_wpa_keymgmt_vals = {
-		{ 0, "NONE" },
-		{ 1, "WPA" },
-		{ 2, "PSK" },
-		{ 3, "FT over IEEE 802.1X" },
-		{ 4, "FT using PSK" },
-		{ 5, "WPA (SHA256)" },
-		{ 6, "PSK (SHA256)" },
-		{ 7, "TDLS / TPK Handshake" },
-		{ 0, NULL }
-	};
+	static const value_string ieee80211_wfa_ie_wpa_keymgmt_vals = {{0, "NONE"},
+																   {1, "WPA"},
+																   {2, "PSK"},
+																   {3, "FT over IEEE 802.1X"},
+																   {4, "FT using PSK"},
+																   {5, "WPA (SHA256)"},
+																   {6, "PSK (SHA256)"},
+																   {7, "TDLS / TPK Handshake"},
+																   {0, NULL}};
 
 	static const value_string ieee802111_wfa_ie_wme_type = {
-		{ 0, "Information Element" },
-		{ 1, "Parameter Element" },
-		{ 2, "TSPEC Element" },
-		{ 0, NULL}
-	};
+		{0, "Information Element"}, {1, "Parameter Element"}, {2, "TSPEC Element"}, {0, NULL}};
 
 	static const value_string ieee802111_wfa_ie_wme_qos_info_sta_max_sp_length_vals = {
-		{ 0, "WMM AP may deliver all buffered frames (MSDUs and MMPDUs)" },
-		{ 1, "WMM AP may deliver a maximum of 2 buffered frames (MSDUs and MMPDUs) per USP" },
-		{ 2, "WMM AP may deliver a maximum of 4 buffered frames (MSDUs and MMPDUs) per USP" },
-		{ 3, "WMM AP may deliver a maximum of 6 buffered frames (MSDUs and MMPDUs) per USP" },
-		{ 0, NULL}
-	};
+		{0, "WMM AP may deliver all buffered frames (MSDUs and MMPDUs)"},
+		{1, "WMM AP may deliver a maximum of 2 buffered frames (MSDUs and MMPDUs) per USP"},
+		{2, "WMM AP may deliver a maximum of 4 buffered frames (MSDUs and MMPDUs) per USP"},
+		{3, "WMM AP may deliver a maximum of 6 buffered frames (MSDUs and MMPDUs) per USP"},
+		{0, NULL}};
 
 	static const value_string ieee80211_wfa_ie_wme_acs_vals = {
-		{ 0, "Best Effort" },
-		{ 1, "Background" },
-		{ 2, "Video" },
-		{ 3, "Voice" },
-		{ 0, NULL }
-	};
+		{0, "Best Effort"}, {1, "Background"}, {2, "Video"}, {3, "Voice"}, {0, NULL}};
 
 	static const value_string ieee80211_wfa_ie_wme_tspec_tsinfo_direction_vals = {
-		{ 0, "Uplink" },
-		{ 1, "Downlink" },
-		{ 2, "Direct link" },
-		{ 3, "Bidirectional link" },
-		{ 0, NULL }
-	};
+		{0, "Uplink"}, {1, "Downlink"}, {2, "Direct link"}, {3, "Bidirectional link"}, {0, NULL}};
 
 	static const value_string ieee80211_wfa_ie_wme_tspec_tsinfo_psb_vals = {
-		{ 0, "Legacy" },
-		{ 1, "U-APSD" },
-		{ 0, NULL }
-	};
+		{0, "Legacy"}, {1, "U-APSD"}, {0, NULL}};
 
-	static const value_string ieee80211_wfa_ie_wme_tspec_tsinfo_up_vals = {
-		{ 0, "Best Effort" },
-		{ 1, "Background" },
-		{ 2, "Spare" },
-		{ 3, "Excellent Effort" },
-		{ 4, "Controlled Load" },
-		{ 5, "Video" },
-		{ 6, "Voice" },
-		{ 7, "Network Control" },
-		{ 0, NULL }
-	};
+	static const value_string ieee80211_wfa_ie_wme_tspec_tsinfo_up_vals = {{0, "Best Effort"},
+																		   {1, "Background"},
+																		   {2, "Spare"},
+																		   {3, "Excellent Effort"},
+																		   {4, "Controlled Load"},
+																		   {5, "Video"},
+																		   {6, "Voice"},
+																		   {7, "Network Control"},
+																		   {0, NULL}};
 
 	static const value_string hta_ext_chan_offset_flag = {
 		{0x00, "No Extension Channel"},
 		{0x01, "Extension Channel above control channel"},
 		{0x02, "Undefined"},
 		{0x03, "Extension Channel below control channel"},
-		{0x00, NULL}
-	};
+		{0x00, NULL}};
 
 	static const value_string hta_service_interval_flag = {
-		{0x00, "5ms"},
-		{0x01, "10ms"},
-		{0x02, "15ms"},
-		{0x03, "20ms"},
-		{0x04, "25ms"},
-		{0x05, "30ms"},
-		{0x06, "35ms"},
-		{0x07, "40ms"},
-		{0x00, NULL}
-	};
+		{0x00, "5ms"},	{0x01, "10ms"}, {0x02, "15ms"}, {0x03, "20ms"}, {0x04, "25ms"},
+		{0x05, "30ms"}, {0x06, "35ms"}, {0x07, "40ms"}, {0x00, NULL}};
 
 	static const value_string hta_operating_mode_flag = {
 		{0x00, "Pure HT, no protection"},
 		{0x01, "There may be non-HT devices (control & ext channel)"},
 		{0x02, "No non-HT is associated, but at least 1 20MHz is. protect on"},
 		{0x03, "Mixed: no non-HT is associated, protect on"},
-		{0x00, NULL}
-	};
+		{0x00, NULL}};
 
 	static const value_string wfa_subtype_vals = {
-		{ WFA_SUBTYPE_P2P, "P2P" },
-		{ WFA_SUBTYPE_HS20_INDICATION, "Hotspot 2.0 Indication" },
-		{ WFA_SUBTYPE_HS20_ANQP, "Hotspot 2.0 ANQP" },
-		{ 0, NULL }
-	};
+		{WFA_SUBTYPE_P2P, "P2P"},
+		{WFA_SUBTYPE_HS20_INDICATION, "Hotspot 2.0 Indication"},
+		{WFA_SUBTYPE_HS20_ANQP, "Hotspot 2.0 ANQP"},
+		{0, NULL}};
 
-	const char * VALS(const value_string &vals, uint v) {
-		for(const auto &e:vals) {
-			if(e.first==v && e.second!=NULL)
+	const char *VALS(const value_string &vals, uint v) {
+		for (const auto &e : vals) {
+			if (e.first == v && e.second != NULL)
 				return e.second;
 		}
 		return "unknown";
@@ -692,56 +598,82 @@ namespace OpenWifi {
 
 	bool bitSet(unsigned char c, uint bit) {
 		switch (bit) {
-		case 0: return (c & 0x01);
-		case 1: return (c & 0x02);
-		case 2: return (c & 0x04);
-		case 3: return (c & 0x08);
-		case 4: return (c & 0x10);
-		case 5: return (c & 0x20);
-		case 6: return (c & 0x40);
-		case 7: return (c & 0x90);
-		default: return false;
+		case 0:
+			return (c & 0x01);
+		case 1:
+			return (c & 0x02);
+		case 2:
+			return (c & 0x04);
+		case 3:
+			return (c & 0x08);
+		case 4:
+			return (c & 0x10);
+		case 5:
+			return (c & 0x20);
+		case 6:
+			return (c & 0x40);
+		case 7:
+			return (c & 0x90);
+		default:
+			return false;
 		}
 	}
 
 	bool bitSet(uint16_t c, uint bit) {
 		switch (bit) {
-		case 0: return  (c & 0x0001);
-		case 1: return  (c & 0x0002);
-		case 2: return  (c & 0x0004);
-		case 3: return  (c & 0x0008);
-		case 4: return  (c & 0x0010);
-		case 5: return  (c & 0x0020);
-		case 6: return  (c & 0x0040);
-		case 7: return  (c & 0x0080);
-		case 8: return  (c & 0x0100);
-		case 9: return  (c & 0x0200);
-		case 10: return (c & 0x0400);
-		case 11: return (c & 0x0800);
-		case 12: return (c & 0x1000);
-		case 13: return (c & 0x2000);
-		case 14: return (c & 0x4000);
-		case 15: return (c & 0x8000);
-		default: return false;
+		case 0:
+			return (c & 0x0001);
+		case 1:
+			return (c & 0x0002);
+		case 2:
+			return (c & 0x0004);
+		case 3:
+			return (c & 0x0008);
+		case 4:
+			return (c & 0x0010);
+		case 5:
+			return (c & 0x0020);
+		case 6:
+			return (c & 0x0040);
+		case 7:
+			return (c & 0x0080);
+		case 8:
+			return (c & 0x0100);
+		case 9:
+			return (c & 0x0200);
+		case 10:
+			return (c & 0x0400);
+		case 11:
+			return (c & 0x0800);
+		case 12:
+			return (c & 0x1000);
+		case 13:
+			return (c & 0x2000);
+		case 14:
+			return (c & 0x4000);
+		case 15:
+			return (c & 0x8000);
+		default:
+			return false;
 		}
 	}
 
 	std::string BufferToHex(const std::vector<unsigned char> &b) {
 		static const char hex[] = "0123456789abcdef";
 		std::string result;
-		for(const auto &c:b) {
-			if(!result.empty())
+		for (const auto &c : b) {
+			if (!result.empty())
 				result += ' ';
-			result += (hex[ (c & 0xf0) >> 4]);
-			result += (hex[ (c & 0x0f) ]);
+			result += (hex[(c & 0xf0) >> 4]);
+			result += (hex[(c & 0x0f)]);
 		}
 		return result;
 	}
 
-	std::string BufferToHex(const unsigned char *b,uint size, char separator=' ') {
+	std::string BufferToHex(const unsigned char *b, uint size, char separator = ' ') {
 		static const char hex[] = "0123456789abcdef";
 		std::string result;
-		while(size) {
+		while (size) {
 			if (!result.empty())
 				result += separator;
 			result += (hex[(*b & 0xf0) >> 4]);
@@ -754,8 +686,8 @@ namespace OpenWifi {
 
 	std::string bitString(unsigned char c) {
 		std::string R;
-		for(std::size_t i=0;i<8;i++) {
-			if(c & 0x80)
+		for (std::size_t i = 0; i < 8; i++) {
+			if (c & 0x80)
 				R += '1';
 			else
 				R += '0';
@@ -764,93 +696,96 @@ namespace OpenWifi {
 		return R;
 	}
 
-	uint16_t GetUInt16(const unsigned char *d,uint & offset) {
-		uint16_t value = d[offset] + d[offset+1]*256;
-		offset +=2;
+	uint16_t GetUInt16(const unsigned char *d, uint &offset) {
+		uint16_t value = d[offset] + d[offset + 1] * 256;
+		offset += 2;
 		return value;
 	}
 
-	uint32_t GetUInt32(const unsigned char *d,uint & offset) {
-		uint32_t value = d[offset+0]+d[offset+1]*256 + d[offset+2]*256*256 + d[offset+3]*256*256*256;
-		offset +=4;
+	uint32_t GetUInt32(const unsigned char *d, uint &offset) {
+		uint32_t value = d[offset + 0] + d[offset + 1] * 256 + d[offset + 2] * 256 * 256 +
+						 d[offset + 3] * 256 * 256 * 256;
+		offset += 4;
 		return value;
 	}
 
-	uint32_t GetUInt32Big(const unsigned char *d,uint & offset) {
-		uint32_t value = d[offset+3]+d[offset+2]*256 + d[offset+1]*256*256 + d[offset+0]*256*256*256;
-		offset +=4;
+	uint32_t GetUInt32Big(const unsigned char *d, uint &offset) {
+		uint32_t value = d[offset + 3] + d[offset + 2] * 256 + d[offset + 1] * 256 * 256 +
+						 d[offset + 0] * 256 * 256 * 256;
+		offset += 4;
 		return value;
 	}
 
-	uint32_t GetUInt24Big(const unsigned char *d,uint & offset) {
-		uint32_t value = d[offset+2] + d[offset+1]*256 + d[offset+0]*256*256;
-		offset +=3;
+	uint32_t GetUInt24Big(const unsigned char *d, uint &offset) {
+		uint32_t value = d[offset + 2] + d[offset + 1] * 256 + d[offset + 0] * 256 * 256;
+		offset += 3;
 		return value;
 	}
 
-	uint32_t GetUInt24(const unsigned char *d,uint & offset) {
-		uint32_t value = d[offset+0] + d[offset+1]*256 + d[offset+2]*256*256;
-		offset +=3;
+	uint32_t GetUInt24(const unsigned char *d, uint &offset) {
+		uint32_t value = d[offset + 0] + d[offset + 1] * 256 + d[offset + 2] * 256 * 256;
+		offset += 3;
 		return value;
 	}
 
 	// 0x01
 	inline nlohmann::json WFS_WLAN_EID_SUPP_RATES(const std::vector<unsigned char> &data) {
-		nlohmann::json 	Rates = nlohmann::json::array();
-		nlohmann::json 	new_ie;
-		for(const auto &c:data) {
-			nlohmann::json 	Rate;
-			Rates.push_back(VALS(ieee80211_supported_rates_vals,c));
+		nlohmann::json Rates = nlohmann::json::array();
+		nlohmann::json new_ie;
+		for (const auto &c : data) {
+			nlohmann::json Rate;
+			Rates.push_back(VALS(ieee80211_supported_rates_vals, c));
 		}
-		new_ie["name"]="Supported Rates (Mbps)";
-		new_ie["content"]=Rates;
-		new_ie["type"]=WLAN_EID_SUPP_RATES;
+		new_ie["name"] = "Supported Rates (Mbps)";
+		new_ie["content"] = Rates;
+		new_ie["type"] = WLAN_EID_SUPP_RATES;
 		return new_ie;
 	}
 
 	// 0x02
 	inline nlohmann::json WFS_WLAN_EID_FH_PARAMS(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		content["Dwell Time"] = (uint64_t) (data[0] * 256 + data[1]);
+		nlohmann::json new_ie;
+		nlohmann::json content;
+		content["Dwell Time"] = (uint64_t)(data[0] * 256 + data[1]);
 		content["Hop Set"] = (uint)data[2];
 		content["Hop Pattern"] = (uint)data[3];
 		content["Hop Index"] = (uint)data[4];
-		new_ie["name"]="FH Params";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_FH_PARAMS;
+		new_ie["name"] = "FH Params";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_FH_PARAMS;
 		return new_ie;
 	}
 
 	// 0x03
 	inline nlohmann::json WFS_WLAN_EID_DS_PARAMS(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		content["current_channel"] = (uint64_t) data[0];
-		new_ie["name"]="DS Params";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_DS_PARAMS;
+		nlohmann::json new_ie;
+		nlohmann::json content;
+		content["current_channel"] = (uint64_t)data[0];
+		new_ie["name"] = "DS Params";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_DS_PARAMS;
 		return new_ie;
 	}
 
 	// 0x05
 	inline nlohmann::json WFS_WLAN_EID_TIM(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		if(data.size()>=4) {
-			uint offset=0;
+		nlohmann::json new_ie;
+		nlohmann::json content;
+		if (data.size() >= 4) {
+			uint offset = 0;
 			content["DTIM count"] = (uint64_t)data[offset++];
 			content["DTIM period"] = (uint64_t)data[offset++];
 			content["Bitmap control"]["Multicast"] = (uint)data[offset] & 0x01;
 			content["Bitmap control"]["Bitmap Offset"] = (uint)(data[offset] & 0xFe) >> 1;
 			offset++;
-			if(offset<data.size()) {
-				content["Bitmap control"]["Partial Virtual Bitmap"] = BufferToHex( &data[offset], data.size()-offset);
+			if (offset < data.size()) {
+				content["Bitmap control"]["Partial Virtual Bitmap"] =
+					BufferToHex(&data[offset], data.size() - offset);
 			}
 		}
-		new_ie["name"]="Traffic Indication Map (TIM)";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_TIM;
+		new_ie["name"] = "Traffic Indication Map (TIM)";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_TIM;
 		return new_ie;
 	}
 
@@ -863,19 +798,21 @@ namespace OpenWifi {
 		nlohmann::json content;
 
 		content["Code"] = CountryName;
-		content["Environment"] = VALS(environment_vals,data[2]);
+		content["Environment"] = VALS(environment_vals, data[2]);
 		nlohmann::json ie_data;
 		nlohmann::json constraints = nlohmann::json::array();
-		for (std::size_t i = 3; (i+3)<= data.size(); i += 3) {
+		for (std::size_t i = 3; (i + 3) <= data.size(); i += 3) {
 			nlohmann::json constraint;
-			if(data[i]<=200) {
-				constraint["Country Info"]["First Channel Number"] = (uint64_t)data[i+0];
-				constraint["Country Info"]["Number of Channels"] = (uint64_t)data[i+1];
-				constraint["Country Info"]["Maximum Transmit Power Level (in dBm)"] = (uint64_t)data[i+2];
+			if (data[i] <= 200) {
+				constraint["Country Info"]["First Channel Number"] = (uint64_t)data[i + 0];
+				constraint["Country Info"]["Number of Channels"] = (uint64_t)data[i + 1];
+				constraint["Country Info"]["Maximum Transmit Power Level (in dBm)"] =
+					(uint64_t)data[i + 2];
 			} else {
-				constraint["Country Info"]["Regulatory Extension Identifier"] = (uint64_t)data[i+0];
-				constraint["Country Info"]["Regulatory Class"] = (uint64_t)data[i+1];
-				constraint["Country Info"]["Coverage Class"] = (uint64_t)data[i+2];
+				constraint["Country Info"]["Regulatory Extension Identifier"] =
+					(uint64_t)data[i + 0];
+				constraint["Country Info"]["Regulatory Class"] = (uint64_t)data[i + 1];
+				constraint["Country Info"]["Coverage Class"] = (uint64_t)data[i + 2];
 			}
 			constraints.push_back(constraint);
 		}
@@ -888,102 +825,107 @@ namespace OpenWifi {
 
 	//	11
 	inline nlohmann::json WFS_WLAN_EID_QBSS_LOAD(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		if(data.size()==4) {
+		nlohmann::json new_ie;
+		nlohmann::json content;
+		if (data.size() == 4) {
 			content["Cisco QBSS Version 1 - non CCA"]["QBSS Version"] = 1;
-			content["Cisco QBSS Version 1 - non CCA"]["Station Count"] = (uint)( data[2] + data[1]*256);
-			content["Cisco QBSS Version 1 - non CCA"]["Channel Utilization"] = (uint) data[3];
-			content["Cisco QBSS Version 1 - non CCA"]["Available Admission Capabilities"] = (uint) data[4];
-		} else if(data.size()==5) {
+			content["Cisco QBSS Version 1 - non CCA"]["Station Count"] =
+				(uint)(data[2] + data[1] * 256);
+			content["Cisco QBSS Version 1 - non CCA"]["Channel Utilization"] = (uint)data[3];
+			content["Cisco QBSS Version 1 - non CCA"]["Available Admission Capabilities"] =
+				(uint)data[4];
+		} else if (data.size() == 5) {
 			content["802.11e CCA Version"]["QBSS Version"] = 2;
-			content["802.11e CCA Version"]["Station Count"] = (uint)( data[2] + data[1]*256);
-			content["802.11e CCA Version"]["Channel Utilization"] = (uint) data[3];
-			content["802.11e CCA Version"]["Available Admission Capabilities"] = (uint) data[4] + data[5]*256;
+			content["802.11e CCA Version"]["Station Count"] = (uint)(data[2] + data[1] * 256);
+			content["802.11e CCA Version"]["Channel Utilization"] = (uint)data[3];
+			content["802.11e CCA Version"]["Available Admission Capabilities"] =
+				(uint)data[4] + data[5] * 256;
 		}
-		new_ie["name"]="QBSS Load";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_QBSS_LOAD;
+		new_ie["name"] = "QBSS Load";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_QBSS_LOAD;
 		return new_ie;
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_PWR_CONSTRAINT(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		content["Local Power Constraint"] = (uint) data[0];
-		new_ie["name"]="Local Power Constraint";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_PWR_CONSTRAINT;
+		nlohmann::json new_ie;
+		nlohmann::json content;
+		content["Local Power Constraint"] = (uint)data[0];
+		new_ie["name"] = "Local Power Constraint";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_PWR_CONSTRAINT;
 		return new_ie;
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_ERP_INFO(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		content["Non ERP Present"] = bitSet(data[0],0);
-		content["Use Protection"] = bitSet(data[0],1);
-		content["Barker Preamble Mode"] = bitSet(data[0],2);
-		new_ie["name"]="ERP Information";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_ERP_INFO;
+		nlohmann::json new_ie;
+		nlohmann::json content;
+		content["Non ERP Present"] = bitSet(data[0], 0);
+		content["Use Protection"] = bitSet(data[0], 1);
+		content["Barker Preamble Mode"] = bitSet(data[0], 2);
+		new_ie["name"] = "ERP Information";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_ERP_INFO;
 		return new_ie;
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_TPC_REPORT(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		if(data.size()==2) {
-			content["Transmit Power"] = (uint) data[0];
-			content["Link Margin"] = (uint) data[1];
+		nlohmann::json new_ie;
+		nlohmann::json content;
+		if (data.size() == 2) {
+			content["Transmit Power"] = (uint)data[0];
+			content["Link Margin"] = (uint)data[1];
 		}
-		new_ie["name"]="TPC Report";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_TPC_REPORT;
+		new_ie["name"] = "TPC Report";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_TPC_REPORT;
 		return new_ie;
 	}
 
-	inline nlohmann::json WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		if(data.size()>=2) {
-			content["Current Regulatory Class"]= (uint) data[0];
+	inline nlohmann::json
+	WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(const std::vector<unsigned char> &data) {
+		nlohmann::json new_ie;
+		nlohmann::json content;
+		if (data.size() >= 2) {
+			content["Current Regulatory Class"] = (uint)data[0];
 			std::string alternates;
-			for(uint i=1;i<data.size();++i) {
-				if(!alternates.empty())
+			for (uint i = 1; i < data.size(); ++i) {
+				if (!alternates.empty())
 					alternates += ", ";
 				alternates += std::to_string((uint)data[i]);
 			}
 			content["Alternate Regulatory Classes"] = alternates;
 		}
-		new_ie["name"]="Supported Regulatory Classes";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_SUPPORTED_REGULATORY_CLASSES;
+		new_ie["name"] = "Supported Regulatory Classes";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_SUPPORTED_REGULATORY_CLASSES;
 		return new_ie;
 	}
 
-	inline void ParseMCSset(const unsigned char * data, nlohmann::json & content) {
+	inline void ParseMCSset(const unsigned char *data, nlohmann::json &content) {
 		content["MCS Set"]["Rx Bitmask Bits 0-7"] = bitString(data[0]);
 		content["MCS Set"]["Rx Bitmask Bits 8-15"] = bitString(data[1]);
 		content["MCS Set"]["Rx Bitmask Bits 16-23"] = bitString(data[2]);
 		content["MCS Set"]["Rx Bitmask Bits 24-31"] = bitString(data[3]);
 	}
 
-	void dissect_ht_capability_ie(const unsigned char *data,uint size, nlohmann::json & content) {
-		if(size==26) {
-			uint offset = 0 ;
-			uint16_t ht_caps = data[offset+1] * 256 + data[offset];
-			content["HT Capabilities Info"]["HT LDPC coding capability"] = bitSet(ht_caps,0);
-			content["HT Capabilities Info"]["HT Support channel width"] = bitSet(ht_caps,1);
+	void dissect_ht_capability_ie(const unsigned char *data, uint size, nlohmann::json &content) {
+		if (size == 26) {
+			uint offset = 0;
+			uint16_t ht_caps = data[offset + 1] * 256 + data[offset];
+			content["HT Capabilities Info"]["HT LDPC coding capability"] = bitSet(ht_caps, 0);
+			content["HT Capabilities Info"]["HT Support channel width"] = bitSet(ht_caps, 1);
 			content["HT Capabilities Info"]["HT Green Field"] = (ht_caps & 0x00c0) >> 4;
-			content["HT Capabilities Info"]["HT Short GI for 20MHz"] = bitSet(ht_caps,5);
-			content["HT Capabilities Info"]["HT Short GI for 40MHz"] = bitSet(ht_caps,6);
-			content["HT Capabilities Info"]["HT Tx STBC"] = bitSet(ht_caps,7);
+			content["HT Capabilities Info"]["HT Short GI for 20MHz"] = bitSet(ht_caps, 5);
+			content["HT Capabilities Info"]["HT Short GI for 40MHz"] = bitSet(ht_caps, 6);
+			content["HT Capabilities Info"]["HT Tx STBC"] = bitSet(ht_caps, 7);
 			content["HT Capabilities Info"]["HT Rx STBC"] = (ht_caps & 0x0300) >> 8;
-			content["HT Capabilities Info"]["HT Delayed Block ACK"] = bitSet(ht_caps,11);
-			content["HT Capabilities Info"]["HT Max A-MSDU length"] = bitSet(ht_caps,12);
-			content["HT Capabilities Info"]["HT PSMP Support"] = bitSet(ht_caps,13);
-			content["HT Capabilities Info"]["HT Forty MHz Intolerant"] = bitSet(ht_caps,14);
-			content["HT Capabilities Info"]["HT L-SIG TXOP Protection support"] = bitSet(ht_caps,15);
+			content["HT Capabilities Info"]["HT Delayed Block ACK"] = bitSet(ht_caps, 11);
+			content["HT Capabilities Info"]["HT Max A-MSDU length"] = bitSet(ht_caps, 12);
+			content["HT Capabilities Info"]["HT PSMP Support"] = bitSet(ht_caps, 13);
+			content["HT Capabilities Info"]["HT Forty MHz Intolerant"] = bitSet(ht_caps, 14);
+			content["HT Capabilities Info"]["HT L-SIG TXOP Protection support"] =
+				bitSet(ht_caps, 15);
 			offset += 2;
 
 			auto ampduparam = data[offset];
@@ -995,187 +937,258 @@ namespace OpenWifi {
 			offset += 16;
 
 			content["HT Extended Capabilities"]["Transmitter supports PCO"] = data[offset] & 0x01;
-			content["HT Extended Capabilities"]["Time needed to transition between 20MHz and 40MHz"] = (data[offset] & 0x06) >> 1;
+			content["HT Extended Capabilities"]
+				   ["Time needed to transition between 20MHz and 40MHz"] =
+					   (data[offset] & 0x06) >> 1;
 			offset++;
 			content["HT Extended Capabilities"]["MCS Feedback capability"] = data[offset] & 0x03;
 			content["HT Extended Capabilities"]["High Throughput"] = (data[offset] & 0x04) >> 2;
-			content["HT Extended Capabilities"]["Reverse Direction Responder"] = (data[offset] & 0x08) >> 3;
+			content["HT Extended Capabilities"]["Reverse Direction Responder"] =
+				(data[offset] & 0x08) >> 3;
 			offset++;
 
-			uint32_t caps = data[offset] + data[offset+1]*256 + data[offset+2] * 256 * 256 + data[offset+3] * 256 * 256 * 256 ;
+			uint32_t caps = data[offset] + data[offset + 1] * 256 + data[offset + 2] * 256 * 256 +
+							data[offset + 3] * 256 * 256 * 256;
 
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Transmit Beamforming"] = (caps & 0x00000001) >> 0;
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Receive Staggered Sounding"] = (caps & 0x00000002) >> 1;
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Transmit Staggered Sounding"] = (caps & 0x00000004) >> 2;
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Receive Null Data packet (NDP)"] = (caps & 0x00000008) >> 3;
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Transmit Null Data packet (NDP)"] = (caps & 0x00000010) >> 4;
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Implicit TxBF capable"] = (caps & 0x00000020) >> 5;
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Calibration"] = VALS(txbf_calib_flag,(caps & 0x000000c0) >> 6);
-			content["Transmit Beam Forming (TxBF) Capabilities"]["STA can apply TxBF using CSI explicit feedback"] = (caps & 0x00000100) >> 8;
-			content["Transmit Beam Forming (TxBF) Capabilities"]["STA can apply TxBF using uncompressed beamforming feedback matrix"] = (caps & 0x00000200) >> 9;
-			content["Transmit Beam Forming (TxBF) Capabilities"]["STA can apply TxBF using compressed beamforming feedback matrix"] = (caps & 0x00000400) >> 10;
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Receiver can return explicit CSI feedback"] = VALS(txbf_feedback_flags,(caps & 0x00001800) >> 11);
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Receiver can return explicit uncompressed Beamforming Feedback Matrix"] = VALS(txbf_feedback_flags,(caps & 0x00006000) >>13);
-			content["Transmit Beam Forming (TxBF) Capabilities"]["STA can compress and use compressed Beamforming Feedback Matrix"] = VALS(txbf_feedback_flags,(caps & 0x00018000) >> 15);
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Minimal grouping used for explicit feedback reports"] = VALS(txbf_min_group_flags,(caps & 0x00060000) >> 17);
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Max antennae STA can support when CSI feedback required"] = VALS(txbf_antenna_flags,(caps & 0x00180000) >> 19);
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Max antennae STA can support when uncompressed Beamforming feedback required"] = VALS(txbf_antenna_flags,(caps & 0x00600000) >> 21);
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Max antennae STA can support when compressed Beamforming feedback required"] = VALS(txbf_antenna_flags,(caps & 0x01800000) >> 23);
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Maximum number of rows of CSI explicit feedback"] = VALS(txbf_antenna_flags,(caps & 0x06000000) >> 25);
-			content["Transmit Beam Forming (TxBF) Capabilities"]["Maximum number of space time streams for which channel dimensions can be simultaneously estimated"] = VALS(txbf_chan_est_flags,(caps & 0x18000000) >> 27);
-			offset+=4;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Transmit Beamforming"] =
+				(caps & 0x00000001) >> 0;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Receive Staggered Sounding"] =
+				(caps & 0x00000002) >> 1;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Transmit Staggered Sounding"] =
+				(caps & 0x00000004) >> 2;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Receive Null Data packet (NDP)"] =
+				(caps & 0x00000008) >> 3;
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["Transmit Null Data packet (NDP)"] = (caps & 0x00000010) >> 4;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Implicit TxBF capable"] =
+				(caps & 0x00000020) >> 5;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Calibration"] =
+				VALS(txbf_calib_flag, (caps & 0x000000c0) >> 6);
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["STA can apply TxBF using CSI explicit feedback"] = (caps & 0x00000100) >> 8;
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["STA can apply TxBF using uncompressed beamforming feedback matrix"] =
+					   (caps & 0x00000200) >> 9;
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["STA can apply TxBF using compressed beamforming feedback matrix"] =
+					   (caps & 0x00000400) >> 10;
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["Receiver can return explicit CSI feedback"] =
+					   VALS(txbf_feedback_flags, (caps & 0x00001800) >> 11);
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["Receiver can return explicit uncompressed Beamforming Feedback Matrix"] =
+					   VALS(txbf_feedback_flags, (caps & 0x00006000) >> 13);
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["STA can compress and use compressed Beamforming Feedback Matrix"] =
+					   VALS(txbf_feedback_flags, (caps & 0x00018000) >> 15);
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["Minimal grouping used for explicit feedback reports"] =
+					   VALS(txbf_min_group_flags, (caps & 0x00060000) >> 17);
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["Max antennae STA can support when CSI feedback required"] =
+					   VALS(txbf_antenna_flags, (caps & 0x00180000) >> 19);
+			content
+				["Transmit Beam Forming (TxBF) Capabilities"]
+				["Max antennae STA can support when uncompressed Beamforming feedback required"] =
+					VALS(txbf_antenna_flags, (caps & 0x00600000) >> 21);
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["Max antennae STA can support when compressed Beamforming feedback required"] =
+					   VALS(txbf_antenna_flags, (caps & 0x01800000) >> 23);
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["Maximum number of rows of CSI explicit feedback"] =
+					   VALS(txbf_antenna_flags, (caps & 0x06000000) >> 25);
+			content["Transmit Beam Forming (TxBF) Capabilities"]
+				   ["Maximum number of space time streams for which channel dimensions can be "
+					"simultaneously estimated"] =
+					   VALS(txbf_chan_est_flags, (caps & 0x18000000) >> 27);
+			offset += 4;
 
 			caps = data[offset];
-			content["Antenna Selection (ASEL) Capabilities"]["Antenna Selection Capable"] = (caps & 0x00000001) >> 0;
-			content["Antenna Selection (ASEL) Capabilities"]["Antenna Selection Capable TXCSI"] = (caps & 0x00000002) >> 1;
-			content["Antenna Selection (ASEL) Capabilities"]["Antenna Indices Feedback Based Tx ASEL"] = (caps & 0x00000004) >> 2;
-			content["Antenna Selection (ASEL) Capabilities"]["Explicit CSI Feedback"] = (caps & 0x00000008) >> 3;
-			content["Antenna Selection (ASEL) Capabilities"]["Antenna Indices Feedback"] = (caps & 0x00000010) >> 4;
+			content["Antenna Selection (ASEL) Capabilities"]["Antenna Selection Capable"] =
+				(caps & 0x00000001) >> 0;
+			content["Antenna Selection (ASEL) Capabilities"]["Antenna Selection Capable TXCSI"] =
+				(caps & 0x00000002) >> 1;
+			content["Antenna Selection (ASEL) Capabilities"]
+				   ["Antenna Indices Feedback Based Tx ASEL"] = (caps & 0x00000004) >> 2;
+			content["Antenna Selection (ASEL) Capabilities"]["Explicit CSI Feedback"] =
+				(caps & 0x00000008) >> 3;
+			content["Antenna Selection (ASEL) Capabilities"]["Antenna Indices Feedback"] =
+				(caps & 0x00000010) >> 4;
 			content["Antenna Selection (ASEL) Capabilities"]["Rx ASEL"] = (caps & 0x00000020) >> 5;
-			content["Antenna Selection (ASEL) Capabilities"]["Tx Sounding PPDUs"] = (caps & 0x00000040) >> 6;
+			content["Antenna Selection (ASEL) Capabilities"]["Tx Sounding PPDUs"] =
+				(caps & 0x00000040) >> 6;
 		}
-
 	}
 
-	void dissect_ht_info_ie_1_0(const unsigned char *data, uint size, nlohmann::json & content)
-	{
+	void dissect_ht_info_ie_1_0(const unsigned char *data, uint size, nlohmann::json &content) {
 		if (size != 22) {
 			return;
 		}
-		uint offset=0;
+		uint offset = 0;
 
 		content["HT Control Channel"] = data[offset++];
 		auto htcaps = data[offset++];
-		content["HT Additional Capabilities"]["Extension Channel Offset"] = VALS(hta_ext_chan_offset_flag, htcaps & 0x0003);
-		content["HT Additional Capabilities"]["Recommended Tx Channel Width"] = (htcaps & 0x0003) >> 2;
-		content["HT Additional Capabilities"]["Reduced Interframe Spacing (RIFS) Mode"] = (htcaps & 0x0008) >> 3;
+		content["HT Additional Capabilities"]["Extension Channel Offset"] =
+			VALS(hta_ext_chan_offset_flag, htcaps & 0x0003);
+		content["HT Additional Capabilities"]["Recommended Tx Channel Width"] =
+			(htcaps & 0x0003) >> 2;
+		content["HT Additional Capabilities"]["Reduced Interframe Spacing (RIFS) Mode"] =
+			(htcaps & 0x0008) >> 3;
 		content["HT Additional Capabilities"]["Controlled Access Only"] = (htcaps & 0x0010) >> 4;
-		content["HT Additional Capabilities"]["Service Interval Granularity"] = VALS(hta_service_interval_flag, (htcaps & 0x00e0) >> 5);
+		content["HT Additional Capabilities"]["Service Interval Granularity"] =
+			VALS(hta_service_interval_flag, (htcaps & 0x00e0) >> 5);
 
-		htcaps = GetUInt16(data,offset);
-		content["HT Additional Capabilities"]["Operating Mode"] = VALS(hta_operating_mode_flag, (htcaps & 0x0003) >> 0);
-		content["HT Additional Capabilities"]["Non Greenfield (GF) devices Present"] = (htcaps & 0x0004) >> 2;
+		htcaps = GetUInt16(data, offset);
+		content["HT Additional Capabilities"]["Operating Mode"] =
+			VALS(hta_operating_mode_flag, (htcaps & 0x0003) >> 0);
+		content["HT Additional Capabilities"]["Non Greenfield (GF) devices Present"] =
+			(htcaps & 0x0004) >> 2;
 
-		htcaps = GetUInt16(data,offset);
-		content["HT Additional Capabilities"]["Basic STB Modulation and Coding Scheme (MCS)"] = (htcaps & 0x007f) >> 0;
-		content["HT Additional Capabilities"]["Dual Clear To Send (CTS) Protection"] = (htcaps & 0x0080) >> 7;
+		htcaps = GetUInt16(data, offset);
+		content["HT Additional Capabilities"]["Basic STB Modulation and Coding Scheme (MCS)"] =
+			(htcaps & 0x007f) >> 0;
+		content["HT Additional Capabilities"]["Dual Clear To Send (CTS) Protection"] =
+			(htcaps & 0x0080) >> 7;
 		content["HT Additional Capabilities"]["Secondary Beacon"] = (htcaps & 0x0100) >> 8;
-		content["HT Additional Capabilities"]["L-SIG TXOP Protection Support"] = (htcaps & 0x0200) >> 9;
-		content["HT Additional Capabilities"]["Phased Coexistence Operation (PCO) Active"] = (htcaps & 0x0400) >> 10;
-		content["HT Additional Capabilities"]["Phased Coexistence Operation (PCO) Phase"] = (htcaps & 0x0800) >> 11;
-		ParseMCSset(&data[offset],content);
+		content["HT Additional Capabilities"]["L-SIG TXOP Protection Support"] =
+			(htcaps & 0x0200) >> 9;
+		content["HT Additional Capabilities"]["Phased Coexistence Operation (PCO) Active"] =
+			(htcaps & 0x0400) >> 10;
+		content["HT Additional Capabilities"]["Phased Coexistence Operation (PCO) Phase"] =
+			(htcaps & 0x0800) >> 11;
+		ParseMCSset(&data[offset], content);
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_HT_CAPABILITY(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
+		nlohmann::json new_ie;
+		nlohmann::json content;
 
-		if(data.size()==26) {
-			dissect_ht_capability_ie(&data[0],data.size(),content);
+		if (data.size() == 26) {
+			dissect_ht_capability_ie(&data[0], data.size(), content);
 		}
 
-		new_ie["name"]="HT Capabilities";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_HT_CAPABILITY;
+		new_ie["name"] = "HT Capabilities";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_HT_CAPABILITY;
 		return new_ie;
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_EXT_SUPP_RATES(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
+		nlohmann::json new_ie;
+		nlohmann::json content;
 		std::string Rates;
 
-		for(const auto &rate:data) {
-			if(!Rates.empty())
+		for (const auto &rate : data) {
+			if (!Rates.empty())
 				Rates += ", ";
-			Rates += VALS(ieee80211_supported_rates_vals,rate);
+			Rates += VALS(ieee80211_supported_rates_vals, rate);
 		}
-		Rates +=  " [Mbit/sec]";
+		Rates += " [Mbit/sec]";
 		content["Supported Rates"] = Rates;
-		new_ie["name"]="Supported Rates";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_EXT_SUPP_RATES;
+		new_ie["name"] = "Supported Rates";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_EXT_SUPP_RATES;
 		return new_ie;
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_TX_POWER_ENVELOPE(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
+		nlohmann::json new_ie;
+		nlohmann::json content;
 
-		if(data.size()>=2 && data.size()<=5) {
+		if (data.size() >= 2 && data.size() <= 5) {
 			auto len = data[0];
-			for(uint i=0;i<=len;i++) {
-				switch(i) {
+			for (uint i = 0; i <= len; i++) {
+				switch (i) {
 				case 0:
-					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 20MHz"] = (uint16_t) data[i+1];
+					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 20MHz"] =
+						(uint16_t)data[i + 1];
 					break;
 				case 1:
-					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 40MHz"] = (uint16_t) data[i+1];
+					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 40MHz"] =
+						(uint16_t)data[i + 1];
 					break;
 				case 2:
-					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 80MHz"] = (uint16_t) data[i+1];
+					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 80MHz"] =
+						(uint16_t)data[i + 1];
 					break;
 				case 3:
-					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 160MHz/80+80 MHz"] = (uint16_t) data[i+1];
+					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 160MHz/80+80 MHz"] =
+						(uint16_t)data[i + 1];
 					break;
 				default:
-					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 160MHz/80+80 MHz"] = (uint16_t) 0xff;
+					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 160MHz/80+80 MHz"] =
+						(uint16_t)0xff;
 				}
 			}
 		}
-		new_ie["name"]="Tx Pwr Info";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_TX_POWER_ENVELOPE;
+		new_ie["name"] = "Tx Pwr Info";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_TX_POWER_ENVELOPE;
 		return new_ie;
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_VHT_CAPABILITY(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
+		nlohmann::json new_ie;
+		nlohmann::json content;
 
-		if(data.size()==12) {
-			uint offset=0;
-			uint caps = data[offset] + data[offset+1]* 256 + data[offset+2]*256*256 + data[offset+3]*256*256*256;
+		if (data.size() == 12) {
+			uint offset = 0;
+			uint caps = data[offset] + data[offset + 1] * 256 + data[offset + 2] * 256 * 256 +
+						data[offset + 3] * 256 * 256 * 256;
 
-			content["VHT Capabilities Info"]["Maximum MPDU Length"] = VALS(vht_max_mpdu_length_flag, (caps & 0x00000003) >> 0 );
-			content["VHT Capabilities Info"]["Supported Channel Width Set"] = VALS(vht_supported_chan_width_set_flag, (caps & 0x0000000c) >> 2 );
-			content["VHT Capabilities Info"]["Rx LDPC"] = (caps & 0x00000010) >> 4 ;
-			content["VHT Capabilities Info"]["Short GI for 80MHz"] = (caps & 0x00000020) >> 5 ;
-			content["VHT Capabilities Info"]["Short GI for 160MHz and 80+80MHz"] = (caps & 0x00000040) >> 6 ;
-			content["VHT Capabilities Info"]["Tx STBC"] = (caps & 0x00000080) >> 7 ;
+			content["VHT Capabilities Info"]["Maximum MPDU Length"] =
+				VALS(vht_max_mpdu_length_flag, (caps & 0x00000003) >> 0);
+			content["VHT Capabilities Info"]["Supported Channel Width Set"] =
+				VALS(vht_supported_chan_width_set_flag, (caps & 0x0000000c) >> 2);
+			content["VHT Capabilities Info"]["Rx LDPC"] = (caps & 0x00000010) >> 4;
+			content["VHT Capabilities Info"]["Short GI for 80MHz"] = (caps & 0x00000020) >> 5;
+			content["VHT Capabilities Info"]["Short GI for 160MHz and 80+80MHz"] =
+				(caps & 0x00000040) >> 6;
+			content["VHT Capabilities Info"]["Tx STBC"] = (caps & 0x00000080) >> 7;
 
-			content["VHT Capabilities Info"]["Rx STBC"] = VALS(vht_rx_stbc_flag,(caps & 0x00000700) >> 8) ;
-			content["VHT Capabilities Info"]["SU Beam-former Capable"] = (caps & 0x00000800) >> 11 ;
-			content["VHT Capabilities Info"]["SU Beam-formee Capable"] = (caps & 0x00001000) >> 12 ;
-			content["VHT Capabilities Info"]["Compressed Steering Number of Beamformer Antennas Supported"] = VALS(num_plus_one_3bit_flag,(caps & 0x0000e000) >> 13) ;
+			content["VHT Capabilities Info"]["Rx STBC"] =
+				VALS(vht_rx_stbc_flag, (caps & 0x00000700) >> 8);
+			content["VHT Capabilities Info"]["SU Beam-former Capable"] = (caps & 0x00000800) >> 11;
+			content["VHT Capabilities Info"]["SU Beam-formee Capable"] = (caps & 0x00001000) >> 12;
+			content["VHT Capabilities Info"]
+				   ["Compressed Steering Number of Beamformer Antennas Supported"] =
+					   VALS(num_plus_one_3bit_flag, (caps & 0x0000e000) >> 13);
 
-			content["VHT Capabilities Info"]["Number of Sounding Dimensions"] = VALS(num_plus_one_3bit_flag,(caps & 0x00070000) >> 16);
-			content["VHT Capabilities Info"]["MU Beam-former Capable"] = VALS(num_plus_one_3bit_flag,(caps & 0x00080000) >> 17);
+			content["VHT Capabilities Info"]["Number of Sounding Dimensions"] =
+				VALS(num_plus_one_3bit_flag, (caps & 0x00070000) >> 16);
+			content["VHT Capabilities Info"]["MU Beam-former Capable"] =
+				VALS(num_plus_one_3bit_flag, (caps & 0x00080000) >> 17);
 			content["VHT Capabilities Info"]["MU Beam-formee Capable"] = (caps & 0x00200000) >> 18;
 			content["VHT Capabilities Info"]["VHT TXOP PS"] = (caps & 0x00400000) >> 19;
-			content["VHT Capabilities Info"]["HTC-VHT Capable VHT variant HT Control field"] = (caps & 0x00400000) >> 20;
+			content["VHT Capabilities Info"]["HTC-VHT Capable VHT variant HT Control field"] =
+				(caps & 0x00400000) >> 20;
 
-			content["VHT Capabilities Info"]["Max A-MPDU Length"] = VALS(vht_max_ampdu_flag,(caps & 0x03800000) >> 21);
-			content["VHT Capabilities Info"]["VHT Link Adaptation"] = VALS(vht_link_adapt_flag,(caps & 0x0c000000) >> 24);
+			content["VHT Capabilities Info"]["Max A-MPDU Length"] =
+				VALS(vht_max_ampdu_flag, (caps & 0x03800000) >> 21);
+			content["VHT Capabilities Info"]["VHT Link Adaptation"] =
+				VALS(vht_link_adapt_flag, (caps & 0x0c000000) >> 24);
 
-			content["VHT Capabilities Info"]["Rx Antenna Pattern Consistency"] = (caps & 0x10000000) >> 28;
-			content["VHT Capabilities Info"]["Tx Antenna Pattern Consistency"] = (caps & 0x20000000) >> 29;
+			content["VHT Capabilities Info"]["Rx Antenna Pattern Consistency"] =
+				(caps & 0x10000000) >> 28;
+			content["VHT Capabilities Info"]["Tx Antenna Pattern Consistency"] =
+				(caps & 0x20000000) >> 29;
 			offset += 4;
-			ParseMCSset(&data[offset],content);
+			ParseMCSset(&data[offset], content);
 		}
 
-		new_ie["name"]="VHT Capabilities Info";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_VHT_CAPABILITY;
+		new_ie["name"] = "VHT Capabilities Info";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_VHT_CAPABILITY;
 		return new_ie;
 	}
 
-	inline nlohmann::json WFS_WLAN_EID_RRM_ENABLED_CAPABILITIES(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
+	inline nlohmann::json
+	WFS_WLAN_EID_RRM_ENABLED_CAPABILITIES(const std::vector<unsigned char> &data) {
+		nlohmann::json new_ie;
+		nlohmann::json content;
 
-		if(data.size()==5) {
-			uint offset=0;
+		if (data.size() == 5) {
+			uint offset = 0;
 			uint caps = data[offset++];
 			content["RM Capabilities"]["Link Measurement"] = (caps & 0x00000001) >> 0;
 			content["RM Capabilities"]["Neighbor Report"] = (caps & 0x00000002) >> 1;
@@ -1184,7 +1197,8 @@ namespace OpenWifi {
 			content["RM Capabilities"]["Beacon Passive Measurement"] = (caps & 0x00000010) >> 4;
 			content["RM Capabilities"]["Beacon Active Measurement"] = (caps & 0x00000020) >> 5;
 			content["RM Capabilities"]["Beacon Table Measurement"] = (caps & 0x00000040) >> 6;
-			content["RM Capabilities"]["Beacon Measurement Reporting Conditions"] = (caps & 0x00000080) >> 7;
+			content["RM Capabilities"]["Beacon Measurement Reporting Conditions"] =
+				(caps & 0x00000080) >> 7;
 
 			caps = data[offset++];
 			content["RM Capabilities"]["Frame Measurement"] = (caps & 0x00000001) >> 0;
@@ -1193,14 +1207,18 @@ namespace OpenWifi {
 			content["RM Capabilities"]["Statistics Measurement"] = (caps & 0x00000008) >> 3;
 			content["RM Capabilities"]["LCI Measurement"] = (caps & 0x00000010) >> 4;
 			content["RM Capabilities"]["LCI Azimuth capability"] = (caps & 0x00000020) >> 5;
-			content["RM Capabilities"]["Transmit Stream/Category Measurement"] = (caps & 0x00000040) >> 6;
-			content["RM Capabilities"]["Triggered Transmit Stream/Category Measurement"] = (caps & 0x00000080) >> 7;
+			content["RM Capabilities"]["Transmit Stream/Category Measurement"] =
+				(caps & 0x00000040) >> 6;
+			content["RM Capabilities"]["Triggered Transmit Stream/Category Measurement"] =
+				(caps & 0x00000080) >> 7;
 
 			caps = data[offset++];
 			content["RM Capabilities"]["AP Channel Report capability"] = (caps & 0x00000007) >> 0;
 			content["RM Capabilities"]["RM MIB capability"] = (caps & 0x00000002) >> 1;
-			content["RM Capabilities"]["Operating Channel Max Measurement Duration"] = (caps & 0x0000001c) >> 2;
-			content["RM Capabilities"]["Nonoperating Channel Max Measurement Duration"] = (caps & 0x000000e0) >> 5;
+			content["RM Capabilities"]["Operating Channel Max Measurement Duration"] =
+				(caps & 0x0000001c) >> 2;
+			content["RM Capabilities"]["Nonoperating Channel Max Measurement Duration"] =
+				(caps & 0x000000e0) >> 5;
 
 			caps = data[offset++];
 			content["RM Capabilities"]["Measurement Pilotcapability"] = (caps & 0x00000007) >> 0;
@@ -1208,28 +1226,32 @@ namespace OpenWifi {
 			content["RM Capabilities"]["Neighbor Report TSF Offset"] = (caps & 0x00000010) >> 4;
 			content["RM Capabilities"]["RCPI Measurement capability"] = (caps & 0x00000020) >> 5;
 			content["RM Capabilities"]["RSNI Measurement capability"] = (caps & 0x00000040) >> 6;
-			content["RM Capabilities"]["BSS Average Access Delay capability"] = (caps & 0x00000080) >> 7;
+			content["RM Capabilities"]["BSS Average Access Delay capability"] =
+				(caps & 0x00000080) >> 7;
 
 			caps = data[offset];
-			content["RM Capabilities"]["BSS Available Admission Capacity capability"] = (caps & 0x00000001) >> 0;
+			content["RM Capabilities"]["BSS Available Admission Capacity capability"] =
+				(caps & 0x00000001) >> 0;
 			content["RM Capabilities"]["Antenna capability"] = (caps & 0x00000002) >> 1;
 		}
 
-		new_ie["name"]="RM Capabilities";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_RRM_ENABLED_CAPABILITIES;
+		new_ie["name"] = "RM Capabilities";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_RRM_ENABLED_CAPABILITIES;
 		return new_ie;
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_EXT_CAPABILITY(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
+		nlohmann::json new_ie;
+		nlohmann::json content;
 
-		if(data.size()>=1) {
-			uint offset=0;
-			content["Extended Capabilities"]["20/40 BSS Coexistence Management Support"] = (data[offset] & 0x01) >> 0;
+		if (data.size() >= 1) {
+			uint offset = 0;
+			content["Extended Capabilities"]["20/40 BSS Coexistence Management Support"] =
+				(data[offset] & 0x01) >> 0;
 			content["Extended Capabilities"]["On-demand beacon"] = (data[offset] & 0x02) >> 1;
-			content["Extended Capabilities"]["Extended Channel Switching"] = (data[offset] & 0x04) >> 2;
+			content["Extended Capabilities"]["Extended Channel Switching"] =
+				(data[offset] & 0x04) >> 2;
 			content["Extended Capabilities"]["WAVE indication"] = (data[offset] & 0x08) >> 3;
 			content["Extended Capabilities"]["PSMP Capability"] = (data[offset] & 0x10) >> 4;
 			content["Extended Capabilities"]["Reserved"] = (data[offset] & 0x20) >> 5;
@@ -1237,43 +1259,50 @@ namespace OpenWifi {
 			content["Extended Capabilities"]["Event"] = (data[offset] & 0x80) >> 7;
 
 			offset++;
-			if(offset<data.size()) {
+			if (offset < data.size()) {
 				content["Extended Capabilities"]["Diagnostics"] = (data[offset] & 0x01) >> 0;
-				content["Extended Capabilities"]["Multicast Diagnostics"] = (data[offset] & 0x02) >> 1;
+				content["Extended Capabilities"]["Multicast Diagnostics"] =
+					(data[offset] & 0x02) >> 1;
 				content["Extended Capabilities"]["Location Tracking"] = (data[offset] & 0x04) >> 2;
 				content["Extended Capabilities"]["FMS"] = (data[offset] & 0x08) >> 3;
 				content["Extended Capabilities"]["Proxy ARP Service"] = (data[offset] & 0x10) >> 4;
-				content["Extended Capabilities"]["Collocated Interference Reporting"] = (data[offset] & 0x20) >> 5;
+				content["Extended Capabilities"]["Collocated Interference Reporting"] =
+					(data[offset] & 0x20) >> 5;
 				content["Extended Capabilities"]["Civic Location"] = (data[offset] & 0x40) >> 6;
-				content["Extended Capabilities"]["Geospatial Location"] = (data[offset] & 0x80) >> 7;
+				content["Extended Capabilities"]["Geospatial Location"] =
+					(data[offset] & 0x80) >> 7;
 			}
 
 			offset++;
-			if(offset<data.size()) {
+			if (offset < data.size()) {
 				content["Extended Capabilities"]["TFS"] = (data[offset] & 0x01) >> 0;
 				content["Extended Capabilities"]["WNM-Sleep Mode"] = (data[offset] & 0x02) >> 1;
 				content["Extended Capabilities"]["TIM Broadcast"] = (data[offset] & 0x04) >> 2;
 				content["Extended Capabilities"]["BSS Transition"] = (data[offset] & 0x08) >> 3;
-				content["Extended Capabilities"]["QoS Traffic Capability"] = (data[offset] & 0x10) >> 4;
+				content["Extended Capabilities"]["QoS Traffic Capability"] =
+					(data[offset] & 0x10) >> 4;
 				content["Extended Capabilities"]["AC Station Count"] = (data[offset] & 0x20) >> 5;
 				content["Extended Capabilities"]["Multiple BSSID"] = (data[offset] & 0x40) >> 6;
 				content["Extended Capabilities"]["Timing Measurement"] = (data[offset] & 0x80) >> 7;
 			}
 
 			offset++;
-			if(offset<data.size()) {
+			if (offset < data.size()) {
 				content["Extended Capabilities"]["Channel Usage"] = (data[offset] & 0x01) >> 0;
 				content["Extended Capabilities"]["SSID List"] = (data[offset] & 0x02) >> 1;
 				content["Extended Capabilities"]["DMS"] = (data[offset] & 0x04) >> 2;
 				content["Extended Capabilities"]["UTC TSF Offset"] = (data[offset] & 0x08) >> 3;
-				content["Extended Capabilities"]["Peer U-APSD Buffer STA Support"] = (data[offset] & 0x10) >> 4;
-				content["Extended Capabilities"]["TDLS Peer PSM Support"] = (data[offset] & 0x20) >> 5;
-				content["Extended Capabilities"]["TDLS channel switching"] = (data[offset] & 0x40) >> 6;
+				content["Extended Capabilities"]["Peer U-APSD Buffer STA Support"] =
+					(data[offset] & 0x10) >> 4;
+				content["Extended Capabilities"]["TDLS Peer PSM Support"] =
+					(data[offset] & 0x20) >> 5;
+				content["Extended Capabilities"]["TDLS channel switching"] =
+					(data[offset] & 0x40) >> 6;
 				content["Extended Capabilities"]["Interworking"] = (data[offset] & 0x80) >> 7;
 			}
 
 			offset++;
-			if(offset<data.size()) {
+			if (offset < data.size()) {
 				content["Extended Capabilities"]["QoS Map"] = (data[offset] & 0x01) >> 0;
 				content["Extended Capabilities"]["EBR"] = (data[offset] & 0x02) >> 1;
 				content["Extended Capabilities"]["SSPN Interface"] = (data[offset] & 0x04) >> 2;
@@ -1281,47 +1310,51 @@ namespace OpenWifi {
 				content["Extended Capabilities"]["MSGCF Capability"] = (data[offset] & 0x10) >> 4;
 				content["Extended Capabilities"]["TDLS support"] = (data[offset] & 0x20) >> 5;
 				content["Extended Capabilities"]["TDLS Prohibited"] = (data[offset] & 0x40) >> 6;
-				content["Extended Capabilities"]["TDLS Channel Switching Prohibited"] = (data[offset] & 0x80) >> 7;
+				content["Extended Capabilities"]["TDLS Channel Switching Prohibited"] =
+					(data[offset] & 0x80) >> 7;
 			}
 
 			offset++;
-			if(offset<data.size()) {
-				content["Extended Capabilities"]["Reject Unadmitted Frame"] = (data[offset] & 0x01) >> 0;
-				content["Extended Capabilities"]["Service Interval Granularity"] = VALS(service_interval_granularity_vals,(data[offset] & 0x0e) >> 1);
-				content["Extended Capabilities"]["Identifier Location"] = (data[offset] & 0x10) >> 4;
+			if (offset < data.size()) {
+				content["Extended Capabilities"]["Reject Unadmitted Frame"] =
+					(data[offset] & 0x01) >> 0;
+				content["Extended Capabilities"]["Service Interval Granularity"] =
+					VALS(service_interval_granularity_vals, (data[offset] & 0x0e) >> 1);
+				content["Extended Capabilities"]["Identifier Location"] =
+					(data[offset] & 0x10) >> 4;
 				content["Extended Capabilities"]["U-APSD Coexistence"] = (data[offset] & 0x20) >> 5;
 				content["Extended Capabilities"]["WNM-Notification"] = (data[offset] & 0x40) >> 6;
 				content["Extended Capabilities"]["Reserved"] = (data[offset] & 0x80) >> 7;
 			}
 
 			offset++;
-			if(offset<data.size()) {
+			if (offset < data.size()) {
 				content["Extended Capabilities"]["UTF-8 SSID"] = (data[offset] & 0x01) >> 0;
 			}
 		}
 
-		new_ie["name"]="Extended Capabilities";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_EXT_CAPABILITY;
+		new_ie["name"] = "Extended Capabilities";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_EXT_CAPABILITY;
 		return new_ie;
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_RSN(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
+		nlohmann::json new_ie;
+		nlohmann::json content;
 
 		// 01 00 00 0f ac 04 01 00 00 0f ac 04 02 00 00 0f ac 02 00 0f ac 06 8c 00
 
-		uint offset = 0 ;
-		content["RSN Version"] = GetUInt16(&data[0],offset);
-		auto RSNOUI = GetUInt24Big(&data[0],offset);
-		content["Group Cipher Suite OUI"] = BufferToHex(&data[offset-3],3,':');
-		if(RSNOUI==OUI_RSN) {
-			content["Group Cipher Suite type"] = VALS(ieee80211_rsn_cipher_vals,data[offset++]);
+		uint offset = 0;
+		content["RSN Version"] = GetUInt16(&data[0], offset);
+		auto RSNOUI = GetUInt24Big(&data[0], offset);
+		content["Group Cipher Suite OUI"] = BufferToHex(&data[offset - 3], 3, ':');
+		if (RSNOUI == OUI_RSN) {
+			content["Group Cipher Suite type"] = VALS(ieee80211_rsn_cipher_vals, data[offset++]);
 		} else {
-			content["Group Cipher Suite type"] = BufferToHex(&data[offset++],1);
+			content["Group Cipher Suite type"] = BufferToHex(&data[offset++], 1);
 		}
-		if(offset<data.size()) {
+		if (offset < data.size()) {
 			auto pcsc = GetUInt16(&data[0], offset);
 			content["Pairwise Cipher Suite Count"] = pcsc;
 			if (offset + pcsc * 4 <= data.size()) {
@@ -1343,28 +1376,29 @@ namespace OpenWifi {
 			}
 		}
 
-		if(offset<data.size()) {
-			auto akms_count = GetUInt16(&data[0],offset);
+		if (offset < data.size()) {
+			auto akms_count = GetUInt16(&data[0], offset);
 			content["Auth Key Management (AKM) Suite Count"] = akms_count;
-			if(offset+akms_count*4<=data.size()) {
-				nlohmann::json suites=nlohmann::json::array();
-				while(akms_count) {
+			if (offset + akms_count * 4 <= data.size()) {
+				nlohmann::json suites = nlohmann::json::array();
+				while (akms_count) {
 					nlohmann::json entry;
-					RSNOUI = GetUInt24Big(&data[0],offset);
-					entry["Auth Key Management (AKM) OUI"] = BufferToHex(&data[offset-3],3,':');
-					if(RSNOUI==OUI_RSN) {
-						entry["Auth Key Management (AKM) type"] = VALS(ieee80211_rsn_keymgmt_vals,data[offset++]);
+					RSNOUI = GetUInt24Big(&data[0], offset);
+					entry["Auth Key Management (AKM) OUI"] = BufferToHex(&data[offset - 3], 3, ':');
+					if (RSNOUI == OUI_RSN) {
+						entry["Auth Key Management (AKM) type"] =
+							VALS(ieee80211_rsn_keymgmt_vals, data[offset++]);
 					} else {
-						entry["Auth Key Management (AKM) type"] = BufferToHex(&data[offset++],1);
+						entry["Auth Key Management (AKM) type"] = BufferToHex(&data[offset++], 1);
 					}
 					suites.push_back(entry);
 					akms_count--;
 				}
-				content["Auth Key Management (AKM) List"]=suites;
+				content["Auth Key Management (AKM) List"] = suites;
 			}
 		}
 
-		if(offset+2<=data.size()) {
+		if (offset + 2 <= data.size()) {
 			auto rsn_cap = GetUInt16(&data[0], offset);
 			content["RSN Capabilities"]["RSN Pre-Auth capabilities"] = (rsn_cap & 0x0001) >> 0;
 			content["RSN Capabilities"]["RSN No Pairwise capabilities"] = (rsn_cap & 0x0002) >> 1;
@@ -1380,90 +1414,91 @@ namespace OpenWifi {
 			content["RSN Capabilities"]["PeerKey Enabled"] = (rsn_cap & 0x0200) >> 9;
 		}
 
-		if(offset+2<=data.size()) {
-			auto pmkid_count = GetUInt16(&data[0],offset);
+		if (offset + 2 <= data.size()) {
+			auto pmkid_count = GetUInt16(&data[0], offset);
 			content["PMKID Count"] = pmkid_count;
-			if(offset+pmkid_count*16<=data.size()) {
-				nlohmann::json list=nlohmann::json::array();
-				while(pmkid_count) {
+			if (offset + pmkid_count * 16 <= data.size()) {
+				nlohmann::json list = nlohmann::json::array();
+				while (pmkid_count) {
 					nlohmann::json entry;
-					entry["PMKID"] = BufferToHex(&data[offset],16);
+					entry["PMKID"] = BufferToHex(&data[offset], 16);
 					list.push_back(entry);
 					pmkid_count--;
-					offset+=16;
+					offset += 16;
 				}
-				content["PMKID List"]=list;
+				content["PMKID List"] = list;
 			}
 		}
 
-		if(offset+4<=data.size()) {
-			RSNOUI = GetUInt24Big(&data[0],offset);
-			content["Group Management Cipher Suite"]["Group Management Cipher Suite OUI"] = BufferToHex(&data[offset-3],3,':');
-			if(RSNOUI==OUI_RSN) {
-				content["Group Management Cipher Suite"]["Group Management Cipher Suite type"] = VALS(ieee80211_rsn_cipher_vals,data[offset++]);
+		if (offset + 4 <= data.size()) {
+			RSNOUI = GetUInt24Big(&data[0], offset);
+			content["Group Management Cipher Suite"]["Group Management Cipher Suite OUI"] =
+				BufferToHex(&data[offset - 3], 3, ':');
+			if (RSNOUI == OUI_RSN) {
+				content["Group Management Cipher Suite"]["Group Management Cipher Suite type"] =
+					VALS(ieee80211_rsn_cipher_vals, data[offset++]);
 			} else {
-				content["Group Management Cipher Suite"]["Group Management Cipher Suite type"] = BufferToHex(&data[offset++],1);
+				content["Group Management Cipher Suite"]["Group Management Cipher Suite type"] =
+					BufferToHex(&data[offset++], 1);
 			}
 		}
 
-		new_ie["name"]="RSN";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_RSN;
+		new_ie["name"] = "RSN";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_RSN;
 		return new_ie;
 	}
 
-	inline nlohmann::json
-	dissect_qos_info(const unsigned char *b,uint l)
-	{
+	inline nlohmann::json dissect_qos_info(const unsigned char *b, uint l) {
 		nlohmann::json content;
 
-		if(l<1)
+		if (l < 1)
 			return content;
 
 		auto ftype = MGT_PROBE_REQ;
 
 		switch (ftype) {
-			case MGT_ASSOC_REQ:
-			case MGT_PROBE_REQ:
-			case MGT_REASSOC_REQ:
-			{
-				/* To AP so decode as per WMM standard Figure 7 QoS Info field when sent from WMM STA*/
-				content["WME QoS Info"]["Max SP Length"] = VALS(ieee802111_wfa_ie_wme_qos_info_sta_max_sp_length_vals,(*b & 0x60) >> 5);
-				content["WME QoS Info"]["AC_BE"] = (*b & 0x08) >> 3;
-				content["WME QoS Info"]["AC_BK"] = (*b & 0x04) >> 2;
-				content["WME QoS Info"]["AC_VI"] = (*b & 0x02) >> 1;
-				content["WME QoS Info"]["AC_VO"] = (*b & 0x01) >> 0;
-				break;
-			}
-			case MGT_BEACON:
-			case MGT_PROBE_RESP:
-			case MGT_ASSOC_RESP:
-			case MGT_REASSOC_RESP:
-			{
-				/* From AP so decode as per WMM standard Figure 6 QoS Info field when sent from WMM AP */
-				content["WME QoS Info"]["U-APSD"] = (*b & 0x80) >> 4;
-				content["WME QoS Info"]["Parameter Set Count"] = (*b & 0x0f) >> 0;
-				break;
-			}
-			default:
-				content["WME QoS Info"]["invalid"] = true;
-				break;
+		case MGT_ASSOC_REQ:
+		case MGT_PROBE_REQ:
+		case MGT_REASSOC_REQ: {
+			/* To AP so decode as per WMM standard Figure 7 QoS Info field when sent from WMM STA*/
+			content["WME QoS Info"]["Max SP Length"] =
+				VALS(ieee802111_wfa_ie_wme_qos_info_sta_max_sp_length_vals, (*b & 0x60) >> 5);
+			content["WME QoS Info"]["AC_BE"] = (*b & 0x08) >> 3;
+			content["WME QoS Info"]["AC_BK"] = (*b & 0x04) >> 2;
+			content["WME QoS Info"]["AC_VI"] = (*b & 0x02) >> 1;
+			content["WME QoS Info"]["AC_VO"] = (*b & 0x01) >> 0;
+			break;
+		}
+		case MGT_BEACON:
+		case MGT_PROBE_RESP:
+		case MGT_ASSOC_RESP:
+		case MGT_REASSOC_RESP: {
+			/* From AP so decode as per WMM standard Figure 6 QoS Info field when sent from WMM AP
+			 */
+			content["WME QoS Info"]["U-APSD"] = (*b & 0x80) >> 4;
+			content["WME QoS Info"]["Parameter Set Count"] = (*b & 0x0f) >> 0;
+			break;
+		}
+		default:
+			content["WME QoS Info"]["invalid"] = true;
+			break;
 		}
 		return content;
 	}
 
 	inline nlohmann::json dissect_vendor_ie_wpawme(const unsigned char *b, uint l) {
 		nlohmann::json ie;
-		uint offset=0;
+		uint offset = 0;
 
 		// ie["dump"] = BufferToHex(b,l);
 
 		ie["vendor"] = "Wi-Fi : WPA / WME";
 		auto type = b[0];
-		ie["type"] = VALS(ieee802111_wfa_ie_type_vals,type);
+		ie["type"] = VALS(ieee802111_wfa_ie_type_vals, type);
 		offset++;
 
-		if(offset<l) {
+		if (offset < l) {
 			switch (type) {
 			case 1: {
 				ie["WPA Version"] = GetUInt16(b, offset);
@@ -1509,68 +1544,68 @@ namespace OpenWifi {
 			} break;
 			case 2: {
 				auto sub_type = b[offset++];
-				ie["WME Subtype"] = VALS(ieee802111_wfa_ie_wme_type,sub_type);
-				ie["WME Version"] = (uint) b[offset++];
+				ie["WME Subtype"] = VALS(ieee802111_wfa_ie_wme_type, sub_type);
+				ie["WME Version"] = (uint)b[offset++];
 
-				switch(sub_type) {
-					case 0: {
-							ie["WME QoS Info"] = dissect_qos_info(&b[offset],l-offset);
-						}
-						break;
-					case 1: {
-						ie["WME QoS Info"] = dissect_qos_info(&b[offset],l-offset);
+				switch (sub_type) {
+				case 0: {
+					ie["WME QoS Info"] = dissect_qos_info(&b[offset], l - offset);
+				} break;
+				case 1: {
+					ie["WME QoS Info"] = dissect_qos_info(&b[offset], l - offset);
+					offset++;
+					offset++; // skip reserved...
+					nlohmann::json list = nlohmann::json::array();
+					for (uint i = 0; i < 4; i++) {
+						nlohmann::json entry;
+						entry["ACI"] = VALS(ieee80211_wfa_ie_wme_acs_vals, (b[offset] & 0x60) >> 5);
+						entry["Admission Control Mandatory"] = (b[offset] & 0x10) >> 4;
+						entry["AIFSN"] = (b[offset] & 0x0f) >> 5;
 						offset++;
-						offset++;		// skip reserved...
-						nlohmann::json list=nlohmann::json::array();
-						for(uint i=0;i<4;i++) {
-							nlohmann::json entry;
-							entry["ACI"] = VALS(ieee80211_wfa_ie_wme_acs_vals, (b[offset] & 0x60)>>5);
-							entry["Admission Control Mandatory"] = (b[offset] & 0x10) >> 4;
-							entry["AIFSN"] = (b[offset] & 0x0f)>>5;
-							offset++;
-							entry["ECW Max"] = (b[offset] & 0xf0)>>4;
-							entry["ECW Min"] = (b[offset] & 0x0f)>>0;
-							offset++;
-							entry["TXOP Limit"] = b[offset] + b[offset+1]*256;
-							offset+=2;
-							list.push_back(entry);
-						}
-						ie["Ac Parameters"]["ACI / AIFSN Field"] = list;
-						}
-						break;
-					case 2: {
-						auto tid = GetUInt24(b,offset);
-							ie["TS Info"]["TID"] =  (tid & 0x00001E) >> 1;
-							ie["TS Info"]["Direction"] = VALS(ieee80211_wfa_ie_wme_tspec_tsinfo_direction_vals,(tid & 0x000060) >> 5);
-							ie["TS Info"]["PSB"] =  VALS(ieee80211_wfa_ie_wme_tspec_tsinfo_psb_vals, (tid & 0x000400) >> 10);
-							ie["TS Info"]["UP"] =  VALS(ieee80211_wfa_ie_wme_tspec_tsinfo_up_vals,(tid & 0x003800) >> 11);
-							ie["TS Info"]["Normal MSDU Size"] = GetUInt16(b,offset);
-							ie["TS Info"]["Maximum MSDU Size"] = GetUInt16(b,offset);
-							ie["TS Info"]["Minimum Service Interval"] = GetUInt32(b,offset);
-							ie["TS Info"]["Maximum Service Interval"] = GetUInt32(b,offset);
-							ie["TS Info"]["Inactivity Interval"] = GetUInt32(b,offset);
-							ie["TS Info"]["Suspension Interval"] = GetUInt32(b,offset);
-							ie["TS Info"]["Service Start Time"] = GetUInt32(b,offset);
-							ie["TS Info"]["Minimum Data Rate"] = GetUInt32(b,offset);
-							ie["TS Info"]["Mean Data Rate"] = GetUInt32(b,offset);
-							ie["TS Info"]["Peak Data Rate"] = GetUInt32(b,offset);
-							ie["TS Info"]["Burst Size"] = GetUInt32(b,offset);
-							ie["TS Info"]["Delay Bound"] = GetUInt32(b,offset);
-							ie["TS Info"]["Minimum PHY Rate"] = GetUInt32(b,offset);
-							ie["TS Info"]["Surplus Bandwidth Allowance"] = GetUInt16(b,offset);
-							ie["TS Info"]["Medium Time"] = GetUInt16(b,offset);
-						}
-						break;
-					default:
-						break;
+						entry["ECW Max"] = (b[offset] & 0xf0) >> 4;
+						entry["ECW Min"] = (b[offset] & 0x0f) >> 0;
+						offset++;
+						entry["TXOP Limit"] = b[offset] + b[offset + 1] * 256;
+						offset += 2;
+						list.push_back(entry);
+					}
+					ie["Ac Parameters"]["ACI / AIFSN Field"] = list;
+				} break;
+				case 2: {
+					auto tid = GetUInt24(b, offset);
+					ie["TS Info"]["TID"] = (tid & 0x00001E) >> 1;
+					ie["TS Info"]["Direction"] = VALS(
+						ieee80211_wfa_ie_wme_tspec_tsinfo_direction_vals, (tid & 0x000060) >> 5);
+					ie["TS Info"]["PSB"] =
+						VALS(ieee80211_wfa_ie_wme_tspec_tsinfo_psb_vals, (tid & 0x000400) >> 10);
+					ie["TS Info"]["UP"] =
+						VALS(ieee80211_wfa_ie_wme_tspec_tsinfo_up_vals, (tid & 0x003800) >> 11);
+					ie["TS Info"]["Normal MSDU Size"] = GetUInt16(b, offset);
+					ie["TS Info"]["Maximum MSDU Size"] = GetUInt16(b, offset);
+					ie["TS Info"]["Minimum Service Interval"] = GetUInt32(b, offset);
+					ie["TS Info"]["Maximum Service Interval"] = GetUInt32(b, offset);
+					ie["TS Info"]["Inactivity Interval"] = GetUInt32(b, offset);
+					ie["TS Info"]["Suspension Interval"] = GetUInt32(b, offset);
+					ie["TS Info"]["Service Start Time"] = GetUInt32(b, offset);
+					ie["TS Info"]["Minimum Data Rate"] = GetUInt32(b, offset);
+					ie["TS Info"]["Mean Data Rate"] = GetUInt32(b, offset);
+					ie["TS Info"]["Peak Data Rate"] = GetUInt32(b, offset);
+					ie["TS Info"]["Burst Size"] = GetUInt32(b, offset);
+					ie["TS Info"]["Delay Bound"] = GetUInt32(b, offset);
+					ie["TS Info"]["Minimum PHY Rate"] = GetUInt32(b, offset);
+					ie["TS Info"]["Surplus Bandwidth Allowance"] = GetUInt16(b, offset);
+					ie["TS Info"]["Medium Time"] = GetUInt16(b, offset);
+				} break;
+				default:
+					break;
 				}
 
 			} break;
 			case 4: {
-				ie["TLV Block"] = BufferToHex(&b[offset],l-offset);
+				ie["TLV Block"] = BufferToHex(&b[offset], l - offset);
 			} break;
 			default:
-				ie["Data"] = BufferToHex(&b[1],l-1);
+				ie["Data"] = BufferToHex(&b[1], l - 1);
 				break;
 			}
 		}
@@ -1582,13 +1617,12 @@ namespace OpenWifi {
 		nlohmann::json ie;
 		ie["vendor"] = "Wi-Fi : RSN";
 
-		switch(b[0]) {
+		switch (b[0]) {
 		case 4: {
-			ie["RSN PMKID"] = BufferToHex(&b[1],16);
-		}
-			break;
+			ie["RSN PMKID"] = BufferToHex(&b[1], 16);
+		} break;
 		default:
-			ie["RSN Unknown"] = BufferToHex(&b[1],l-1);
+			ie["RSN Unknown"] = BufferToHex(&b[1], l - 1);
 			break;
 		}
 		return ie;
@@ -1599,17 +1633,15 @@ namespace OpenWifi {
 		ie["vendor"] = "Wi-Fi : 802.11 Pre-N";
 		--l;
 		auto type = b[0];
-		switch(type) {
+		switch (type) {
 		case 51: {
-			dissect_ht_capability_ie(&b[1],l-1,ie);
-		}
-			break;
+			dissect_ht_capability_ie(&b[1], l - 1, ie);
+		} break;
 		case 52: {
-			dissect_ht_info_ie_1_0(&b[1],l-1,ie);
-		}
-			break;
+			dissect_ht_info_ie_1_0(&b[1], l - 1, ie);
+		} break;
 		default:
-			ie["802.11n (Pre) Unknown Data"] = BufferToHex(&b[1],l-1);
+			ie["802.11n (Pre) Unknown Data"] = BufferToHex(&b[1], l - 1);
 			break;
 		}
 		return ie;
@@ -1618,134 +1650,140 @@ namespace OpenWifi {
 	inline nlohmann::json dissect_vendor_ie_wfa(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Wi-Fi Alliance";
-		ie["Data"] = BufferToHex(&b[1],l-1);
-		b++;l++;
+		ie["Data"] = BufferToHex(&b[1], l - 1);
+		b++;
+		l++;
 		return ie;
 	}
 
 	inline nlohmann::json dissect_vendor_ie_aironet(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Cisco Wireless (Aironet)";
-		ie["Data"] = BufferToHex(&b[1],l-1);
-		b++;l++;
+		ie["Data"] = BufferToHex(&b[1], l - 1);
+		b++;
+		l++;
 		return ie;
 	}
 
 	inline nlohmann::json dissect_vendor_ie_marvell(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Marvell Semiconductor";
-		ie["Data"] = BufferToHex(&b[1],l-1);
-		b++;l++;
+		ie["Data"] = BufferToHex(&b[1], l - 1);
+		b++;
+		l++;
 		return ie;
 	}
 
 	inline nlohmann::json dissect_vendor_ie_atheros(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Atheros Communications";
-		ie["Data"] = BufferToHex(&b[1],l-1);
-		b++;l++;
+		ie["Data"] = BufferToHex(&b[1], l - 1);
+		b++;
+		l++;
 		return ie;
 	}
 
 	inline nlohmann::json dissect_vendor_ie_aruba(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Aruba Networks";
-		ie["Data"] = BufferToHex(&b[1],l-1);
-		b++;l++;
+		ie["Data"] = BufferToHex(&b[1], l - 1);
+		b++;
+		l++;
 		return ie;
 	}
 
 	inline nlohmann::json dissect_vendor_ie_nintendo(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Nintendo";
-		ie["Data"] = BufferToHex(&b[1],l-1);
-		b++;l++;
+		ie["Data"] = BufferToHex(&b[1], l - 1);
+		b++;
+		l++;
 		return ie;
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_VENDOR_SPECIFIC(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
+		nlohmann::json new_ie;
+		nlohmann::json content;
 
-		if(data.size()>=3) {
-			uint offset=0;
-			auto RSNOUI = GetUInt24Big(&data[0],offset);
+		if (data.size() >= 3) {
+			uint offset = 0;
+			auto RSNOUI = GetUInt24Big(&data[0], offset);
 
-			switch(RSNOUI) {
+			switch (RSNOUI) {
 			case OUI_WPAWME:
-				content = dissect_vendor_ie_wpawme(&data[offset], data.size()-offset);
+				content = dissect_vendor_ie_wpawme(&data[offset], data.size() - offset);
 				break;
 			case OUI_RSN:
-				content = dissect_vendor_ie_rsn(&data[offset], data.size()-offset);
+				content = dissect_vendor_ie_rsn(&data[offset], data.size() - offset);
 				break;
 			case OUI_PRE11N:
-				content = dissect_vendor_ie_ht(&data[offset], data.size()-offset);
+				content = dissect_vendor_ie_ht(&data[offset], data.size() - offset);
 				break;
 			case OUI_WFA:
-				content = dissect_vendor_ie_wfa(&data[offset], data.size()-offset);
+				content = dissect_vendor_ie_wfa(&data[offset], data.size() - offset);
 				break;
 			case OUI_CISCOWL:
-				content = dissect_vendor_ie_aironet(&data[offset], data.size()-offset);
+				content = dissect_vendor_ie_aironet(&data[offset], data.size() - offset);
 				break;
 			case OUI_MARVELL:
-				content = dissect_vendor_ie_marvell(&data[offset], data.size()-offset);
+				content = dissect_vendor_ie_marvell(&data[offset], data.size() - offset);
 				break;
 			case OUI_ATHEROS:
-				content = dissect_vendor_ie_atheros(&data[offset], data.size()-offset);
+				content = dissect_vendor_ie_atheros(&data[offset], data.size() - offset);
 				break;
 			case OUI_ARUBA:
-				content = dissect_vendor_ie_aruba(&data[offset], data.size()-offset);
+				content = dissect_vendor_ie_aruba(&data[offset], data.size() - offset);
 				break;
 			case OUI_NINTENDO:
-				content = dissect_vendor_ie_nintendo(&data[offset], data.size()-offset);
+				content = dissect_vendor_ie_nintendo(&data[offset], data.size() - offset);
 				break;
 			default:
-				content["content"] = BufferToHex(&data[0],data.size());
+				content["content"] = BufferToHex(&data[0], data.size());
 				break;
 			}
-
 		}
 
-		new_ie["name"]="Vendor Specific";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_VENDOR_SPECIFIC;
+		new_ie["name"] = "Vendor Specific";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_VENDOR_SPECIFIC;
 		return new_ie;
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_EXTENSION(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
+		nlohmann::json new_ie;
+		nlohmann::json content;
 
 		// std::cout << BufferToHex(&data[0],data.size()) << std::endl;
-		uint offset=0;
+		uint offset = 0;
 		auto sub_ie = data[offset++];
 		switch (sub_ie) {
 		case WLAN_EID_EXT_HE_CAPABILITY: {
-			content["Extension EID"] = BufferToHex(&data[0],1);
-			content["Block"] = BufferToHex(&data[1],data.size()-1);
+			content["Extension EID"] = BufferToHex(&data[0], 1);
+			content["Block"] = BufferToHex(&data[1], data.size() - 1);
 		} break;
 		case WLAN_EID_EXT_HE_OPERATION: {
-			content["Extension EID"] = BufferToHex(&data[0],1);
-			content["Block"] = BufferToHex(&data[1],data.size()-1);
+			content["Extension EID"] = BufferToHex(&data[0], 1);
+			content["Block"] = BufferToHex(&data[1], data.size() - 1);
 		} break;
 		case WLAN_EID_EXT_HE_MU_EDCA: {
-			content["Extension EID"] = BufferToHex(&data[0],1);
-			content["Block"] = BufferToHex(&data[1],data.size()-1);
+			content["Extension EID"] = BufferToHex(&data[0], 1);
+			content["Block"] = BufferToHex(&data[1], data.size() - 1);
 		} break;
 		default:
-			content["Extension EID"] = BufferToHex(&data[0],1);
-			content["Block"] = BufferToHex(&data[1],data.size()-1);
+			content["Extension EID"] = BufferToHex(&data[0], 1);
+			content["Block"] = BufferToHex(&data[1], data.size() - 1);
 			break;
 		}
 
-		new_ie["name"]="EI Extensions";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_EXTENSION;
+		new_ie["name"] = "EI Extensions";
+		new_ie["content"] = content;
+		new_ie["type"] = WLAN_EID_EXTENSION;
 		return new_ie;
 	}
 
-	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result, Poco::Logger &Logger) {
-		std::ostringstream	ofs;
+	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result,
+							  Poco::Logger &Logger) {
+		std::ostringstream ofs;
 		Obj->stringify(ofs);
 
 		try {
@@ -1765,7 +1803,8 @@ namespace OpenWifi {
 									if (ie.contains("type") && ie.contains("data")) {
 										uint64_t ie_type = ie["type"];
 										std::string ie_data = ie["data"];
-										// std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data << std::endl;
+										// std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data
+										// << std::endl;
 										auto data = Base64Decode2Vec(ie_data);
 										if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
 											new_ies.push_back(WFS_WLAN_EID_COUNTRY(data));
@@ -1825,7 +1864,8 @@ namespace OpenWifi {
 											new_ies.push_back(ie);
 										}
 									} else {
-										// std::cout << "Skipping IE: no data and type" << std::endl;
+										// std::cout << "Skipping IE: no data and type" <<
+										// std::endl;
 										new_ies.push_back(ie);
 									}
 								} catch (...) {
@@ -1858,4 +1898,3 @@ namespace OpenWifi {
 	}
 
 } // namespace OpenWifi
-

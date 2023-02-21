@@ -1,15 +1,15 @@
 //
 // Created by stephane bourque on 2021-06-17.
 //
-#include <thread>
 #include <fstream>
+#include <thread>
 #include <vector>
 
+#include "Poco/File.h"
+#include "Poco/StreamCopier.h"
 #include "Poco/String.h"
 #include "Poco/StringTokenizer.h"
 #include "Poco/URIStreamOpener.h"
-#include "Poco/StreamCopier.h"
-#include "Poco/File.h"
 
 #include "framework/MicroServiceFuncs.h"
 #include "framework/utils.h"
@@ -22,25 +22,25 @@ namespace OpenWifi {
 
 	int OUIServer::Start() {
 		Running_ = true;
-		LatestOUIFileName_ =  MicroServiceDataDirectory() + "/newOUIFile.txt";
+		LatestOUIFileName_ = MicroServiceDataDirectory() + "/newOUIFile.txt";
 		CurrentOUIFileName_ = MicroServiceDataDirectory() + "/current_oui.txt";
 
 		bool Recovered = false;
-		Poco::File	OuiFile(CurrentOUIFileName_);
-		if(OuiFile.exists()) {
-			std::unique_lock	Lock(LocalMutex_);
-			Recovered = ProcessFile(CurrentOUIFileName_,OUIs_);
-			if(Recovered) {
+		Poco::File OuiFile(CurrentOUIFileName_);
+		if (OuiFile.exists()) {
+			std::unique_lock Lock(LocalMutex_);
+			Recovered = ProcessFile(CurrentOUIFileName_, OUIs_);
+			if (Recovered) {
 				poco_notice(Logger(),
-								 fmt::format("Recovered last OUI file - {}", CurrentOUIFileName_));
+							fmt::format("Recovered last OUI file - {}", CurrentOUIFileName_));
 			}
 		} else {
-			poco_notice(Logger(),
-							 fmt::format("No existing OUIFile.", CurrentOUIFileName_));
+			poco_notice(Logger(), fmt::format("No existing OUIFile.", CurrentOUIFileName_));
 		}
 
-		UpdaterCallBack_ = std::make_unique<Poco::TimerCallback<OUIServer>>(*this, &OUIServer::onTimer);
-		if(Recovered) {
+		UpdaterCallBack_ =
+			std::make_unique<Poco::TimerCallback<OUIServer>>(*this, &OUIServer::onTimer);
+		if (Recovered) {
 			Timer_.setStartInterval(60 * 60 * 1000); // first run in 1 hour
 		} else {
 			Timer_.setStartInterval(30 * 1000); // first run in 5 minutes
@@ -51,15 +51,15 @@ namespace OpenWifi {
 	}
 
 	void OUIServer::Stop() {
-		poco_notice(Logger(),"Stopping...");
-		Running_=false;
+		poco_notice(Logger(), "Stopping...");
+		Running_ = false;
 		Timer_.stop();
-		poco_notice(Logger(),"Stopped...");
+		poco_notice(Logger(), "Stopped...");
 	}
 
 	void OUIServer::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
 		MicroServiceLoadConfigurationFile();
-		poco_information(Logger(),"Reinitializing.");
+		poco_information(Logger(), "Reinitializing.");
 		Stop();
 		Start();
 	}
@@ -67,14 +67,18 @@ namespace OpenWifi {
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
 			LastUpdate_ = Utils::Now();
-			poco_information(Logger(), fmt::format("Start: Retrieving OUI file: {}",MicroServiceConfigGetString("oui.download.uri","")));
-			std::unique_ptr<std::istream> pStr(
-				Poco::URIStreamOpener::defaultOpener().open(MicroServiceConfigGetString("oui.download.uri","")));
+			poco_information(Logger(),
+							 fmt::format("Start: Retrieving OUI file: {}",
+										 MicroServiceConfigGetString("oui.download.uri", "")));
+			std::unique_ptr<std::istream> pStr(Poco::URIStreamOpener::defaultOpener().open(
+				MicroServiceConfigGetString("oui.download.uri", "")));
 			std::ofstream OS;
 			OS.open(FileName);
 			Poco::StreamCopier::copyStream(*pStr, OS);
 			OS.close();
-			poco_information(Logger(), fmt::format("Done: Retrieving OUI file: {}",MicroServiceConfigGetString("oui.download.uri","")));
+			poco_information(Logger(),
+							 fmt::format("Done: Retrieving OUI file: {}",
+										 MicroServiceConfigGetString("oui.download.uri", "")));
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -82,13 +86,13 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool OUIServer::ProcessFile( const std::string &FileName, OUIMap &Map) {
+	bool OUIServer::ProcessFile(const std::string &FileName, OUIMap &Map) {
 		try {
 			std::ifstream Input;
 			Input.open(FileName, std::ios::binary);
 
 			while (!Input.eof()) {
-				if(!Running_)
+				if (!Running_)
 					return false;
 				char buf[1024];
 				Input.getline(buf, sizeof(buf));
@@ -112,67 +116,68 @@ namespace OpenWifi {
 				}
 			}
 			return true;
-		} catch ( const Poco::Exception &E) {
+		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
 		return false;
 	}
 
-	void OUIServer::onTimer([[maybe_unused]] Poco::Timer & timer) {
+	void OUIServer::onTimer([[maybe_unused]] Poco::Timer &timer) {
 		Utils::SetThreadName("ouisvr-timer");
-		if(Updating_)
+		if (Updating_)
 			return;
 		Updating_ = true;
 
-		poco_information(Logger(),"Starting to process OUI file...");
+		poco_information(Logger(), "Starting to process OUI file...");
 
 		//	fetch data from server, if not available, just use the file we already have.
-		Poco::File	Current(CurrentOUIFileName_);
-		if(Current.exists()) {
-			if((Utils::Now()-Current.getLastModified().epochTime()) < (7*24*60*60)) {
-				if(!Initialized_) {
-					if(ProcessFile(CurrentOUIFileName_, OUIs_)) {
+		Poco::File Current(CurrentOUIFileName_);
+		if (Current.exists()) {
+			if ((Utils::Now() - Current.getLastModified().epochTime()) < (7 * 24 * 60 * 60)) {
+				if (!Initialized_) {
+					if (ProcessFile(CurrentOUIFileName_, OUIs_)) {
 						Initialized_ = true;
-						Updating_=false;
+						Updating_ = false;
 						poco_information(Logger(), "Using cached file.");
 						return;
 					}
 				} else {
-					Updating_=false;
+					Updating_ = false;
 					return;
 				}
 			}
 		}
 
 		OUIMap TmpOUIs;
-		if(GetFile(LatestOUIFileName_) && ProcessFile(LatestOUIFileName_, TmpOUIs)) {
+		if (GetFile(LatestOUIFileName_) && ProcessFile(LatestOUIFileName_, TmpOUIs)) {
 			std::unique_lock G(LocalMutex_);
 			OUIs_ = std::move(TmpOUIs);
 			LastUpdate_ = Utils::Now();
 			Poco::File F1(CurrentOUIFileName_);
-			if(F1.exists())
+			if (F1.exists())
 				F1.remove();
 			Poco::File F2(LatestOUIFileName_);
 			F2.renameTo(CurrentOUIFileName_);
-			poco_information(Logger(), fmt::format("New OUI file {} downloaded.",LatestOUIFileName_));
-		} else if(OUIs_.empty()) {
-			if(ProcessFile(CurrentOUIFileName_, TmpOUIs)) {
+			poco_information(Logger(),
+							 fmt::format("New OUI file {} downloaded.", LatestOUIFileName_));
+		} else if (OUIs_.empty()) {
+			if (ProcessFile(CurrentOUIFileName_, TmpOUIs)) {
 				LastUpdate_ = Utils::Now();
 				std::unique_lock G(LocalMutex_);
 				OUIs_ = std::move(TmpOUIs);
 			}
 		}
-		Initialized_=true;
+		Initialized_ = true;
 		Updating_ = false;
-		poco_information(Logger(),"Done processing OUI file...");
+		poco_information(Logger(), "Done processing OUI file...");
 	}
 
 	std::string OUIServer::GetManufacturer(const std::string &MAC) {
-		std::shared_lock 	Lock(LocalMutex_);
+		std::shared_lock Lock(LocalMutex_);
 
 		auto Manufacturer = OUIs_.find(Utils::SerialNumberToOUI(MAC));
-		if(Manufacturer != OUIs_.end())
+		if (Manufacturer != OUIs_.end())
 			return Manufacturer->second;
 		return "";
 	}
-};
+}; // namespace OpenWifi
