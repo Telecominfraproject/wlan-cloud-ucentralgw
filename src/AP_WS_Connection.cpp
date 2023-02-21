@@ -286,7 +286,7 @@ namespace OpenWifi {
 		if (StorageService()->GetDevice(SerialNumber_, D)) {
 
 			//	This is the case where the cache is empty after a restart. So GoodConfig will 0. If
-			//the device already 	has the right UUID, we just return.
+			// the device already 	has the right UUID, we just return.
 			if (D.UUID == UUID) {
 				UpgradedUUID = UUID;
 				ConfigurationCache().Add(SerialNumberInt_, UUID);
@@ -295,7 +295,7 @@ namespace OpenWifi {
 
 			if (UUID > D.UUID) {
 				//	so we have a problem, the device has a newer config than we have. So we need to
-				//make sure our config 	is newer.
+				// make sure our config 	is newer.
 				Config::Config Cfg(D.Configuration);
 				D.UUID = UUID + 2;
 				UpgradedUUID = D.UUID;

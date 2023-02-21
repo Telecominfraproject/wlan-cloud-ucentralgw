@@ -222,7 +222,7 @@ namespace OpenWifi {
 			std::chrono::duration<double, std::milli> delta = now - request->second.submitted;
 			if (delta > 10min) {
 				//				std::cout << __LINE__ << "  -->> " << request->second.Id <<
-				//std::endl;
+				// std::endl;
 				MyLogger.debug(fmt::format("{}: Command={} for {} Timed out.", request->second.UUID,
 										   APCommands::to_string(request->second.Command),
 										   Utils::IntToSerialNumber(request->second.SerialNumber)));
@@ -235,7 +235,7 @@ namespace OpenWifi {
 				request = OutStandingRequests_.erase(request);
 			} else {
 				//				std::cout << __LINE__ << "  -->> " << request->second.Id <<
-				//std::endl;
+				// std::endl;
 				++request;
 			}
 		}
@@ -390,7 +390,7 @@ namespace OpenWifi {
 		poco_debug(Logger(), fmt::format("{}: Sending command {} to {}. ID: {}", UUID, CommandStr,
 										 SerialNumber, RPC_ID));
 		//	Do not change the order. It is possible that an RPC completes before it is entered in
-		//the map. So we insert it 	first, even if we may need to remove it later upon failure.
+		// the map. So we insert it 	first, even if we may need to remove it later upon failure.
 		if (!oneway_rpc) {
 			std::lock_guard M(Mutex_);
 			OutStandingRequests_[RPC_ID] = CInfo;
