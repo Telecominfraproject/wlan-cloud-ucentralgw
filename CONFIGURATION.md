@@ -154,19 +154,38 @@ This is the maximum uploaded file size. The default maximum size if 10MB. This s
 This is the URI that will be passed to the AP. You must make sure that the AP can resolve this URI.
 
 ## Microservice information
+These are different Microservie parameters. Following is a brief explanation.
+```properties
 openwifi.service.key = $OWGW_ROOT/certs/restapi-key.pem
 openwifi.service.key.password = mypassword
 openwifi.system.data = $OWGW_ROOT/data
-openwifi.system.debug = true
 openwifi.system.uri.private = https://localhost:17002
 openwifi.system.uri.public = https://ucentral.dpaas.arilia.com:16002
 openwifi.system.uri.ui = https://ucentral-ui.arilia.com
 openwifi.security.restapi.disable = false
 openwifi.system.commandchannel = /tmp/app.ucentralgw
 openwifi.autoprovisioning = true
-openwifi.devicetypes.0 = AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
-openwifi.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
-openwifi.devicetypes.2 = IOT:esp32
+```
+### openwifi.service.key
+From time to time, the microservice must encrypt information. This is the key it should use. You may use the
+same keey as you RESTAPI or your server.
+### openwifi.service.key.password
+The password for the `openwifi.service.key`
+### openwifi.system.data
+The location of system data. This path must exist.
+### openwifi.system.uri.private
+The URI to reach the controller on the internal port.
+### openwifi.system.uri.public
+The URI to reach the controller from the outside world.
+### openwifi.system.uri.ui
+The URI of the UI to manage this service
+### openwifi.security.restapi.disable
+This allows to disable security for internal and external API calls. This should only be used if the controller
+sits behind an application load balancer that will actually do TLS. Setting this to `true` disables security.
+### openwifi.system.commandchannel
+The UNIX socket command channel used by this service.
+### openwifi.autoprovisioning
+Allow unknown devices to be provisioned by the system.
 
 ## OUI Service
 The controller has a built-in OUI resolver for MAC addresses. The GW will periodically load this file to obtain the latest. 
@@ -231,20 +250,39 @@ This is the country code to be used if no information can be found at one of the
 You must select onf of the possible services and the fill the appropriate token or api key parameter.
 
 ## Provisioning link
+This parameter tells the controller how to behave when it receives a request from a device for the first time. In this case, we tell
+the controller to look at the provisioning service first, then apply any local configurations.
+```properties
 autoprovisioning.process = prov,default
+```
 
-## Restricted Device Signature Manager 
+## Restricted Device Signature Manager
+If are using restricted devices, then you can include different keys for each vendor who provided 
+you with their information. This allows the controller to automatically sign requests to the device. You can have as many vendors
+as it is necessary.
+
+```properties
 signature.manager.0.key.public = $OWGW_ROOT/certs/signatures/test1-public-key.pem
 signature.manager.0.key.private = $OWGW_ROOT/certs/signatures/test1-private-key.pem
 signature.manager.0.vendor = test1
 signature.manager.1.key.public = $OWGW_ROOT/certs/signatures/test2-public-key.pem
 signature.manager.1.key.private = $OWGW_ROOT/certs/signatures/test2-private-key.pem
 signature.manager.1.vendor = test2
+```
 
 ## OWLS Simulator ID
-simulatorid = 53494d
+If you plan on using OWLS (OpenWifi Load Simulator), then you will need to put your Simulator ID right here.
+This ID must be obtained from TIP. 
+```properties
+simulatorid = 53494dFFEEDD
+```
 
-## RTTY parameters
+## RTTY Service
+The controller comes with the ability to run an RTTY service. The service can either be internal (the prefered choice) 
+or external. If you decide to use the internal RTTY, the you only need to specify `rtty.internal = true`. If you choose 
+to use an external RTTY, you must specify the remainder of the parameters.
+
+```properties
 rtty.internal = true
 rtty.enabled = true
 rtty.server = rtty-tip.arilia.com
@@ -253,61 +291,108 @@ rtty.token = 96181c567b4d0d98c50f127230068fa8
 rtty.timeout = 60
 rtty.viewport = 5913
 rtty.assets = $OWGW_ROOT/rtty_ui
+```
 
 ## RADIUS proxy config
+If you are going to use the buil-in RADIUS proxy service, you need to enable this parameter and provide 
+the ports for you PROXY.
+```properties
 radius.proxy.enable = false
 radius.proxy.accounting.port = 1813
 radius.proxy.authentication.port = 1812
 radius.proxy.coa.port = 3799
+```
 
-## NLB Support
+## ALB Support
+In order to support an application load balancer health check verification, your need to provide the following parameters.
+
+```properties
 alb.enable = true
 alb.port = 16102
+```
 
 ## Kafka
+The controller use Kafka, like all the other microservices. You must configure the kafka section in order for the 
+system to work. 
+```properties
 openwifi.kafka.group.id = gateway
 openwifi.kafka.client.id = gateway1
 openwifi.kafka.enable = true
-openwifi.kafka.brokerlist = a1.arilia.com:9092
+openwifi.kafka.brokerlist = my_Kafka.example.com:9092
 openwifi.kafka.auto.commit = false
 openwifi.kafka.queue.buffering.max.ms = 50
+```
+
+### openwifi.kafka.group.id
+The group ID is a single word that should identify the type of service tunning. In the case `gateway`
+### openwifi.kafka.client.id
+The client ID is a single service within that group ID. Each participant must have a unique client ID.
+### openwifi.kafka.enable
+Kafka should always be enabled.
+### openwifi.kafka.brokerlist
+The list of servers where your Kafka server is running. Comma separated.
+### openwifi.kafka.auto.commit
+Auto commit flag in Kafka. Leave as `false`.
+### openwifi.kafka.queue.buffering.max.ms
+Kafka buffering. Leave as `50`.
+## Kafka security
+If you intend to use SSL, you should look into Kafka Connect and specify the certificates below.
+```properties
 penwifi.kafka.ssl.ca.location =
 openwifi.kafka.ssl.certificate.location =
 openwifi.kafka.ssl.key.location =
 openwifi.kafka.ssl.key.password =
+```
 
 ## DB Type
+The controller supports 3 types of Database. SQLite should only be used for sites with less than 100 APs or for testing in the lab.
+In order to select which database to use, you must set the `storage.type` value to sqlite, postgresql, or mysql.
+
+```properties
 storage.type = sqlite
 #storage.type = postgresql
 #storage.type = mysql
-#storage.type = odbc
+```
 
-## Storage SQLite
+## Storage SQLite parameters
+Additional parameters to set for SQLite. The only important one is `storage.type.sqlite.db` which is the database name on disk.
+```properties
 storage.type.sqlite.db = devices.db
 storage.type.sqlite.idletime = 120
 storage.type.sqlite.maxsessions = 128
+```
 
 ## Storage Postgres
+Additional parameters to set if you select Postgres for your database. You must specify `host`, `username`, `password`,
+`database`, and `port`.
+```properties
 storage.type.postgresql.maxsessions = 64
 storage.type.postgresql.idletime = 60
 storage.type.postgresql.host = localhost
-storage.type.postgresql.username = stephb
-storage.type.postgresql.password = snoopy99
-storage.type.postgresql.database = ucentral
+storage.type.postgresql.username = gateway
+storage.type.postgresql.password = gateway_password
+storage.type.postgresql.database = gateway
 storage.type.postgresql.port = 5432
 storage.type.postgresql.connectiontimeout = 60
+```
 
 ## Storage MySQL/MariaDB
+Additional parameters to set if you select mysql for your database. You must specify `host`, `username`, `password`,
+`database`, and `port`.
+```properties
 storage.type.mysql.maxsessions = 64
 storage.type.mysql.idletime = 60
 storage.type.mysql.host = localhost
-storage.type.mysql.username = stephb
-storage.type.mysql.password = snoopy99
-storage.type.mysql.database = ucentral
+storage.type.postgresql.username = gateway
+storage.type.postgresql.password = gateway_password
+storage.type.postgresql.database = gateway
 storage.type.mysql.port = 3306
 storage.type.mysql.connectiontimeout = 60
+```
 
 ## Auto Archiver Parameters
+The auto archiver is responsible for removing all stale data. The default is to remove old data after 7 days.
+```properties
 archiver.enabled = true
 archiver.schedule = 03:00
 archiver.db.0.name = healthchecks
@@ -318,10 +403,17 @@ archiver.db.2.name = devicelogs
 archiver.db.2.keep = 7
 archiver.db.3.name = commandlist
 archiver.db.3.keep = 7
+```
 
 ## Logging Parameters
+The controller provides extensive logging. If you would like to keep logging on disk, set the `logging.type = file`. If you only want
+console logging, `set logging.type = console`. When selecting file, `logging.path` must exist. `logging.level` sets the 
+basic logging level for the entire controller. `logging.websocket` disables WebSocket logging. 
+
+```properties
 logging.type = file
 logging.path = $OWGW_ROOT/logs
 logging.level = information
 logging.asynch = true
 logging.websocket = false
+```
