@@ -102,13 +102,13 @@ cmake --build . --config Release
 sudo cmake --build . --target install
 
 cd ~
-git clone https://github.com/pboettch/json-schema-validator.git --branch 2.1.0
-cd json-schema-validator
+git clone https://github.com/AriliaWireless/valijson --branch tip-v1
+cd valijson
 mkdir cmake-build
 cd cmake-build
 cmake ..
-make -j
-sudo make install
+cmake --build . --config Release
+sudo cmake --build . --target install
 
 cd ~
 git clone https://github.com/Telecominfraproject/wlan-cloud-ucentralgw
@@ -156,13 +156,13 @@ sudo cmake --build . --target install
 popd
 popd
 
-git clone https://github.com/pboettch/json-schema-validator.git --branch 2.1.0
-pushd json-schema-validator
+git clone https://github.com/AriliaWireless/valijson --branch tip-v1
+cd valijson
 mkdir cmake-build
-pushd cmake-build
+cd cmake-build
 cmake ..
-make -j
-sudo make install
+cmake --build . --config Release
+sudo cmake --build . --target install
 popd
 popd
 
@@ -230,7 +230,7 @@ You should now have the following:
 ```
 
 ### Certificates
-Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. 
+Love'em or hate'em, we need to use'em. So we tried to make this as easy as possible for you. 
 
 #### The `certs` directory
 For all deployments, you will need the following certs directory, populated with the proper files.
@@ -255,14 +255,14 @@ These are the files you should install on your gateway and devices. For your gat
 - `issuer.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/issuer.pem).
 - `clientcas.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/clientcas.pem).
 
-#### Gateway certificates: TIP portion (* must be obtained from TIP)
+#### Gateway certificates: TIP portion (must be obtained from TIP)
 The gateway requires its own DigiCert certificate. Once obtained, you need to identify the `key` and the `certificate` rename
 them `websocket-key.pem` and `websocket-cert.pem`, and copy them in your `certs` directory. These files mus be obtained from TIP.
 
 #### Gateway certificates: for REST API
-The gateway requires a key/vertificate/ca for the REST interface. These files you need to obtain on your own of generate them. This is beyond the scope of this 
-document. Once you have these files, you need to renamed them `restapi-key.pem`, `restapi-cert.pem`, and `restapi-ca.pem`. This will guarantee proper HTTPS
-in your browner 
+The gateway requires a key/certificate/ca for the REST interface. These files you need to obtain on your own or generate them. This is beyond the scope of this 
+document. You, may choose to select LestEncrypt or any other Certificate Authority. Once you have these files, you need to renamed them `restapi-key.pem`, `restapi-cert.pem`, and `restapi-ca.pem`. 
+This will guarantee proper HTTPS in your browser and RESTAPI. 
 
 #### Configuration
 The configuration for this service is kept in a properties file. This file is called `owgw.properties` and you can 
@@ -275,27 +275,10 @@ environment variables.
 export OWGW_ROOT=`pwd`
 export OWGW_CONFIG=`pwd`
 ```
-If you current working directory is the root of the project, this will set the variables properly. Otherwise, you can set the variables 
+If your current working directory is the root of the project, this will set the variables properly. Otherwise, you can set the variables 
 to point to wherever is necessary.
 
-##### Important config entries
-###### This is the logging directory
-```
-logging.channels.c2.path = $OWGW_ROOT/logs/sample.log
-```
-
-###### This is the type of storage in use
-```asm
-storage.type = sqlite
-```
-
-###### Autoprovisioning settings
-```asm
-openwifi.autoprovisioning = true
-openwifi.devicetypes.0 = AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
-openwifi.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
-openwifi.devicetypes.2 = IOT:esp32
-```
+You can find a list of configuration parameters in [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/CONFIGURATION.md) 
 
 ###### This is the RESTAPI endpoint
 
