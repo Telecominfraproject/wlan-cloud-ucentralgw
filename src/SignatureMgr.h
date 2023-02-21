@@ -93,7 +93,7 @@ namespace OpenWifi {
 				}
 				auto Vendor = Keys_.find(Restrictions.key_info.vendor);
 				if (Vendor == Keys_.end()) {
-					poco_error( Logger(), fmt::format("{}: vendor unknown.", Vendor->first));
+					poco_error( Logger(), fmt::format("{}: vendor unknown.", Restrictions.key_info.vendor));
 					return "";
 				}
 
