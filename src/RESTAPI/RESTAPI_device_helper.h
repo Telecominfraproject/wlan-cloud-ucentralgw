@@ -7,6 +7,7 @@
 #include "AP_WS_Server.h"
 #include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
+#include <Poco/JSON/Parser.h>
 
 namespace OpenWifi {
 
