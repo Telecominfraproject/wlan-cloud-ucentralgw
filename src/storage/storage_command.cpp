@@ -601,6 +601,34 @@ typedef Poco::Tuple<
 		return false;
 	}
 
+	/*
+	bool Storage::SetCommandStatus(std::string & CommandUUID, std::uint64_t Error, const char *ErrorText) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			auto Now = Utils::Now();
+			uint64_t Size = 0, WaitForFile = 0;
+
+			Poco::Data::Statement Update(Sess);
+
+			std::string St{
+				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=?, ErrorText=?, Completed=?  WHERE UUID=?"};
+
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(WaitForFile),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Size),
+				Poco::Data::Keywords::use(ErrorText),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(UUID);
+			Update.execute();
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+*/
+
 	bool Storage::CancelWaitFile( std::string & UUID, std::string & ErrorText ) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
