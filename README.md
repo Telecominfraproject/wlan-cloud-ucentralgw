@@ -593,7 +593,9 @@ out.
 You will find the supported providers at: `ip2location.com`, `ipinfo.io`, or `ipdata.co`. You MUST supply a valid default 
 country code in `iptocountry.default`.
 
-## Contributors
-We love ya! We need more of ya! If you want to contribute, make sure you review 
-the [coding style](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CODING_STYLE.md) document. 
-Feel free to ask questions and post issues. 
+## Contributions
+We need more contributors. Should you wish to contribute, please follow the [coding style](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CODING_STYLE.md) document.
+
+## Pull Requests
+Please create a branch with the Jira addressing the issue you are fixing or the feature you are adding. 
+Create a pull-request from the branch into master. 
