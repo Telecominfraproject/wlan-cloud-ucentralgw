@@ -139,9 +139,10 @@ namespace OpenWifi {
 				Command.State=0;
 			}
 		} else if (Command.State==1) {
-//			std::cout << "Completing script 2 phase commit." << std::endl;
+			std::cout << "Completing script 2 phase commit." << std::endl;
 			StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
 			Payload->stringify(std::cout);
+			std::cout << std::endl;
 			// StorageService()->SetResultStatus(Command.UUID, 0, "results uploaded");
 			if(Command.Deferred) {
 				Reply = false;
