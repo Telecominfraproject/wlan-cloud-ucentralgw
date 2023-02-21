@@ -1,5 +1,10 @@
 # Controller Configuration Parameters
+
 ## Websocket parameters
+This is the crucial section. I bet that 97.4% of all your problems will come from here, and it's boring. So put some good music on,
+give the kids the iPad, get a cup of coffee, and pay attention. Every field will be explained.
+
+```properties
 ucentral.websocket.host.0.backlog = 500
 ucentral.websocket.host.0.rootca = $OWGW_ROOT/certs/root.pem
 ucentral.websocket.host.0.issuer = $OWGW_ROOT/certs/issuer.pem
@@ -12,8 +17,41 @@ ucentral.websocket.host.0.port = 15002
 ucentral.websocket.host.0.security = strict
 ucentral.websocket.host.0.key.password = mypassword
 ucentral.websocket.maxreactors = 20
+```
+
+### This is the end point for the devices to connect with
+This is the crucial section. I bet that 97.4% of all your problems will come from here, and it's boring. So put some good music on,
+give the kids the iPad, get a cup of coffee, and pay attention. Every field will be explained.
+
+### ucentral.websocket.host.0.backlog
+This is the number of concurrent devices you are expecting to call all at once. Not the current number of devices. This is how many will connect in the same exact second.
+Take the total number of devices you have and divide by 100. That's a good rule of thumb. Never go above 500.
+### ucentral.websocket.host.0.rootca
+This is the root file as supplied by Digicert. You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem)
+### ucentral.websocket.host.0.issuer
+This is the issuer file as supplied by Digicert. You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/issuer.pem)
+### ucentral.websocket.host.0.cert
+This is a `pem` file that you will receive from Digicert for the gateway itself. This is the certificate for the gateway.
+### ucentral.websocket.host.0.key
+This is a `pem` file that you will receive from Digicert for the gateway itself. The is the private key for the gateway.
+### ucentral.websocket.host.0.clientcas
+This is a `pem` file that contains both the issuer and the root CA certificates. You can find it You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/clientcas.pem)
+### ucentral.websocket.host.0.cas
+This is a directory where you will copy your own `cert.pem`, the `root.pem`, and the `issuer.pem` files.
+### ucentral.websocket.host.0.address
+Leve this a `*` in the case you want to bind to all interfaces on your gateway host or select the address of a single interface.
+### ucentral.websocket.host.0.port
+Leave to 15002 for now.
+### ucentral.websocket.host.0.security
+Leave this as strict for now for devices.
+### ucentral.websocket.host.0.key.password
+If you key file uses a password, please enter it here.
+### ucentral.websocket.maxreactors
+A single reactor can handle between 1000-2000 devices. Never leave this smaller than 5 or larger than 50.
 
 ## REST API External parameters
+These are the parameters required for the configuration of the external facing REST API server
+```properties
 openwifi.restapi.host.0.backlog = 100
 openwifi.restapi.host.0.security = relaxed
 openwifi.restapi.host.0.rootca = $OWGW_ROOT/certs/restapi-ca.pem
@@ -22,8 +60,30 @@ openwifi.restapi.host.0.port = 16002
 openwifi.restapi.host.0.cert = $OWGW_ROOT/certs/restapi-cert.pem
 openwifi.restapi.host.0.key = $OWGW_ROOT/certs/restapi-key.pem
 openwifi.restapi.host.0.key.password = mypassword
+```
+
+### openwifi.restapi.host.0.backlog
+This is the number of concurrent REST API calls that maybe be kept in the backlog for processing. That's a good rule of thumb. Never go above 500.
+### openwifi.restapi.host.0.rootca
+This is the root file of your own certificate CA in `pem` format.
+### openwifi.restapi.host.0.cert
+This is your own server certificate in `pem` format..
+### openwifi.restapi.host.0.key
+This is the private key associated with your own certificate in `pem` format.
+### openwifi.restapi.host.0.address
+Leve this a `*` in the case you want to bind to all interfaces on your gateway host or select the address of a single interface.
+### openwifi.restapi.host.0.port
+The port on which the REST API server is listening. By default, this is 16002.
+### openwifi.restapi.host.0.security
+Leave this as `relaxed` for now for devices.
+### openwifi.restapi.host.0.key.password
+If you key file uses a password, please enter it here.
+
 
 ## REST API Intra microservice parameters
+The following parameters describe the configuration for the inter-microservice HTTP server. You may use the same certificate/key 
+you are using for your extenral server or another certificate.
+```properties
 openwifi.internal.restapi.host.0.backlog = 100
 openwifi.internal.restapi.host.0.security = relaxed
 openwifi.internal.restapi.host.0.rootca = $OWGW_ROOT/certs/restapi-ca.pem
@@ -32,8 +92,30 @@ openwifi.internal.restapi.host.0.port = 17002
 openwifi.internal.restapi.host.0.cert = $OWGW_ROOT/certs/restapi-cert.pem
 openwifi.internal.restapi.host.0.key = $OWGW_ROOT/certs/restapi-key.pem
 openwifi.internal.restapi.host.0.key.password = mypassword
+```
+
+### openwifi.internal.host.0.backlog
+This is the number of concurrent REST API calls that maybe be kept in the backlog for processing. That's a good rule of thumb. Never go above 500.
+### openwifi.internal.host.0.rootca
+This is the root file of your own certificate CA in `pem` format.
+### openwifi.internal.host.0.cert
+This is your own server certificate in `pem` format..
+### openwifi.internal.host.0.key
+This is the private key associated with your own certificate in `pem` format.
+### openwifi.internal.host.0.address
+Leve this a `*` in the case you want to bind to all interfaces on your gateway host or select the address of a single interface.
+### openwifi.internal.host.0.port
+The port on which the REST API server is listening. By default, this is 17002.
+### openwifi.internal.host.0.security
+Leave this as `relaxed` for now for devices.
+### openwifi.internal.host.0.key.password
+If you key file uses a password, please enter it here.
 
 ## File uploader parameters
+Certain commands may require the Access Point to upload a file into the Controller. For this reason, there is a special embedded HTTP 
+server to receive these files.
+
+```properties
 openwifi.fileuploader.host.0.backlog = 100
 openwifi.fileuploader.host.0.rootca = $OWGW_ROOT/certs/restapi-ca.pem
 openwifi.fileuploader.host.0.security = relaxed
@@ -46,6 +128,30 @@ openwifi.fileuploader.host.0.key.password = mypassword
 openwifi.fileuploader.path = $OWGW_ROOT/uploads
 openwifi.fileuploader.maxsize = 10000
 openwifi.fileuploader.uri = https://ucentral.dpaas.arilia.com:16003
+```
+
+### openwifi.fileuploader.host.0.backlog
+This is the number of concurrent REST API calls that maybe be kept in the backlog for processing. That's a good rule of thumb. Never go above 500.
+### openwifi.fileuploader.host.0.rootca
+This is the root file of your own certificate CA in `pem` format.
+### openwifi.fileuploader.host.0.cert
+This is your own server certificate in `pem` format..
+### openwifi.fileuploader.host.0.key
+This is the private key associated with your own certificate in `pem` format.
+### openwifi.intfileuploaderernal.host.0.address
+Leve this a `*` in the case you want to bind to all interfaces on your gateway host or select the address of a single interface.
+### openwifi.fileuploader.host.0.port
+The port on which the REST API server is listening. By default, this is 16003.
+### openwifi.fileuploader.host.0.security
+Leave this as `relaxed` for now for devices.
+### openwifi.fileuploader.host.0.key.password
+If you key file uses a password, please enter it here.
+### openwifi.fileuploader.path
+This is the location where the files will be stored temporarily before processing. This `path` must exist.
+### openwifi.fileuploader.maxsize 
+This is the maximum uploaded file size. The default maximum size if 10MB. This size is in KB.
+### openwifi.fileuploader.uri
+This is the URI that will be passed to the AP. You must make sure that the AP can resolve this URI.
 
 ## Microservice information
 openwifi.service.key = $OWGW_ROOT/certs/restapi-key.pem
@@ -63,23 +169,66 @@ openwifi.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
 openwifi.devicetypes.2 = IOT:esp32
 
 ## OUI Service
+The controller has a built-in OUI resolver for MAC addresses. The GW will periodically load this file to obtain the latest. 
+This is ths URI for this file.
+```properties
 oui.download.uri = https://standards-oui.ieee.org/oui/oui.txt
+```
 
-## Datamodel Source
+## Data-model Source
+The gateway can make use of the latest uCentral data-model or use the built-in model. These 2 parameters allow you to 
+choose which method you want. If you select the internal method, the URI is ignored. If for some reason you choose 
+the on-line data-model from the URI and the URI is not reachable, the system will fall back on the internal model.
+```properties
+ucentral.datamodel.internal = true
 ucentral.datamodel.uri = https://raw.githubusercontent.com/Telecominfraproject/wlan-ucentral-schema/main/ucentral.schema.json
+```
 
 ## Command Manager
+The command manager is responsible for managing command sent and responses received with the APs. Several parameters allow you
+to fine tune its behaviour. Unless you have some particular reasons to change tem the defaults are usually just fine.
+```properties
 command.timeout = 14400
 command.retry = 120
-command.janitor = 3600
+command.janitor = 120
 command.queue = 30
+```
+### command.timeout
+How long will the GW wait in seconds before considering a commands has timed out. 
+
+### command.retry
+How long between command retries.
+
+### command.janitor
+How long between outstanding RPC clean-ups.
+
+### command.queue
+How long should te gateway wait between running its queue.
 
 ## IP to Country Parameters
+The controller has the ability to find the location of the IP of each Access Points. This uses an external IP location service. Currently,
+the controller supports 3 services. Please not that these services will require to obtain an API key or token, and these may cause you to incur 
+additional fees. Here is the list of the services supported:
+- ip2location: ip2location.com
+- ipdata: ipdata.co
+- ipinfo: ipinfo.io
+
+
+```properties
 iptocountry.default = US
 iptocountry.provider = ipinfo
 #iptocountry.provider = ipdata
+#iptocountry.provider = ip2location
 iptocountry.ipinfo.token =
 iptocountry.ipdata.apikey =
+iptocountry.ip2location.apikey =
+```
+
+### iptocountry.default
+This is the country code to be used if no information can be found at one of the providers or you have not configured any of the providers.
+
+### iprocountry.provider
+You must select onf of the possible services and the fill the appropriate token or api key parameter.
 
 ## Provisioning link
 autoprovisioning.process = prov,default
