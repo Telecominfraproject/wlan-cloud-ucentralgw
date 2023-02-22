@@ -19,7 +19,6 @@ In order to build the uCentralGW, you will need to install its dependencies, whi
 - mysql-client (MySQL client)
 - librdkafka
 - cppkafka
-- 
 
 The build is done in 2 parts. The first part is to build a local copy of the framework tailored to your environment. This 
 framework is called [Poco](https://github.com/pocoproject/poco). The version used in this project has a couple of fixes
@@ -28,7 +27,7 @@ Poco may take several minutes depending on the platform you are building on.
 
 ### Ubuntu
 These instructions have proven to work on Ubuntu 20.4.
-```
+```bash
 sudo apt install git cmake g++ libssl-dev libmariadb-dev 
 sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev
 sudo apt install librdkafka-dev // default-libmysqlclient-dev
@@ -76,13 +75,11 @@ mkdir cmake-build
 cd cmake-build
 cmake ..
 make -j 8
-
-
 ```
 
 ### Fedora
 The following instructions have proven to work on Fedora 33
-```
+```bash
 sudo yum install cmake g++ openssl-devel mysql-devel mysql apr-util-devel boost boost-devel
 sudo yum install yaml-cpp-devel lua-devel 
 sudo dnf install postgresql.x86_64 librdkafka-devel
@@ -120,12 +117,11 @@ mkdir cmake-build
 cd cmake-build
 cmake ..
 make
-
 ```
 
 ### macOS Build
 The following instructions have proven to work on macOS Big Sur. You need to install [Homebrew](https://brew.sh/). You must also have installed [XCode for OS X](https://www.freecodecamp.org/news/how-to-download-and-install-xcode/).
-```
+```bash
 brew install openssl \
 	cmake \
 	libpq \
@@ -184,7 +180,7 @@ The build on a rPI takes a while. You can shorten that build time and requiremen
 support. You can build with only SQLite support by not installing the packages for ODBC, PostgreSQL, and MySQL by 
 adding -DSMALL_BUILD=1 on the cmake build line.
 
-```
+```bash
 sudo apt install git cmake g++ libssl-dev libaprutil1-dev apache2-dev libboost-all-dev libyaml-cpp-dev
 git clone https://github.com/stephb9959/poco
 cd poco
@@ -208,7 +204,7 @@ After completing the build, you can remove the Poco source as it is no longer ne
 
 #### Expected directory layout
 From the directory where your cloned source is, you will need to create the `certs`, `logs`, and `uploads` directories.
-```shell
+```bash
 mkdir certs
 mkdir certs/cas
 mkdir logs
