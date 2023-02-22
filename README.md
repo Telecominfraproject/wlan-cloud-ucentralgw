@@ -1,10 +1,11 @@
 <p align=center><img src=images/project/logo.svg?sanitize=true/ width="200px" height="200px"></p>
 
-# uCentralGW
+# OpenWiFI Gateway
 
-## What is this?
-The uCentralGW is an added service for the TIP controller that allows integration with the 
-uCentral protocol. It supports a complete OpenAPI definition and uses the ucentral communication protocol. To use the uCentralGW,
+## What is it?
+The OpenWiFi Gateway  (a.k.a. the controller or uCentral Gateway) is a service for the TIP OpenWiFi CloudSDK. 
+The Gateway manages Access Points that implement the OpenWiFi uCentral protocol. 
+The management is done using OpenAPI definition and uses the ucentral communication protocol. To use the gateway,
 you either need to [build it](#building) or use the [Docker version](#docker).
 
 ## Building
