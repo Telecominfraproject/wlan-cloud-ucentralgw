@@ -1,3 +1,5 @@
+<p align=center><img src=images/project/logo.svg?sanitize=true/></p>
+
 # uCentralGW
 
 ## What is this?
