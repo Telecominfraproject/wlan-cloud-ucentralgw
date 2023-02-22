@@ -1,4 +1,4 @@
-<p align=center><img src=images/project/logo.svg?sanitize=true/ width="150px" height="150px"></p>
+<p align=center><img src=images/project/logo.svg?sanitize=true/ width="200px" height="200px"></p>
 
 # uCentralGW
 
