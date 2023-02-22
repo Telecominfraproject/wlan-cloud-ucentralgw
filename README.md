@@ -347,7 +347,8 @@ More scripts will be added in the future.
 Toe read more about Kafka, follow the [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/KAFKA.md)
 
 ## Contributions
-We need more contributors. Should you wish to contribute, please follow the [coding style](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CODING_STYLE.md) document.
+We need more contributors. Should you wish to contribute, 
+please follow the [contributions](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CONTRIBUTING.md) document.
 
 ## Pull Requests
 Please create a branch with the Jira addressing the issue you are fixing or the feature you are implementing. 
