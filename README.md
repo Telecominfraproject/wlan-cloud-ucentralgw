@@ -1,15 +1,15 @@
 <p align=center><img src=images/project/logo.svg?sanitize=true/ width="200px" height="200px"></p>
 
-# OpenWiFI Gateway
+# OpenWiFI Gateway (OWGW)
 
 ## What is it?
-The OpenWiFi Gateway  (a.k.a. the controller or uCentral Gateway) is a service for the TIP OpenWiFi CloudSDK. 
-The Gateway manages Access Points that implement the OpenWiFi uCentral protocol. 
-The management is done using OpenAPI definition and uses the ucentral communication protocol. To use the gateway,
-you either need to [build it](#building) or use the [Docker version](#docker).
+The OpenWiFi Gateway is a service for the TIP OpenWiFi CloudSDK (OWSDK). 
+OWGW manages Access Points that implement the OpenWiFi uCentral protocol. OWGW, like all other OWSDK microservices, is
+defined using an OpenAPI definition and uses the ucentral communication protocol to interact with Access Points. To use 
+the OWGW, you either need to [build it](#building) or use the [Docker version](#docker).
 
 ## Building
-In order to build the uCentralGW, you will need to install its dependencies, which includes the following:
+In order to build the OWGW, you will need to install its dependencies, which includes the following:
 - cmake
 - boost
 - POCO 1.10.1 or later
@@ -177,7 +177,7 @@ popd
 
 ### Raspberry
 The build on a rPI takes a while. You can shorten that build time and requirements by disabling all the larger database 
-support. You can build with only SQLite support by not installing the packages for ODBC, PostgreSQL, and MySQL by 
+support. You can build with only SQLite support by not installing the packages for PostgreSQL, and MySQL by 
 adding -DSMALL_BUILD=1 on the cmake build line.
 
 ```bash
@@ -274,10 +274,11 @@ The configuration is kept in a file called `owgw.properties`. To understand the 
 please look [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/CONFIGURATION.md)
 
 ### Running the gateway
-Tu run the gateway, you must run the executable `ucentralgw`. You can use several command line options to run as a daemon or specify the configuration file location. 
+Tu run the gateway, you must run the executable `owgw`. You can use several command line options to run as a daemon or 
+specify the configuration file location. 
 
 ### Device configuration
-Once you have the gateway configured, you will need to have some devices coming to it. For now, you will need to get
+Once you have the gateway configured, you will need to have some devices connect to it. For now, you will need to get
 the following in order to use the gateway:
 - A DigiCert certificate that you will call `cert.pem`
 - A DigiCert key that goes with that certificate. Please call this `key.pem`
@@ -295,9 +296,9 @@ The current implementation supports the following. If you use the built-in confi
 options. However, you may decide to use the `--daemon` or `umask` options. 
 
 ```bash
-./ucentralgw --help
-usage: ucentralgw OPTIONS
-A uCentral gateway implementation for TIP.
+./owgw --help
+usage: owgw OPTIONS
+A owgw gateway implementation for TIP.
 
 --daemon        Run application as a daemon.
 --umask=mask    Set the daemon's umask (octal, e.g. 027).
@@ -309,7 +310,7 @@ A uCentral gateway implementation for TIP.
 ```
 
 #### file
-This allows you to point to another file without specifying the UCENTRALGW_CONFIG variable. The file name must end in `.properties`.
+This allows you to point to another file without specifying the OWGW_CONFIG variable. The file name must end in `.properties`.
 #### daemon
 Run this as a UNIX service
 #### pidfile
@@ -325,10 +326,10 @@ Seet the umask for the running service.
 If you would rather launch the docker-compose or helm for the controller, please click [here](https://github.com/Telecominfraproject/wlan-cloud-ucentral-deploy).
 
 ## uCentral communication protocol
-The communication protocol between the device and the controller is detailed in this [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/PROTOCOL.md).
+The communication protocol between the device and the OGWG is detailed in this [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/PROTOCOL.md).
 
 ## OpenAPI
-The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/openapi/ucentral/owgw.yaml).
+The OWGW supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/openapi/ucentral/owgw.yaml).
 And here is [how to use it](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/OPENAPI.md)
 
 ## Using the API
@@ -339,8 +340,10 @@ More scripts will be added in the future.
 
 ## Firewall Considerations
 - The protocol uses TCP port 15002 between the devices and the gateway. This port must be opened.
-- Devices use the TCP port 16003 to upload files. This port is configurable in the `owgw.properties` file. Look for `openwifi.fileuploader.host.0.port`.
-- The RESTAPI is accessed through TCP port 16002 by default. This port is configurable in the `owgw.properties` file. Look for the entry `openwifi.restapi.host.0.port`.
+- Devices use the TCP port 16003 to upload files. This port is configurable in the `owgw.properties` file. Look for 
+`openwifi.fileuploader.host.0.port`.
+- The RESTAPI is accessed through TCP port 16002 by default. This port is configurable in the `owgw.properties` file. 
+Look for the entry `openwifi.restapi.host.0.port`.
 
 ## Kafka topics
 Toe read more about Kafka, follow the [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/KAFKA.md)
@@ -352,3 +355,14 @@ please follow the [contributions](https://github.com/Telecominfraproject/wlan-cl
 ## Pull Requests
 Please create a branch with the Jira addressing the issue you are fixing or the feature you are implementing. 
 Create a pull-request from the branch into master. 
+
+## Additional OWSDK Microservices
+Here is a list of additional OWSDK microservices
+| Name | Description | Link |
+| :--- | :--- | :---: |
+| OWSEC | Security Service | [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralsec) |
+| OWGW | Controller Service | [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw) |
+| OWFMS | Firmware Management Service | [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralfms) |
+| OWPROV | Provisioning Service | [here](https://github.com/Telecominfraproject/wlan-cloud-owprov) |
+| OWANALYTICS | Analytics Service | [here](https://github.com/Telecominfraproject/wlan-cloud-analytics) |
+
