@@ -1,21 +1,18 @@
-# Coding Style
-We just want ot make sure we all follow the same rules when contributing 
-code back into this tree.
+# How to Contribute
+
+We'd love to accept your patches and contributions to this project. There are
+just a few small guidelines you need to follow.
 
 ## Version of C++
-This project is based on the C++17 standard. If compiles as-is on most platforms 
+This project is based on the C++17 standard and compiles as-is on most platforms 
 using either clang or g++. Do not use C++21 or C++23 features for now. Some core 
-libraries for this project do not yet support C++21 or C++23
+libraries used in this project do not support C++21 or C++23 yet.
 
 ## Variable Naming
 Naming of pretty much anything uses Pascal naming. Longer explicit names using casing. 
 Member variable naming adds a `_` at the end of the vars. Try to
 keep this standard going. Sometimes you must override a base class function and then of course
 you need to follow the base class.
-
-## File Sizes
-Do you best to keep your file sizes < 300 lines. It just makes the code more readable
-and shortens compile times. 
 
 ## This is a cmake project
 This is a cmake project, and you need to adhere to the cmake rules. If you need
@@ -33,3 +30,9 @@ Please format your code using the included `.clang-format` file included in the 
 ```bash
 clang-format -i --style=<project root>/.clang-format myfile.cpp
 ```
+
+## Pull Requests
+All submissions, including submissions by project members, require review. We
+accept GitHub pull requests. Please create a branch with the Jira name for addressing the issue you are fixing or the 
+feature you are implementing.
+Create a pull-request from the branch into master. 
