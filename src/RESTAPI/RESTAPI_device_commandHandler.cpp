@@ -584,11 +584,11 @@ namespace OpenWifi {
 			Params.set(uCentralProtocol::SIGNATURE, SCR.signature);
 		}
 
-		if (Restrictions.developer == 0 && D.restrictedDevice && SCR.signature.empty()) {
+		if (!Restrictions.developer && D.restrictedDevice && SCR.signature.empty()) {
 			SCR.signature = SignatureManager()->Sign(Restrictions, SCR.script);
 		}
 
-		if (Restrictions.developer == 0 && D.restrictedDevice && SCR.signature.empty()) {
+		if (!Restrictions.developer && D.restrictedDevice && SCR.signature.empty()) {
 			return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
 		}
 
@@ -716,7 +716,7 @@ namespace OpenWifi {
 				FWSignature = SignatureManager()->Sign(DeviceInfo.restrictionDetails, uri);
 			}
 
-			if (FWSignature.empty() && DeviceInfo.restrictionDetails.upgrade) {
+			if (!Restrictions.developer && FWSignature.empty() && DeviceInfo.restrictionDetails.upgrade) {
 				return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
 			}
 
@@ -1083,7 +1083,7 @@ namespace OpenWifi {
 		poco_debug(Logger_, fmt::format("RTTY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC,
 										TransactionId_, Requester(), SerialNumber_));
 
-		if (Restrictions.developer == 0 && Restrictions.rtty) {
+		if (!Restrictions.developer && Restrictions.rtty) {
 			return BadRequest(RESTAPI::Errors::DeviceIsRestricted);
 		}
 

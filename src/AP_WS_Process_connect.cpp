@@ -74,6 +74,10 @@ namespace OpenWifi {
 				Restrictions_.from_json(RestrictionObject);
 			}
 
+			if (Capabilities->has("developer")) {
+				Restrictions_.developer = Capabilities->getValue<bool>("developer");
+			}
+
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device DeviceInfo;
 			auto DeviceExists = StorageService()->GetDevice(SerialNumber_, DeviceInfo);
