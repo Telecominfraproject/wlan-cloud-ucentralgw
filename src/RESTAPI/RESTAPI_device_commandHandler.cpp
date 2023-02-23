@@ -1109,6 +1109,7 @@ namespace OpenWifi {
 				if (RTTYS_server()->UseInternal()) {
 					std::uint64_t SN = Utils::SerialNumberToInt(SerialNumber_);
 					bool mTLS = AP_WS_Server()->DeviceRequiresSecureRtty(SN);
+					std::cout << __LINE__ << "mTLS: " << mTLS << std::endl;
 					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_, Utils::Now())
 									 .substr(0, RTTY_DEVICE_TOKEN_LENGTH);
 					if (!RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(),
