@@ -346,12 +346,12 @@ or [python](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/ma
 More scripts will be added in the future.
 
 ## Firewall Considerations
-| Port | Description | Configuratble |
-| :--- | :--- | :---: |
-| 15002 | Default port from the devices to the OWGW | yes |
-| 16002 | Default port for REST API Access to the OWGW | yes |
-| 5912 | Default port for RTTY connection | yes |
-| 5913 | Defailt port for RTTY connection | yes |
+| Port | Description | Configurable |
+| :--- | :--- |:------------:|
+| 15002 | Default port from the devices to the OWGW |     yes      |
+| 16002 | Default port for REST API Access to the OWGW |     yes      |
+| 5912 | Default port for RTTY connection |     yes      |
+| 5913 | Defailt port for RTTY connection |     yes      |
 
 ## Kafka topics
 Toe read more about Kafka, follow the [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/KAFKA.md)
