@@ -75,13 +75,13 @@ namespace OpenWifi {
 			}
 
 			if (Capabilities->has("developer")) {
-				std::cout << __LINE__ << std::endl;
 				Restrictions_.developer = Capabilities->getValue<bool>("developer");
+				std::cout << Restrictions_.developer << std::endl;
 			}
 
 			if(Capabilities->has("secure-rtty")) {
-				std::cout << __LINE__ << std::endl;
 				RttyMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
+				std::cout << RttyMustBeSecure_ << std::endl;
 			}
 
 			State_.locale = FindCountryFromIP()->Get(IP);
