@@ -346,11 +346,12 @@ or [python](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/ma
 More scripts will be added in the future.
 
 ## Firewall Considerations
-- The protocol uses TCP port 15002 between the devices and the gateway. This port must be opened.
-- Devices use the TCP port 16003 to upload files. This port is configurable in the `owgw.properties` file. Look for 
-`openwifi.fileuploader.host.0.port`.
-- The RESTAPI is accessed through TCP port 16002 by default. This port is configurable in the `owgw.properties` file. 
-Look for the entry `openwifi.restapi.host.0.port`.
+| Port | Description | Configuratble |
+| :--- | :--- | :---: |
+| 15002 | Default port from the devices to the OWGW | yes |
+| 16002 | Default port for REST API Access to the OWGW | yes |
+| 5912 | Default port for RTTY connection | yes |
+| 5913 | Defailt port for RTTY connection | yes |
 
 ## Kafka topics
 Toe read more about Kafka, follow the [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/KAFKA.md)
