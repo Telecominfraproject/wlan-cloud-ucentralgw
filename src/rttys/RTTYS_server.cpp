@@ -439,7 +439,7 @@ namespace OpenWifi {
 			}
 
 			if (Connection->mTLS_) {
-				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Connection->DeviceSocket_->impl());
+				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket.impl());
 				auto PeerAddress_ = SS->peerAddress().host();
 				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 				if (SS->havePeerCertificate()) {
