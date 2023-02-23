@@ -249,27 +249,28 @@ certs ---+--- root.pem
 ```
 
 #### DigiCert files
-These are the files you should install on your gateway and devices. For your gateway, you will need to provide tge following files in the directory above
+These are the files you should install on your OWGW and devices. For your OWGW, you will need to provide tge following files in the directory above
 - `root.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem).
 - `issuer.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/issuer.pem).
 - `clientcas.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/clientcas.pem).
 
-#### Gateway certificates: TIP portion (must be obtained from TIP)
+#### OWGW Server certificate (must be obtained from TIP)
 The gateway requires its own DigiCert certificate. Once obtained, you need to identify the `key` and the `certificate` rename
 them `websocket-key.pem` and `websocket-cert.pem`, and copy them in your `certs` directory. These files mus be obtained from TIP.
 
-#### Gateway certificates: for REST API
+#### OWGW for certificate: for REST API (from your favourite Certificate Provider)
 The gateway requires a key/certificate/ca for the REST interface. These files you need to obtain on your own or generate them. This is beyond the scope of this 
 document. You, may choose to select LestEncrypt or any other Certificate Authority. Once you have these files, you need to renamed them `restapi-key.pem`, `restapi-cert.pem`, and `restapi-ca.pem`. 
 This will guarantee proper HTTPS in your browser and RESTAPI. 
 
 ### Environment variables
-The following environment variables should be set from the root directory of the service.
+The following environment variables should be set from the root directory of the service. They tell the OWGW process where to find 
+the configuration and the root directory.
 ```bash
 export OWGW_ROOT=`pwd`
 export OWGW_CONFIG=`pwd`
 ```
-### OWGW Configuration
+### OWGW Service Configuration
 The configuration is kept in a file called `owgw.properties`. To understand the content of this file, 
 please look [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/CONFIGURATION.md)
 
@@ -277,7 +278,7 @@ please look [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/
 Tu run the OWGW, you must run the executable `owgw`. You can use several command line options to run as a daemon or 
 specify the configuration file location. 
 
-### Device certificate 
+### OpenWiFi Device certificates 
 This may have already done at the factory. If not, you will need to get the following in order to point your devices to use the OWGW:
 - A DigiCert certificate that you will call `cert.pem`
 - A DigiCert key that goes with that certificate. Please call this `key.pem`
