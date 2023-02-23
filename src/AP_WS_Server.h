@@ -119,7 +119,7 @@ namespace OpenWifi {
 			std::lock_guard Lock(WSServerMutex_);
 
 			auto Connection = SerialNumbers_.find(serialNumber);
-			if (Connection != end(SerialNumbers_))
+			if (Connection==end(SerialNumbers_) || Connection->second.second==nullptr)
 				return false;
 			return Connection->second.second->RttyMustBeSecure_;
 		}
