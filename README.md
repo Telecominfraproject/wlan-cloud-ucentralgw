@@ -269,17 +269,16 @@ The following environment variables should be set from the root directory of the
 export OWGW_ROOT=`pwd`
 export OWGW_CONFIG=`pwd`
 ```
-### Configuration
+### OWGW Configuration
 The configuration is kept in a file called `owgw.properties`. To understand the content of this file, 
 please look [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/CONFIGURATION.md)
 
-### Running the gateway
-Tu run the gateway, you must run the executable `owgw`. You can use several command line options to run as a daemon or 
+### Running the OWGW
+Tu run the OWGW, you must run the executable `owgw`. You can use several command line options to run as a daemon or 
 specify the configuration file location. 
 
-### Device configuration
-Once you have the gateway configured, you will need to have some devices connect to it. For now, you will need to get
-the following in order to use the gateway:
+### Device certificate 
+This may have already done at the factory. If not, you will need to get the following in order to point your devices to use the OWGW:
 - A DigiCert certificate that you will call `cert.pem`
 - A DigiCert key that goes with that certificate. Please call this `key.pem`
 - The Digicert root certificate that you will find [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem). You must copy `root.pem`
@@ -290,6 +289,13 @@ and rename it `cas.pem` on the device.
 You will need to upgrade your device to the latest firmware. Once updated, you will need to copy the 4 files mentioned above in 
 the `/certificates` directory. Please remove all old keys or certificates from the `/etc/ucentral` directory 
 (anything ending in `.pem`).
+
+### Default device configuration
+By default, the devices will receive a built-in default configuration. This built-in default configuration is probably no what you need. 
+So there are 2 options in order to specify your own default configuration:
+- In the OWGW data directory, you can create a `default_config.json` file that contains your own personal configuration
+- Using the OWGW UI, on the left hand pane, there is a `configurations` choice. There you can do the same but apply it with more granularity ot each device type 
+you may be deploying.
 
 ### Command line options
 The current implementation supports the following. If you use the built-in configuration file, you do not need to use any command-line
