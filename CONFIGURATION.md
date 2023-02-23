@@ -201,6 +201,7 @@ radius.proxy.enable = false
 radius.proxy.accounting.port = 1813
 radius.proxy.authentication.port = 1812
 radius.proxy.coa.port = 3799
+radsec.keepalive = 120
 ```
 
 ### Auto Archiver Parameters
