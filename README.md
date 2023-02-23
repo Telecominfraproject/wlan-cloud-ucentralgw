@@ -272,7 +272,7 @@ export OWGW_CONFIG=`pwd`
 ```
 ### OWGW Service Configuration
 The configuration is kept in a file called `owgw.properties`. To understand the content of this file, 
-please look [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/CONFIGURATION.md)
+please look [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CONFIGURATION.md)
 
 ### Running the OWGW
 Tu run the OWGW, you must run the executable `owgw`. You can use several command line options to run as a daemon or 
