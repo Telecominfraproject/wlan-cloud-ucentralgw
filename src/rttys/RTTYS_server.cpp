@@ -446,15 +446,15 @@ namespace OpenWifi {
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
 					auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
-						poco_debug(
+						poco_information(
 							Logger(),
 							fmt::format("Device mTLS {} has been validated from {}.", CN, CId_));
 					} else {
-						poco_debug(Logger(), fmt::format("Device failed mTLS validation {}. Certificate fails validation.", CId_));
+						poco_warning(Logger(), fmt::format("Device failed mTLS validation {}. Certificate fails validation.", CId_));
 						return false;
 					}
 				} else {
-					poco_debug(Logger(), fmt::format("Device failed mTLS validation {} (no certificate).", CId_));
+					poco_warning(Logger(), fmt::format("Device failed mTLS validation {} (no certificate).", CId_));
 					return false;
 				}
 			}
