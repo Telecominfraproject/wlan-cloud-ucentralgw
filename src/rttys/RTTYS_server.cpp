@@ -361,8 +361,8 @@ namespace OpenWifi {
 				return;
 			}
 
-			//	We are waiting for this device to register, so we can only accept regitration and
-			//hertbeat
+			//	We are waiting for this device to register, so we can only accept registration and
+			//	heartbeat
 			unsigned char Buffer[1024];
 			auto ReceivedBytes =
 				ConnectingDevice->second.first.receiveBytes(Buffer, sizeof(Buffer));
@@ -436,6 +436,27 @@ namespace OpenWifi {
 			if (Connection->DeviceSocket_ != nullptr) {
 				poco_warning(Logger(), fmt::format("Duplication session {} from device.", id_));
 				return false;
+			}
+
+			if (Connection->mTLS_) {
+				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Connection->DeviceSocket_->impl());
+				auto PeerAddress_ = SS->peerAddress().host();
+				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+				if (SS->havePeerCertificate()) {
+					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
+					auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
+					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
+						poco_debug(
+							Logger(),
+							fmt::format("Device mTLS {} has been validated from {}.", CN, CId_));
+					} else {
+						poco_debug(Logger(), fmt::format("Device failed mTLS validation {}. Certificate fails validation.", CId_));
+						return false;
+					}
+				} else {
+					poco_debug(Logger(), fmt::format("Device failed mTLS validation {} (no certificate).", CId_));
+					return false;
+				}
 			}
 
 			u_char OutBuf[8];
@@ -886,12 +907,13 @@ namespace OpenWifi {
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string &Token,
 									  const std::string &UserName,
-									  const std::string &SerialNumber) {
+									  const std::string &SerialNumber,
+									  bool mTLS) {
 		std::lock_guard Guard(ServerMutex_);
 		if (MaxConcurrentSessions_ != 0 && EndPoints_.size() == MaxConcurrentSessions_) {
 			return false;
 		}
-		EndPoints_[Id] = std::make_unique<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName);
+		EndPoints_[Id] = std::make_unique<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName, mTLS);
 		++TotalEndPoints_;
 		return true;
 	}
@@ -1182,9 +1204,10 @@ namespace OpenWifi {
 	}
 
 	RTTYS_EndPoint::RTTYS_EndPoint(const std::string &Id, const std::string &Token,
-								   const std::string &SerialNumber, const std::string &UserName)
+								   const std::string &SerialNumber, const std::string &UserName,
+								   bool mTLS)
 		: Id_(Id), Token_(Token), SerialNumber_(SerialNumber), UserName_(UserName),
-		  Logger_(RTTYS_server()->Logger()) {
+		  Logger_(RTTYS_server()->Logger()), mTLS_(mTLS) {
 		DeviceInBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		Created_ = std::chrono::high_resolution_clock::now();
 	}

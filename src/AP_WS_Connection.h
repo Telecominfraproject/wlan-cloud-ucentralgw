@@ -127,6 +127,8 @@ namespace OpenWifi {
 			return Restrictions_;
 		}
 
+		inline bool MustBeSecureRtty() const { return RttyMustBeSecure_; }
+
 	  private:
 		mutable std::shared_mutex ConnectionMutex_;
 		std::shared_mutex TelemetryMutex_;
@@ -159,6 +161,7 @@ namespace OpenWifi {
 		std::atomic_bool DeviceValidated_ = false;
 		std::atomic_bool Valid_ = false;
 		OpenWifi::GWObjects::DeviceRestrictions Restrictions_;
+		bool 			RttyMustBeSecure_ = false;
 
 		static inline std::atomic_uint64_t ConcurrentStartingDevices_ = 0;
 

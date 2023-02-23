@@ -34,7 +34,8 @@ namespace OpenWifi {
 	class RTTYS_EndPoint {
 	  public:
 		RTTYS_EndPoint(const std::string &Id, const std::string &Token,
-					   const std::string &SerialNumber, const std::string &UserName);
+					   const std::string &SerialNumber, const std::string &UserName,
+					   bool mTLS);
 		~RTTYS_EndPoint();
 
 		enum RTTY_MSG_TYPE {
@@ -129,10 +130,11 @@ namespace OpenWifi {
 		std::uint64_t session_length_ = 1;
 		std::size_t waiting_for_bytes_{0};
 		u_char last_command_ = 0;
-		unsigned char small_buf_[64 + RTTY_SESSION_ID_LENGTH];
+		unsigned char small_buf_[64 + RTTY_SESSION_ID_LENGTH]{0};
 		std::uint64_t TID_ = 0;
 		bool old_rtty_ = false;
 		bool completed_ = false;
+		bool mTLS_=false;
 		std::chrono::time_point<std::chrono::high_resolution_clock> Created_{0s},
 			DeviceDisconnected_{0s}, ClientDisconnected_{0s}, DeviceConnected_{0s},
 			ClientConnected_{0s};
@@ -151,7 +153,8 @@ namespace OpenWifi {
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 
 		bool CreateEndPoint(const std::string &Id, const std::string &Token,
-							const std::string &UserName, const std::string &SerialNumber);
+							const std::string &UserName, const std::string &SerialNumber,
+							bool mTLS);
 
 		bool ValidId(const std::string &Id);
 

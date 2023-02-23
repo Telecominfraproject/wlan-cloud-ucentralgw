@@ -115,6 +115,15 @@ namespace OpenWifi {
 			return nullptr;
 		}
 
+		inline bool DeviceRequiresSecureRtty(uint64_t serialNumber) const {
+			std::lock_guard Lock(WSServerMutex_);
+
+			auto Connection = SerialNumbers_.find(serialNumber);
+			if (Connection != end(SerialNumbers_))
+				return false;
+			return Connection->second.second->RttyMustBeSecure_;
+		}
+
 		inline bool GetStatistics(const std::string &SerialNumber, std::string &Statistics) const {
 			return GetStatistics(Utils::SerialNumberToInt(SerialNumber), Statistics);
 		}

@@ -78,6 +78,10 @@ namespace OpenWifi {
 				Restrictions_.developer = Capabilities->getValue<bool>("developer");
 			}
 
+			if(Capabilities->has("secure-rtty")) {
+				RttyMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
+			}
+
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device DeviceInfo;
 			auto DeviceExists = StorageService()->GetDevice(SerialNumber_, DeviceInfo);
