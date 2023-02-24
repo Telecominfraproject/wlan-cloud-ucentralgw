@@ -339,4 +339,36 @@ namespace OpenWifi::GWObjects {
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
+	struct RangeOptions {
+		bool NO_IR=false;
+		bool AUTO_BW=false;
+		bool DFS=false;
+		bool NO_OUTDOOR=false;
+		bool wmmrule_ETSI=false;
+		bool NO_OFDM=false;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
+
+	struct FrequencyRange {
+		float from = 0.0;
+		float to = 0.0;
+		int bw = 0;
+		int powerDb = 0;
+		RangeOptions    options;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
+
+	struct RegulatoryCountryInfo {
+		std::string country;
+		std::string domain;
+		std::vector<FrequencyRange>   ranges;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
+
+	using RegulatoryInfoCountryMap = std::map<std::string,RegulatoryCountryInfo>;
+
+
 } // namespace OpenWifi::GWObjects

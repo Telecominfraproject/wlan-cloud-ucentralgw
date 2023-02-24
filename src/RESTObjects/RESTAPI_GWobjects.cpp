@@ -503,6 +503,29 @@ namespace OpenWifi::GWObjects {
 		return false;
 	}
 
+	void RangeOptions::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "NO_IR", NO_IR);
+		field_to_json(Obj, "AUTO_BW", AUTO_BW);
+		field_to_json(Obj, "DFS", DFS);
+		field_to_json(Obj, "NO_OUTDOOR", NO_OUTDOOR);
+		field_to_json(Obj, "wmmrule_ETSI", wmmrule_ETSI);
+		field_to_json(Obj, "NO_OFDM", NO_OFDM);
+	}
+
+	void FrequencyRange::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "from", from);
+		field_to_json(Obj, "to", to);
+		field_to_json(Obj, "bw", bw);
+		field_to_json(Obj, "powerDb", powerDb);
+		field_to_json(Obj, "options", options);
+	}
+
+	void RegulatoryCountryInfo::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "country", country);
+		field_to_json(Obj, "domain", domain);
+		field_to_json(Obj, "ranges", ranges);
+	}
+
 	void DeviceRestrictionsKeyInfo::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj, "vendor", vendor);
 		field_to_json(Obj, "algo", algo);

@@ -17,6 +17,7 @@
 #include "RESTAPI/RESTAPI_iptocountry_handler.h"
 #include "RESTAPI/RESTAPI_ouis.h"
 #include "RESTAPI/RESTAPI_radiusProxyConfig_handler.h"
+#include "RESTAPI/RESTAPI_regulatory.h"
 #include "RESTAPI/RESTAPI_script_handler.h"
 #include "RESTAPI/RESTAPI_scripts_handler.h"
 #include "RESTAPI/RESTAPI_telemetryWebSocket.h"
@@ -38,7 +39,8 @@ namespace OpenWifi {
 			RESTAPI_system_configuration, RESTAPI_deviceDashboardHandler, RESTAPI_webSocketServer,
 			RESTAPI_blacklist, RESTAPI_blacklist_list, RESTAPI_iptocountry_handler,
 			RESTAPI_radiusProxyConfig_handler, RESTAPI_scripts_handler, RESTAPI_script_handler,
-			RESTAPI_capabilities_handler, RESTAPI_telemetryWebSocket>(Path, Bindings, L, S,
+			RESTAPI_capabilities_handler, RESTAPI_telemetryWebSocket,
+			RESTAPI_regulatory>(Path, Bindings, L, S,
 																	  TransactionId);
 	}
 
@@ -51,6 +53,7 @@ namespace OpenWifi {
 			RESTAPI_default_configurations, RESTAPI_default_configuration, RESTAPI_command,
 			RESTAPI_commands, RESTAPI_ouis, RESTAPI_file, RESTAPI_blacklist,
 			RESTAPI_iptocountry_handler, RESTAPI_radiusProxyConfig_handler, RESTAPI_scripts_handler,
-			RESTAPI_script_handler, RESTAPI_blacklist_list>(Path, Bindings, L, S, TransactionId);
+			RESTAPI_script_handler, RESTAPI_blacklist_list,
+			RESTAPI_regulatory>(Path, Bindings, L, S, TransactionId);
 	}
 } // namespace OpenWifi

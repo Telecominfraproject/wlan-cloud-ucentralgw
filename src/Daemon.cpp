@@ -18,6 +18,7 @@
 #include "FindCountry.h"
 #include "OUIServer.h"
 #include "RADIUS_proxy_server.h"
+#include "RegulatoryInfo.h"
 #include "ScriptManager.h"
 #include "SerialNumberCache.h"
 #include "SignatureMgr.h"
@@ -39,7 +40,9 @@ namespace OpenWifi {
 						 UI_WebSocketClientServer(), OUIServer(), FindCountryFromIP(),
 						 CommandManager(), FileUploader(), StorageArchiver(), TelemetryStream(),
 						 RTTYS_server(), RADIUS_proxy_server(), VenueBroadcaster(), ScriptManager(),
-						 SignatureManager(), AP_WS_Server()});
+						 SignatureManager(), AP_WS_Server(),
+						 RegulatoryInfo()
+			});
 		return &instance;
 	}
 
