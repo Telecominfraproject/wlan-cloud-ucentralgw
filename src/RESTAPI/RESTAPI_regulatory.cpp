@@ -9,7 +9,7 @@
 namespace OpenWifi {
 	void RESTAPI_regulatory::DoGet() {
 
-		auto CountryList = MicroServiceConfigGetString("countries","");
+		auto CountryList = GetParameter("countries","");
 		if(CountryList.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
