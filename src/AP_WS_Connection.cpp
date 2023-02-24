@@ -673,6 +673,7 @@ namespace OpenWifi {
 			IncomingFrame.append(0);
 
 			State_.RX += IncomingSize;
+			AP_WS_Server()->AddRX(IncomingSize);
 			State_.MessageCount++;
 			State_.LastContact = Utils::Now();
 
@@ -872,6 +873,7 @@ namespace OpenWifi {
 			}
 #endif
 			State_.TX += BytesSent;
+			AP_WS_Server()->AddTX(BytesSent);
 			return BytesSent == Payload.size();
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);

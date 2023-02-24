@@ -35,6 +35,8 @@ namespace OpenWifi::GWWebSocketNotifications {
 		std::uint64_t numberOfDevices = 0;
 		std::uint64_t averageConnectedTime = 0;
 		std::uint64_t numberOfConnectingDevices = 0;
+		std::uint64_t rx = 0;
+		std::uint64_t tx = 0;
 
 		inline void to_json(Poco::JSON::Object &Obj) const;
 		inline bool from_json(const Poco::JSON::Object::Ptr &Obj);

@@ -185,6 +185,22 @@ namespace OpenWifi {
 			NumberOfConnectingDevices = NumberOfConnectingDevices_;
 		}
 
+		inline void AddRX(std::uint64_t bytes) {
+			std::lock_guard		G(StatsMutex_);
+			RX_ += bytes;
+		}
+
+		inline void AddTX(std::uint64_t bytes) {
+			std::lock_guard		G(StatsMutex_);
+			TX_ += bytes;
+		}
+
+		inline void GetTotalDataStatistics(std::uint64_t &TX, std::uint64_t &RX) const {
+			std::lock_guard		G(StatsMutex_);
+			TX = TX_;
+			RX = RX_;
+		}
+
 	  private:
 		mutable std::recursive_mutex WSServerMutex_;
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
@@ -207,6 +223,9 @@ namespace OpenWifi {
 		std::atomic_uint64_t NumberOfConnectedDevices_ = 0;
 		std::atomic_uint64_t AverageDeviceConnectionTime_ = 0;
 		std::atomic_uint64_t NumberOfConnectingDevices_ = 0;
+
+		mutable std::mutex		StatsMutex_;
+		std::atomic_uint64_t 	TX_=0,RX_=0;
 
 		std::vector<std::shared_ptr<AP_WS_Connection>> Garbage_;
 

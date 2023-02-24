@@ -210,6 +210,7 @@ namespace OpenWifi {
 		Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
 		Notification.content.numberOfDevices = NumberOfConnectedDevices_;
 		Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
+		GetTotalDataStatistics(Notification.content.tx,Notification.content.rx);
 		GWWebSocketNotifications::NumberOfConnections(Notification);
 	}
 

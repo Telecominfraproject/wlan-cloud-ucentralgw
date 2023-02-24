@@ -55,6 +55,8 @@ namespace OpenWifi::GWWebSocketNotifications {
 		RESTAPI_utils::field_to_json(Obj, "numberOfDevices", numberOfDevices);
 		RESTAPI_utils::field_to_json(Obj, "averageConnectedTime", averageConnectedTime);
 		RESTAPI_utils::field_to_json(Obj, "numberOfConnectingDevices", numberOfConnectingDevices);
+		RESTAPI_utils::field_to_json(Obj, "rx", rx);
+		RESTAPI_utils::field_to_json(Obj, "tx", tx);
 	}
 
 	inline bool NumberOfConnection::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -63,6 +65,8 @@ namespace OpenWifi::GWWebSocketNotifications {
 			RESTAPI_utils::field_from_json(Obj, "averageConnectedTime", averageConnectedTime);
 			RESTAPI_utils::field_from_json(Obj, "numberOfConnectingDevices",
 										   numberOfConnectingDevices);
+			RESTAPI_utils::field_from_json(Obj, "rx", rx);
+			RESTAPI_utils::field_from_json(Obj, "tx", tx);
 			return true;
 		} catch (...) {
 		}
