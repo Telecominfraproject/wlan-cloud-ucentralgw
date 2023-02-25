@@ -818,6 +818,14 @@ regulatory() {
 		jq < ${result_file}
 }
 
+regulatory_reload() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/regulatory?reload=true" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
 check_response() {
 
     if [ -s "$1" ]; then
@@ -1092,6 +1100,7 @@ case "$1" in
 	"listscripts") login; listscripts; logout;;
 	"getscript") login; getscript "$2"; logout;;
 	"regulatory") login; regulatory "$2"; logout;;
+	"regulatory_reload") login; regulatory_reload; logout;;
 	"testtoken") testtoken;;
   *) help ;;
 esac
