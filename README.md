@@ -1,4 +1,6 @@
-<p align=center><img src=images/project/logo.svg?sanitize=true/ width="200px" height="200px"></p>
+<p align="center">
+    <img src="images/project/logo.svg" width="200"/>
+</p>
 
 # OpenWiFI Gateway (OWGW)
 
