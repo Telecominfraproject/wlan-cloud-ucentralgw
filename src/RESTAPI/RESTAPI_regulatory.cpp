@@ -9,6 +9,11 @@
 namespace OpenWifi {
 	void RESTAPI_regulatory::DoGet() {
 
+		if(GetBoolParameter("reload")) {
+			RegulatoryInfo()->Reload();
+			return OK();
+		}
+
 		auto CountryList = GetParameter("countries","");
 		if(CountryList.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
