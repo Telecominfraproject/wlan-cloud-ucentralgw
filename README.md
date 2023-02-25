@@ -87,6 +87,8 @@ the configuration and the root directory.
 export OWGW_ROOT=`pwd`
 export OWGW_CONFIG=`pwd`
 ```
+You can run the shell script `set_env.sh` from the microservice root.
+
 ### OWGW Service Configuration
 The configuration is kept in a file called `owgw.properties`. To understand the content of this file, 
 please look [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CONFIGURATION.md)
