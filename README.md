@@ -1,5 +1,5 @@
-<p align="center">
-    <img src="images/project/logo.svg" width="200"/>
+<p style="text-align:center">
+    <img src="images/project/logo.svg" width="200" alt="OpenWiFi Project"/>
 </p>
 
 # OpenWiFI Gateway (OWGW)
