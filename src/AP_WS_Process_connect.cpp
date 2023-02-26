@@ -36,6 +36,25 @@ namespace OpenWifi {
 		}
 	}
 
+	[[maybe_unused]] static void SendKafkaDeviceNotProvisioned(	const std::string &SerialNumber,
+														 		const std::string &Firmware,
+															   	const std::string &DeviceType,
+															   	const std::string &IP) {
+		if (KafkaManager()->Enabled()) {
+			Poco::JSON::Object EventDetails;
+			EventDetails.set("firmware", Firmware);
+			EventDetails.set("deviceType", DeviceType);
+			EventDetails.set("IP", IP);
+			Poco::JSON::Object Event;
+			Event.set("type", "device.not_provisioned");
+			Event.set("timestamp", Utils::Now());
+			Event.set("payload", EventDetails);
+			std::ostringstream OS;
+			Event.stringify(OS);
+			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber, OS.str());
+		}
+	}
+
 	void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj,
 										   const std::string &Serial) {
 		if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::FIRMWARE) &&
@@ -87,6 +106,10 @@ namespace OpenWifi {
 			auto DeviceExists = StorageService()->GetDevice(SerialNumber_, DeviceInfo);
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
 				StorageService()->CreateDefaultDevice(SerialNumber_, Caps, Firmware, PeerAddress_);
+			} else if (!Daemon()->AutoProvisioning() && !DeviceExists) {
+				SendKafkaDeviceNotProvisioned(SerialNumber_, Firmware, Compatible_, CId_);
+				poco_warning(Logger(),fmt::format("Device {} is a {} from {} and cannot be provisioned.",SerialNumber_,Compatible_, CId_));
+				return EndConnection();
 			} else if (DeviceExists) {
 				StorageService()->UpdateDeviceCapabilities(SerialNumber_, Caps);
 				int Updated{0};
