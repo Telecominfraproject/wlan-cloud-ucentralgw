@@ -59,8 +59,11 @@ namespace OpenWifi {
 										   const std::string &Serial) {
 		if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::FIRMWARE) &&
 			ParamsObj->has(uCentralProtocol::CAPABILITIES)) {
+			std::cout << __LINE__ << std::endl;
 			uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
+			std::cout << __LINE__ << std::endl;
 			auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
+			std::cout << __LINE__ << std::endl;
 			auto Capabilities = ParamsObj->getObject(uCentralProtocol::CAPABILITIES);
 
 			SerialNumber_ = Serial;
@@ -86,31 +89,41 @@ namespace OpenWifi {
 				IP = IP.substr(7);
 			}
 
+			std::cout << __LINE__ << std::endl;
 			bool RestrictedDevice = false;
 			if (Capabilities->has("restrictions")) {
+				std::cout << __LINE__ << std::endl;
 				RestrictedDevice = true;
 				Poco::JSON::Object::Ptr RestrictionObject = Capabilities->getObject("restrictions");
 				Restrictions_.from_json(RestrictionObject);
 			}
 
+			std::cout << __LINE__ << std::endl;
 			if (Capabilities->has("developer")) {
+				std::cout << __LINE__ << std::endl;
 				Restrictions_.developer = Capabilities->getValue<bool>("developer");
 			}
 
+			std::cout << __LINE__ << std::endl;
 			if(Capabilities->has("secure-rtty")) {
+				std::cout << __LINE__ << std::endl;
 				RttyMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
 			}
 
+			std::cout << __LINE__ << std::endl;
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device DeviceInfo;
 			auto DeviceExists = StorageService()->GetDevice(SerialNumber_, DeviceInfo);
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
+				std::cout << __LINE__ << std::endl;
 				StorageService()->CreateDefaultDevice(SerialNumber_, Caps, Firmware, PeerAddress_);
 			} else if (!Daemon()->AutoProvisioning() && !DeviceExists) {
+				std::cout << __LINE__ << std::endl;
 				SendKafkaDeviceNotProvisioned(SerialNumber_, Firmware, Compatible_, CId_);
 				poco_warning(Logger(),fmt::format("Device {} is a {} from {} and cannot be provisioned.",SerialNumber_,Compatible_, CId_));
 				return EndConnection();
 			} else if (DeviceExists) {
+				std::cout << __LINE__ << std::endl;
 				StorageService()->UpdateDeviceCapabilities(SerialNumber_, Caps);
 				int Updated{0};
 				if (!Firmware.empty()) {
@@ -151,15 +164,18 @@ namespace OpenWifi {
 					++Updated;
 				}
 
+				std::cout << __LINE__ << std::endl;
 				if (Updated) {
 					StorageService()->UpdateDevice(DeviceInfo);
 				}
+				std::cout << __LINE__ << std::endl;
 
 				uint64_t UpgradedUUID = 0;
 				LookForUpgrade(UUID, UpgradedUUID);
 				State_.UUID = UpgradedUUID;
 			}
 
+			std::cout << __LINE__ << std::endl;
 			State_.Compatible = Compatible_;
 			State_.Connected = true;
 			ConnectionCompletionTime_ =
@@ -195,13 +211,16 @@ namespace OpenWifi {
 				}
 			}
 
+			std::cout << __LINE__ << std::endl;
 			GWWebSocketNotifications::SingleDevice_t Notification;
 			Notification.content.serialNumber = SerialNumber_;
 			GWWebSocketNotifications::DeviceConnected(Notification);
 
+			std::cout << __LINE__ << std::endl;
 			// std::cout << "Serial: " << SerialNumber_ << "Session: " << State_.sessionId <<
 			// std::endl;
 
+			std::cout << __LINE__ << std::endl;
 			if (KafkaManager()->Enabled()) {
 				Poco::JSON::Stringifier Stringify;
 
@@ -211,6 +230,7 @@ namespace OpenWifi {
 				std::ostringstream OS;
 				Stringify.condense(ParamsObj, OS);
 				KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+				std::cout << __LINE__ << std::endl;
 			}
 		} else {
 			poco_warning(
