@@ -270,6 +270,9 @@ namespace OpenWifi {
 			GWObjects::Device D;
 			if (!GetDevice(SerialNumber, D))
 				return false;
+
+			if(D.pendingConfiguration.empty())
+				return true;
 			D.Configuration = D.pendingConfiguration;
 			D.pendingConfiguration.clear();
 			D.UUID = D.pendingUUID;
