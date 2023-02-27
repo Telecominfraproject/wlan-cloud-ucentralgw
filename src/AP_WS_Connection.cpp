@@ -308,14 +308,10 @@ namespace OpenWifi {
 				UpgradedUUID = D.UUID;
 				Cfg.SetUUID(D.UUID);
 				D.Configuration = Cfg.get();
-				StorageService()->SetPendingDeviceConfiguration(SerialNumber_,D.Configuration,D.UUID);
-			} else {
-				D.UUID=0;
-				StorageService()->SetPendingDeviceConfiguration(SerialNumber_,D.Configuration,D.UUID);
 			}
+
 			Cfg.SetUUID(D.UUID);
 			D.Configuration = Cfg.get();
-
 			State_.PendingUUID = UpgradedUUID = D.UUID;
 
 			GWObjects::CommandDetails Cmd;
