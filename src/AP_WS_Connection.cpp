@@ -310,7 +310,6 @@ namespace OpenWifi {
 
 			Cfg.SetUUID(D.UUID);
 			D.Configuration = Cfg.get();
-			std::cout << "CGF_LEN=" << D.Configuration.size() << std::endl;
 			State_.PendingUUID = UpgradedUUID = D.UUID;
 
 			GWObjects::CommandDetails Cmd;
