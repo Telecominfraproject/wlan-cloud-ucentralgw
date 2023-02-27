@@ -70,7 +70,7 @@ namespace OpenWifi {
 								} else if (RPC->second.Command == APCommands::Commands::telemetry) {
 									CompleteTelemetryCommand(RPC->second, Payload,
 															 rpc_execution_time);
-								} else if (RPC->second.Command == APCommands::Commands::configure) {
+								} else if (RPC->second.Command == APCommands::Commands::configure && RPC->second.rpc_entry==nullptr) {
 									CompleteConfigureCommand(RPC->second, Payload,
 															 rpc_execution_time);
 								} else {
@@ -120,6 +120,10 @@ namespace OpenWifi {
 		CommandInfo &Command, [[maybe_unused]] const Poco::JSON::Object::Ptr &Payload,
 		std::chrono::duration<double, std::milli> rpc_execution_time) {
 		std::shared_ptr<promise_type_t> TmpRpcEntry;
+
+		if (Command.rpc_entry) {
+			TmpRpcEntry = Command.rpc_entry;
+		}
 
 		StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
 
