@@ -111,6 +111,11 @@ namespace OpenWifi {
 
 		bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration,
 									   uint64_t &NewUUID);
+		bool SetPendingDeviceConfiguration(std::string &SerialNumber, std::string &Configuration,
+									   uint64_t &NewUUID);
+
+		bool RollbackDeviceConfigurationChange(std::string & SerialNumber);
+		bool CompleteDeviceConfigurationChange(std::string & SerialNumber);
 
 		bool CreateDevice(GWObjects::Device &);
 		bool CreateDefaultDevice(std::string &SerialNumber, const Config::Capabilities &Caps,

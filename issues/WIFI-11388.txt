@@ -1,0 +1,18 @@
+Issue: https://telecominfraproject.atlassian.net/browse/WIFI-11388
+
+Problem:
+If a configuration was accepted by the GW or Provisioning but is still not valid according to the firmware on teh device,
+the device will reject the configuration, however, that configuration is known as the kast good configuration in the GW.
+This mens that we will lock the device in a loop where it continuously wants to update the configuration to version X,
+and the device will continuously reject it.
+
+Workaround:
+Simply send a valid configuration to the GW and this will allow the device you update and stop the cycle.
+
+Fix:
+When a new configuration is submitted, store is a "pending". If it is accepted, move it to the current configuration. If
+not accepted, simply remove it. One corner case exists. For some configuration updates, the AP will never complete the
+update cycle, even if it has updated the configuration. In that case, we can detect the configuration during a connect
+later. At that moment, when we look for an upgrade, we must compare with the pending UUID and the current UUID. If it matches the pending,
+we know the last update worked. If it does not, we know to revert.
+

@@ -285,6 +285,13 @@ namespace OpenWifi {
 		GWObjects::Device D;
 		if (StorageService()->GetDevice(SerialNumber_, D)) {
 
+			if(D.pendingUUID!=0 && UUID==D.pendingUUID) {
+				//	so we sent an upgrade to a device, and now it is completing now...
+				UpgradedUUID = D.pendingUUID;
+				StorageService()->CompleteDeviceConfigurationChange(SerialNumber_);
+				return true;
+			}
+
 			//	This is the case where the cache is empty after a restart. So GoodConfig will 0. If
 			// the device already 	has the right UUID, we just return.
 			if (D.UUID == UUID) {
@@ -293,19 +300,24 @@ namespace OpenWifi {
 				return false;
 			}
 
+			Config::Config Cfg(D.Configuration);
 			if (UUID > D.UUID) {
 				//	so we have a problem, the device has a newer config than we have. So we need to
 				// make sure our config 	is newer.
-				Config::Config Cfg(D.Configuration);
 				D.UUID = UUID + 2;
 				UpgradedUUID = D.UUID;
 				Cfg.SetUUID(D.UUID);
 				D.Configuration = Cfg.get();
-				StorageService()->UpdateDevice(D);
+				StorageService()->SetPendingDeviceConfiguration(SerialNumber_,D.Configuration,D.UUID);
+			} else {
+				D.UUID=0;
+				StorageService()->SetPendingDeviceConfiguration(SerialNumber_,D.Configuration,D.UUID);
 			}
+			Cfg.SetUUID(D.UUID);
+			D.Configuration = Cfg.get();
 
-			UpgradedUUID = D.UUID;
-			State_.PendingUUID = D.UUID;
+			State_.PendingUUID = UpgradedUUID = D.UUID;
+
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = MicroServiceCreateUUID();

@@ -67,8 +67,11 @@ namespace OpenWifi {
 													   APCommands::to_string(RPC->second.Command)));
 								if (RPC->second.Command == APCommands::Commands::script) {
 									CompleteScriptCommand(RPC->second, Payload, rpc_execution_time);
-								} else if (RPC->second.Command != APCommands::Commands::telemetry) {
+								} else if (RPC->second.Command == APCommands::Commands::telemetry) {
 									CompleteTelemetryCommand(RPC->second, Payload,
+															 rpc_execution_time);
+								} else if (RPC->second.Command == APCommands::Commands::configure) {
+									CompleteConfigureCommand(RPC->second, Payload,
 															 rpc_execution_time);
 								} else {
 									StorageService()->CommandCompleted(RPC->second.UUID, Payload,
@@ -106,6 +109,40 @@ namespace OpenWifi {
 			TmpRpcEntry = Command.rpc_entry;
 		}
 		Command.State = 0;
+
+		OutStandingRequests_.erase(Command.Id);
+		if (TmpRpcEntry != nullptr)
+			TmpRpcEntry->set_value(Payload);
+		return true;
+	}
+
+	bool CommandManager::CompleteConfigureCommand(
+		CommandInfo &Command, [[maybe_unused]] const Poco::JSON::Object::Ptr &Payload,
+		std::chrono::duration<double, std::milli> rpc_execution_time) {
+		std::shared_ptr<promise_type_t> TmpRpcEntry;
+
+		StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
+
+		if (Payload->has("result")) {
+			auto Result = Payload->getObject("result");
+			if (Result->has("status") && Result->has("serial")) {
+				auto Status = Result->getObject("status");
+				auto SerialNumber = Result->get("serial").toString();
+				std::uint64_t Error = Status->get("error");
+				if (Error == 2) {
+					StorageService()->RollbackDeviceConfigurationChange(SerialNumber);
+				} else {
+					StorageService()->CompleteDeviceConfigurationChange(SerialNumber);
+				}
+			}
+		} else {
+			//				std::cout << __LINE__ << std::endl;
+		}
+		Command.State = 0;
+
+		if (Command.rpc_entry) {
+			TmpRpcEntry = Command.rpc_entry;
+		}
 
 		OutStandingRequests_.erase(Command.Id);
 		if (TmpRpcEntry != nullptr)

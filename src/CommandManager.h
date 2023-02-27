@@ -188,6 +188,8 @@ namespace OpenWifi {
 								   std::chrono::duration<double, std::milli> rpc_execution_time);
 		bool CompleteTelemetryCommand(CommandInfo &Command, const Poco::JSON::Object::Ptr &Payload,
 									  std::chrono::duration<double, std::milli> rpc_execution_time);
+		bool CompleteConfigureCommand(CommandInfo &Command, const Poco::JSON::Object::Ptr &Payload,
+									  std::chrono::duration<double, std::milli> rpc_execution_time);
 
 		CommandManager() noexcept
 			: SubSystemServer("CommandManager", "CMD-MGR", "command.manager") {}

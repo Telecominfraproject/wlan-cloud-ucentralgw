@@ -637,9 +637,8 @@ namespace OpenWifi {
 			}
 
 			auto When = GetWhen(Obj);
-			uint64_t NewUUID;
-
-			if (StorageService()->UpdateDeviceConfiguration(SerialNumber_, Configuration,
+			uint64_t NewUUID=0;
+			if (StorageService()->SetPendingDeviceConfiguration(SerialNumber_, Configuration,
 															NewUUID)) {
 				GWObjects::CommandDetails Cmd;
 
@@ -661,9 +660,21 @@ namespace OpenWifi {
 				Cmd.Details = ParamStream.str();
 
 				// AP_WS_Server()->SetPendingUUID(SerialNumber_, NewUUID);
-				return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::configure, true,
+				RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::configure, true,
 												   Cmd, Params, *Request, *Response, timeout,
 												   nullptr, this, Logger_);
+
+				if(!Cmd.Executed) {
+					return;
+				}
+
+				if(Cmd.ErrorCode==2) {
+					StorageService()->RollbackDeviceConfigurationChange(SerialNumber_);
+				} else {
+					StorageService()->CompleteDeviceConfigurationChange(SerialNumber_);
+				}
+
+				return;
 			}
 			return BadRequest(RESTAPI::Errors::RecordNotUpdated);
 		}
