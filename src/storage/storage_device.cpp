@@ -334,7 +334,7 @@ namespace OpenWifi {
 				poco_information(Logger(),
 								 fmt::format("DEVICE-PENDING-CONFIGURATION-UPDATED({}): New UUID is {}",
 											 SerialNumber, NewUUID));
-				Configuration = D.Configuration;
+				Configuration = D.pendingConfiguration;
 				return true;
 			}
 			return false;
