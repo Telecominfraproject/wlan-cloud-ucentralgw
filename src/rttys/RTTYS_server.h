@@ -23,7 +23,7 @@ using namespace std::chrono_literals;
 namespace OpenWifi {
 
 	constexpr uint RTTY_DEVICE_TOKEN_LENGTH = 32;
-	constexpr std::size_t RTTY_DEVICE_BUFSIZE = 64000;
+	constexpr std::size_t RTTY_DEVICE_BUFSIZE = 256000;
 	constexpr std::size_t RTTY_SESSION_ID_LENGTH = 32;
 	constexpr std::size_t RTTY_HDR_SIZE = 3;
 

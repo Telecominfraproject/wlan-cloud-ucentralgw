@@ -227,12 +227,14 @@ namespace OpenWifi {
 								Logger(),
 								fmt::format("Device {} has been validated from {}.", CN, CId_));
 							AddConnectingDeviceEventHandlers(NewSocket);
+							NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 							return;
 						}
 					}
 					poco_debug(Logger(), fmt::format("Device cannot be validated from {}.", CId_));
 				} else {
 					AddConnectingDeviceEventHandlers(NewSocket);
+					NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 					return;
 				}
 			}
