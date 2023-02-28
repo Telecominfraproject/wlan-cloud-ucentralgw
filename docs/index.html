@@ -1649,11 +1649,9 @@ ul.nav-tabs {
     "parameterName" : {
       "type" : "string"
     },
-    "parameterType" : {
-      "type" : "string",
-      "enum" : [ "string", "integer", "boolean", "path" ]
-    },
-    "parameterValue" : { }
+    "parameterValue" : {
+      "type" : "string"
+    }
   }
 };
     defs["FactoryRequest"] = {
@@ -30055,7 +30053,8 @@ pub fn main() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X GET \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/systemConfiguration"
+ -H "Accept: application/json" \
+ "https://localhost:16001/api/v1/systemConfiguration?entries=["element1","element1,element2,element3"]"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-SystemConfiguration-getSystemConfiguration-0-java">
@@ -30083,9 +30082,11 @@ public class SystemConfigurationApiExample {
 
         // Create an instance of the API class
         SystemConfigurationApi apiInstance = new SystemConfigurationApi();
+        String entries = ["element1","element1,element2,element3"]; // String | Which parameters you want to retrieve
 
         try {
-            apiInstance.getSystemConfiguration();
+            array[List] result = apiInstance.getSystemConfiguration(entries);
+            System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling SystemConfigurationApi#getSystemConfiguration");
             e.printStackTrace();
@@ -30101,9 +30102,11 @@ public class SystemConfigurationApiExample {
 public class SystemConfigurationApiExample {
     public static void main(String[] args) {
         SystemConfigurationApi apiInstance = new SystemConfigurationApi();
+        String entries = ["element1","element1,element2,element3"]; // String | Which parameters you want to retrieve
 
         try {
-            apiInstance.getSystemConfiguration();
+            array[List] result = apiInstance.getSystemConfiguration(entries);
+            System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling SystemConfigurationApi#getSystemConfiguration");
             e.printStackTrace();
@@ -30128,10 +30131,14 @@ public class SystemConfigurationApiExample {
 
 // Create an instance of the API class
 SystemConfigurationApi *apiInstance = [[SystemConfigurationApi alloc] init];
+String *entries = ["element1","element1,element2,element3"]; // Which parameters you want to retrieve (optional) (default to null)
 
 // Retrieve system configuration items
-[apiInstance getSystemConfigurationWithCompletionHandler: 
-              ^(NSError* error) {
+[apiInstance getSystemConfigurationWith:entries
+              completionHandler: ^(array[List] output, NSError* error) {
+    if (output) {
+        NSLog(@"%@", output);
+    }
     if (error) {
         NSLog(@"Error: %@", error);
     }
@@ -30155,14 +30162,18 @@ bearerAuth.accessToken = "YOUR ACCESS TOKEN";
 
 // Create an instance of the API class
 var api = new UCentralGatewayApi.SystemConfigurationApi()
+var opts = {
+  'entries': ["element1","element1,element2,element3"] // {String} Which parameters you want to retrieve
+};
+
 var callback = function(error, data, response) {
   if (error) {
     console.error(error);
   } else {
-    console.log('API called successfully.');
+    console.log('API called successfully. Returned data: ' + data);
   }
 };
-api.getSystemConfiguration(callback);
+api.getSystemConfiguration(opts, callback);
 </code></pre>
                             </div>
 
@@ -30191,10 +30202,12 @@ namespace Example
 
             // Create an instance of the API class
             var apiInstance = new SystemConfigurationApi();
+            var entries = ["element1","element1,element2,element3"];  // String | Which parameters you want to retrieve (optional)  (default to null)
 
             try {
                 // Retrieve system configuration items
-                apiInstance.getSystemConfiguration();
+                array[List] result = apiInstance.getSystemConfiguration(entries);
+                Debug.WriteLine(result);
             } catch (Exception e) {
                 Debug.Print("Exception when calling SystemConfigurationApi.getSystemConfiguration: " + e.Message );
             }
@@ -30218,9 +30231,11 @@ OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('',
 
 // Create an instance of the API class
 $api_instance = new OpenAPITools\Client\Api\SystemConfigurationApi();
+$entries = ["element1","element1,element2,element3"]; // String | Which parameters you want to retrieve
 
 try {
-    $api_instance->getSystemConfiguration();
+    $result = $api_instance->getSystemConfiguration($entries);
+    print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling SystemConfigurationApi->getSystemConfiguration: ', $e->getMessage(), PHP_EOL;
 }
@@ -30242,9 +30257,11 @@ $WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
 
 # Create an instance of the API class
 my $api_instance = WWW::OPenAPIClient::SystemConfigurationApi->new();
+my $entries = ["element1","element1,element2,element3"]; # String | Which parameters you want to retrieve
 
 eval {
-    $api_instance->getSystemConfiguration();
+    my $result = $api_instance->getSystemConfiguration(entries => $entries);
+    print Dumper($result);
 };
 if ($@) {
     warn "Exception when calling SystemConfigurationApi->getSystemConfiguration: $@\n";
@@ -30268,10 +30285,12 @@ openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
 
 # Create an instance of the API class
 api_instance = openapi_client.SystemConfigurationApi()
+entries = ["element1","element1,element2,element3"] # String | Which parameters you want to retrieve (optional) (default to null)
 
 try:
     # Retrieve system configuration items
-    api_instance.get_system_configuration()
+    api_response = api_instance.get_system_configuration(entries=entries)
+    pprint(api_response)
 except ApiException as e:
     print("Exception when calling SystemConfigurationApi->getSystemConfiguration: %s\n" % e)</code></pre>
                             </div>
@@ -30280,9 +30299,10 @@ except ApiException as e:
                               <pre class="prettyprint"><code class="language-rust">extern crate SystemConfigurationApi;
 
 pub fn main() {
+    let entries = ["element1","element1,element2,element3"]; // String
 
     let mut context = SystemConfigurationApi::Context::default();
-    let result = client.getSystemConfiguration(&context).wait();
+    let result = client.getSystemConfiguration(entries, &context).wait();
 
     println!("{:?}", result);
 }
@@ -30301,12 +30321,39 @@ pub fn main() {
 
 
 
+                            <div class="methodsubtabletitle">Query parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">entries</td>
+<td>
+
+
+    <div id="d2e199_getSystemConfiguration_entries">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+                    <div class="inner description marked">
+Which parameters you want to retrieve
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
 
                           <h2>Responses</h2>
                             <h3 id="examples-SystemConfiguration-getSystemConfiguration-title-200"></h3>
                             <p id="examples-SystemConfiguration-getSystemConfiguration-description-200" class="marked"></p>
                             <script>
-                              var responseSystemConfiguration200_description = ``;
+                              var responseSystemConfiguration200_description = `List of configuration elements`;
                               var responseSystemConfiguration200_description_break = responseSystemConfiguration200_description.indexOf('\n');
                               if (responseSystemConfiguration200_description_break == -1) {
                                 $("#examples-SystemConfiguration-getSystemConfiguration-title-200").text("Status: 200 - " + responseSystemConfiguration200_description);
@@ -30318,12 +30365,52 @@ pub fn main() {
 
 
                             <ul id="responses-detail-SystemConfiguration-getSystemConfiguration-200" class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-SystemConfiguration-getSystemConfiguration-200-schema">Schema</a>
+                                </li>
+
+
 
 
                             </ul>
 
 
                             <div class="tab-content" id="responses-SystemConfiguration-getSystemConfiguration-200-wrapper" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-SystemConfiguration-getSystemConfiguration-200-schema">
+                                  <div id="responses-SystemConfiguration-getSystemConfiguration-schema-200" class="exampleStyle">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = ;
+                                        var schema = findNode('schema',schemaWrapper).schema;
+                                        if (!schema) {
+                                          schema = schemaWrapper.schema;
+                                        }
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                          Object.keys(schema.properties).forEach( (item) => {
+                                            if (schema.properties[item].$ref != null) {
+                                              schema.properties[item] = defsParser.$refs.get(schema.properties[item].$ref);
+                                            }
+                                          });
+                                        } else if (schema.items != null && schema.items.$ref != null) {
+                                            schema.items = defsParser.$refs.get(schema.items.$ref);
+                                        } else {
+                                          schemaWrapper.definitions = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-SystemConfiguration-getSystemConfiguration-200-schema-data').val(JSON.stringify(schema));
+                                        var result = $('#responses-SystemConfiguration-getSystemConfiguration-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-SystemConfiguration-getSystemConfiguration-200-schema-data' type='hidden' value=''></input>
+                                </div>
                             </div>
                             <h3 id="examples-SystemConfiguration-getSystemConfiguration-title-403"></h3>
                             <p id="examples-SystemConfiguration-getSystemConfiguration-description-403" class="marked"></p>
@@ -30411,9 +30498,8 @@ pub fn main() {
  -H "Content-Type: application/json" \
  "https://localhost:16001/api/v1/systemConfiguration" \
  -d '{
-  &quot;parameterType&quot; : &quot;string&quot;,
   &quot;parameterName&quot; : &quot;parameterName&quot;,
-  &quot;parameterValue&quot; : &quot;&quot;
+  &quot;parameterValue&quot; : &quot;parameterValue&quot;
 }'
 </code></pre>
                           </div>
