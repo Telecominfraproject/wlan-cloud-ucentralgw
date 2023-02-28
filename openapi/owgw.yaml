@@ -1037,15 +1037,8 @@ components:
         properties:
           parameterName:
             type: string
-          parameterType:
-            type: string
-            enum:
-              - string
-              - integer
-              - boolean
-              - path
           parameterValue:
-            {}
+            type: string
 
     #########################################################################################
     ##
@@ -3020,9 +3013,25 @@ paths:
         - SystemConfiguration
       summary: Retrieve system configuration items
       operationId: getSystemConfiguration
+      parameters:
+        - in: query
+          description: Which parameters you want to retrieve
+          name: entries
+          schema:
+            type: string
+            example:
+              - element1
+              - element1,element2,element3
+          required: false
       responses:
         200:
-          $ref: '#/components/schemas/ExtraSystemConfiguration'
+          description: List of configuration elements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExtraSystemConfiguration'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
