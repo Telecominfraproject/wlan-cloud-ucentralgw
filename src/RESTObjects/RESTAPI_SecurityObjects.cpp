@@ -721,4 +721,20 @@ namespace OpenWifi::SecurityObjects {
 		return false;
 	}
 
+    void ExtraSystemConfiguration::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "parameterName", parameterName);
+        field_to_json(Obj, "parameterValue", parameterValue);
+    }
+
+    bool ExtraSystemConfiguration::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "parameterName", parameterName);
+            field_from_json(Obj, "parameterValue", parameterValue);
+            return true;
+        } catch (...) {
+            std::cout << "Cannot parse: Token" << std::endl;
+        }
+        return false;
+    }
+
 } // namespace OpenWifi::SecurityObjects

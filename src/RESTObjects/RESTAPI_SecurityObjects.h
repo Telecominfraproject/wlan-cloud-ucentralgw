@@ -367,5 +367,13 @@ namespace OpenWifi {
 			bool from_json(const Poco::JSON::Object::Ptr &Obj);
 		};
 
-	} // namespace SecurityObjects
+        struct ExtraSystemConfiguration {
+            std::string     parameterName;
+            std::string     parameterValue;
+
+            void to_json(Poco::JSON::Object &Obj) const;
+            bool from_json(const Poco::JSON::Object::Ptr &Obj);
+        };
+
+} // namespace SecurityObjects
 } // namespace OpenWifi
