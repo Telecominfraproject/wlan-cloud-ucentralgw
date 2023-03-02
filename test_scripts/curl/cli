@@ -9,52 +9,52 @@
 #
 
 if [[ "$(which jq)" == "" ]]
-then
-  echo "You need the package jq installed to use this script."
-  exit 1
-fi
+	then
+		echo "You need the package jq installed to use this script."
+		exit 1
+		fi
 
-if [[ "$(which curl)" == "" ]]
-then
-  echo "You need the package curl installed to use this script."
-  exit 1
-fi
+		if [[ "$(which curl)" == "" ]]
+		then
+			echo "You need the package curl installed to use this script."
+		exit 1
+		fi
 
-if [[ -z "${OWSEC}" || -z "${OWSEC_USERNAME}" || -z "${OWSEC_PASSWORD}" ]]
-then
-	echo "You must set the variables OWSEC, OWSEC_USERNAME, and OWSEC_PASSWORD in order to use this script. Something like"
-	echo "export OWSEC=security.isp.com:16001"
-	echo "export OWSEC_USERNAME=theusername@domain.com"
-	echo "export OWSEC_PASSWORD=mytoughpassword"
-	exit 1
-fi
+		if [[ -z "${OWSEC}" || -z "${OWSEC_USERNAME}" || -z "${OWSEC_PASSWORD}" ]]
+		then
+			echo "You must set the variables OWSEC, OWSEC_USERNAME, and OWSEC_PASSWORD in order to use this script. Something like"
+		echo "export OWSEC=security.isp.com:16001"
+		echo "export OWSEC_USERNAME=theusername@domain.com"
+		echo "export OWSEC_PASSWORD=mytoughpassword"
+		exit 1
+		fi
 
-username=${OWSEC_USERNAME}
-password=${OWSEC_PASSWORD}
+			username=${OWSEC_USERNAME}
+	password=${OWSEC_PASSWORD}
 
 if [[ "${FLAGS}" == "" ]]
-then
-	FLAGS="-s"
-fi
-
-token=""
-result_file=result.json
-browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
-browser=""
-
-
-login() {
-	payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
-	token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token')
-#	curl -v -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token'
-	if [[ "${token}" == "" ]]
 	then
-		echo "Could not login. Please verify the host and username/password."
-		exit 13
-	fi
-	echo "${token}" > token.json
-	setgateway
-}
+		FLAGS="-s"
+		fi
+
+			token=""
+		result_file=result.json
+						  browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
+			browser=""
+
+
+		login() {
+		payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
+			token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token')
+#	curl -v -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token'
+						if [[ "${token}" == "" ]]
+					then
+						echo "Could not login. Please verify the host and username/password."
+					exit 13
+					fi
+						echo "${token}" > token.json
+											  setgateway
+	}
 
 findbrowser() {
 	if [[ "${browser}" != "" ]]
@@ -64,115 +64,116 @@ findbrowser() {
 	then
 		browser=open
 	else
-		BROWSER_LIST=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
+		browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
 		for br_name in "${browser_list[@]}"
 		do
-			if [[ $(which ${br_name}) != "" ]]
+			if [[ $(which "${br_name}") != "" ]]
 			then
 				browser=${br_name}
-				break
-			fi
-		done
-	fi
+	break
+		fi
+			done
+				fi
 }
 
 setgateway() {
-if [ -z ${OWGW_OVERRIDE+x} ]; then
-	curl  ${FLAGS} -X GET "https://${OWSEC}/api/v1/systemEndpoints" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-        -H "Authorization: Bearer ${token}"  > ${result_file}
-	rawurl="$(cat ${result_file} | jq -r '.endpoints[] | select( .type == "owgw" ) | .uri')"
-	if [[ ! -z "${rawurl}" ]]; then
-		proto="$(echo $rawurl | grep :// | sed -e's,^\(.*://\).*,\1,g')"
-		url="$(echo ${rawurl/$proto/})"
+	if [ -z ${OWGW_OVERRIDE+x} ]; then
+				curl  ${FLAGS} -X GET "https://${OWSEC}/api/v1/systemEndpoints" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}"  > ${result_file}
+		rawurl="$(cat < ${result_file} | jq -r '.endpoints[] | select( .type == "owgw" ) | .uri')"
+		if [[ ! -z "${rawurl}" ]]; then
+		proto="$(echo "$rawurl" | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+# shellcheck disable=SC2116
+		url="$(echo "${rawurl/$proto/}")"
 		user="$(echo $url | grep @ | cut -d@ -f1)"
 		hostport="$(echo ${url/$user@/} | cut -d/ -f1)"
 		host="$(echo $hostport | sed -e 's,:.*,,g')"
 		port="$(echo $hostport | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
 		path="$(echo $url | grep / | cut -d/ -f2-)"
 		export OWGW=${url}
-		echo "Using ${OWGW}..."
-	else
-		echo "OWGW endpoint is not found:"
-		jq < ${result_file}
-		exit 1
+					  echo "Using ${OWGW}..."
+					  else
+					  echo "OWGW endpoint is not found:"
+					  jq < ${result_file}
+					  exit 1
+					  fi
+					  else
+					  export OWGW=${OWGW_OVERRIDE}
 	fi
-else
-	export OWGW=${OWGW_OVERRIDE}
-fi
 }
 
 logout() {
 	curl  ${FLAGS} -X DELETE "https://${OWSEC}/api/v1/oauth2/${token}" \
-		-H "Content-Type: application/json" \
-		-H "Authorization: Bearer ${token}"
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer ${token}"
 	rm -rf token.json
 }
 
 getdevice() {
 	curl  ${FLAGS} -X GET --url "https://${OWGW}/api/v1/device/$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
 }
 
 getcommand() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/command/$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
 }
 
 deletecommand() {
 	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/command/$1" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"
+	-H "Accept: application/json" \
+	-H "Authorization: Bearer ${token}"
 }
 
 listcommands() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/commands?serialNumber=$1&limit=300" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"  > ${result_file}
-	jq < ${result_file}
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}"  > ${result_file}
+		jq < ${result_file}
 }
 
 newestcommands() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/commands?serialNumber=$1&newest=true&limit=50" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"  > ${result_file}
-	jq < ${result_file}
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}"  > ${result_file}
+		jq < ${result_file}
 }
 
 deletecommands() {
 	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/commands?serialNumber=$1" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"
+	-H "Accept: application/json" \
+	-H "Authorization: Bearer ${token}"
 }
 
 getcapabilities() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/capabilities" \
-		-H "accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+			-H "accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
 }
 
 deletecapabilities() {
-  curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1/capabilities" \
-        -H "accept: application/json" \
-        -H "Authorization: Bearer ${token}"
+	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1/capabilities" \
+	-H "accept: application/json" \
+	-H "Authorization: Bearer ${token}"
 }
 
 listdevices() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
 }
 
 listdevicesk() {
@@ -185,506 +186,29 @@ listdevicesk() {
 
 ldevs() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?offset=$1&limit=$2" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
 }
 
 deletedevice() {
 	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1" \
-        -H "Accept: application/json" \
-        -H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
 }
 
 deleteoui() {
 	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1?oui=true" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"
+	-H "Accept: application/json" \
+	-H "Authorization: Bearer ${token}"
 }
 
 
 createdevice() {
 	payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"owner\": \"\" }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-        -d "$payload"  > ${result_file}
-	jq < ${result_file}
-}
-
-addnote() {
-	payload="{ \"serialNumber\": \"$1\", \"notes\" : [ {\"note\" : \"$2\"} ] }"
-	curl  ${FLAGS} -X PUT "https://${OWGW}/api/v1/device/$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-        -d "$payload"  > ${result_file}
-	jq < ${result_file}
-}
-
-reboot() {
-	payload="{ \"serialNumber\" : \"$1\" }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/reboot" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-        -d "$payload"  > ${result_file}
-	jq < ${result_file}
-}
-
-setloglevel() {
-	payload="{ \"command\" : \"setloglevel\" , \"subsystems\" : [ { \"tag\" : \"$1\" , \"value\" : \"$2\" } ] }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload" > ${result_file}
-	jq < ${result_file}
-}
-
-getloglevels() {
-	payload="{ \"command\" : \"getloglevels\" }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload" > ${result_file}
-	jq < ${result_file}
-}
-
-getloglevelnames() {
-	payload="{ \"command\" : \"getloglevelnames\" }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload" > ${result_file}
-	jq < ${result_file}
-}
-
-getsubsystemnames() {
-	payload="{ \"command\" : \"getsubsystemnames\" }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload" > ${result_file}
-	jq < ${result_file}
-}
-
-systeminfo() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=info" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-reloadsubsystem() {
-	payload="{ \"command\" : \"reload\", \"subsystems\" : [ \"$1\" ] }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload"
-}
-
-getdevicestatus() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/status" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"  > ${result_file}
-	jq < ${result_file}
-}
-
-getdevicecomplete() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1?completeInfo=true" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"  > ${result_file}
-	jq < ${result_file}
-}
-
-upgrade() {
-	payload="{ \"serialNumber\" : \"$1\" , \"uri\" : \"$2\" }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/upgrade" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload"   > ${result_file}
-	jq < ${result_file}
-}
-
-leds() {
-	payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $3, \"pattern\" : \"$2\" }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/leds" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload" > ${result_file}
-	jq < ${result_file}
-}
-
-factory() {
-	payload="{ \"serialNumber\" : \"$1\" , \"keepRedirector\" : $2 }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/factory" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload" > ${result_file}
-	jq < ${result_file}
-}
-
-configure() {
-	payload="{ \"serialNumber\" : \"$1\", \"UUID\" : 123456 , \"configuration\" : $(cat "$2") }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/configure" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload" > ${result_file}
-	jq < ${result_file}
-}
-
-request() {
-	payload="{ \"serialNumber\" : \"$1\" , \"message\" : \"$2\" }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/request" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload"  > ${result_file}
-	jq < ${result_file}
-}
-
-wifiscan() {
-	payload="{ \"serialNumber\" : \"$1\" , \"verbose\" : $2 }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/wifiscan" \
-		--max-time 120 \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload"  > ${result_file}
-	jq < ${result_file}
-}
-
-activescan() {
-	payload="{ \"serialNumber\" : \"$1\" , \"verbose\" : $2, \"activeScan\" : true}"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/wifiscan" \
-		--max-time 120 \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload"  > ${result_file}
-	jq < ${result_file}
-}
-
-trace() {
-	payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $2, \"network\" : \"$3\" }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/trace" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload"  > ${result_file}
-	jq < ${result_file}
-}
-
-getstats() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"   > ${result_file}
-	jq < ${result_file}
-}
-
-getlogs() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/logs" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"    > ${result_file}
-	jq < ${result_file}
-}
-
-deletelogs() {
-	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1/logs" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"
-}
-
-gethealthchecks() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/healthchecks" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"    > ${result_file}
-	jq < ${result_file}
-}
-
-getdefaultconfig() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_configuration/$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-createdefaultconfig() {
-	payload="{ \"name\": \"$1\", \"modelIds\" : \"[$2]\", \"configuration\" : $(cat "$3")}"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/default_configuration/$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload" > ${result_file}
-	jq < ${result_file}
-}
-
-deletedefaultconfig() {
-	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/default_configuration/$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"
-	jq < ${result_file}
-}
-
-listdefaultconfigs() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_configurations" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-addblacklistdevice() {
-	payload="{ \"serialNumber\": \"$1\" , \"reason\" : \"$2\" }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/blacklist/1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-        -d "$payload" > ${result_file}
-	jq < ${result_file}
-}
-
-deleteblacklistdevice() {
-	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/blacklist/$1" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"
-}
-
-getblacklist() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/blacklist" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}"  > ${result_file}
-	jq < ${result_file}
-}
-
-modblacklistdevice() {
-	payload="{ \"serialNumber\": \"$1\" , \"reason\" : \"$2\" }"
-	curl  ${FLAGS} -X PUT "https://${OWGW}/api/v1/blacklist/$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload"   > ${result_file}
-	jq < ${result_file}
-}
-
-eventqueue() {
-	payload="{ \"serialNumber\" : \"$1\" , \"types\" : [ \"dhcp\", \"wifi\" ] }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/eventqueue" \
-		--max-time 120 \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload"  > ${result_file}
-	jq < ${result_file}
-}
-
-selectdevices() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?select=$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-deviceserialnumbers() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?serialOnly=true" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-deviceswithstatus() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?deviceWithStatus=true&limit=500" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-devicecount() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?countOnly=true" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-getfile() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/file/$2?serialNumber=$1" \
-		-H "accept: application/octet-stream" \
-		-H "Authorization: Bearer ${token}" \
-		-o "$2.pcap"
-}
-
-rtty() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/rtty" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-
-	if [[ "$2" != "noconnect" ]]
-	then
-		cid=$(cat ${result_file} | jq -r '.connectionId')
-		vport=$(cat ${result_file} | jq -r '.viewport')
-		server=$(cat ${result_file} | jq -r '.server')
-		url=https://${server}:${vport}/connect/${cid}
-
-		findbrowser
-		if [[ "${browser}" != "" ]]
-		then
-			${browser} ${url}
-		fi
-	fi
-}
-
-laststats() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?lastOnly=true" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-lasthealthcheck() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/healthchecks?lastOnly=true" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-neweststats() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?newest=true&limit=50" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-newestlogs() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/logs?newest=true&limit=50" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-newesthealthchecks() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/healthchecks?newest=true&limit=50" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-ouilookup() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/ouis?macList=$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-dashboard() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/deviceDashboard" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-validateconfig() {
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/1?validateOnly=true" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-H "accept: application/json" \
-		-d @"$1" > ${result_file}
-	jq < ${result_file}
-}
-
-
-wstest() {
-	echo "Token:${token}"
-	wscat \
-		-c wss://${OWGW}/api/v1/ws
-}
-
-telemetry() {
-	payload="{ \"serialNumber\" : \"$1\", \"interval\" : 2 , \"types\" : [ \"wifi-frames\", \"dhcp-snooping\", \"state\" ] }"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload"  > ${result_file}
-	jq < ${result_file}
-	socket=$(jq -r '.uri' < result.json)
-	if [[ "$(which wscat)" == "" ]]
-    then
-	   echo "wscat command not found. Cannot start a websocket session."
-    else
-		wscat \
-			-c "${socket}"
-	fi
-}
-
-notifications() {
-	if [[ -z "$1" ]]
-	then
-			timeout=30
-	else
-			timeout=$1
-	fi
-	socket="wss://${OWGW}/api/v1/ws"
-	echo ${socket}
-	if [[ "$(which wscat)" == "" ]]
-	then
-		echo "wscat command not found. Cannot start a websocket session."
-	else
-		wscat \
-		--connect "${socket}" "token:${token}" \
- 		--wait $timeout \
- 		--execute "token:${token}"
-	fi
-}
-
-telemetry_to_kafka() {
-	payload="$(printf '{ "serialNumber": "%s", "interval": 2, "kafka": true, "lifetime": %d, "types": [ "dhcp-snooping", "state", "wifi-frames" ] }' "$1" "$2")"
-	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		-d "$payload"  > ${result_file}
-	jq < ${result_file}
-}
-
-runscript() {
-	scriptcontent=$(base64 -i $3)
-	payload="$(printf '{ "serialNumber": "%s", "type": "%s" , "timeout": 30, "script" : "%s" , "when" : 0 }' "$1" "$2" "$scriptcontent" )"
-				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/script" \
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1" \
 				  -H "Content-Type: application/json" \
 				  -H "Accept: application/json" \
 				  -H "Authorization: Bearer ${token}" \
@@ -692,9 +216,486 @@ runscript() {
 			  jq < ${result_file}
 }
 
+addnote() {
+	payload="{ \"serialNumber\": \"$1\", \"notes\" : [ {\"note\" : \"$2\"} ] }"
+				  curl  ${FLAGS} -X PUT "https://${OWGW}/api/v1/device/$1" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
+reboot() {
+	payload="{ \"serialNumber\" : \"$1\" }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/reboot" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
+setloglevel() {
+	payload="{ \"command\" : \"setloglevel\" , \"subsystems\" : [ { \"tag\" : \"$1\" , \"value\" : \"$2\" } ] }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload" > ${result_file}
+			  jq < ${result_file}
+}
+
+getloglevels() {
+	payload="{ \"command\" : \"getloglevels\" }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload" > ${result_file}
+			  jq < ${result_file}
+}
+
+getloglevelnames() {
+	payload="{ \"command\" : \"getloglevelnames\" }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload" > ${result_file}
+			  jq < ${result_file}
+}
+
+getsubsystemnames() {
+	payload="{ \"command\" : \"getsubsystemnames\" }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload" > ${result_file}
+			  jq < ${result_file}
+}
+
+systeminfo() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=info" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+reloadsubsystem() {
+	payload="{ \"command\" : \"reload\", \"subsystems\" : [ \"$1\" ] }"
+			  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
+			  -H "Content-Type: application/json" \
+			  -H "Accept: application/json" \
+			  -H "Authorization: Bearer ${token}" \
+			  -d "$payload"
+}
+
+getdevicestatus() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/status" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}"  > ${result_file}
+		jq < ${result_file}
+}
+
+getdevicecomplete() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1?completeInfo=true" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}"  > ${result_file}
+		jq < ${result_file}
+}
+
+upgrade() {
+	payload="{ \"serialNumber\" : \"$1\" , \"uri\" : \"$2\" }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/upgrade" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"   > ${result_file}
+			  jq < ${result_file}
+}
+
+leds() {
+	payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $3, \"pattern\" : \"$2\" }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/leds" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload" > ${result_file}
+			  jq < ${result_file}
+}
+
+factory() {
+	payload="{ \"serialNumber\" : \"$1\" , \"keepRedirector\" : $2 }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/factory" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload" > ${result_file}
+			  jq < ${result_file}
+}
+
+configure() {
+	payload="{ \"serialNumber\" : \"$1\", \"UUID\" : 123456 , \"configuration\" : $(cat "$2") }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/configure" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload" > ${result_file}
+			  jq < ${result_file}
+}
+
+request() {
+	payload="{ \"serialNumber\" : \"$1\" , \"message\" : \"$2\" }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/request" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
+wifiscan() {
+	payload="{ \"serialNumber\" : \"$1\" , \"verbose\" : $2 }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/wifiscan" \
+				  --max-time 120 \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
+activescan() {
+	payload="{ \"serialNumber\" : \"$1\" , \"verbose\" : $2, \"activeScan\" : true}"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/wifiscan" \
+				  --max-time 120 \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
+trace() {
+	payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $2, \"network\" : \"$3\" }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/trace" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
+getstats() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}"   > ${result_file}
+		jq < ${result_file}
+}
+
+getlogs() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/logs" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}"    > ${result_file}
+		jq < ${result_file}
+}
+
+deletelogs() {
+	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1/logs" \
+	-H "Accept: application/json" \
+	-H "Authorization: Bearer ${token}"
+}
+
+gethealthchecks() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/healthchecks" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}"    > ${result_file}
+		jq < ${result_file}
+}
+
+getdefaultconfig() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_configuration/$1" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+createdefaultconfig() {
+	payload="{ \"name\": \"$1\", \"modelIds\" : \"[$2]\", \"configuration\" : $(cat "$3")}"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/default_configuration/$1" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload" > ${result_file}
+			  jq < ${result_file}
+}
+
+deletedefaultconfig() {
+	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/default_configuration/$1" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}"
+			jq < ${result_file}
+}
+
+listdefaultconfigs() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_configurations" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+addblacklistdevice() {
+	payload="{ \"serialNumber\": \"$1\" , \"reason\" : \"$2\" }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/blacklist/1" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload" > ${result_file}
+			  jq < ${result_file}
+}
+
+deleteblacklistdevice() {
+	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/blacklist/$1" \
+	-H "Accept: application/json" \
+	-H "Authorization: Bearer ${token}"
+}
+
+getblacklist() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/blacklist" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}"  > ${result_file}
+		jq < ${result_file}
+}
+
+modblacklistdevice() {
+	payload="{ \"serialNumber\": \"$1\" , \"reason\" : \"$2\" }"
+				  curl  ${FLAGS} -X PUT "https://${OWGW}/api/v1/blacklist/$1" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"   > ${result_file}
+			  jq < ${result_file}
+}
+
+eventqueue() {
+	payload="{ \"serialNumber\" : \"$1\" , \"types\" : [ \"dhcp\", \"wifi\" ] }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/eventqueue" \
+				  --max-time 120 \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
+selectdevices() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?select=$1" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+deviceserialnumbers() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?serialOnly=true" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+deviceswithstatus() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?deviceWithStatus=true&limit=500" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+devicecount() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?countOnly=true" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+getfile() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/file/$2?serialNumber=$1" \
+	-H "accept: application/octet-stream" \
+	-H "Authorization: Bearer ${token}" \
+	-o "$2.pcap"
+}
+
+rtty() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/rtty" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+
+	if [[ "$2" != "noconnect" ]]
+		then
+			cid=$(cat ${result_file} | jq -r '.connectionId')
+				vport=$(cat ${result_file} | jq -r '.viewport')
+					server=$(cat ${result_file} | jq -r '.server')
+						url=https://${server}:${vport}/connect/${cid}
+
+									  findbrowser
+									  if [[ "${browser}" != "" ]]
+									  then
+										  ${browser} ${url}
+									  fi
+										  fi
+}
+
+laststats() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?lastOnly=true" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+lasthealthcheck() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/healthchecks?lastOnly=true" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+neweststats() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?newest=true&limit=50" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+newestlogs() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/logs?newest=true&limit=50" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+newesthealthchecks() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/healthchecks?newest=true&limit=50" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+ouilookup() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/ouis?macList=$1" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+dashboard() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/deviceDashboard" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+validateconfig() {
+	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/1?validateOnly=true" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" \
+			-H "accept: application/json" \
+			-d @"$1" > ${result_file}
+		jq < ${result_file}
+}
+
+
+wstest() {
+	echo "Token:${token}"
+	wscat \
+	-c wss://${OWGW}/api/v1/ws
+}
+
+telemetry() {
+	payload="{ \"serialNumber\" : \"$1\", \"interval\" : 2 , \"types\" : [ \"wifi-frames\", \"dhcp-snooping\", \"state\" ] }"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+			  socket=$(jq -r '.uri' < result.json)
+						   if [[ "$(which wscat)" == "" ]]
+					   then
+						   echo "wscat command not found. Cannot start a websocket session."
+					   else
+					   wscat \
+					   -c "${socket}"
+					   fi
+}
+
+notifications() {
+	if [[ -z "$1" ]]
+		then
+			timeout=30
+			else
+			timeout=$1
+				fi
+					socket="wss://${OWGW}/api/v1/ws"
+			echo "${socket}"
+			if [[ "$(which wscat)" == "" ]]
+			then
+				echo "wscat command not found. Cannot start a websocket session."
+			else
+			wscat \
+			--connect "${socket}" "token:${token}" \
+			--wait $timeout \
+			--execute "token:${token}"
+			fi
+}
+
+telemetry_to_kafka() {
+	payload="$(printf '{ "serialNumber": "%s", "interval": 2, "kafka": true, "lifetime": %d, "types": [ "dhcp-snooping", "state", "wifi-frames" ] }' "$1" "$2")"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
+runscript() {
+	scriptcontent=$(base64 -i $3)
+		payload="$(printf '{ "serialNumber": "%s", "type": "%s" , "timeout": 30, "script" : "%s" , "when" : 0 }' "$1" "$2" "$scriptcontent" )"
+						  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/script" \
+					  -H "Content-Type: application/json" \
+					  -H "Accept: application/json" \
+					  -H "Authorization: Bearer ${token}" \
+					  -d "$payload"  > ${result_file}
+				  jq < ${result_file}
+}
+
 deviceping() {
 	payload="$(printf '{ "serialNumber": "%s" }' "$1" )"
-  	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/ping" \
+					  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/ping" \
 				  -H "Content-Type: application/json" \
 				  -H "Accept: application/json" \
 				  -H "Authorization: Bearer ${token}" \
@@ -704,18 +705,18 @@ deviceping() {
 
 caplist() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/capabilities" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
 }
 
 iptocountry() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/iptocountry?iplist=$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
 }
 
 setradiusconfig() {
@@ -724,7 +725,7 @@ setradiusconfig() {
 			-H "Accept: application/json" \
 			-d "@${1}" \
 			-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+		jq < ${result_file}
 }
 
 getradiusconfig() {
@@ -732,7 +733,7 @@ getradiusconfig() {
 			-H "Content-Type: application/json" \
 			-H "Accept: application/json" \
 			-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+		jq < ${result_file}
 }
 
 deleteradiusconfig() {
@@ -748,66 +749,66 @@ connectionstatistics() {
 			-H "Content-Type: application/json" \
 			-H "Accept: application/json" \
 			-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+		jq < ${result_file}
 }
 
 testtoken() {
-    login
-    systeminfo
-    logout
-    systeminfo
+	login
+		systeminfo
+			logout
+				systeminfo
 }
 
 # retreive the stats for a snigle device for the last 7 days
 stats7() {
-    now=$(date +%s)
-    len=$((7 * 24 * 60 * 60))
-    start=$((now - len))
-    offset=0
-    records=100
-    while [ ${records} == 100 ]
-    do
-        curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?startDate=${start}&endDate=${now}&offset=${offset}&limit=100" \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/json" \
-            -H "Authorization: Bearer ${token}"   > ${result_file}
+	now=$(date +%s)
+		len=$((7 * 24 * 60 * 60))
+			start=$((now - len))
+				offset=0
+		records=100
+					  while [ ${records} == 100 ]
+					  do
+					  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?startDate=${start}&endDate=${now}&offset=${offset}&limit=100" \
+					  -H "Content-Type: application/json" \
+					  -H "Accept: application/json" \
+					  -H "Authorization: Bearer ${token}"   > ${result_file}
 #        jq < ${result_file}
-        records=$(jq '.data | length' ${result_file})
-        offset=$((offset + ${records}))
-        echo "Downloaded ${records} records. New offset is ${offset}"
-        if [[ ${records} != 100 ]]
-        then
-            break
-        fi
-    done
+				  records=$(jq '.data | length' ${result_file})
+					  offset=$((offset + ${records}))
+						  echo "Downloaded ${records} records. New offset is ${offset}"
+		if [[ ${records} != 100 ]]
+		then
+		break
+		fi
+			done
 
 }
 
 stats7count() {
-    now=$(date +%s)
-    len=$((7 * 24 * 60 * 60))
-    start=$((now - len))
-    curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?startDate=${start}&endDate=${now}&countOnly=true" \
-        -H "Content-Type: application/json" \
-        -H "Accept: application/json" \
-        -H "Authorization: Bearer ${token}"   > ${result_file}
-    jq < ${result_file}
+	now=$(date +%s)
+		len=$((7 * 24 * 60 * 60))
+			start=$((now - len))
+							curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?startDate=${start}&endDate=${now}&countOnly=true" \
+						-H "Content-Type: application/json" \
+						-H "Accept: application/json" \
+						-H "Authorization: Bearer ${token}"   > ${result_file}
+					jq < ${result_file}
 }
 
 listscripts() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/scripts" \
-	  -H "Content-Type: application/json" \
-	  -H "Accept: application/json" \
-	  -H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
 }
 
 getscript() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/script/$1" \
-		-H "Content-Type: application/json" \
-		-H "Accept: application/json" \
-		-H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
 }
 
 regulatory() {
@@ -828,64 +829,64 @@ regulatory_reload() {
 
 check_response() {
 
-    if [ -s "$1" ]; then
-        ERROR_CODE="$(jq -r '.ErrorCode' < $1)"
+	if [ -s "$1" ]; then
+		ERROR_CODE="$(jq -r '.ErrorCode' < $1)"
 
-        if [[ -n "$ERROR_CODE" && "$ERROR_CODE" != 'null' ]]; then
-            echo "Error: got HTTP error code $ERROR_CODE, exiting"
-            exit 1
-        fi
+		if [[ -n "$ERROR_CODE" && "$ERROR_CODE" != 'null' ]]; then
+		echo "Error: got HTTP error code $ERROR_CODE, exiting"
+		exit 1
+		fi
 
-    else
-        echo "Error: result file not found or empty"
-        exit 1
-    fi
+		else
+		echo "Error: result file not found or empty"
+		exit 1
+		fi
 }
 
 test_service() {
 	echo
-	echo "----------------------"
-	echo "Get system information"
-	echo "----------------------"
-	systeminfo
-	check_response $result_file
+		echo "----------------------"
+		echo "Get system information"
+		echo "----------------------"
+		systeminfo
+			check_response $result_file
 
-	echo
-	echo "-----------------"
-	echo "Get device status"
-	echo "-----------------"
-	SECONDS=0
-	TIMEOUT_SECONDS=900
+				echo
+					echo "-----------------"
+		echo "Get device status"
+		echo "-----------------"
+		SECONDS=0
+		TIMEOUT_SECONDS=900
 
-	while (( $SECONDS < $TIMEOUT_SECONDS )); do
-	    getdevicestatus $1
-	    check_response $result_file
-	    DEVICE_STATUS="$(jq -r '.connected' < $result_file)"
+		while (( $SECONDS < $TIMEOUT_SECONDS )); do
+		getdevicestatus $1
+			check_response $result_file
+				DEVICE_STATUS="$(jq -r '.connected' < $result_file)"
 
-	    if [ "$DEVICE_STATUS" != true ]; then
-	        echo "Waiting for AP to connect, $SECONDS elapsed"
+			if [ "$DEVICE_STATUS" != true ]; then
+			echo "Waiting for AP to connect, $SECONDS elapsed"
 		sleep 10
-	    else
-	        jq < $result_file
+		else
+		jq < $result_file
 		break
-	    fi
+		fi
 
-        done
+			done
 
-	if (( $SECONDS >= $TIMEOUT_SECONDS )); then
-	    echo "Error: timed out waiting for AP to connect"
-	    exit 1
-	fi
+		if (( $SECONDS >= $TIMEOUT_SECONDS )); then
+		echo "Error: timed out waiting for AP to connect"
+		exit 1
+		fi
 
-	echo
-	echo "--------------------"
-	echo "Create network trace"
-	echo "--------------------"
-	trace $1 5 up
-	check_response $result_file
-	TRACE_STATUS="$(jq -r '.status' < $result_file)"
+			echo
+				echo "--------------------"
+		echo "Create network trace"
+		echo "--------------------"
+		trace "$1" 5 up
+			check_response $result_file
+				TRACE_STATUS="$(jq -r '.status' < $result_file)"
 
-	if [ "$TRACE_STATUS" != 'completed' ]; then
+		if [ "$TRACE_STATUS" != 'completed' ]; then
 	    echo "Error: failed to create network trace"
 	    exit 1
 	fi
@@ -898,28 +899,28 @@ test_service() {
 	echo "-----------------"
 	getfile $1 $TRACE_ID
 
-	TRACE_RESPONSE="$(jq < $TRACE_ID.pcap 2>/dev/null)"
+	TRACE_RESPONSE="$(jq < "$TRACE_ID".pcap 2>/dev/null)"
 
 	if [ $? -eq 0 ]; then
-	    check_response $TRACE_ID.pcap
-	else
-	    echo "Successfully downloaded trace to file $TRACE_ID.pcap"
-	fi
+		check_response $TRACE_ID.pcap
+		else
+		echo "Successfully downloaded trace to file $TRACE_ID.pcap"
+		fi
 
-	echo
-	echo "-----------------------------"
-	echo "Create and start RTTY session"
-	echo "-----------------------------"
-	rtty $1
-	check_response $result_file
-	RTTY_STATUS="$(curl ${FLAGS} -L -v $url 2>&1 | awk '/200/')"
+			echo
+				echo "-----------------------------"
+		echo "Create and start RTTY session"
+		echo "-----------------------------"
+		rtty "$1"
+		check_response $result_file
+			RTTY_STATUS="$(curl ${FLAGS} -L -v $url 2>&1 | awk '/200/')"
 
-	if [[ -z "$RTTY_STATUS" ]]; then
-	    echo "Error: failed to start RTTY session, HTTP status code $RTTY_STATUS"
-	    exit 1
-	else
-	    echo "RTTY session at $url was successfully started"
-	fi
+		if [[ -z "$RTTY_STATUS" ]]; then
+		echo "Error: failed to start RTTY session, HTTP status code $RTTY_STATUS"
+		exit 1
+		else
+		echo "RTTY session at $url was successfully started"
+		fi
 }
 
 help() {
@@ -1075,7 +1076,7 @@ case "$1" in
 	"getloglevels") login; getloglevels; logout ;;
 	"getloglevelnames") login; getloglevelnames; logout ;;
 	"getsubsystemnames") login; getsubsystemnames; logout ;;
-	"reloadsubsystem") login; reloadsubsystem; logout ;;
+	"reloadsubsystem") login; reloadsubsystem "$2"; logout ;;
 	"systeminfo") login; systeminfo ; logout;;
 	"ouilookup") login; ouilookup "$2"; logout;;
 	"telemetry") login; telemetry "$2"; logout;;
