@@ -530,6 +530,7 @@ namespace OpenWifi {
 							EndPoint->DeviceInBuf_->drain(RTTY_HDR_SIZE);
 						} else {
 							good = false;
+							std::cout << "Funky..." << EndPoint->DeviceInBuf_->used() << std::endl;
 							continue;
 						}
 					}
