@@ -194,6 +194,7 @@ namespace OpenWifi {
 							Poco::Net::HTTPServerResponse &response, const std::string &Id);
 
 		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator EndConnection(std::shared_ptr<RTTYS_EndPoint> Connection, std::uint64_t l);
+		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator EndConnection(std::lock_guard<std::shared_mutex> &Lock, std::shared_ptr<RTTYS_EndPoint> Connection, std::uint64_t l);
 
 		Poco::Net::SocketReactor &Reactor() { return Reactor_; }
 

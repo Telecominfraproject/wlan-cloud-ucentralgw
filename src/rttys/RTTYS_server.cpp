@@ -814,12 +814,12 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:janitor");
 		static auto LastStats = Utils::Now();
 
-		std::lock_guard Guard(EndPointsMutex_);
+		std::lock_guard Lock(EndPointsMutex_);
 		auto Now = std::chrono::high_resolution_clock::now();
 		std::set<int> DS, CS;
 		for (auto EndPoint = EndPoints_.begin(); EndPoint != EndPoints_.end();) {
 			if ((Now - EndPoint->second->Created_) > 2min && !EndPoint->second->completed_) {
-				EndPoint = EndConnection(EndPoint->second,__LINE__);
+				EndPoint = EndConnection(Lock,EndPoint->second,__LINE__);
 			} else {
 				++EndPoint;
 			}
@@ -838,6 +838,22 @@ namespace OpenWifi {
 		}
 
 		//		std::cout << "OnTimer: End" << std::endl;
+	}
+
+	std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator  RTTYS_server::EndConnection([[maybe_unused]] std::lock_guard<std::shared_mutex> &Lock,std::shared_ptr<RTTYS_EndPoint> Connection, std::uint64_t line) {
+		if(Connection->DeviceSocket_!= nullptr) {
+			Connection->DeviceDisconnected_ = std::chrono::high_resolution_clock::now();
+			TotalConnectedDeviceTime_ += Connection->DeviceDisconnected_ - Connection->DeviceConnected_;
+			RemoveConnectedDeviceEventHandlers(*Connection->DeviceSocket_);
+		}
+		if(Connection->WSSocket_!= nullptr) {
+			Connection->ClientDisconnected_ = std::chrono::high_resolution_clock::now();
+			TotalConnectedClientTime_ += Connection->ClientDisconnected_ - Connection->ClientConnected_;
+			RemoveClientEventHandlers(*Connection->WSSocket_);
+		}
+		auto hint = EndPoints_.find(Connection->Id_);
+		std::cout << "EndConnection: " << line << std::endl;
+		return EndPoints_.erase(hint);
 	}
 
 	std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator  RTTYS_server::EndConnection(std::shared_ptr<RTTYS_EndPoint> Connection, std::uint64_t line) {
