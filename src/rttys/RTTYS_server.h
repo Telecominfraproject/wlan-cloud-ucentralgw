@@ -190,8 +190,8 @@ namespace OpenWifi {
 
 		void CloseDevice(std::shared_ptr<RTTYS_EndPoint> Device);
 		void CloseClient(std::shared_ptr<RTTYS_EndPoint> Client);
-		void CloseConnection(std::lock_guard<std::shared_mutex> &Lock, std::shared_ptr<RTTYS_EndPoint> Connection);
-		void CloseClientConnection(std::lock_guard<std::shared_mutex> &Lock, std::shared_ptr<RTTYS_EndPoint> Connection);
+		void CloseConnection(std::shared_ptr<RTTYS_EndPoint> Connection);
+		void CloseClientConnection(std::shared_ptr<RTTYS_EndPoint> Connection);
 		inline auto Uptime() const { return Utils::Now() - Started_; }
 
 		void CreateWSClient(Poco::Net::HTTPServerRequest &request,
