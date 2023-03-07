@@ -163,39 +163,37 @@ namespace OpenWifi {
 		std::string ReadString(unsigned char *buf, int len, int &pos);
 		void onDeviceAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 
-		void onDeviceSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
-		void onDeviceSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
-		void onDeviceSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
+		void onConnectedDeviceSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
+		void onConnectedDeviceSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
+		void onConnectedDeviceSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
 		void onClientSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void onClientSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onClientSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
-		void RemoveConnectingDeviceEventHandlers(std::lock_guard<std::shared_mutex> &Lock,Poco::Net::StreamSocket &Socket);
+		void RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
 		void RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket);
-		void RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
+		void RemoveConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
 
 		void AddConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
 		void AddClientEventHandlers(Poco::Net::StreamSocket &Socket,
 									std::shared_ptr<RTTYS_EndPoint> EndPoint);
-		void AddDeviceEventHandlers(Poco::Net::StreamSocket &Socket,
+		void AddConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket,
 									std::shared_ptr<RTTYS_EndPoint> EndPoint);
 
 		void onConnectingDeviceData(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void onConnectingDeviceShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onConnectingDeviceError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
-		bool do_msgTypeRegister(std::lock_guard<std::shared_mutex> &Lock, Poco::Net::StreamSocket &Socket, unsigned char *Buffer, int Len);
+		bool do_msgTypeRegister(Poco::Net::StreamSocket &Socket, unsigned char *Buffer, int Len);
 		bool do_msgTypeHeartbeat(Poco::Net::StreamSocket &Socket);
 
-		void CloseDevice(std::shared_ptr<RTTYS_EndPoint> Device);
-		void CloseClient(std::shared_ptr<RTTYS_EndPoint> Client);
-		void CloseConnection(std::shared_ptr<RTTYS_EndPoint> Connection);
-		void CloseClientConnection(std::shared_ptr<RTTYS_EndPoint> Connection);
 		inline auto Uptime() const { return Utils::Now() - Started_; }
 
 		void CreateWSClient(Poco::Net::HTTPServerRequest &request,
 							Poco::Net::HTTPServerResponse &response, const std::string &Id);
+
+		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator EndConnection(std::shared_ptr<RTTYS_EndPoint> Connection);
 
 		Poco::Net::SocketReactor &Reactor() { return Reactor_; }
 
