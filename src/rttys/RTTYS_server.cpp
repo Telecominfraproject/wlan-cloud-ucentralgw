@@ -495,6 +495,7 @@ namespace OpenWifi {
 				Connection->Login();
 				std::cout << __LINE__ << std::endl;
 			}
+			std::cout << __LINE__ << std::endl;
 
 			return true;
 		} catch (...) {
