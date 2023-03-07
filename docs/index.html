@@ -2072,7 +2072,8 @@ ul.nav-tabs {
       "enum" : [ "shell", "bundle", "diagnostic" ]
     },
     "script" : {
-      "type" : "string"
+      "type" : "string",
+      "description" : "This is the content of the script and must be encoded with base64. This is only for a ScriptRequest"
     },
     "scriptId" : {
       "type" : "string"
@@ -5560,7 +5561,7 @@ $(document).ready(function() {
                         <p class="marked"></p>
                         <p></p>
                         <br />
-                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/device/{serialNumber}/script</span></code></pre>
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/device/{serialNumber}/</span></code></pre>
                         <p>
                           <h3>Usage and SDK Samples</h3>
                         </p>
@@ -5585,7 +5586,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/script" \
+ "https://localhost:16001/api/v1/device/{serialNumber}/" \
  -d '{
   &quot;deferred&quot; : true,
   &quot;scriptId&quot; : &quot;scriptId&quot;,
