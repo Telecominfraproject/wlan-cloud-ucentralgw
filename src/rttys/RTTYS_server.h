@@ -173,6 +173,7 @@ namespace OpenWifi {
 		void onClientSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onClientSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
+		void RemoveConnectingDeviceEventHandlers(std::unique_lock<std::shared_mutex> &Lock,Poco::Net::StreamSocket &Socket);
 		void RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
 		void RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket);
 		void RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
@@ -192,7 +193,7 @@ namespace OpenWifi {
 
 		void CloseDevice(std::shared_ptr<RTTYS_EndPoint> Device);
 		void CloseClient(std::shared_ptr<RTTYS_EndPoint> Client);
-		void CloseConnection(std::shared_ptr<RTTYS_EndPoint> Connection);
+		void CloseConnection(std::unique_lock<std::shared_mutex> &Lock, std::shared_ptr<RTTYS_EndPoint> Connection);
 
 		inline auto Uptime() const { return Utils::Now() - Started_; }
 
@@ -207,6 +208,7 @@ namespace OpenWifi {
 		inline std::shared_ptr<RTTYS_EndPoint> FindConnection(const std::string &Id,
 															  const std::string &Token) {
 			std::shared_ptr<RTTYS_EndPoint> Res;
+			std::shared_lock	Lock(EndPointsMutex_);
 			auto EndPoint = EndPoints_.find(Id);
 			if (EndPoint != end(EndPoints_) && EndPoint->second->Token_ == Token) {
 				Res = EndPoint->second;
@@ -217,6 +219,9 @@ namespace OpenWifi {
 		void LogStdException(const std::exception &E, const char *msg);
 
 	  private:
+		std::shared_mutex		EndPointsMutex_;
+		std::shared_mutex		ConnectionsMutex_;
+		std::shared_mutex		ConnectingDevicesMutex_;
 		Poco::Net::SocketReactor Reactor_;
 		Poco::Thread ReactorThread_;
 		std::string RTTY_UIAssets_;
@@ -234,7 +239,7 @@ namespace OpenWifi {
 
 		Poco::Timer Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>> GCCallBack_;
-		std::mutex ServerMutex_;
+		// std::mutex ServerMutex_;
 
 		std::atomic_uint64_t TotalEndPoints_ = 0;
 		std::chrono::duration<double, std::milli> TotalConnectedDeviceTime_{0ms},
