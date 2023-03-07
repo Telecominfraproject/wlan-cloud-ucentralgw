@@ -517,6 +517,7 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
+		std::string EncodedScript;
 		if (!SCR.scriptId.empty()) {
 			GWObjects::ScriptEntry Existing;
 			if (!StorageService()->ScriptDB().GetRecord("id", SCR.scriptId, Existing)) {
@@ -548,11 +549,16 @@ namespace OpenWifi {
 				SCR.deferred = Existing.deferred;
 			if (!ParsedBody_->has("timeout"))
 				SCR.timeout = Existing.timeout;
+			EncodedScript =
+				Utils::base64encode((const unsigned char *)SCR.script.c_str(), SCR.script.size());
 		} else {
 			if (!DiagnosticScript && !ValidateScriptType(SCR.type)) {
 				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,
 							 RESTAPI::Errors::MissingOrInvalidParameters);
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
+			if(!DiagnosticScript) {
+				EncodedScript = SCR.script;
 			}
 		}
 
@@ -593,8 +599,6 @@ namespace OpenWifi {
 		}
 
 		// convert script to base64 ...
-		auto EncodedScript =
-			Utils::base64encode((const unsigned char *)SCR.script.c_str(), SCR.script.size());
 		Params.set(uCentralProtocol::TYPE, SCR.type);
 		if (!DiagnosticScript) {
 			Params.set(uCentralProtocol::SCRIPT, EncodedScript);
