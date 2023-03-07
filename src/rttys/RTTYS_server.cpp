@@ -865,6 +865,7 @@ namespace OpenWifi {
 		if (MaxConcurrentSessions_ != 0 && EndPoints_.size() == MaxConcurrentSessions_) {
 			return false;
 		}
+		std::cout << "Adding " << Id << std::endl;
 		EndPoints_[Id] = std::make_unique<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName, mTLS);
 		++TotalEndPoints_;
 		return true;
