@@ -515,7 +515,7 @@ namespace OpenWifi::GWObjects {
 	void FrequencyRange::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj, "from", from);
 		field_to_json(Obj, "to", to);
-		field_to_json(Obj, "bw", bw);
+		field_to_json(Obj, "channelWidth", channelWidth);
 		field_to_json(Obj, "powerDb", powerDb);
 		field_to_json(Obj, "options", options);
 	}

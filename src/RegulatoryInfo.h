@@ -126,7 +126,7 @@ namespace OpenWifi {
 						if(inCountry) {
 							GWObjects::FrequencyRange  fr;
 							auto tokens = Poco::StringTokenizer(line,",", Poco::StringTokenizer::TOK_TRIM);
-							std::sscanf(tokens[0].c_str(),"(%f - %f @ %d)", &fr.from, &fr.to, &fr.bw);
+							std::sscanf(tokens[0].c_str(),"(%f - %f @ %d)", &fr.from, &fr.to, &fr.channelWidth);
 							if(tokens[1].find("mW")!=std::string::npos) {
 								int temp_pwr;
 								std::sscanf(tokens[1].c_str(),"(%d mW)", &temp_pwr);

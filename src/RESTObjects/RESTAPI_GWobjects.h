@@ -353,7 +353,7 @@ namespace OpenWifi::GWObjects {
 	struct FrequencyRange {
 		float from = 0.0;
 		float to = 0.0;
-		int bw = 0;
+		int channelWidth = 0;
 		int powerDb = 0;
 		RangeOptions    options;
 
