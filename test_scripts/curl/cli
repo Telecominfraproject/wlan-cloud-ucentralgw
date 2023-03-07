@@ -9,52 +9,51 @@
 #
 
 if [[ "$(which jq)" == "" ]]
-	then
-		echo "You need the package jq installed to use this script."
-		exit 1
-		fi
+then
+  echo "You need the package jq installed to use this script."
+  exit 1
+fi
 
-		if [[ "$(which curl)" == "" ]]
-		then
-			echo "You need the package curl installed to use this script."
-		exit 1
-		fi
+if [[ "$(which curl)" == "" ]]
+then
+  echo "You need the package curl installed to use this script."
+exit 1
+fi
 
-		if [[ -z "${OWSEC}" || -z "${OWSEC_USERNAME}" || -z "${OWSEC_PASSWORD}" ]]
-		then
-			echo "You must set the variables OWSEC, OWSEC_USERNAME, and OWSEC_PASSWORD in order to use this script. Something like"
-		echo "export OWSEC=security.isp.com:16001"
-		echo "export OWSEC_USERNAME=theusername@domain.com"
-		echo "export OWSEC_PASSWORD=mytoughpassword"
-		exit 1
-		fi
+if [[ -z "${OWSEC}" || -z "${OWSEC_USERNAME}" || -z "${OWSEC_PASSWORD}" ]]
+then
+  echo "You must set the variables OWSEC, OWSEC_USERNAME, and OWSEC_PASSWORD in order to use this script. Something like"
+  echo "export OWSEC=security.isp.com:16001"
+  echo "export OWSEC_USERNAME=theusername@domain.com"
+  echo "export OWSEC_PASSWORD=mytoughpassword"
+  exit 1
+fi
 
-			username=${OWSEC_USERNAME}
-	password=${OWSEC_PASSWORD}
+username=${OWSEC_USERNAME}
+password=${OWSEC_PASSWORD}
 
 if [[ "${FLAGS}" == "" ]]
-	then
-		FLAGS="-s"
-		fi
+then
+  FLAGS="-s"
+fi
 
-			token=""
-		result_file=result.json
-						  browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
-			browser=""
+token=""
+result_file=result.json
+browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
+browser=""
 
 
-		login() {
-		payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
-			token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token')
-#	curl -v -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token'
-						if [[ "${token}" == "" ]]
-					then
-						echo "Could not login. Please verify the host and username/password."
-					exit 13
-					fi
-						echo "${token}" > token.json
-											  setgateway
-	}
+login() {
+  payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
+  token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token')
+  if [[ "${token}" == "" ]]
+  then
+    echo "Could not login. Please verify the host and username/password."
+    exit 13
+  fi
+  echo "${token}" > token.json
+  setgateway
+}
 
 findbrowser() {
 	if [[ "${browser}" != "" ]]
@@ -548,17 +547,16 @@ rtty() {
 
 	if [[ "$2" != "noconnect" ]]
 		then
-			cid=$(cat ${result_file} | jq -r '.connectionId')
-				vport=$(cat ${result_file} | jq -r '.viewport')
-					server=$(cat ${result_file} | jq -r '.server')
-						url=https://${server}:${vport}/connect/${cid}
-
-									  findbrowser
-									  if [[ "${browser}" != "" ]]
-									  then
-										  ${browser} ${url}
-									  fi
-										  fi
+      cid=$(cat ${result_file} | jq -r '.connectionId')
+      vport=$(cat ${result_file} | jq -r '.viewport')
+      server=$(cat ${result_file} | jq -r '.server')
+      url=https://${server}:${vport}/connect/${cid}
+      findbrowser
+      if [[ "${browser}" != "" ]]
+      then
+        ${browser} ${url}
+      fi
+  fi
 }
 
 laststats() {
@@ -643,13 +641,13 @@ telemetry() {
 				  -d "$payload"  > ${result_file}
 			  jq < ${result_file}
 			  socket=$(jq -r '.uri' < result.json)
-						   if [[ "$(which wscat)" == "" ]]
-					   then
-						   echo "wscat command not found. Cannot start a websocket session."
-					   else
-					   wscat \
-					   -c "${socket}"
-					   fi
+  if [[ "$(which wscat)" == "" ]]
+  then
+    echo "wscat command not found. Cannot start a websocket session."
+  else
+    wscat \
+      -c "${socket}"
+  fi
 }
 
 notifications() {
@@ -685,6 +683,16 @@ telemetry_to_kafka() {
 runscript() {
 	scriptcontent=$(base64 -i $3)
 	payload="$(printf '{ "serialNumber": "%s", "type": "%s" , "timeout": 30, "script" : "%s" , "deferred" : false, "when" : 0 }' "$1" "$2" "$scriptcontent" )"
+	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/script" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
+runscriptname() {
+	payload="$(printf '{ "serialNumber": "%s", "type": "%s" , "timeout": 30, "scriptId" : "%s" , "when" : 0 }' "$1" "$2" "$3" )"
 	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/script" \
 				  -H "Content-Type: application/json" \
 				  -H "Accept: application/json" \
@@ -833,14 +841,13 @@ check_response() {
 		ERROR_CODE="$(jq -r '.ErrorCode' < $1)"
 
 		if [[ -n "$ERROR_CODE" && "$ERROR_CODE" != 'null' ]]; then
-		echo "Error: got HTTP error code $ERROR_CODE, exiting"
-		exit 1
+      echo "Error: got HTTP error code $ERROR_CODE, exiting"
+      exit 1
 		fi
-
-		else
-		echo "Error: result file not found or empty"
-		exit 1
-		fi
+  else
+    echo "Error: result file not found or empty"
+    exit 1
+  fi
 }
 
 test_service() {
@@ -1087,14 +1094,15 @@ case "$1" in
 	"validateconfig") login; validateconfig  "$2" ; logout ;;
 	"wstest") login; wstest; logout;;
 	"caplist") login; caplist; logout;;
-	"iptocountry") login; iptocountry $2; logout;;
-	"test_service") login; test_service $2; logout;;
-	"runscript") login; runscript $2 $3 $4; logout;;
+	"iptocountry") login; iptocountry "$2"; logout;;
+	"test_service") login; test_service "$2"; logout;;
+	"runscript") login; runscript "$2" "$3" "$4"; logout;;
+	"runscriptname") login; runscriptname "$2" "$3" "$4"; logout;;
 	"getradiusconfig") login; getradiusconfig ; logout;;
-	"setradiusconfig") login; setradiusconfig $2; logout;;
+	"setradiusconfig") login; setradiusconfig "$2"; logout;;
 	"deleteradiusconfig") login; deleteradiusconfig ; logout;;
-	"deviceping") login; deviceping $2; logout;;
-	"connectionstatistics") login; connectionstatistics $2; logout;;
+	"deviceping") login; deviceping "$2"; logout;;
+	"connectionstatistics") login; connectionstatistics "$2"; logout;;
 	"notifications") login; notifications "$2"; logout;;
 	"stats7") login; stats7 "$2"; logout;;
 	"stats7count") login; stats7count "$2"; logout;;

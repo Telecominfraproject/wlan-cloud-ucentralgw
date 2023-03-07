@@ -197,7 +197,7 @@ namespace OpenWifi {
 			const auto Tokens =
 				Poco::StringTokenizer(ContentType, ";", Poco::StringTokenizer::TOK_TRIM);
 
-			poco_debug(Logger(), fmt::format("{}: Preparing to upload trace file.", UUID_));
+			poco_debug(Logger(), fmt::format("{}: Preparing to upload a file.", UUID_));
 			Poco::JSON::Object Answer;
 
 			try {
@@ -241,11 +241,11 @@ namespace OpenWifi {
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
 			} catch (...) {
-				poco_debug(Logger(), "Exception while receiving trace file.");
+				poco_debug(Logger(), "Exception while receiving uploaded file.");
 			}
 
-			poco_debug(Logger(), fmt::format("{}: Failed to upload trace file.", UUID_));
-			std::string Error{"Trace file rejected"};
+			poco_debug(Logger(), fmt::format("{}: Failed to upload a file.", UUID_));
+			std::string Error{"File rejected"};
 			StorageService()->CancelWaitFile(UUID_, Error);
 			Answer.set("filename", UUID_);
 			Answer.set("error", 13);
