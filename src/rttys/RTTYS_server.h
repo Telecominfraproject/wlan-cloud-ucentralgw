@@ -99,8 +99,6 @@ namespace OpenWifi {
 			return std::chrono::duration<double>{ClientDisconnected_ - ClientConnected_}.count();
 		}
 
-		[[nodiscard]] bool do_msgTypeRegister(Poco::Net::Socket &Socket, Poco::Buffer<char> &B,
-											  [[maybe_unused]] std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeLogin(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeLogout(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeTermData(std::size_t msg_len);
@@ -188,7 +186,7 @@ namespace OpenWifi {
 		void onConnectingDeviceShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onConnectingDeviceError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
-		bool do_msgTypeRegister(Poco::Net::StreamSocket &Socket, unsigned char *Buffer, int Len);
+		bool do_msgTypeRegister(std::unique_lock<std::shared_mutex> &Lock, Poco::Net::StreamSocket &Socket, unsigned char *Buffer, int Len);
 		bool do_msgTypeHeartbeat(Poco::Net::StreamSocket &Socket);
 
 		void CloseDevice(std::shared_ptr<RTTYS_EndPoint> Device);

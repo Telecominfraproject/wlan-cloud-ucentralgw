@@ -384,7 +384,7 @@ namespace OpenWifi {
 			bool good = true;
 			switch (Buffer[0]) {
 			case RTTYS_EndPoint::msgTypeRegister: {
-				good = do_msgTypeRegister(ConnectingDevice->second.first, Buffer, ReceivedBytes);
+				good = do_msgTypeRegister(Lock,ConnectingDevice->second.first, Buffer, ReceivedBytes);
 			} break;
 			case RTTYS_EndPoint::msgTypeHeartbeat: {
 				good = do_msgTypeHeartbeat(ConnectingDevice->second.first);
@@ -411,7 +411,7 @@ namespace OpenWifi {
 		}
 	}
 
-	bool RTTYS_server::do_msgTypeRegister(Poco::Net::StreamSocket &Socket, unsigned char *Buffer,
+	bool RTTYS_server::do_msgTypeRegister(std::unique_lock<std::shared_mutex> &Lock, Poco::Net::StreamSocket &Socket, unsigned char *Buffer,
 										  int Len) {
 		bool good = true;
 		try {
@@ -484,7 +484,7 @@ namespace OpenWifi {
 								id_, desc_));
 				return false;
 			}
-			RemoveConnectingDeviceEventHandlers(Socket);
+			RemoveConnectingDeviceEventHandlers(Lock,Socket);
 			Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			Connection->old_rtty_ = old_rtty_;
