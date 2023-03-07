@@ -172,7 +172,6 @@ namespace OpenWifi {
 		void onClientSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
 		void RemoveConnectingDeviceEventHandlers(std::lock_guard<std::shared_mutex> &Lock,Poco::Net::StreamSocket &Socket);
-		void RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
 		void RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket);
 		void RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
 

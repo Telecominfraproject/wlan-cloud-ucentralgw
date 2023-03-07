@@ -243,11 +243,6 @@ namespace OpenWifi {
 		}
 	}
 
-	void RTTYS_server::RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
-		std::lock_guard	Lock(ConnectingDevicesMutex_);
-		RemoveConnectingDeviceEventHandlers(Lock,Socket);
-	}
-
 	void RTTYS_server::RemoveConnectingDeviceEventHandlers([[maybe_unused]] std::lock_guard<std::shared_mutex> &Lock,Poco::Net::StreamSocket &Socket) {
 		if (ConnectingDevices_.find(Socket.impl()->sockfd()) == ConnectingDevices_.end()) {
 			std::cout << "Could not find connecting device socket" << std::endl;
@@ -484,21 +479,29 @@ namespace OpenWifi {
 								id_, desc_));
 				return false;
 			}
+			std::cout << __LINE__ << std::endl;
 			RemoveConnectingDeviceEventHandlers(Lock,Socket);
+			std::cout << __LINE__ << std::endl;
 			Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			Connection->old_rtty_ = old_rtty_;
 			Connection->session_length_ = session_length_;
+			std::cout << __LINE__ << std::endl;
 			AddDeviceEventHandlers(*Connection->DeviceSocket_, Connection);
+			std::cout << __LINE__ << std::endl;
 
 			if (Connection->WSSocket_ != nullptr) {
+				std::cout << __LINE__ << std::endl;
 				Connection->Login();
+				std::cout << __LINE__ << std::endl;
 			}
 
 			return true;
 		} catch (...) {
+			std::cout << __LINE__ << std::endl;
 			good = false;
 		}
+		std::cout << __LINE__ << std::endl;
 		return good;
 	}
 
