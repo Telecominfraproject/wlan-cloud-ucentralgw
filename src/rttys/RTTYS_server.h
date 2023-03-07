@@ -192,7 +192,7 @@ namespace OpenWifi {
 		void CloseDevice(std::shared_ptr<RTTYS_EndPoint> Device);
 		void CloseClient(std::shared_ptr<RTTYS_EndPoint> Client);
 		void CloseConnection(std::lock_guard<std::shared_mutex> &Lock, std::shared_ptr<RTTYS_EndPoint> Connection);
-
+		void CloseClientConnection(std::lock_guard<std::shared_mutex> &Lock, std::shared_ptr<RTTYS_EndPoint> Connection);
 		inline auto Uptime() const { return Utils::Now() - Started_; }
 
 		void CreateWSClient(Poco::Net::HTTPServerRequest &request,
@@ -218,8 +218,9 @@ namespace OpenWifi {
 
 	  private:
 		std::shared_mutex		EndPointsMutex_;
-		std::shared_mutex		ConnectionsMutex_;
+		std::shared_mutex		ConnectedDevicesMutex_;
 		std::shared_mutex		ConnectingDevicesMutex_;
+		std::shared_mutex		ClientsMutex_;
 		Poco::Net::SocketReactor Reactor_;
 		Poco::Thread ReactorThread_;
 		std::string RTTY_UIAssets_;
@@ -229,8 +230,9 @@ namespace OpenWifi {
 
 		std::unique_ptr<Poco::Net::HTTPServer> WebServer_;
 
-		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>> EndPoints_; //	id, endpoint
-		std::map<int, std::shared_ptr<RTTYS_EndPoint>> Connections_;
+		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>> 	EndPoints_; //	id, endpoint
+		std::map<int, std::shared_ptr<RTTYS_EndPoint>> 			ConnectedDevices_;
+		std::map<int, std::shared_ptr<RTTYS_EndPoint>> 			Clients_;
 		std::map<int, std::pair<Poco::Net::StreamSocket,
 								std::chrono::time_point<std::chrono::high_resolution_clock>>>
 			ConnectingDevices_;

@@ -266,12 +266,12 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket) {
-		std::lock_guard	Lock(ConnectionsMutex_);
-		if (Connections_.find(Socket.impl()->sockfd()) == Connections_.end()) {
+		std::lock_guard	Lock(ClientsMutex_);
+		if (Clients_.find(Socket.impl()->sockfd()) == Clients_.end()) {
 			std::cout << "Could not find client socket" << std::endl;
 		}
 		//		std::cout << "Client erase: " << Socket.impl()->sockfd() << std::endl;
-		Connections_.erase(Socket.impl()->sockfd());
+		Clients_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										*this, &RTTYS_server::onClientSocketReadable));
@@ -284,12 +284,12 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
-		std::lock_guard	Lock(ConnectionsMutex_);
-		if (Connections_.find(Socket.impl()->sockfd()) == Connections_.end()) {
+		std::lock_guard	Lock(ConnectedDevicesMutex_);
+		if (ConnectedDevices_.find(Socket.impl()->sockfd()) == ConnectedDevices_.end()) {
 			std::cout << "Could not find device socket" << std::endl;
 		}
 		//		std::cout << "Device erase: " << Socket.impl()->sockfd() << std::endl;
-		Connections_.erase(Socket.impl()->sockfd());
+		ConnectedDevices_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										*this, &RTTYS_server::onDeviceSocketReadable));
@@ -322,12 +322,12 @@ namespace OpenWifi {
 
 	void RTTYS_server::AddClientEventHandlers(Poco::Net::StreamSocket &Socket,
 											  std::shared_ptr<RTTYS_EndPoint> EndPoint) {
-		std::lock_guard	Lock(ConnectionsMutex_);
-		if (Connections_.find(Socket.impl()->sockfd()) != Connections_.end()) {
+		std::lock_guard	Lock(ClientsMutex_);
+		if (Clients_.find(Socket.impl()->sockfd()) != Clients_.end()) {
 			std::cout << "Client socket already exists" << std::endl;
 		}
 		//		std::cout << "Client socket  add: " << Socket.impl()->sockfd() << std::endl;
-		Connections_[Socket.impl()->sockfd()] = EndPoint;
+		Clients_[Socket.impl()->sockfd()] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 									 *this, &RTTYS_server::onClientSocketReadable));
@@ -341,12 +341,12 @@ namespace OpenWifi {
 
 	void RTTYS_server::AddDeviceEventHandlers(Poco::Net::StreamSocket &Socket,
 											  std::shared_ptr<RTTYS_EndPoint> EndPoint) {
-		std::lock_guard	Lock(ConnectionsMutex_);
-		if (Connections_.find(Socket.impl()->sockfd()) != Connections_.end()) {
+		std::lock_guard	Lock(ConnectedDevicesMutex_);
+		if (ConnectedDevices_.find(Socket.impl()->sockfd()) != ConnectedDevices_.end()) {
 			std::cout << "Device socket already exists" << std::endl;
 		}
 		//		std::cout << "Device socket add: " << Socket.impl()->sockfd() << std::endl;
-		Connections_[Socket.impl()->sockfd()] = EndPoint;
+		ConnectedDevices_[Socket.impl()->sockfd()] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 									 *this, &RTTYS_server::onDeviceSocketReadable));
@@ -536,13 +536,13 @@ namespace OpenWifi {
 	void RTTYS_server::onDeviceSocketReadable(
 		const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
-		std::lock_guard	Lock(ConnectionsMutex_);
-		auto Connection = Connections_.end();
+		std::lock_guard	Lock(ConnectedDevicesMutex_);
+		auto Connection = ConnectedDevices_.end();
 		std::shared_ptr<RTTYS_EndPoint> EndPoint;
 
 		try {
-			Connection = Connections_.find(pNf->socket().impl()->sockfd());
-			if (Connection == end(Connections_)) {
+			Connection = ConnectedDevices_.find(pNf->socket().impl()->sockfd());
+			if (Connection == end(ConnectedDevices_)) {
 				poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
 												   pNf->socket().impl()->sockfd()));
 				return;
@@ -623,11 +623,11 @@ namespace OpenWifi {
 				CloseConnection(Lock, EndPoint);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-			if (Connection != Connections_.end() && EndPoint != nullptr) {
+			if (Connection != ConnectedDevices_.end() && EndPoint != nullptr) {
 				CloseConnection(Lock, EndPoint);
 			}
 		} catch (...) {
-			if (Connection != Connections_.end() && EndPoint != nullptr) {
+			if (Connection != ConnectedDevices_.end() && EndPoint != nullptr) {
 				CloseConnection(Lock, EndPoint);
 			}
 		}
@@ -635,10 +635,10 @@ namespace OpenWifi {
 
 	void RTTYS_server::onDeviceSocketShutdown(
 		const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
-		std::lock_guard	Lock(ConnectionsMutex_);
+		std::lock_guard	Lock(ConnectedDevicesMutex_);
 
-		auto Device = Connections_.find(pNf->socket().impl()->sockfd());
-		if (Device == end(Connections_)) {
+		auto Device = ConnectedDevices_.find(pNf->socket().impl()->sockfd());
+		if (Device == end(ConnectedDevices_)) {
 			poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
 											   pNf->socket().impl()->sockfd()));
 			return;
@@ -647,10 +647,10 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::onDeviceSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
-		std::lock_guard Lock(ConnectionsMutex_);
+		std::lock_guard Lock(ConnectedDevicesMutex_);
 
-		auto Device = Connections_.find(pNf->socket().impl()->sockfd());
-		if (Device == end(Connections_)) {
+		auto Device = ConnectedDevices_.find(pNf->socket().impl()->sockfd());
+		if (Device == end(ConnectedDevices_)) {
 			poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
 											   pNf->socket().impl()->sockfd()));
 			return;
@@ -666,16 +666,24 @@ namespace OpenWifi {
 		}
 	}
 
+	void RTTYS_server::CloseClientConnection([[maybe_unused]] std::lock_guard<std::shared_mutex> &Lock, std::shared_ptr<RTTYS_EndPoint> Connection) {
+		if (Connection != nullptr) {
+			CloseDevice(Connection);
+			CloseClient(Connection);
+			EndPoints_.erase(Connection->Id_);
+		}
+	}
+
 	void RTTYS_server::onClientSocketReadable(
 		const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
-		std::lock_guard Lock(ConnectionsMutex_);
+		std::lock_guard Lock(ClientsMutex_);
 
-		auto Connection = Connections_.end();
+		auto Connection = Clients_.end();
 		std::shared_ptr<RTTYS_EndPoint> EndPoint;
 		try {
-			Connection = Connections_.find(pNf->socket().impl()->sockfd());
-			if (Connection == end(Connections_)) {
+			Connection = Clients_.find(pNf->socket().impl()->sockfd());
+			if (Connection == end(Clients_)) {
 				poco_warning(Logger(), fmt::format("Cannot find client socket: {}",
 												   pNf->socket().impl()->sockfd()));
 				return;
@@ -723,14 +731,14 @@ namespace OpenWifi {
 									auto rows = Doc["rows"];
 									if (!EndPoint->WindowSize(cols, rows)) {
 										poco_information(Logger(), "Winsize shutdown.");
-										return CloseConnection(Lock,EndPoint);
+										return CloseClientConnection(Lock,EndPoint);
 									}
 								}
 							}
 						} catch (...) {
 							// just ignore parse errors
 							poco_information(Logger(), "Frame text exception shutdown.");
-							return CloseConnection(Lock,EndPoint);
+							return CloseClientConnection(Lock,EndPoint);
 						}
 					}
 				}
@@ -738,21 +746,21 @@ namespace OpenWifi {
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
 				if (ReceivedBytes == 0) {
 					poco_trace(Logger(), "Client closing connection.");
-					return CloseConnection(Lock,EndPoint);
+					return CloseClientConnection(Lock,EndPoint);
 				} else {
 					poco_trace(Logger(),
 							   fmt::format("Sending {} key strokes to device.", ReceivedBytes));
 					if (EndPoint->DeviceSocket_ != nullptr) {
 						if (!EndPoint->KeyStrokes(FrameBuffer, ReceivedBytes)) {
 							poco_trace(Logger(), "Cannot send keys to device. Close connection.");
-							return CloseConnection(Lock,EndPoint);
+							return CloseClientConnection(Lock,EndPoint);
 						}
 					}
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
 				poco_trace(Logger(), "Frame close shutdown.");
-				return CloseConnection(Lock, EndPoint);
+				return CloseClientConnection(Lock, EndPoint);
 			} break;
 
 			default: {
@@ -760,8 +768,8 @@ namespace OpenWifi {
 			}
 		} catch (...) {
 			poco_error(Logger(), "Frame readable shutdown.");
-			if (Connection != Connections_.end() && EndPoint != nullptr) {
-				CloseConnection(Lock,EndPoint);
+			if (Connection != Clients_.end() && EndPoint != nullptr) {
+				CloseClientConnection(Lock,EndPoint);
 			}
 			return;
 		}
@@ -769,25 +777,25 @@ namespace OpenWifi {
 
 	void RTTYS_server::onClientSocketShutdown(
 		const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
-		std::lock_guard	Lock(ConnectionsMutex_);
-		auto Client = Connections_.find(pNf->socket().impl()->sockfd());
-		if (Client == end(Connections_)) {
+		std::lock_guard	Lock(ClientsMutex_);
+		auto Client = Clients_.find(pNf->socket().impl()->sockfd());
+		if (Client == end(Clients_)) {
 			poco_warning(Logger(), fmt::format("Cannot find client socket: {}",
 											   pNf->socket().impl()->sockfd()));
 			return;
 		}
-		return CloseConnection(Lock,Client->second);
+		return CloseClientConnection(Lock,Client->second);
 	}
 
 	void RTTYS_server::onClientSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
-		std::lock_guard	Lock(ConnectionsMutex_);
-		auto Client = Connections_.find(pNf->socket().impl()->sockfd());
-		if (Client == end(Connections_)) {
+		std::lock_guard	Lock(ClientsMutex_);
+		auto Client = Clients_.find(pNf->socket().impl()->sockfd());
+		if (Client == end(Clients_)) {
 			poco_warning(Logger(), fmt::format("Cannot find client socket: {}",
 											   pNf->socket().impl()->sockfd()));
 			return;
 		}
-		return CloseConnection(Lock, Client->second);
+		return CloseClientConnection(Lock, Client->second);
 	}
 
 	void RTTYS_server::SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const u_char *Buf,
@@ -802,7 +810,7 @@ namespace OpenWifi {
 				poco_information(Logger(), "SendData shutdown.");
 			}
 		}
-		std::lock_guard	Lock(ConnectionsMutex_);
+		std::lock_guard	Lock(ConnectedDevicesMutex_);
 		CloseConnection(Lock, Connection);
 	}
 
@@ -815,7 +823,7 @@ namespace OpenWifi {
 				poco_information(Logger(), "SendData shutdown.");
 			}
 		}
-		std::lock_guard	Lock(ConnectionsMutex_);
+		std::lock_guard	Lock(ConnectedDevicesMutex_);
 		CloseConnection(Lock, Connection);
 	}
 
@@ -911,7 +919,7 @@ namespace OpenWifi {
 				TotalEndPoints_, EndPoints_.size(),
 				TotalEndPoints_ ? TotalConnectedDeviceTime_.count() / (double)TotalEndPoints_ : 0.0,
 				TotalEndPoints_ ? TotalConnectedClientTime_.count() / (double)TotalEndPoints_ : 0.0,
-				Connections_.size(), ConnectingDevices_.size()));
+				ConnectedDevices_.size(), ConnectingDevices_.size()));
 		}
 
 		//		std::cout << "OnTimer: End" << std::endl;
