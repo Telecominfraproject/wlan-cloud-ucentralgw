@@ -39,9 +39,9 @@ namespace OpenWifi {
 								   fmt::format("({}): Invalid RPC response.", SerialNumberStr));
 					} else {
 						uint64_t ID = Payload->get(uCentralProtocol::ID);
-						poco_debug(Logger(), fmt::format("({}): Processing {} response.",
-														 SerialNumberStr, ID));
 						if (ID > 1) {
+							poco_debug(Logger(), fmt::format("({}): Processing {} response.",
+															 SerialNumberStr, ID));
 							std::lock_guard Lock(LocalMutex_);
 							auto RPC = OutStandingRequests_.find(ID);
 							if (RPC == OutStandingRequests_.end()) {

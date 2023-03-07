@@ -520,7 +520,13 @@ namespace OpenWifi {
 		std::string EncodedScript;
 		if (!SCR.scriptId.empty()) {
 			GWObjects::ScriptEntry Existing;
-			if (!StorageService()->ScriptDB().GetRecord("id", SCR.scriptId, Existing)) {
+			if(Utils::ValidUUID(SCR.scriptId)) {
+				if (!StorageService()->ScriptDB().GetRecord("id", SCR.scriptId, Existing)) {
+					CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,
+								 RESTAPI::Errors::MissingOrInvalidParameters);
+					return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+				}
+			} else if(!StorageService()->ScriptDB().GetRecord("name", SCR.scriptId, Existing)) {
 				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,
 							 RESTAPI::Errors::MissingOrInvalidParameters);
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
