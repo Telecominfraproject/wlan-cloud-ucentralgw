@@ -580,9 +580,9 @@ namespace OpenWifi {
 				EndConnection(EndPoint,__LINE__);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-			if (Connection != ConnectedDevices_.end() && EndPoint != nullptr) {
-				EndConnection(EndPoint,__LINE__);
-			}
+//			if (Connection != ConnectedDevices_.end() && EndPoint != nullptr) {
+//				EndConnection(EndPoint,__LINE__);
+//			}
 		} catch (...) {
 			if (Connection != ConnectedDevices_.end() && EndPoint != nullptr) {
 				EndConnection(EndPoint,__LINE__);
