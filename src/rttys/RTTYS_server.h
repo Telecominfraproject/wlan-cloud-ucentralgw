@@ -171,7 +171,7 @@ namespace OpenWifi {
 		void onClientSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onClientSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
-		void RemoveConnectingDeviceEventHandlers(std::unique_lock<std::shared_mutex> &Lock,Poco::Net::StreamSocket &Socket);
+		void RemoveConnectingDeviceEventHandlers(std::lock_guard<std::shared_mutex> &Lock,Poco::Net::StreamSocket &Socket);
 		void RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
 		void RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket);
 		void RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
@@ -186,12 +186,12 @@ namespace OpenWifi {
 		void onConnectingDeviceShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onConnectingDeviceError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
-		bool do_msgTypeRegister(std::unique_lock<std::shared_mutex> &Lock, Poco::Net::StreamSocket &Socket, unsigned char *Buffer, int Len);
+		bool do_msgTypeRegister(std::lock_guard<std::shared_mutex> &Lock, Poco::Net::StreamSocket &Socket, unsigned char *Buffer, int Len);
 		bool do_msgTypeHeartbeat(Poco::Net::StreamSocket &Socket);
 
 		void CloseDevice(std::shared_ptr<RTTYS_EndPoint> Device);
 		void CloseClient(std::shared_ptr<RTTYS_EndPoint> Client);
-		void CloseConnection(std::unique_lock<std::shared_mutex> &Lock, std::shared_ptr<RTTYS_EndPoint> Connection);
+		void CloseConnection(std::lock_guard<std::shared_mutex> &Lock, std::shared_ptr<RTTYS_EndPoint> Connection);
 
 		inline auto Uptime() const { return Utils::Now() - Started_; }
 
