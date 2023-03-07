@@ -563,6 +563,7 @@ components:
             - diagnostic
         script:
           type: string
+          description: This is the content of the script and must be encoded with base64. This is only for a ScriptRequest
         scriptId:
           type: string
         when:
@@ -2248,7 +2249,7 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-  /device/{serialNumber}/script:
+  /device/{serialNumber}/:
     post:
       tags:
         - Commands
