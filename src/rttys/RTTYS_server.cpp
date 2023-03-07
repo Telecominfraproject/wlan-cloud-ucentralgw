@@ -222,62 +222,54 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
-		if (ConnectingDevices_.find(Socket.impl()->sockfd()) == ConnectingDevices_.end()) {
-			std::cout << "Could not find connecting device socket" << std::endl;
-		}
-		//		std::cout << "Connecting Device erase: " << Socket.impl()->sockfd() << std::endl;
 		ConnectingDevices_.erase(Socket.impl()->sockfd());
-		Reactor_.removeEventHandler(Socket,
-									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-										*this, &RTTYS_server::onConnectingDeviceData));
-		Reactor_.removeEventHandler(Socket,
-									Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
-										*this, &RTTYS_server::onConnectingDeviceShutdown));
-		Reactor_.removeEventHandler(Socket,
-									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
-										*this, &RTTYS_server::onConnectingDeviceError));
+		if(Reactor_.has(Socket)) {
+			Reactor_.removeEventHandler(
+				Socket, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+							*this, &RTTYS_server::onConnectingDeviceData));
+			Reactor_.removeEventHandler(
+				Socket, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+							*this, &RTTYS_server::onConnectingDeviceShutdown));
+			Reactor_.removeEventHandler(Socket,
+										Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
+											*this, &RTTYS_server::onConnectingDeviceError));
+		}
 	}
 
 	void RTTYS_server::RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket) {
-		if (Clients_.find(Socket.impl()->sockfd()) == Clients_.end()) {
-			std::cout << "Could not find client socket" << std::endl;
-		}
-		//		std::cout << "Client erase: " << Socket.impl()->sockfd() << std::endl;
 		Clients_.erase(Socket.impl()->sockfd());
-		Reactor_.removeEventHandler(Socket,
-									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-										*this, &RTTYS_server::onClientSocketReadable));
-		Reactor_.removeEventHandler(Socket,
-									Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
-										*this, &RTTYS_server::onClientSocketShutdown));
-		Reactor_.removeEventHandler(Socket,
-									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
-										*this, &RTTYS_server::onClientSocketError));
+		if(Reactor_.has(Socket)) {
+			Reactor_.removeEventHandler(
+				Socket, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+							*this, &RTTYS_server::onClientSocketReadable));
+			Reactor_.removeEventHandler(
+				Socket, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+							*this, &RTTYS_server::onClientSocketShutdown));
+			Reactor_.removeEventHandler(Socket,
+										Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
+											*this, &RTTYS_server::onClientSocketError));
+			Socket.close();
+		}
 	}
 
 	void RTTYS_server::RemoveConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
-		if (ConnectedDevices_.find(Socket.impl()->sockfd()) == ConnectedDevices_.end()) {
-			std::cout << "Could not find device socket" << std::endl;
-		}
-		//		std::cout << "Device erase: " << Socket.impl()->sockfd() << std::endl;
 		ConnectedDevices_.erase(Socket.impl()->sockfd());
-		Reactor_.removeEventHandler(Socket,
-									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-										*this, &RTTYS_server::onConnectedDeviceSocketReadable));
-		Reactor_.removeEventHandler(Socket,
-									Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
-										*this, &RTTYS_server::onConnectedDeviceSocketShutdown));
-		Reactor_.removeEventHandler(Socket,
-									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
-										*this, &RTTYS_server::onConnectedDeviceSocketError));
+		if(Reactor_.has(Socket)) {
+			Reactor_.removeEventHandler(Socket,
+										Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+											*this, &RTTYS_server::onConnectedDeviceSocketReadable));
+			Reactor_.removeEventHandler(Socket,
+										Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+											*this, &RTTYS_server::onConnectedDeviceSocketShutdown));
+			Reactor_.removeEventHandler(Socket,
+										Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
+											*this, &RTTYS_server::onConnectedDeviceSocketError));
+			Socket.close();
+		}
 	}
 
 	void RTTYS_server::AddConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
 		std::lock_guard	Lock(ConnectingDevicesMutex_);
-		if (ConnectingDevices_.find(Socket.impl()->sockfd()) != ConnectingDevices_.end()) {
-			std::cout << "Connecting socket already exists" << std::endl;
-		}
-		//		std::cout << "Connecting device add: " << Socket.impl()->sockfd() << std::endl;
 		ConnectingDevices_[Socket.impl()->sockfd()] =
 			std::make_pair(Socket, std::chrono::high_resolution_clock::now());
 		Reactor_.addEventHandler(Socket,
@@ -292,12 +284,8 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::AddClientEventHandlers(Poco::Net::StreamSocket &Socket,
-											  std::shared_ptr<RTTYS_EndPoint> EndPoint) {
+											  std::shared_ptr<RTTYS_EndPoint> &EndPoint) {
 		std::lock_guard	Lock(ClientsMutex_);
-		if (Clients_.find(Socket.impl()->sockfd()) != Clients_.end()) {
-			std::cout << "Client socket already exists" << std::endl;
-		}
-		//		std::cout << "Client socket  add: " << Socket.impl()->sockfd() << std::endl;
 		Clients_[Socket.impl()->sockfd()] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -311,12 +299,8 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::AddConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket,
-											  std::shared_ptr<RTTYS_EndPoint> EndPoint) {
+											  std::shared_ptr<RTTYS_EndPoint> & EndPoint) {
 		std::lock_guard	Lock(ConnectedDevicesMutex_);
-		if (ConnectedDevices_.find(Socket.impl()->sockfd()) != ConnectedDevices_.end()) {
-			std::cout << "Device socket already exists" << std::endl;
-		}
-		//		std::cout << "Device socket add: " << Socket.impl()->sockfd() << std::endl;
 		ConnectedDevices_[Socket.impl()->sockfd()] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
