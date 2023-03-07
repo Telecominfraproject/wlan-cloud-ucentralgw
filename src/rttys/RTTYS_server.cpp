@@ -395,6 +395,7 @@ namespace OpenWifi {
 			auto Connection = FindConnection(id_, token_);
 			if (Connection == nullptr) {
 				poco_warning(Logger(), fmt::format("Unknown session {} from device.", id_));
+				std::cout << "Session '" << id_ << "' invalid" << std::endl;
 				return false;
 			}
 
