@@ -439,30 +439,21 @@ namespace OpenWifi {
 								id_, desc_));
 				return false;
 			}
-			std::cout << __LINE__ << std::endl;
 			RemoveConnectingDeviceEventHandlers(Socket);
-			std::cout << __LINE__ << std::endl;
 			Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			Connection->old_rtty_ = old_rtty_;
 			Connection->session_length_ = session_length_;
-			std::cout << __LINE__ << std::endl;
 			AddConnectedDeviceEventHandlers(*Connection->DeviceSocket_, Connection);
-			std::cout << __LINE__ << std::endl;
 
 			if (Connection->WSSocket_ != nullptr) {
-				std::cout << __LINE__ << std::endl;
 				Connection->Login();
-				std::cout << __LINE__ << std::endl;
 			}
-			std::cout << __LINE__ << std::endl;
 
 			return true;
 		} catch (...) {
-			std::cout << __LINE__ << std::endl;
 			good = false;
 		}
-		std::cout << __LINE__ << std::endl;
 		return good;
 	}
 
@@ -787,52 +778,35 @@ namespace OpenWifi {
 									  Poco::Net::HTTPServerResponse &response,
 									  const std::string &Id) {
 
-		std::cout << __LINE__ << std::endl;
 		std::shared_lock		Lock(EndPointsMutex_);
-		std::cout << __LINE__ << std::endl;
 
 		auto EndPoint = EndPoints_.find(Id);
 		if (EndPoint == end(EndPoints_)) {
-			std::cout << __LINE__ << std::endl;
 			poco_warning(Logger(), fmt::format("Session {} is invalid.", Id));
-			std::cout << __LINE__ << std::endl;
 			return;
 		}
 
-		std::cout << __LINE__ << std::endl;
 		if (EndPoint->second->WSSocket_ != nullptr) {
-			std::cout << __LINE__ << std::endl;
 			poco_warning(Logger(), fmt::format("Session {} is a duplicate.", Id));
-			std::cout << __LINE__ << std::endl;
 			return;
 		}
-		std::cout << __LINE__ << std::endl;
 
 		//	OK Create and register this WS client
 		try {
-			std::cout << __LINE__ << std::endl;
 			EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request, response);
 			EndPoint->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
 			EndPoint->second->WSSocket_->setBlocking(false);
 			EndPoint->second->WSSocket_->setNoDelay(true);
 			EndPoint->second->WSSocket_->setKeepAlive(true);
-			std::cout << __LINE__ << std::endl;
 			AddClientEventHandlers(*EndPoint->second->WSSocket_, EndPoint->second);
-			std::cout << __LINE__ << std::endl;
 			if (EndPoint->second->DeviceSocket_ != nullptr && !EndPoint->second->completed_) {
 				EndPoint->second->Login();
 			}
-			std::cout << __LINE__ << std::endl;
 		} catch (const Poco::Exception &E) {
-			std::cout << __LINE__ << std::endl;
 			Logger().log(E);
-			std::cout << __LINE__ << std::endl;
 		} catch (const std::exception &E) {
-			std::cout << __LINE__ << std::endl;
 			LogStdException(E, "Cannot create RTTY-WS-UI client");
-			std::cout << __LINE__ << std::endl;
 		}
-		std::cout << __LINE__ << std::endl;
 	}
 
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer &timer) {
