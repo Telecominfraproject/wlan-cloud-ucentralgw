@@ -191,7 +191,7 @@ namespace OpenWifi {
 						break;
 				}
 
-				auto PeerAddress_ = SS->peerAddress().host();
+/*				auto PeerAddress_ = SS->peerAddress().host();
 				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 
 				if (enforce_mTLS_) {
@@ -213,6 +213,10 @@ namespace OpenWifi {
 					NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 					return;
 				}
+*/
+				AddConnectingDeviceEventHandlers(NewSocket);
+				NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
+				return;
 			}
 			NewSocket.close();
 		} catch (const Poco::Exception &E) {
