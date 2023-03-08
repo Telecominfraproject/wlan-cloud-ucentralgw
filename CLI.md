@@ -200,6 +200,9 @@ Get the last statistics for a device.
 Get the newest statistics for a device.
 - `serial`: device serial number
 
+### deviceping <serial>
+This will return you the end-to-end latency from command-line to return value.
+
 ## Notes
 To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you
 want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\"
