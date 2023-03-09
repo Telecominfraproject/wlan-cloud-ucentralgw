@@ -62,7 +62,7 @@ namespace OpenWifi {
 				P.verificationDepth = 9;
 				P.loadDefaultCAs = RootCas.empty();
 				P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
-				P.dhUse2048Bits = true;
+				// P.dhUse2048Bits = true;
 				P.caLocation = Cas;
 
 				auto DeviceSecureContext = Poco::AutoPtr<Poco::Net::Context>(
