@@ -183,13 +183,14 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress Client;
 			Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
 			if (NewSocket.impl()->secure()) {
-
+				poco_debug(Logger(),"Completing TLS handshake");
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(NewSocket.impl());
 				while (true) {
 					auto V = SS->completeHandshake();
 					if (V == 1)
 						break;
 				}
+				poco_debug(Logger(),"Completed TLS handshake");
 
 /*				auto PeerAddress_ = SS->peerAddress().host();
 				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
@@ -215,7 +216,7 @@ namespace OpenWifi {
 				}
 */
 				AddConnectingDeviceEventHandlers(NewSocket);
-				NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
+//				NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 				return;
 			}
 			NewSocket.close();
