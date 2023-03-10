@@ -305,19 +305,18 @@ namespace OpenWifi {
 									 *this, &RTTYS_server::onClientSocketError));
 	}
 
-	void RTTYS_server::MoveToConnectedDevice(Poco::Net::StreamSocket &Socket,
-											  std::shared_ptr<RTTYS_EndPoint> & EndPoint) {
-		int fd = Socket.impl()->sockfd();
+	void RTTYS_server::MoveToConnectedDevice(std::shared_ptr<RTTYS_EndPoint> & EndPoint) {
+		int fd = EndPoint->DeviceSocket_->impl()->sockfd();
 		{
 			std::lock_guard	Lock(ConnectingDevicesMutex_);
-			if(Reactor_.has(Socket)) {
+			if(Reactor_.has(*EndPoint->DeviceSocket_)) {
 				Reactor_.removeEventHandler(
-					Socket, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+					*EndPoint->DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 								*this, &RTTYS_server::onConnectingDeviceData));
 				Reactor_.removeEventHandler(
-					Socket, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+					*EndPoint->DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
 								*this, &RTTYS_server::onConnectingDeviceShutdown));
-				Reactor_.removeEventHandler(Socket,
+				Reactor_.removeEventHandler(*EndPoint->DeviceSocket_,
 											Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 												*this, &RTTYS_server::onConnectingDeviceError));
 			}
@@ -325,13 +324,13 @@ namespace OpenWifi {
 
 		{
 			std::lock_guard Lock(ConnectedDevicesMutex_);
-			Reactor_.addEventHandler(Socket,
+			Reactor_.addEventHandler(*EndPoint->DeviceSocket_,
 									 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										 *this, &RTTYS_server::onConnectedDeviceSocketReadable));
-			Reactor_.addEventHandler(Socket,
+			Reactor_.addEventHandler(*EndPoint->DeviceSocket_,
 									 Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
 										 *this, &RTTYS_server::onConnectedDeviceSocketShutdown));
-			Reactor_.addEventHandler(Socket,
+			Reactor_.addEventHandler(*EndPoint->DeviceSocket_,
 									 Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 										 *this, &RTTYS_server::onConnectedDeviceSocketError));
 			ConnectedDevices_[fd] = EndPoint;
@@ -467,7 +466,7 @@ namespace OpenWifi {
 			}
 			// RemoveConnectingDeviceEventHandlers(Socket);
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
-			MoveToConnectedDevice(*Connection->DeviceSocket_, Connection);
+			MoveToConnectedDevice(Connection);
 
 			if (Connection->WSSocket_ != nullptr) {
 				Connection->Login();

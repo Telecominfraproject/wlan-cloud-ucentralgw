@@ -179,8 +179,7 @@ namespace OpenWifi {
 		void AddConnectingDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep);
 		void AddClientEventHandlers(Poco::Net::StreamSocket &Socket,
 									std::shared_ptr<RTTYS_EndPoint> &EndPoint);
-		void MoveToConnectedDevice(Poco::Net::StreamSocket &Socket,
-									std::shared_ptr<RTTYS_EndPoint> &EndPoint);
+		void MoveToConnectedDevice(std::shared_ptr<RTTYS_EndPoint> &EndPoint);
 
 		void onConnectingDeviceData(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void onConnectingDeviceShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
