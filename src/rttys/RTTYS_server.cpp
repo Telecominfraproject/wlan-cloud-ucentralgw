@@ -394,6 +394,7 @@ namespace OpenWifi {
 
 			if (id_.size() != RTTY_DEVICE_TOKEN_LENGTH ||
 				token_.size() != RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
+				poco_warning(Logger(),fmt::format("Wrong register header. {} {} {}", id_,desc_,token_));
 				return false;
 			}
 
