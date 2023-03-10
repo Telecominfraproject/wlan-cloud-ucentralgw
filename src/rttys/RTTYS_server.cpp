@@ -991,6 +991,7 @@ namespace OpenWifi {
 				auto Sent = DeviceSocket_->sendBytes(
 					outBuf, RTTY_HDR_SIZE );
 				completed_ = true;
+				poco_information(Logger(), fmt::format("Device login ({} bytes sent)",Sent));
 				return Sent == RTTY_HDR_SIZE;
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
