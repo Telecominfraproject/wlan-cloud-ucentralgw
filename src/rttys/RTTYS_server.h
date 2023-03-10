@@ -124,13 +124,14 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::WebSocket> WSSocket_;
 		Poco::Logger &Logger_;
 		std::unique_ptr<Poco::FIFOBuffer> DeviceInBuf_;
-		char session_id_[RTTY_SESSION_ID_LENGTH + 1]{0};
-		std::uint64_t session_length_ = 1;
+//		char session_id_[RTTY_SESSION_ID_LENGTH + 1]{0};
+		char sid_=0;
+//		std::uint64_t session_length_ = 1;
 		std::size_t waiting_for_bytes_{0};
 		u_char last_command_ = 0;
 		unsigned char small_buf_[64 + RTTY_SESSION_ID_LENGTH]{0};
 		std::uint64_t TID_ = 0;
-		bool old_rtty_ = false;
+//		bool old_rtty_ = false;
 		bool completed_ = false;
 		bool mTLS_=false;
 		std::chrono::time_point<std::chrono::high_resolution_clock> Created_{0s},
