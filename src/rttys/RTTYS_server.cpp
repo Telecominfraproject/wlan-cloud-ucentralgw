@@ -983,6 +983,7 @@ namespace OpenWifi {
 				completed_ = true;
 				return Sent == RTTY_HDR_SIZE;
 			} catch (const Poco::Exception &E) {
+				poco_debug(Logger(),"Sending loin info failed");
 				Logger().log(E);
 				return false;
 			} catch (const std::exception &E) {
