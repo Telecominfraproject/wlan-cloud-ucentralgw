@@ -373,16 +373,7 @@ namespace OpenWifi {
 										  int Len) {
 		bool good = true;
 		try {
-			//	establish if this is an old rtty or a new one.
-//			bool old_rtty_ = (Buffer[0] != 0x03); //	rtty_proto_ver for full session ID inclusion
 			int pos = RTTY_HDR_SIZE;
-//			int session_length_ = 0;
-//			if (old_rtty_) {
-//				session_length_ = 1;
-//			} else {
-//				pos++;
-//				session_length_ = RTTY_SESSION_ID_LENGTH;
-//			}
 
 			std::string id_ = ReadString(Buffer, Len, pos);
 			std::string desc_ = ReadString(Buffer, Len, pos);
@@ -445,10 +436,8 @@ namespace OpenWifi {
 				return false;
 			}
 			RemoveConnectingDeviceEventHandlers(Socket);
-			Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
+			Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(std::move(Socket));
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
-//			Connection->old_rtty_ = old_rtty_;
-//			Connection->session_length_ = session_length_;
 			AddConnectedDeviceEventHandlers(*Connection->DeviceSocket_, Connection);
 
 			if (Connection->WSSocket_ != nullptr) {
