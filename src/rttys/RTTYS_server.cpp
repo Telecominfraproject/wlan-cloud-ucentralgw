@@ -461,7 +461,7 @@ namespace OpenWifi {
 				return false;
 			}
 			// RemoveConnectingDeviceEventHandlers(Socket);
-			Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(std::move(Socket));
+			Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			MoveToConnectedDevice(*Connection->DeviceSocket_, Connection);
 
