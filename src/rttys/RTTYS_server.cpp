@@ -194,9 +194,6 @@ namespace OpenWifi {
 				}
 				poco_debug(Logger(),fmt::format("Completed TLS handshake: {}", CId_));
 
-/*				auto PeerAddress_ = SS->peerAddress().host();
-				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-
 				if (enforce_mTLS_) {
 					if (SS->havePeerCertificate()) {
 						Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
@@ -216,9 +213,8 @@ namespace OpenWifi {
 					NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 					return;
 				}
-*/
 				AddConnectingDeviceEventHandlers(NewSocket);
-//				NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
+				NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 				return;
 			}
 			NewSocket.close();
@@ -983,7 +979,6 @@ namespace OpenWifi {
 				completed_ = true;
 				return Sent == RTTY_HDR_SIZE;
 			} catch (const Poco::Exception &E) {
-				poco_debug(Logger(),"Sending loin info failed");
 				Logger().log(E);
 				return false;
 			} catch (const std::exception &E) {
