@@ -427,7 +427,7 @@ namespace OpenWifi {
 				return false;
 			}
 
-			Connection->DeviceSocket_ = std::move(ConnectingDeviceEntry->second->DeviceSocket_);
+			Connection->DeviceSocket_ = ConnectingDeviceEntry->second->DeviceSocket_;
 
 			if (Connection->mTLS_) {
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket.impl());
@@ -817,7 +817,7 @@ namespace OpenWifi {
 
 		//	OK Create and register this WS client
 		try {
-			EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request, response);
+			EndPoint->second->WSSocket_ = std::make_shared<Poco::Net::WebSocket>(request, response);
 			EndPoint->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
 			EndPoint->second->WSSocket_->setBlocking(false);
 			EndPoint->second->WSSocket_->setNoDelay(true);
@@ -1194,9 +1194,7 @@ namespace OpenWifi {
 	RTTYS_EndPoint::RTTYS_EndPoint(Poco::Net::StreamSocket &Socket) :
 		Logger_(RTTYS_server()->Logger())
 	{
-		DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(std::move(Socket));
-		DeviceInBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
-		Created_ = std::chrono::high_resolution_clock::now();
+		DeviceSocket_ = std::make_shared<Poco::Net::StreamSocket>(std::move(Socket));
 	}
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {
