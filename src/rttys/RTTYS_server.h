@@ -36,6 +36,9 @@ namespace OpenWifi {
 		RTTYS_EndPoint(const std::string &Id, const std::string &Token,
 					   const std::string &SerialNumber, const std::string &UserName,
 					   bool mTLS);
+
+		RTTYS_EndPoint(Poco::Net::StreamSocket &Socket);
+
 		~RTTYS_EndPoint();
 
 		enum RTTY_MSG_TYPE {
@@ -124,14 +127,11 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::WebSocket> WSSocket_;
 		Poco::Logger &Logger_;
 		std::unique_ptr<Poco::FIFOBuffer> DeviceInBuf_;
-//		char session_id_[RTTY_SESSION_ID_LENGTH + 1]{0};
 		char sid_=0;
-//		std::uint64_t session_length_ = 1;
 		std::size_t waiting_for_bytes_{0};
 		u_char last_command_ = 0;
 		unsigned char small_buf_[64 + RTTY_SESSION_ID_LENGTH]{0};
 		std::uint64_t TID_ = 0;
-//		bool old_rtty_ = false;
 		bool completed_ = false;
 		bool mTLS_=false;
 		std::chrono::time_point<std::chrono::high_resolution_clock> Created_{0s},
@@ -172,11 +172,11 @@ namespace OpenWifi {
 		void onClientSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onClientSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
-		void RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
+		void RemoveConnectingDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep);
 		void RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket);
 		void RemoveConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
 
-		void AddConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
+		void AddConnectingDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep);
 		void AddClientEventHandlers(Poco::Net::StreamSocket &Socket,
 									std::shared_ptr<RTTYS_EndPoint> &EndPoint);
 		void MoveToConnectedDevice(Poco::Net::StreamSocket &Socket,
@@ -232,9 +232,7 @@ namespace OpenWifi {
 		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>> 	EndPoints_; //	id, endpoint
 		std::map<int, std::shared_ptr<RTTYS_EndPoint>> 			ConnectedDevices_;
 		std::map<int, std::shared_ptr<RTTYS_EndPoint>> 			Clients_;
-		std::map<int, std::pair<Poco::Net::StreamSocket,
-								std::chrono::time_point<std::chrono::high_resolution_clock>>>
-			ConnectingDevices_;
+		std::map<int, std::shared_ptr<RTTYS_EndPoint>>			ConnectingDevices_;
 
 		Poco::Timer Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>> GCCallBack_;

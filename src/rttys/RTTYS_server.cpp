@@ -203,18 +203,21 @@ namespace OpenWifi {
 								Logger(),
 								fmt::format("Device {} has been validated from {}.", CN, CId_));
 							NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
-							AddConnectingDeviceEventHandlers(NewSocket);
+							auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket);
+							AddConnectingDeviceEventHandlers(NewDevice);
 							return;
 						}
 					}
 					poco_debug(Logger(), fmt::format("Device cannot be validated from {}.", CId_));
 				} else {
 					NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
-					AddConnectingDeviceEventHandlers(NewSocket);
+					auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket);
+					AddConnectingDeviceEventHandlers(NewDevice);
 					return;
 				}
 				NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
-				AddConnectingDeviceEventHandlers(NewSocket);
+				auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket);
+				AddConnectingDeviceEventHandlers(NewDevice);
 				return;
 			}
 			NewSocket.close();
@@ -224,16 +227,16 @@ namespace OpenWifi {
 		}
 	}
 
-	void RTTYS_server::RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
-		int fd = Socket.impl()->sockfd();
-		if(Reactor_.has(Socket)) {
+	void RTTYS_server::RemoveConnectingDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep) {
+		int fd = ep->DeviceSocket_->impl()->sockfd();
+		if(Reactor_.has(*ep->DeviceSocket_)) {
 			Reactor_.removeEventHandler(
-				Socket, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+				*ep->DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 							*this, &RTTYS_server::onConnectingDeviceData));
 			Reactor_.removeEventHandler(
-				Socket, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+				*ep->DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
 							*this, &RTTYS_server::onConnectingDeviceShutdown));
-			Reactor_.removeEventHandler(Socket,
+			Reactor_.removeEventHandler(*ep->DeviceSocket_,
 										Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 											*this, &RTTYS_server::onConnectingDeviceError));
 		}
@@ -272,20 +275,19 @@ namespace OpenWifi {
 		ConnectedDevices_.erase(fd);
 	}
 
-	void RTTYS_server::AddConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+	void RTTYS_server::AddConnectingDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep) {
 		std::lock_guard	Lock(ConnectingDevicesMutex_);
-		int fd = Socket.impl()->sockfd();
-		Reactor_.addEventHandler(Socket,
+		int fd = ep->DeviceSocket_->impl()->sockfd();
+		Reactor_.addEventHandler(*ep->DeviceSocket_,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 									 *this, &RTTYS_server::onConnectingDeviceData));
-		Reactor_.addEventHandler(Socket,
+		Reactor_.addEventHandler(*ep->DeviceSocket_,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
 									 *this, &RTTYS_server::onConnectingDeviceShutdown));
-		Reactor_.addEventHandler(Socket,
+		Reactor_.addEventHandler(*ep->DeviceSocket_,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 									 *this, &RTTYS_server::onConnectingDeviceError));
-		ConnectingDevices_[fd] =
-			std::make_pair(std::move(Socket), std::chrono::high_resolution_clock::now());
+		ConnectingDevices_[fd] = ep;
 	}
 
 	void RTTYS_server::AddClientEventHandlers(Poco::Net::StreamSocket &Socket,
@@ -358,19 +360,19 @@ namespace OpenWifi {
 			//	heartbeat
 			unsigned char Buffer[1024];
 			auto ReceivedBytes =
-				ConnectingDevice->second.first.receiveBytes(Buffer, sizeof(Buffer));
+				ConnectingDevice->second->DeviceSocket_->receiveBytes(Buffer, sizeof(Buffer));
 			if (ReceivedBytes == 0) {
-				return RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+				return RemoveConnectingDeviceEventHandlers(ConnectingDevice->second);
 			}
 
 			//	Process the command
 			bool good = true;
 			switch (Buffer[0]) {
 			case RTTYS_EndPoint::msgTypeRegister: {
-				good = do_msgTypeRegister(ConnectingDevice->second.first, Buffer, ReceivedBytes);
+				good = do_msgTypeRegister(*ConnectingDevice->second->DeviceSocket_, Buffer, ReceivedBytes);
 			} break;
 			case RTTYS_EndPoint::msgTypeHeartbeat: {
-				good = do_msgTypeHeartbeat(ConnectingDevice->second.first);
+				good = do_msgTypeHeartbeat(*ConnectingDevice->second->DeviceSocket_);
 			} break;
 			default: {
 				poco_warning(Logger(), "Device violated protocol");
@@ -379,17 +381,17 @@ namespace OpenWifi {
 			}
 
 			if (!good) {
-				return RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+				return RemoveConnectingDeviceEventHandlers(ConnectingDevice->second);
 			}
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 			if (ConnectingDevice != ConnectingDevices_.end()) {
-				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second);
 			}
 
 		} catch (...) {
 			if (ConnectingDevice != ConnectingDevices_.end()) {
-				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second);
 			}
 		}
 	}
@@ -419,10 +421,13 @@ namespace OpenWifi {
 				return false;
 			}
 
-			if (Connection->DeviceSocket_ != nullptr) {
-				poco_warning(Logger(), fmt::format("Duplication session {} from device.", id_));
+			auto ConnectingDeviceEntry = ConnectingDevices_.find(Socket.impl()->sockfd());
+			if(ConnectingDeviceEntry==ConnectingDevices_.end()) {
+				poco_debug(Logger(),fmt::format("Cannot find socket {}", Socket.impl()->sockfd()));
 				return false;
 			}
+
+			Connection->DeviceSocket_ = std::move(ConnectingDeviceEntry->second->DeviceSocket_);
 
 			if (Connection->mTLS_) {
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket.impl());
@@ -461,7 +466,6 @@ namespace OpenWifi {
 				return false;
 			}
 			// RemoveConnectingDeviceEventHandlers(Socket);
-			Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			MoveToConnectedDevice(*Connection->DeviceSocket_, Connection);
 
@@ -493,7 +497,7 @@ namespace OpenWifi {
 			poco_warning(Logger(), "Cannot find connecting socket.");
 			return;
 		}
-		RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+		RemoveConnectingDeviceEventHandlers(ConnectingDevice->second);
 	}
 
 	void
@@ -504,7 +508,7 @@ namespace OpenWifi {
 			poco_warning(Logger(), "Cannot find connecting socket.");
 			return;
 		}
-		RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+		RemoveConnectingDeviceEventHandlers(ConnectingDevice->second);
 	}
 
 	void RTTYS_server::onConnectedDeviceSocketReadable(
@@ -1177,11 +1181,20 @@ namespace OpenWifi {
 		return true;
 	}
 
+
 	RTTYS_EndPoint::RTTYS_EndPoint(const std::string &Id, const std::string &Token,
 								   const std::string &SerialNumber, const std::string &UserName,
 								   bool mTLS)
 		: Id_(Id), Token_(Token), SerialNumber_(SerialNumber), UserName_(UserName),
 		  Logger_(RTTYS_server()->Logger()), mTLS_(mTLS) {
+		DeviceInBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
+		Created_ = std::chrono::high_resolution_clock::now();
+	}
+
+	RTTYS_EndPoint::RTTYS_EndPoint(Poco::Net::StreamSocket &Socket) :
+		Logger_(RTTYS_server()->Logger())
+	{
+		DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(std::move(Socket));
 		DeviceInBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		Created_ = std::chrono::high_resolution_clock::now();
 	}
