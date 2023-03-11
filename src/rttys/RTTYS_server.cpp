@@ -360,9 +360,11 @@ namespace OpenWifi {
 					return false;
 				}
 			}
+			std::cout << __LINE__ << std::endl;
 
 			RTTYS_server()->ConnectedDevices_[fd] = Connection;
 
+			std::cout << __LINE__ << std::endl;
 			u_char OutBuf[8];
 			OutBuf[0] = RTTYS_EndPoint::msgTypeRegister;
 			OutBuf[1] = 0; //	Data length
@@ -371,6 +373,7 @@ namespace OpenWifi {
 			OutBuf[4] = 'O';
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
+			std::cout << __LINE__ << std::endl;
 			if (Connection->send_ssl_bytes(OutBuf, 7) != 7) {
 				poco_information(
 					Logger(),
@@ -378,11 +381,15 @@ namespace OpenWifi {
 								id_, desc_));
 				return false;
 			}
+			std::cout << __LINE__ << std::endl;
 
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 
+			std::cout << __LINE__ << std::endl;
 			if (Connection->WSSocket_ != nullptr) {
+				std::cout << __LINE__ << std::endl;
 				Connection->Login();
+				std::cout << __LINE__ << std::endl;
 			}
 			std::cout << __LINE__ << std::endl;
 			return true;
