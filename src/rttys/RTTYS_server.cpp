@@ -273,7 +273,7 @@ namespace OpenWifi {
 		ep->DeviceSocket_->setBlocking(true);
 		ep->DeviceSocket_->setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 		ep->DeviceSocket_->setSendBufferSize(RTTY_DEVICE_BUFSIZE);
-		Poco::Timespan	TS(5,0);
+		Poco::Timespan	TS(100000000);
 		ep->DeviceSocket_->setSendTimeout(TS);
 		ConnectingDevices_[fd] = ep;
 	}
