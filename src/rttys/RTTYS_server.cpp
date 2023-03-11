@@ -276,6 +276,9 @@ namespace OpenWifi {
 		ep->DeviceSocket_->setSendBufferSize(RTTY_DEVICE_BUFSIZE);
 		Poco::Timespan	TS(100000000);
 		ep->DeviceSocket_->setSendTimeout(TS);
+		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(ep->DeviceSocket_->impl());
+		auto PeerAddress_ = SS->peerAddress().host();
+		ep->ssl = SSL_new(SS->context()->sslContext());
 		ConnectingDevices_[fd] = ep;
 	}
 
@@ -354,7 +357,6 @@ namespace OpenWifi {
 			}
 
 			RTTYS_server()->ConnectedDevices_[fd] = Connection;
-
 
 			u_char OutBuf[8];
 			OutBuf[0] = RTTYS_EndPoint::msgTypeRegister;
@@ -1106,8 +1108,10 @@ namespace OpenWifi {
 	}
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {
+		std::cout << __LINE__ << std::endl;
 		if(ssl!= nullptr)
 			SSL_free(ssl);
+		std::cout << __LINE__ << std::endl;
 	}
 
 } // namespace OpenWifi
