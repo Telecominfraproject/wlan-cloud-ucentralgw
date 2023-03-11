@@ -299,20 +299,14 @@ namespace OpenWifi {
 			std::cout << __LINE__ << "  " << id_ << " " << desc_ << " " << token_ << std::endl;
 			if (id_.size() != RTTY_DEVICE_TOKEN_LENGTH ||
 				token_.size() != RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
-				std::cout << __LINE__ << std::endl;
 				poco_warning(Logger(),fmt::format("Wrong register header. {} {} {}", id_,desc_,token_));
-				std::cout << __LINE__ << std::endl;
 				return false;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			poco_information(Logger(), fmt::format("Description:{} Device registration", desc_));
-			std::cout << __LINE__ << std::endl;
 			//	find this device in our connectio end points...
 			auto Connection = RTTYS_server()->FindConnection(id_, token_);
-			std::cout << __LINE__ << std::endl;
 			if (Connection == nullptr) {
-				std::cout << __LINE__ << std::endl;
 				poco_warning(Logger(), fmt::format("Unknown session {} from device.", id_));
 				std::cout << "Session '" << id_ << "' invalid" << std::endl;
 				return false;
@@ -320,31 +314,21 @@ namespace OpenWifi {
 
 			//	are we connected or not ?
 			auto ConnectingEp = RTTYS_server()->ConnectingDevice(fd);
-			std::cout << __LINE__ << std::endl;
 			if(ConnectingEp == RTTYS_server()->ConnectedDevices_.end()) {
-				std::cout << __LINE__ << std::endl;
 
 			} else {
-				std::cout << __LINE__ << std::endl;
 				Connection->DeviceSocket_ = ConnectingEp->second->DeviceSocket_;
-				std::cout << __LINE__ << std::endl;
 				Connection->DeviceInBuf_ = ConnectingEp->second->DeviceInBuf_;
-				std::cout << __LINE__ << std::endl;
 				RTTYS_server()->ConnectingDevices_.erase(fd);
-				std::cout << __LINE__ << std::endl;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			if (Connection->mTLS_) {
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Connection->DeviceSocket_->impl());
 				auto PeerAddress_ = SS->peerAddress().host();
 				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 				if (SS->havePeerCertificate()) {
-					std::cout << __LINE__ << std::endl;
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
-					std::cout << __LINE__ << std::endl;
 					auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
-					std::cout << __LINE__ << std::endl;
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 						poco_information(
 							Logger(),
@@ -361,7 +345,6 @@ namespace OpenWifi {
 
 			RTTYS_server()->ConnectedDevices_[fd] = Connection;
 
-			std::cout << __LINE__ << std::endl;
 			u_char OutBuf[8];
 			OutBuf[0] = RTTYS_EndPoint::msgTypeRegister;
 			OutBuf[1] = 0; //	Data length
@@ -370,7 +353,6 @@ namespace OpenWifi {
 			OutBuf[4] = 'O';
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
-			std::cout << __LINE__ << std::endl;
 			if (Connection->DeviceSocket_->sendBytes(OutBuf, 7) != 7) {
 				poco_information(
 					Logger(),
@@ -379,16 +361,11 @@ namespace OpenWifi {
 				return false;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
-			std::cout << __LINE__ << std::endl;
 
 			if (Connection->WSSocket_ != nullptr) {
-				std::cout << __LINE__ << std::endl;
 				Connection->Login();
-				std::cout << __LINE__ << std::endl;
 			}
-
 			std::cout << __LINE__ << std::endl;
 			return true;
 		} catch (...) {
@@ -400,17 +377,21 @@ namespace OpenWifi {
 	void RTTYS_server::onConnectedDeviceSocketReadable(
 		const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
+		int fd = pNf->socket().impl()->sockfd();
+
+		std::cout << __LINE__ << " " << "fd=" << fd << std::endl;
+
 		std::lock_guard	Lock(ConnectedDevicesMutex_);
 		auto Connection = ConnectedDevices_.end();
 		std::shared_ptr<RTTYS_EndPoint> EndPoint;
 
 		try {
-			Connection = ConnectedDevices_.find(pNf->socket().impl()->sockfd());
+			Connection = ConnectedDevices_.find(fd);
 			if (Connection == end(ConnectedDevices_)) {
-				Connection = ConnectingDevices_.find(pNf->socket().impl()->sockfd());
+				Connection = ConnectingDevices_.find(fd);
 				if(Connection==end(ConnectingDevices_)) {
 					poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
-													   pNf->socket().impl()->sockfd()));
+													   fd));
 					return;
 				}
 			}
@@ -449,7 +430,7 @@ namespace OpenWifi {
 					switch (EndPoint->last_command_) {
 
 					case RTTYS_EndPoint::msgTypeRegister: {
-						good = EndPoint->do_msgTypeRegister(pNf->socket().impl()->sockfd());
+						good = EndPoint->do_msgTypeRegister(fd);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogin: {
 						good = EndPoint->do_msgTypeLogin(msg_len);
@@ -1092,7 +1073,7 @@ namespace OpenWifi {
 		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 	}
 
-	RTTYS_EndPoint::~RTTYS_EndPoint() {
+/*	RTTYS_EndPoint::~RTTYS_EndPoint() {
 		poco_information(Logger(), fmt::format("{}: Connection ending.", SerialNumber_));
 
 		if (DeviceSocket_ != nullptr)
@@ -1100,5 +1081,6 @@ namespace OpenWifi {
 		if (WSSocket_ != nullptr)
 			std::cout << "Client with valid socket" << std::endl;
 	}
+*/
 
 } // namespace OpenWifi

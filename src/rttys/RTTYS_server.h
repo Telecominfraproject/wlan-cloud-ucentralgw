@@ -39,7 +39,7 @@ namespace OpenWifi {
 
 		RTTYS_EndPoint(Poco::Net::StreamSocket &Socket);
 
-		~RTTYS_EndPoint();
+		~RTTYS_EndPoint() = default;
 
 		enum RTTY_MSG_TYPE {
 			msgTypeRegister = 0,
