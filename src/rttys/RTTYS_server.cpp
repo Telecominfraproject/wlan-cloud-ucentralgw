@@ -296,10 +296,12 @@ namespace OpenWifi {
 			std::string desc_ = ReadString();
 			std::string token_ = ReadString();
 
-std::cout << __LINE__ << std::endl;
+			std::cout << __LINE__ << "  " << id_ << " " << desc_ << " " << token_ << std::endl;
 			if (id_.size() != RTTY_DEVICE_TOKEN_LENGTH ||
 				token_.size() != RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
+				std::cout << __LINE__ << std::endl;
 				poco_warning(Logger(),fmt::format("Wrong register header. {} {} {}", id_,desc_,token_));
+				std::cout << __LINE__ << std::endl;
 				return false;
 			}
 
