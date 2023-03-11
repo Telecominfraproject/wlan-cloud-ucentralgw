@@ -335,10 +335,15 @@ namespace OpenWifi {
 			}
 
 			if (Connection->mTLS_) {
+				std::cout << __LINE__ << std::endl;
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Connection->DeviceSocket_->impl());
+				std::cout << __LINE__ << std::endl;
 				auto PeerAddress_ = SS->peerAddress().host();
+				std::cout << __LINE__ << std::endl;
 				Connection->ssl = SSL_new(SS->context()->sslContext());
-					auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+				std::cout << __LINE__ << std::endl;
+				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+				std::cout << __LINE__ << std::endl;
 				if (SS->havePeerCertificate()) {
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
 					auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
