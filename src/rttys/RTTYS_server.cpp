@@ -924,7 +924,7 @@ namespace OpenWifi {
 	std::string RTTYS_EndPoint::ReadString() {
 		std::string Res;
 		while(DeviceInBuf_->used()) {
-			auto c = DeviceInBuf_->begin();
+			auto c = *DeviceInBuf_->begin();
 			if(c==0) {
 				DeviceInBuf_->drain(1);
 				break;
