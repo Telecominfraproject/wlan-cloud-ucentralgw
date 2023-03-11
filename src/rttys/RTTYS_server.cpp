@@ -384,46 +384,46 @@ namespace OpenWifi {
 		std::lock_guard	Lock(ConnectedDevicesMutex_);
 		auto Connection = ConnectedDevices_.end();
 		std::shared_ptr<RTTYS_EndPoint> EndPoint;
-		std::cout << __LINE__ << std::endl;
-			try {
-				std::cout << __LINE__ << std::endl;
+//		std::cout << __LINE__ << std::endl;
+		try {
+//				std::cout << __LINE__ << std::endl;
 			Connection = ConnectedDevices_.find(fd);
-			std::cout << __LINE__ << std::endl;
+//			std::cout << __LINE__ << std::endl;
 			if (Connection == end(ConnectedDevices_)) {
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				Connection = ConnectingDevices_.find(fd);
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				if(Connection==end(ConnectingDevices_)) {
 					poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
 													   fd));
 					return;
 				}
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 			}
 
-			std::cout << __LINE__ << std::endl;
+//			std::cout << __LINE__ << std::endl;
 			EndPoint = Connection->second;
-			std::cout << __LINE__ << std::endl;
+//			std::cout << __LINE__ << std::endl;
 			if (EndPoint == nullptr || EndPoint->DeviceSocket_ == nullptr) {
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				poco_warning(Logger(), fmt::format("Connection has invalid socket: {}",
 												   pNf->socket().impl()->sockfd()));
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				return;
 			}
 
-			std::cout << __LINE__ << std::endl;
+//			std::cout << __LINE__ << std::endl;
 			bool good = true;
 
-			std::cout << __LINE__ << std::endl;
+//			std::cout << __LINE__ << std::endl;
 			auto received_bytes = EndPoint->DeviceSocket_->receiveBytes(*EndPoint->DeviceInBuf_);
-			std::cout << __LINE__ << std::endl;
+//			std::cout << __LINE__ << std::endl;
 			if (received_bytes == 0) {
 				good = false;
 				poco_information(Logger(), "Device Closing connection - 0 bytes received.");
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 			} else {
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				while (EndPoint->DeviceInBuf_->isReadable() && good) {
 					uint32_t msg_len = 0;
 					if (EndPoint->waiting_for_bytes_ != 0) {
