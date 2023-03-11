@@ -359,6 +359,8 @@ namespace OpenWifi {
 				}
 			}
 
+			RTTYS_server()->ConnectedDevices_[fd] = Connection;
+
 			std::cout << __LINE__ << std::endl;
 			u_char OutBuf[8];
 			OutBuf[0] = RTTYS_EndPoint::msgTypeRegister;
