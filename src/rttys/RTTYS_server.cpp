@@ -298,7 +298,12 @@ namespace OpenWifi {
 	}
 
 	int RTTYS_EndPoint::send_ssl_bytes(unsigned char *b,int size) {
-		return SSL_write(ssl,b,size);
+		auto sent = SSL_write(ssl,b,size);
+		if(sent == size) return sent;
+		auto err = SSL_get_error(ssl,sent);
+
+		std::cout << "Sent = " << sent << "  err: " << err << std::endl;
+
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeRegister(int fd) {
