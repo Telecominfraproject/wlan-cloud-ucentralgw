@@ -925,8 +925,10 @@ namespace OpenWifi {
 		std::string Res;
 		while(DeviceInBuf_->used()) {
 			auto c = DeviceInBuf_->begin();
-			if(c==0)
+			if(c==0) {
+				DeviceInBuf_->drain(1);
 				break;
+			}
 			Res += c;
 			DeviceInBuf_->drain(1);
 		}
