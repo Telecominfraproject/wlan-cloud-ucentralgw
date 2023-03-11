@@ -271,6 +271,8 @@ namespace OpenWifi {
 		Reactor_.addEventHandler(*ep->DeviceSocket_,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 									 *this, &RTTYS_server::onConnectedDeviceSocketError));
+		ep->DeviceSocket_->setNoDelay(true);
+		ep->DeviceSocket_->setKeepAlive(true);
 		ConnectingDevices_[fd] = ep;
 	}
 
