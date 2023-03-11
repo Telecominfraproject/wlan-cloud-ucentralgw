@@ -163,6 +163,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::Stop() {
+		poco_information(Logger(),"Stopping...");
 		Timer_.stop();
 		Running_ = false;
 		if (Internal_) {
@@ -175,6 +176,7 @@ namespace OpenWifi {
 			Reactor_.stop();
 			ReactorThread_.join();
 		}
+		poco_information(Logger(),"Stopped...");
 	}
 
 	void RTTYS_server::onDeviceAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
