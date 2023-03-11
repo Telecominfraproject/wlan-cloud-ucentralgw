@@ -371,7 +371,7 @@ namespace OpenWifi {
 			OutBuf[4] = 'O';
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
-			if (send_ssl_bytes(OutBuf, 7) != 7) {
+			if (Connection->send_ssl_bytes(OutBuf, 7) != 7) {
 				poco_information(
 					Logger(),
 					fmt::format("{}: Description:{} Could not send data to complete registration",
