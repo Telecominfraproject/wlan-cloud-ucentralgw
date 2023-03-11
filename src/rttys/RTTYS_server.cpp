@@ -276,9 +276,6 @@ namespace OpenWifi {
 		ep->DeviceSocket_->setSendBufferSize(RTTY_DEVICE_BUFSIZE);
 		Poco::Timespan	TS(100000000);
 		ep->DeviceSocket_->setSendTimeout(TS);
-		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(ep->DeviceSocket_->impl());
-		auto PeerAddress_ = SS->peerAddress().host();
-		ep->ssl = SSL_new(SS->context()->sslContext());
 		ConnectingDevices_[fd] = ep;
 	}
 
@@ -347,6 +344,7 @@ namespace OpenWifi {
 				auto PeerAddress_ = SS->peerAddress().host();
 				std::cout << __LINE__ << std::endl;
 				Connection->ssl = SSL_new(SS->context()->sslContext());
+				SSL_set_fd(Connection->ssl,fd);
 				std::cout << __LINE__ << std::endl;
 				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 				std::cout << __LINE__ << std::endl;
@@ -1123,6 +1121,9 @@ namespace OpenWifi {
 	{
 		DeviceSocket_ = std::make_shared<Poco::Net::StreamSocket>(std::move(Socket));
 		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
+		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(DeviceSocket_->impl());
+		ssl = SSL_new(SS->context()->sslContext());
+		SSL_set_fd(ssl,DeviceSocket_->impl()->sockfd());
 	}
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {
