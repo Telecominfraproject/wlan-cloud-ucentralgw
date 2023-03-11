@@ -88,7 +88,6 @@ namespace OpenWifi {
 
 				SSL_CTX *SSLCtxDevice = DeviceSecureContext->sslContext();
 				SSL_CTX_dane_enable(SSLCtxDevice);
-
 				Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
 					Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
 													  : Poco::Net::AddressFamily::IPv4));
@@ -884,9 +883,17 @@ namespace OpenWifi {
 			outBuf[2] = 0;
 			try {
 				poco_information(Logger(), "Device login");
-				auto Sent = DeviceSocket_->sendBytes(
-					outBuf, RTTY_HDR_SIZE );
+
+				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(DeviceSocket_->impl());
+				auto C = SS->context();
+				auto ssl_ctx = C->sslContext();
+				auto ssl = SSL_new(ssl_ctx);
+				SSL_write(ssl, outBuf,3);
+				int Sent = 3;
+//				auto Sent = DeviceSocket_->sendBytes(
+//					outBuf, RTTY_HDR_SIZE );
 				completed_ = true;
+
 				poco_information(Logger(), fmt::format("Device login ({} bytes sent)",Sent));
 				return Sent == RTTY_HDR_SIZE;
 			} catch (const Poco::Exception &E) {
