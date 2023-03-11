@@ -381,9 +381,12 @@ namespace OpenWifi {
 		try {
 			Connection = ConnectedDevices_.find(pNf->socket().impl()->sockfd());
 			if (Connection == end(ConnectedDevices_)) {
-				poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
-												   pNf->socket().impl()->sockfd()));
-				return;
+				Connection = ConnectingDevices_.find(pNf->socket().impl()->sockfd());
+				if(Connection==end(ConnectingDevices_)) {
+					poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
+													   pNf->socket().impl()->sockfd()));
+					return;
+				}
 			}
 
 			EndPoint = Connection->second;
