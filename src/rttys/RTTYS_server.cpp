@@ -294,6 +294,10 @@ namespace OpenWifi {
 									 *this, &RTTYS_server::onClientSocketError));
 	}
 
+	int RTTYS_EndPoint::send_ssl_bytes(unsigned char *b,int size) {
+		return SSL_write(ssl,b,size);
+	}
+
 	bool RTTYS_EndPoint::do_msgTypeRegister(int fd) {
 		bool good = true;
 		try {
@@ -330,7 +334,8 @@ namespace OpenWifi {
 			if (Connection->mTLS_) {
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Connection->DeviceSocket_->impl());
 				auto PeerAddress_ = SS->peerAddress().host();
-				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+				Connection->ssl = SSL_new(SS->context()->sslContext());
+					auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 				if (SS->havePeerCertificate()) {
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
 					auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
@@ -350,6 +355,7 @@ namespace OpenWifi {
 
 			RTTYS_server()->ConnectedDevices_[fd] = Connection;
 
+
 			u_char OutBuf[8];
 			OutBuf[0] = RTTYS_EndPoint::msgTypeRegister;
 			OutBuf[1] = 0; //	Data length
@@ -358,7 +364,7 @@ namespace OpenWifi {
 			OutBuf[4] = 'O';
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
-			if (Connection->DeviceSocket_->sendBytes(OutBuf, 7) != 7) {
+			if (send_ssl_bytes(OutBuf, 7) != 7) {
 				poco_information(
 					Logger(),
 					fmt::format("{}: Description:{} Could not send data to complete registration",
@@ -890,8 +896,7 @@ namespace OpenWifi {
 				auto C = SS->context();
 				auto ssl_ctx = C->sslContext();
 				auto ssl = SSL_new(ssl_ctx);
-				SSL_write(ssl, outBuf,3);
-				int Sent = 3;
+				auto Sent = SSL_write(ssl, outBuf,3);
 //				auto Sent = DeviceSocket_->sendBytes(
 //					outBuf, RTTY_HDR_SIZE );
 				completed_ = true;
@@ -1100,14 +1105,9 @@ namespace OpenWifi {
 		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 	}
 
-/*	RTTYS_EndPoint::~RTTYS_EndPoint() {
-		poco_information(Logger(), fmt::format("{}: Connection ending.", SerialNumber_));
-
-		if (DeviceSocket_ != nullptr)
-			std::cout << "Delete device with valid socket" << std::endl;
-		if (WSSocket_ != nullptr)
-			std::cout << "Client with valid socket" << std::endl;
+	RTTYS_EndPoint::~RTTYS_EndPoint() {
+		if(ssl!= nullptr)
+			SSL_free(ssl);
 	}
-*/
 
 } // namespace OpenWifi

@@ -39,7 +39,7 @@ namespace OpenWifi {
 
 		RTTYS_EndPoint(Poco::Net::StreamSocket &Socket);
 
-		~RTTYS_EndPoint() = default;
+		~RTTYS_EndPoint();
 
 		enum RTTY_MSG_TYPE {
 			msgTypeRegister = 0,
@@ -102,6 +102,8 @@ namespace OpenWifi {
 			return std::chrono::duration<double>{ClientDisconnected_ - ClientConnected_}.count();
 		}
 
+		int send_ssl_bytes(unsigned char *b,int size);
+
 		[[nodiscard]] std::string ReadString();
 		[[nodiscard]] bool do_msgTypeLogin(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeLogout(std::size_t msg_len);
@@ -140,6 +142,8 @@ namespace OpenWifi {
 		std::chrono::time_point<std::chrono::high_resolution_clock> Created_{0s},
 			DeviceDisconnected_{0s}, ClientDisconnected_{0s}, DeviceConnected_{0s},
 			ClientConnected_{0s};
+
+		SSL * ssl = nullptr;
 	};
 
 	class RTTYS_server : public SubSystemServer {
