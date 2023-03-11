@@ -202,7 +202,6 @@ namespace OpenWifi {
 							poco_debug(
 								Logger(),
 								fmt::format("Device {} has been validated from {}.", CN, CId_));
-							NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 							auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket);
 							AddConnectedDeviceEventHandlers(NewDevice);
 							return;
@@ -210,12 +209,10 @@ namespace OpenWifi {
 					}
 					poco_debug(Logger(), fmt::format("Device cannot be validated from {}.", CId_));
 				} else {
-					NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 					auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket);
 					AddConnectedDeviceEventHandlers(NewDevice);
 					return;
 				}
-				NewSocket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 				auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket);
 				AddConnectedDeviceEventHandlers(NewDevice);
 				return;
@@ -273,6 +270,10 @@ namespace OpenWifi {
 									 *this, &RTTYS_server::onConnectedDeviceSocketError));
 		ep->DeviceSocket_->setNoDelay(true);
 		ep->DeviceSocket_->setKeepAlive(true);
+		ep->DeviceSocket_->setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
+		ep->DeviceSocket_->setSendBufferSize(RTTY_DEVICE_BUFSIZE);
+		Poco::Timespan	TS(5,0);
+		ep->DeviceSocket_->setSendTimeout(TS);
 		ConnectingDevices_[fd] = ep;
 	}
 
