@@ -300,7 +300,7 @@ namespace OpenWifi {
 		auto err = SSL_get_error(ssl,sent);
 
 		std::cout << "Sent = " << sent << "  err: " << err << std::endl;
-
+		std::cout << "Error->" << ERR_reason_error_string(err) << std::endl;
 		return sent;
 	}
 
