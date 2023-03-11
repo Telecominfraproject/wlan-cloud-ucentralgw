@@ -304,6 +304,7 @@ namespace OpenWifi {
 
 		std::cout << "Sent = " << sent << "  err: " << err << std::endl;
 
+		return sent;
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeRegister(int fd) {
