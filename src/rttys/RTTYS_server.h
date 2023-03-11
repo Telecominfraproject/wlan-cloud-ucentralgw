@@ -102,6 +102,7 @@ namespace OpenWifi {
 			return std::chrono::duration<double>{ClientDisconnected_ - ClientConnected_}.count();
 		}
 
+		[[nodiscard]] std::string ReadString();
 		[[nodiscard]] bool do_msgTypeLogin(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeLogout(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeTermData(std::size_t msg_len);
@@ -112,6 +113,8 @@ namespace OpenWifi {
 		[[nodiscard]] bool do_msgTypeHttp(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeAck(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeMax(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeRegister(int fd);
+
 		bool SendToClient(const u_char *buf, int len);
 		bool SendToClient(const std::string &S);
 		[[nodiscard]] bool WindowSize(int cols, int rows);
@@ -126,7 +129,7 @@ namespace OpenWifi {
 		std::shared_ptr<Poco::Net::StreamSocket> 	DeviceSocket_;
 		std::shared_ptr<Poco::Net::WebSocket> 		WSSocket_;
 		Poco::Logger &Logger_;
-		std::unique_ptr<Poco::FIFOBuffer> DeviceInBuf_;
+		std::shared_ptr<Poco::FIFOBuffer> DeviceInBuf_;
 		char sid_=0;
 		std::size_t waiting_for_bytes_{0};
 		u_char last_command_ = 0;
@@ -161,7 +164,6 @@ namespace OpenWifi {
 
 		inline bool UseInternal() const { return Internal_; }
 
-		std::string ReadString(unsigned char *buf, int len, int &pos);
 		void onDeviceAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 
 		void onConnectedDeviceSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
@@ -172,21 +174,14 @@ namespace OpenWifi {
 		void onClientSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onClientSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
-		void RemoveConnectingDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep);
 		void RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket);
 		void RemoveConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
 
-		void AddConnectingDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep);
+		void AddConnectedDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep);
 		void AddClientEventHandlers(Poco::Net::StreamSocket &Socket,
 									std::shared_ptr<RTTYS_EndPoint> &EndPoint);
+
 		void MoveToConnectedDevice(std::shared_ptr<RTTYS_EndPoint> &EndPoint);
-
-		void onConnectingDeviceData(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
-		void onConnectingDeviceShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
-		void onConnectingDeviceError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
-
-		bool do_msgTypeRegister(Poco::Net::StreamSocket &Socket, unsigned char *Buffer, int Len);
-		bool do_msgTypeHeartbeat(Poco::Net::StreamSocket &Socket);
 
 		inline auto Uptime() const { return Utils::Now() - Started_; }
 
@@ -213,6 +208,11 @@ namespace OpenWifi {
 		}
 
 		void LogStdException(const std::exception &E, const char *msg);
+		inline std::map<int, std::shared_ptr<RTTYS_EndPoint>>::iterator ConnectingDevice(int fd) {
+			return ConnectingDevices_.find(fd);
+		}
+
+		friend class RTTYS_EndPoint;
 
 	  private:
 		std::shared_mutex		EndPointsMutex_;
