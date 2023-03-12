@@ -204,7 +204,7 @@ namespace OpenWifi {
 							poco_debug(
 								Logger(),
 								fmt::format("Device {} has been validated from {}.", CN, CId_));
-							auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket);
+							auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_);
 							std::lock_guard	Lock(ServerMutex_);
 							AddConnectedDeviceEventHandlers(NewDevice);
 							return;
@@ -212,12 +212,12 @@ namespace OpenWifi {
 					}
 					poco_debug(Logger(), fmt::format("Device cannot be validated from {}.", CId_));
 				} else {
-					auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket);
+					auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_);
 					std::lock_guard	Lock(ServerMutex_);
 					AddConnectedDeviceEventHandlers(NewDevice);
 					return;
 				}
-				auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket);
+				auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_);
 				std::lock_guard	Lock(ServerMutex_);
 				AddConnectedDeviceEventHandlers(NewDevice);
 				return;
@@ -307,7 +307,7 @@ namespace OpenWifi {
 			std::string desc_ = ReadString();
 			std::string token_ = ReadString();
 
-			// std::cout << __LINE__ << "  " << id_ << " " << desc_ << " " << token_ << std::endl;
+			poco_debug(Logger(),fmt::format("Device registration: description:{} id:{} token:{}", desc_, id_, token_));
 			if (id_.size() != RTTY_DEVICE_TOKEN_LENGTH ||
 				token_.size() != RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
 				poco_warning(Logger(),fmt::format("Wrong register header. {} {} {}", id_,desc_,token_));
@@ -332,6 +332,7 @@ namespace OpenWifi {
 					Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(
 						*ConnectingEp->second->DeviceSocket_);
 					Connection->DeviceInBuf_ = ConnectingEp->second->DeviceInBuf_;
+					Connection->TID_ = ConnectingEp->second->TID_;
 					RTTYS_server()->ConnectingDevices_.erase(fd);
 				}
 			}
@@ -1056,11 +1057,12 @@ namespace OpenWifi {
 		Created_ = std::chrono::high_resolution_clock::now();
 	}
 
-	RTTYS_EndPoint::RTTYS_EndPoint(Poco::Net::StreamSocket &Socket) :
+	RTTYS_EndPoint::RTTYS_EndPoint(Poco::Net::StreamSocket &Socket, std::uint64_t tid) :
 		Logger_(RTTYS_server()->Logger())
 	{
 		DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
 		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
+		TID_ = tid;
 	}
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {

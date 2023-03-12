@@ -37,7 +37,7 @@ namespace OpenWifi {
 					   const std::string &SerialNumber, const std::string &UserName,
 					   bool mTLS);
 
-		RTTYS_EndPoint(Poco::Net::StreamSocket &Socket);
+		RTTYS_EndPoint(Poco::Net::StreamSocket &Socket, std::uint64_t tid);
 
 		~RTTYS_EndPoint();
 
