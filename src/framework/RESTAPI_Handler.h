@@ -497,7 +497,6 @@ namespace OpenWifi {
 			SetCommonHeaders();
 			auto MT = Utils::FindMediaType(Name);
 			if (MT.Encoding == Utils::BINARY) {
-				std::cout << __LINE__ << std::endl;
 				Response->set("Content-Transfer-Encoding", "binary");
 				Response->set("Accept-Ranges", "bytes");
 			}

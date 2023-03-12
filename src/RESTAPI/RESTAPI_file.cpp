@@ -26,19 +26,15 @@ namespace OpenWifi {
 			return NotFound();
 		}
 		if (FileType == "pcap") {
-			std::cout << __LINE__ << std::endl;
 			SendFileContent(FileContent, "application/vnd.tcpdump.pcap", UUID + ".pcap");
 		}
 		else if (FileType == "gzip") {
-			std::cout << __LINE__ << std::endl;
 			SendFileContent(FileContent, "application/gzip", UUID + ".tar.gz");
 		}
 		else if (FileType == "txt") {
-			std::cout << __LINE__ << std::endl;
 			SendFileContent(FileContent, "txt/plain", UUID + ".txt");
 		}
 		else {
-			std::cout << __LINE__ << std::endl;
 			SendFileContent(FileContent, "application/octet-stream", UUID + ".bin");
 		}
 	}

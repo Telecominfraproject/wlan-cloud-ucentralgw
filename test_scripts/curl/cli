@@ -533,9 +533,9 @@ devicecount() {
 
 getfile() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/file/$2?serialNumber=$1" \
-	-H "accept: application/octet-stream" \
+	-H "accept: */*" \
 	-H "Authorization: Bearer ${token}" \
-	-o "$2.pcap"
+ 	-O -J
 }
 
 rtty() {
