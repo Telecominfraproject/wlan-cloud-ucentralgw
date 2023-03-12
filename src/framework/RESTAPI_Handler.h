@@ -491,12 +491,13 @@ namespace OpenWifi {
 			Response->sendFile(TempAvatar.path(), MT.ContentType);
 		}
 
-		inline void SendFileContent(const std::string &Content, const std::string &Type,
+		inline void SendFileContent(const std::string &Content, [[maybe_unused]] const std::string &Type,
 									const std::string &Name) {
 			Response->setStatus(Poco::Net::HTTPResponse::HTTPStatus::HTTP_OK);
 			SetCommonHeaders();
 			auto MT = Utils::FindMediaType(Name);
 			if (MT.Encoding == Utils::BINARY) {
+				std::cout << __LINE__ << std::endl;
 				Response->set("Content-Transfer-Encoding", "binary");
 				Response->set("Accept-Ranges", "bytes");
 			}
@@ -505,7 +506,7 @@ namespace OpenWifi {
 			Response->set("Cache-Control", "no-store");
 			Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
 			Response->setContentLength(Content.size());
-			Response->setContentType(Type);
+			Response->setContentType(MT.ContentType);
 			auto &OutputStream = Response->send();
 			OutputStream << Content;
 		}
