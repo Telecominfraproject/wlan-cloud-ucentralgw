@@ -386,6 +386,7 @@ namespace OpenWifi {
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
 			std::cout << __LINE__ << std::endl;
+			Poco::Thread::sleep(500);
 			if (Connection->send_ssl_bytes(OutBuf, 7) != 7) {
 				poco_information(
 					Logger(),
@@ -399,6 +400,7 @@ namespace OpenWifi {
 
 			std::cout << __LINE__ << std::endl;
 			if (Connection->WSSocket_ != nullptr) {
+				Poco::Thread::sleep(500);
 				std::cout << __LINE__ << std::endl;
 				Connection->Login();
 				std::cout << __LINE__ << std::endl;
