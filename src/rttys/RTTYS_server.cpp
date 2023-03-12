@@ -386,7 +386,7 @@ namespace OpenWifi {
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
 			std::cout << __LINE__ << std::endl;
-			Poco::Thread::sleep(500);
+			// Poco::Thread::sleep(500);
 			if (Connection->send_ssl_bytes(OutBuf, 7) != 7) {
 				poco_information(
 					Logger(),
