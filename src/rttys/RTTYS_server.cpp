@@ -399,12 +399,13 @@ namespace OpenWifi {
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 
 			std::cout << __LINE__ << std::endl;
-			if (Connection->WSSocket_ != nullptr) {
+/*			if (Connection->WSSocket_ != nullptr) {
 				Poco::Thread::sleep(500);
 				std::cout << __LINE__ << std::endl;
 				Connection->Login();
 				std::cout << __LINE__ << std::endl;
 			}
+*/
 			std::cout << __LINE__ << std::endl;
 			return true;
 		} catch (...) {
