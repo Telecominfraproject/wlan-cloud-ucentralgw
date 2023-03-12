@@ -708,10 +708,9 @@ namespace OpenWifi {
 			EndPoint->second->WSSocket_->setNoDelay(true);
 			EndPoint->second->WSSocket_->setKeepAlive(true);
 			AddClientEventHandlers(*EndPoint->second->WSSocket_, EndPoint->second);
-/*			if (EndPoint->second->DeviceSocket_ != nullptr && !EndPoint->second->completed_) {
+			if (EndPoint->second->DeviceSocket_ != nullptr && !EndPoint->second->completed_) {
 				EndPoint->second->Login();
 			}
-*/
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (const std::exception &E) {
