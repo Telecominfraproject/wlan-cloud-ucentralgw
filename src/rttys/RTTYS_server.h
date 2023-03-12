@@ -209,7 +209,7 @@ namespace OpenWifi {
 			return Res;
 		}
 
-		void LogStdException(const std::exception &E, const char *msg);
+		void LogStdException(const std::exception &E, const std::string & msg);
 		inline std::map<int, std::shared_ptr<RTTYS_EndPoint>>::iterator ConnectingDevice(int fd) {
 			return ConnectingDevices_.find(fd);
 		}

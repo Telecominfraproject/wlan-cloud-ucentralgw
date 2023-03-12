@@ -23,6 +23,7 @@ namespace OpenWifi {
 
 	int RTTYS_server::Start() {
 
+		poco_information(Logger(),"Starting...");
 		Internal_ = MicroServiceConfigGetBool("rtty.internal", false);
 		if (Internal_) {
 			int DSport = (int)MicroServiceConfigGetInt("rtty.port", 5912);
@@ -314,7 +315,6 @@ namespace OpenWifi {
 				return false;
 			}
 
-			poco_information(Logger(), fmt::format("Description:{} Device registration", desc_));
 			//	find this device in our connectio end points...
 			auto Connection = RTTYS_server()->FindConnection(id_, token_);
 			if (Connection == nullptr) {
@@ -345,7 +345,7 @@ namespace OpenWifi {
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
 					auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
-						poco_information(
+						poco_debug(
 							Logger(),
 							fmt::format("Device mTLS {} has been validated from {}.", CN, CId_));
 					} else {
@@ -368,7 +368,7 @@ namespace OpenWifi {
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
 			if (Connection->send_ssl_bytes(OutBuf, 7) != 7) {
-				poco_information(
+				poco_error(
 					Logger(),
 					fmt::format("{}: Description:{} Could not send data to complete registration",
 								id_, desc_));
@@ -419,7 +419,7 @@ namespace OpenWifi {
 			auto received_bytes = EndPoint->DeviceSocket_->receiveBytes(*EndPoint->DeviceInBuf_);
 			if (received_bytes == 0) {
 				good = false;
-				poco_information(Logger(), "Device Closing connection - 0 bytes received.");
+				poco_debug(Logger(), "Device Closing connection - 0 bytes received.");
 			} else {
 				while (EndPoint->DeviceInBuf_->isReadable() && good) {
 					uint32_t msg_len = 0;
@@ -580,7 +580,7 @@ namespace OpenWifi {
 									auto cols = Doc["cols"];
 									auto rows = Doc["rows"];
 									if (!Connection->WindowSize(cols, rows)) {
-										poco_information(Logger(), "Winsize shutdown.");
+										poco_error(Logger(), "Winsize shutdown.");
 										EndConnection(Connection,__LINE__);
 										return;
 									}
@@ -588,7 +588,7 @@ namespace OpenWifi {
 							}
 						} catch (...) {
 							// just ignore parse errors
-							poco_information(Logger(), "Frame text exception shutdown.");
+							poco_error(Logger(), "Frame text exception shutdown.");
 							EndConnection(Connection,__LINE__);
 							return;
 						}
@@ -597,7 +597,7 @@ namespace OpenWifi {
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
 				if (ReceivedBytes == 0) {
-					poco_trace(Logger(), "Client closing connection.");
+					poco_error(Logger(), "Client closing connection.");
 					EndConnection(Connection,__LINE__);
 					return;
 				} else {
@@ -605,7 +605,7 @@ namespace OpenWifi {
 							   fmt::format("Sending {} key strokes to device.", ReceivedBytes));
 					if (Connection->DeviceSocket_ != nullptr) {
 						if (!Connection->KeyStrokes(FrameBuffer, ReceivedBytes)) {
-							poco_trace(Logger(), "Cannot send keys to device. Close connection.");
+							poco_error(Logger(), "Cannot send keys to device. Close connection.");
 							EndConnection(Connection,__LINE__);
 							return;
 						}
@@ -662,7 +662,7 @@ namespace OpenWifi {
 													 Poco::Net::WebSocket::FRAME_OP_BINARY);
 				return;
 			} catch (...) {
-				poco_information(Logger(), "SendData shutdown.");
+				poco_error(Logger(), "SendData shutdown.");
 			}
 		}
 		EndConnection(Connection,__LINE__);
@@ -674,13 +674,13 @@ namespace OpenWifi {
 				Connection->WSSocket_->sendFrame(s.c_str(), s.length());
 				return;
 			} catch (...) {
-				poco_information(Logger(), "SendData shutdown.");
+				poco_error(Logger(), "SendData shutdown.");
 			}
 		}
 		EndConnection(Connection,__LINE__);
 	}
 
-	void RTTYS_server::LogStdException(const std::exception &E, const char *msg) {
+	void RTTYS_server::LogStdException(const std::exception &E, const std::string & msg) {
 		poco_warning(Logger(), fmt::format("{}: std::exception: {}", msg, E.what()));
 	}
 
@@ -858,18 +858,15 @@ namespace OpenWifi {
 			outBuf[1] = 0;
 			outBuf[2] = 0;
 			try {
-				poco_information(Logger(), "Device login");
-
+				poco_debug(Logger(), fmt::format("TID:{} Starting loggin on device.",TID_));
 				auto Sent = send_ssl_bytes(outBuf,3);
 				completed_ = true;
-
-				poco_information(Logger(), fmt::format("Device login ({} bytes sent)",Sent));
 				return Sent == RTTY_HDR_SIZE;
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
 				return false;
 			} catch (const std::exception &E) {
-				RTTYS_server()->LogStdException(E, "Cannot send login.");
+				RTTYS_server()->LogStdException(E, fmt::format("TID:{} Cannot send login.", TID_));
 				return false;
 			}
 		}
@@ -883,7 +880,7 @@ namespace OpenWifi {
 			outBuf[1] = 0;
 			outBuf[2] = 1;
 			outBuf[3] = sid_;
-			poco_information(Logger(), "{}: Logout");
+			poco_debug(Logger(), "{}: Logout");
 			try {
 				auto Sent = send_ssl_bytes(outBuf, RTTY_HDR_SIZE + 1);
 				return Sent == (int)(RTTY_HDR_SIZE + 1);
@@ -913,7 +910,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(), "Asking for login");
+		poco_debug(Logger(), "Asking for login");
 		if (WSSocket_ != nullptr) {
 			try {
 				nlohmann::json doc;
@@ -941,7 +938,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(), "Logout");
+		poco_debug(Logger(), "Logout");
 		char logout_session_id;
 		DeviceInBuf_->read(&logout_session_id, 1);
 		return false;
@@ -997,12 +994,12 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeWinsize([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(), "Asking for msgTypeWinsize");
+		poco_debug(Logger(), "Asking for msgTypeWinsize");
 		return true;
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeCmd([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(), "Asking for msgTypeCmd");
+		poco_debug(Logger(), "Asking for msgTypeCmd");
 		return true;
 	}
 
@@ -1029,22 +1026,22 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(), "Asking for msgTypeFile");
+		poco_debug(Logger(), "Asking for msgTypeFile");
 		return true;
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeHttp([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(), "Asking for msgTypeHttp");
+		poco_debug(Logger(), "Asking for msgTypeHttp");
 		return true;
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeAck([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(), "Asking for msgTypeAck");
+		poco_debug(Logger(), "Asking for msgTypeAck");
 		return true;
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeMax([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(), "Asking for msgTypeMax");
+		poco_debug(Logger(), "Asking for msgTypeMax");
 		return true;
 	}
 
