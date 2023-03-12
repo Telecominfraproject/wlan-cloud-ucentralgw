@@ -127,12 +127,20 @@ namespace OpenWifi {
 			auto Now = Utils::Now();
 
 			Command.Status = to_string(Type);
+
 			if (Type == CommandExecutionType::COMMAND_COMPLETED ||
 				Type == CommandExecutionType::COMMAND_TIMEDOUT ||
 				Type == CommandExecutionType::COMMAND_FAILED ||
 				Type == CommandExecutionType::COMMAND_EXPIRED ||
 				Type == CommandExecutionType::COMMAND_EXECUTED) {
 				Command.Executed = Now;
+			}
+
+			if(	Type == CommandExecutionType::COMMAND_COMPLETED ||
+				Type == CommandExecutionType::COMMAND_TIMEDOUT ||
+				Type == CommandExecutionType::COMMAND_FAILED ||
+				Type == CommandExecutionType::COMMAND_EXPIRED) {
+				Command.Completed = Now;
 			}
 
 			RemoveOldCommands(SerialNumber, Command.Command);
