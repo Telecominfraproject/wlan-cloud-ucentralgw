@@ -169,11 +169,12 @@ namespace OpenWifi {
 		if (Internal_) {
 			WebServer_->stopAll(true);
 			WebServer_->stop();
-			Reactor_.removeEventHandler(
+			Reactor_.stop();
+/*			Reactor_.removeEventHandler(
 				NoSecurity_ ? *DeviceSocket_ : *SecureDeviceSocket_,
 				Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 					*this, &RTTYS_server::onDeviceAccept));
-			Reactor_.stop();
+*/
 			ReactorThread_.join();
 		}
 		poco_information(Logger(),"Stopped...");
@@ -910,13 +911,16 @@ namespace OpenWifi {
 			try {
 				poco_information(Logger(), "Device login");
 
-				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(DeviceSocket_->impl());
+				auto Sent = send_ssl_bytes(outBuf,3);
+
+/*				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(DeviceSocket_->impl());
 				auto C = SS->context();
 				auto ssl_ctx = C->sslContext();
 				auto ssl = SSL_new(ssl_ctx);
 				auto Sent = SSL_write(ssl, outBuf,3);
 //				auto Sent = DeviceSocket_->sendBytes(
 //					outBuf, RTTY_HDR_SIZE );
+ */
 				completed_ = true;
 
 				poco_information(Logger(), fmt::format("Device login ({} bytes sent)",Sent));
@@ -1119,7 +1123,7 @@ namespace OpenWifi {
 	RTTYS_EndPoint::RTTYS_EndPoint(Poco::Net::StreamSocket &Socket) :
 		Logger_(RTTYS_server()->Logger())
 	{
-		DeviceSocket_ = std::make_shared<Poco::Net::StreamSocket>(std::move(Socket));
+		DeviceSocket_ = std::make_shared<Poco::Net::StreamSocket>(Socket);
 		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(DeviceSocket_->impl());
 		ssl = SSL_new(SS->context()->sslContext());
