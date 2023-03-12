@@ -258,7 +258,7 @@ namespace OpenWifi {
 		ConnectedDevices_.erase(fd);
 	}
 
-	void RTTYS_server::AddConnectedDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep) {
+	void RTTYS_server::AddConnectedDeviceEventHandlers(const std::shared_ptr<RTTYS_EndPoint> &ep) {
 		std::lock_guard	Lock(ConnectingDevicesMutex_);
 		int fd = ep->DeviceSocket_->impl()->sockfd();
 		Reactor_.addEventHandler(*ep->DeviceSocket_,
@@ -315,7 +315,7 @@ namespace OpenWifi {
 			std::string desc_ = ReadString();
 			std::string token_ = ReadString();
 
-			std::cout << __LINE__ << "  " << id_ << " " << desc_ << " " << token_ << std::endl;
+			// std::cout << __LINE__ << "  " << id_ << " " << desc_ << " " << token_ << std::endl;
 			if (id_.size() != RTTY_DEVICE_TOKEN_LENGTH ||
 				token_.size() != RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
 				poco_warning(Logger(),fmt::format("Wrong register header. {} {} {}", id_,desc_,token_));
@@ -340,6 +340,7 @@ namespace OpenWifi {
 					Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(
 						*ConnectingEp->second->DeviceSocket_);
 					Connection->DeviceInBuf_ = ConnectingEp->second->DeviceInBuf_;
+					std::lock_guard	Lock(RTTYS_server()->ConnectingDevicesMutex_);
 					RTTYS_server()->ConnectingDevices_.erase(fd);
 				}
 			}
