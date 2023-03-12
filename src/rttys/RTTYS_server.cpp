@@ -367,7 +367,6 @@ namespace OpenWifi {
 			OutBuf[4] = 'O';
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
-			// Poco::Thread::sleep(500);
 			if (Connection->send_ssl_bytes(OutBuf, 7) != 7) {
 				poco_information(
 					Logger(),
@@ -376,10 +375,14 @@ namespace OpenWifi {
 				return false;
 			}
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
+			if(Connection->WSSocket_!= nullptr) {
+				Connection->Login();
+			}
 			return true;
 		} catch (...) {
 			good = false;
 		}
+
 		return good;
 	}
 
@@ -866,6 +869,7 @@ namespace OpenWifi {
 
 	bool RTTYS_EndPoint::Login() {
 		if (DeviceSocket_ != nullptr) {
+			Poco::Thread::sleep(500);
 			u_char outBuf[RTTY_HDR_SIZE + RTTY_SESSION_ID_LENGTH]{0};
 			outBuf[0] = msgTypeLogin;
 			outBuf[1] = 0;
