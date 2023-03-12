@@ -201,7 +201,7 @@ namespace OpenWifi {
 		inline std::shared_ptr<RTTYS_EndPoint> FindConnection(const std::string &Id,
 															  const std::string &Token) {
 			std::shared_ptr<RTTYS_EndPoint> Res;
-			std::shared_lock	Lock(EndPointsMutex_);
+			std::lock_guard	Lock(ServerMutex_);
 			auto EndPoint = EndPoints_.find(Id);
 			if (EndPoint != end(EndPoints_) && EndPoint->second->Token_ == Token) {
 				Res = EndPoint->second;
@@ -217,11 +217,8 @@ namespace OpenWifi {
 		friend class RTTYS_EndPoint;
 
 	  private:
-		std::shared_mutex		EndPointsMutex_;
-		std::shared_mutex		ConnectedDevicesMutex_;
-		std::shared_mutex		ConnectingDevicesMutex_;
-		std::shared_mutex		ClientsMutex_;
-		Poco::Net::SocketReactor Reactor_;
+		std::recursive_mutex		ServerMutex_;
+		Poco::Net::SocketReactor 	Reactor_;
 		Poco::Thread ReactorThread_;
 		std::string RTTY_UIAssets_;
 		bool Internal_ = false;
