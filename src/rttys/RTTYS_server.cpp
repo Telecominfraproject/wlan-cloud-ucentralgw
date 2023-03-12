@@ -332,13 +332,16 @@ namespace OpenWifi {
 			}
 
 			//	are we connected or not ?
-			auto ConnectingEp = RTTYS_server()->ConnectingDevice(fd);
-			if(ConnectingEp == RTTYS_server()->ConnectedDevices_.end()) {
+			{
+				auto ConnectingEp = RTTYS_server()->ConnectingDevice(fd);
+				if (ConnectingEp == RTTYS_server()->ConnectedDevices_.end()) {
 
-			} else {
-				Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(*ConnectingEp->second->DeviceSocket_);
-				Connection->DeviceInBuf_ = ConnectingEp->second->DeviceInBuf_;
-				RTTYS_server()->ConnectingDevices_.erase(fd);
+				} else {
+					Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(
+						*ConnectingEp->second->DeviceSocket_);
+					Connection->DeviceInBuf_ = ConnectingEp->second->DeviceInBuf_;
+					RTTYS_server()->ConnectingDevices_.erase(fd);
+				}
 			}
 
 			if (Connection->mTLS_) {
