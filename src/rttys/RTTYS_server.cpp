@@ -296,13 +296,16 @@ namespace OpenWifi {
 	}
 
 	int RTTYS_EndPoint::send_ssl_bytes(unsigned char *b,int size) {
-		auto sent = SSL_write(ssl,b,size);
+
+		return DeviceSocket_->sendBytes(b,size);
+/*		auto sent = SSL_write(ssl,b,size);
 		if(sent == size) return sent;
 		auto err = SSL_get_error(ssl,sent);
 
 		std::cout << "Sent = " << sent << "  err: " << err << std::endl;
 		std::cout << "Error->" << ERR_reason_error_string(err) << std::endl;
 		return sent;
+*/
 	}
 
 	bool RTTYS_EndPoint::do_msgTypeRegister(int fd) {
@@ -333,7 +336,7 @@ namespace OpenWifi {
 			if(ConnectingEp == RTTYS_server()->ConnectedDevices_.end()) {
 
 			} else {
-				Connection->DeviceSocket_ = ConnectingEp->second->DeviceSocket_;
+				Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(*ConnectingEp->second->DeviceSocket_);
 				Connection->DeviceInBuf_ = ConnectingEp->second->DeviceInBuf_;
 				RTTYS_server()->ConnectingDevices_.erase(fd);
 			}
@@ -735,7 +738,7 @@ namespace OpenWifi {
 
 		//	OK Create and register this WS client
 		try {
-			EndPoint->second->WSSocket_ = std::make_shared<Poco::Net::WebSocket>(request, response);
+			EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request, response);
 			EndPoint->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
 			EndPoint->second->WSSocket_->setBlocking(false);
 			EndPoint->second->WSSocket_->setNoDelay(true);
@@ -844,7 +847,7 @@ namespace OpenWifi {
 				small_buf_[3] = sid_;
 				memcpy(&small_buf_[RTTY_HDR_SIZE + 1], &buf[1], len - 1);
 				try {
-					auto Sent = DeviceSocket_->sendBytes(small_buf_,
+					auto Sent = send_ssl_bytes(small_buf_,
 														 RTTY_HDR_SIZE + 1 + len - 1);
 					return (Sent == (int)(RTTY_HDR_SIZE + 1 + len - 1));
 				} catch (const Poco::Exception &E) {
@@ -862,7 +865,7 @@ namespace OpenWifi {
 				Msg.get()[3] = sid_;
 				memcpy((Msg.get() + RTTY_HDR_SIZE + 1), &buf[1], len - 1);
 				try {
-					auto Sent = DeviceSocket_->sendBytes(Msg.get(),
+					auto Sent = send_ssl_bytes(Msg.get(),
 														 RTTY_HDR_SIZE + 1 + len - 1);
 					return (Sent == (int)(RTTY_HDR_SIZE + 1 + len - 1));
 				} catch (const Poco::Exception &E) {
@@ -889,7 +892,7 @@ namespace OpenWifi {
 			outBuf[RTTY_HDR_SIZE + 2 + 1] = rows >> 8;
 			outBuf[RTTY_HDR_SIZE + 3 + 1] = rows & 0x00ff;
 			try {
-				auto Sent = DeviceSocket_->sendBytes(outBuf, RTTY_HDR_SIZE + 4 + 1);
+				auto Sent = send_ssl_bytes(outBuf, RTTY_HDR_SIZE + 4 + 1);
 				return (Sent == (int)(RTTY_HDR_SIZE + 4 + 1));
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
@@ -945,7 +948,7 @@ namespace OpenWifi {
 			outBuf[3] = sid_;
 			poco_information(Logger(), "{}: Logout");
 			try {
-				auto Sent = DeviceSocket_->sendBytes(outBuf, RTTY_HDR_SIZE + 1);
+				auto Sent = send_ssl_bytes(outBuf, RTTY_HDR_SIZE + 1);
 				return Sent == (int)(RTTY_HDR_SIZE + 1);
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
@@ -1078,7 +1081,7 @@ namespace OpenWifi {
 				MsgBuf[0] = msgTypeHeartbeat;
 				MsgBuf[1] = 0;
 				MsgBuf[2] = 0;
-				auto Sent = DeviceSocket_->sendBytes(MsgBuf, RTTY_HDR_SIZE);
+				auto Sent = send_ssl_bytes(MsgBuf, RTTY_HDR_SIZE);
 				return Sent == RTTY_HDR_SIZE;
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
@@ -1123,7 +1126,7 @@ namespace OpenWifi {
 	RTTYS_EndPoint::RTTYS_EndPoint(Poco::Net::StreamSocket &Socket) :
 		Logger_(RTTYS_server()->Logger())
 	{
-		DeviceSocket_ = std::make_shared<Poco::Net::StreamSocket>(Socket);
+		DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
 		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(DeviceSocket_->impl());
 		ssl = SSL_new(SS->context()->sslContext());
