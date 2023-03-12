@@ -228,6 +228,7 @@ namespace OpenWifi {
 
 	void RTTYS_server::RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket) {
 		int fd = Socket.impl()->sockfd();
+		std::lock_guard	Lock(ClientsMutex_);
 		if(Reactor_.has(Socket)) {
 			Reactor_.removeEventHandler(
 				Socket, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -244,6 +245,7 @@ namespace OpenWifi {
 
 	void RTTYS_server::RemoveConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
 		int fd = Socket.impl()->sockfd();
+		std::lock_guard	Lock(ConnectedDevicesMutex_);
 		if(Reactor_.has(Socket)) {
 			Reactor_.removeEventHandler(Socket,
 										Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -447,7 +449,8 @@ namespace OpenWifi {
 						good = EndPoint->do_msgTypeLogin(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogout: {
-						good = EndPoint->do_msgTypeLogout(msg_len);
+						// good = EndPoint->do_msgTypeLogout(msg_len);
+						good = false;
 					} break;
 					case RTTYS_EndPoint::msgTypeTermData: {
 						good = EndPoint->do_msgTypeTermData(msg_len);
@@ -960,9 +963,6 @@ namespace OpenWifi {
 		poco_information(Logger(), "Logout");
 		char logout_session_id;
 		DeviceInBuf_->read(&logout_session_id, 1);
-
-		// we must send a logout to the UI...
-
 		return false;
 	}
 
