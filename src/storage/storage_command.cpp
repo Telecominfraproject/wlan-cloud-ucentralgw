@@ -702,11 +702,6 @@ namespace OpenWifi {
 				Poco::Data::Keywords::into(Type), Poco::Data::Keywords::use(UUID);
 			Select2.execute();
 			FileContent.assign(L.content().begin(), L.content().end());
-
-			if (Command == "script")
-				Type = "gzip";
-			else if (Command == "trace")
-				Type = "pcap";
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
