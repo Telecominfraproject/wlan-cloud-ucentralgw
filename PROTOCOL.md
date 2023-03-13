@@ -241,7 +241,7 @@ venue where this device belongs and resend the same message to all other devices
     "params" : {
         "serial" : <serial number> ,
         "timestamp" : <the UTC timestamp when the message was sent>,
-        "data" : <an opaque string from the AP. This could be Zipped and so on and most likely base64 encoded>
+        "data" : <JSON document to broadcast>
     }
 }
 ```
