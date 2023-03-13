@@ -3129,7 +3129,12 @@ static std::string DefaultUCentralSchema = R"foo(
                             "client.key-mismatch",
                             "wifi",
                             "wifi.start",
-                            "wifi.stop"
+                            "wifi.stop",
+                            "wired",
+                            "wired.carrier-up",
+                            "wired.carrier-down",
+                            "unit",
+                            "unit.boot-up"
                         ]
                     }
                 }
@@ -3155,7 +3160,12 @@ static std::string DefaultUCentralSchema = R"foo(
                             "client.key-mismatch",
                             "wifi",
                             "wifi.start",
-                            "wifi.stop"
+                            "wifi.stop",
+                            "wired",
+                            "wired.carrier-up",
+                            "wired.carrier-down",
+                            "unit",
+                            "unit.boot-up"
                         ]
                     }
                 }
