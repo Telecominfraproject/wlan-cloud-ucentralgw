@@ -483,6 +483,7 @@ namespace OpenWifi {
 				Response->set("Content-Transfer-Encoding", "binary");
 				Response->set("Accept-Ranges", "bytes");
 			}
+			Response->set("Access-Control-Expose-Headers", "Content-Disposition");
 			Response->set("Content-Disposition", "attachment; filename=" + Name);
 			Response->set("Accept-Ranges", "bytes");
 			Response->set("Cache-Control", "no-store");
@@ -491,7 +492,7 @@ namespace OpenWifi {
 			Response->sendFile(TempAvatar.path(), MT.ContentType);
 		}
 
-		inline void SendFileContent(const std::string &Content, const std::string &Type,
+		inline void SendFileContent(const std::string &Content, [[maybe_unused]] const std::string &Type,
 									const std::string &Name) {
 			Response->setStatus(Poco::Net::HTTPResponse::HTTPStatus::HTTP_OK);
 			SetCommonHeaders();
@@ -500,12 +501,13 @@ namespace OpenWifi {
 				Response->set("Content-Transfer-Encoding", "binary");
 				Response->set("Accept-Ranges", "bytes");
 			}
+			Response->set("Access-Control-Expose-Headers", "Content-Disposition");
 			Response->set("Content-Disposition", "attachment; filename=" + Name);
 			Response->set("Accept-Ranges", "bytes");
 			Response->set("Cache-Control", "no-store");
 			Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
 			Response->setContentLength(Content.size());
-			Response->setContentType(Type);
+			Response->setContentType(MT.ContentType);
 			auto &OutputStream = Response->send();
 			OutputStream << Content;
 		}

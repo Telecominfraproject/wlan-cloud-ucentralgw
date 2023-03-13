@@ -25,12 +25,18 @@ namespace OpenWifi {
 		if (!StorageService()->GetAttachedFileContent(UUID, SerialNumber, FileContent, FileType)) {
 			return NotFound();
 		}
-		if (FileType == "pcap")
+		if (FileType == "pcap") {
 			SendFileContent(FileContent, "application/vnd.tcpdump.pcap", UUID + ".pcap");
-		else if (FileType == "gzip")
-			SendFileContent(FileContent, "application/gzip", UUID + ".tar.gz");
-		else
-			SendFileContent(FileContent, "application/txt", UUID + ".txt");
+		}
+		else if (FileType == "tgz" ) {
+			SendFileContent(FileContent, "application/gzip", UUID + ".tgz");
+		}
+		else if (FileType == "txt") {
+			SendFileContent(FileContent, "txt/plain", UUID + ".txt");
+		}
+		else {
+			SendFileContent(FileContent, "application/octet-stream", UUID + ".bin");
+		}
 	}
 
 	void RESTAPI_file::DoDelete() {

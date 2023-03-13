@@ -127,12 +127,20 @@ namespace OpenWifi {
 			auto Now = Utils::Now();
 
 			Command.Status = to_string(Type);
+
 			if (Type == CommandExecutionType::COMMAND_COMPLETED ||
 				Type == CommandExecutionType::COMMAND_TIMEDOUT ||
 				Type == CommandExecutionType::COMMAND_FAILED ||
 				Type == CommandExecutionType::COMMAND_EXPIRED ||
 				Type == CommandExecutionType::COMMAND_EXECUTED) {
 				Command.Executed = Now;
+			}
+
+			if(	Type == CommandExecutionType::COMMAND_COMPLETED ||
+				Type == CommandExecutionType::COMMAND_TIMEDOUT ||
+				Type == CommandExecutionType::COMMAND_FAILED ||
+				Type == CommandExecutionType::COMMAND_EXPIRED) {
+				Command.Completed = Now;
 			}
 
 			RemoveOldCommands(SerialNumber, Command.Command);
@@ -405,8 +413,8 @@ namespace OpenWifi {
 			CommandDetailsRecordTuple R;
 			Select << ConvertParams(St), Poco::Data::Keywords::into(R),
 				Poco::Data::Keywords::use(tmp_uuid);
-			ConvertCommandRecord(R, Command);
 			Select.execute();
+			ConvertCommandRecord(R, Command);
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -451,9 +459,9 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
-			for (auto i : Records) {
+			for (const auto &record : Records) {
 				GWObjects::CommandDetails R;
-				ConvertCommandRecord(i, R);
+				ConvertCommandRecord(record, R);
 				Commands.push_back(R);
 			}
 			Select.reset(Sess);
@@ -484,9 +492,9 @@ namespace OpenWifi {
 			Select << SS, Poco::Data::Keywords::into(Records), Poco::Data::Keywords::use(Now);
 			Select.execute();
 
-			for (const auto &i : Records) {
+			for (const auto &record : Records) {
 				GWObjects::CommandDetails R;
-				ConvertCommandRecord(i, R);
+				ConvertCommandRecord(record, R);
 				if (AP_WS_Server()->Connected(Utils::SerialNumberToInt(R.SerialNumber)))
 					Commands.push_back(R);
 			}
@@ -694,11 +702,6 @@ namespace OpenWifi {
 				Poco::Data::Keywords::into(Type), Poco::Data::Keywords::use(UUID);
 			Select2.execute();
 			FileContent.assign(L.content().begin(), L.content().end());
-
-			if (Command == "script")
-				Type = "gzip";
-			else if (Command == "trace")
-				Type = "pcap";
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);

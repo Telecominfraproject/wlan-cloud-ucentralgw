@@ -3092,6 +3092,20 @@ static std::string DefaultUCentralSchema = R"foo(
                 }
             }
         },
+        "metrics.wifi-scan": {
+            "type": "object",
+            "properties": {
+                "interval": {
+                    "type": "integer"
+                },
+                "verbose": {
+                    "type": "boolean"
+                },
+                "information-elements": {
+                    "type": "boolean"
+                }
+            }
+        },
         "metrics.telemetry": {
             "type": "object",
             "properties": {
@@ -3101,7 +3115,27 @@ static std::string DefaultUCentralSchema = R"foo(
                 "types": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "ssh",
+                            "health",
+                            "health.dns",
+                            "health.dhcp",
+                            "health.radius",
+                            "health.memory",
+                            "client",
+                            "client.join",
+                            "client.leave",
+                            "client.key-mismatch",
+                            "wifi",
+                            "wifi.start",
+                            "wifi.stop",
+                            "wired",
+                            "wired.carrier-up",
+                            "wired.carrier-down",
+                            "unit",
+                            "unit.boot-up"
+                        ]
                     }
                 }
             }
@@ -3112,7 +3146,27 @@ static std::string DefaultUCentralSchema = R"foo(
                 "types": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "ssh",
+                            "health",
+                            "health.dns",
+                            "health.dhcp",
+                            "health.radius",
+                            "health.memory",
+                            "client",
+                            "client.join",
+                            "client.leave",
+                            "client.key-mismatch",
+                            "wifi",
+                            "wifi.start",
+                            "wifi.stop",
+                            "wired",
+                            "wired.carrier-up",
+                            "wired.carrier-down",
+                            "unit",
+                            "unit.boot-up"
+                        ]
                     }
                 }
             }
@@ -3131,6 +3185,9 @@ static std::string DefaultUCentralSchema = R"foo(
                 },
                 "dhcp-snooping": {
                     "$ref": "#/$defs/metrics.dhcp-snooping"
+                },
+                "wifi-scan": {
+                    "$ref": "#/$defs/metrics.wifi-scan"
                 },
                 "telemetry": {
                     "$ref": "#/$defs/metrics.telemetry"

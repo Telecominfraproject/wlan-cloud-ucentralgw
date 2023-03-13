@@ -437,6 +437,15 @@ namespace OpenWifi::Utils {
 			return MediaTypeEncoding{.Encoding = PLAIN, .ContentType = "text/css"};
 		if (E == "js")
 			return MediaTypeEncoding{.Encoding = PLAIN, .ContentType = "application/javascript"};
+		if (E == "pcap")
+			return MediaTypeEncoding{.Encoding = BINARY, .ContentType = "application/vnd.tcpdump.pcap"};
+		if (E == "txt")
+			return MediaTypeEncoding{.Encoding = PLAIN, .ContentType = "text/plain"};
+		if (E == "tgz")
+			return MediaTypeEncoding{.Encoding = BINARY, .ContentType = "application/tar+gzip"};
+		if (E == "gz" || E=="gzip")
+			return MediaTypeEncoding{.Encoding = BINARY, .ContentType = "application/gzip"};
+
 		return MediaTypeEncoding{.Encoding = BINARY, .ContentType = "application/octet-stream"};
 	}
 

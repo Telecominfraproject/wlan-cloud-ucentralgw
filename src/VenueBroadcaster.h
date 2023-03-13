@@ -18,11 +18,11 @@ namespace OpenWifi {
 
 	class VenueBroadcastNotification : public Poco::Notification {
 	  public:
-		VenueBroadcastNotification(const std::string &SourceSerialNumber, const std::string &Data,
+		VenueBroadcastNotification(const std::string &SourceSerialNumber, Poco::JSON::Object::Ptr Data,
 								   uint64_t TimeStamp)
 			: SourceSerialNumber_(SourceSerialNumber), Data_(Data), TimeStamp_(TimeStamp) {}
 		std::string SourceSerialNumber_;
-		std::string Data_;
+		Poco::JSON::Object::Ptr Data_;
 		uint64_t TimeStamp_ = Utils::Now();
 	};
 
@@ -129,7 +129,7 @@ namespace OpenWifi {
 			Running_ = false;
 		}
 
-		inline void Broadcast(const std::string &SourceSerial, const std::string &Data,
+		inline void Broadcast(const std::string &SourceSerial, Poco::JSON::Object::Ptr Data,
 							  uint64_t TimeStamp) {
 			BroadcastQueue_.enqueueNotification(
 				new VenueBroadcastNotification(SourceSerial, Data, TimeStamp));

@@ -517,9 +517,16 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
+		std::string EncodedScript;
 		if (!SCR.scriptId.empty()) {
 			GWObjects::ScriptEntry Existing;
-			if (!StorageService()->ScriptDB().GetRecord("id", SCR.scriptId, Existing)) {
+			if(Utils::ValidUUID(SCR.scriptId)) {
+				if (!StorageService()->ScriptDB().GetRecord("id", SCR.scriptId, Existing)) {
+					CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,
+								 RESTAPI::Errors::MissingOrInvalidParameters);
+					return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+				}
+			} else if(!StorageService()->ScriptDB().GetRecord("name", SCR.scriptId, Existing)) {
 				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,
 							 RESTAPI::Errors::MissingOrInvalidParameters);
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
@@ -548,11 +555,16 @@ namespace OpenWifi {
 				SCR.deferred = Existing.deferred;
 			if (!ParsedBody_->has("timeout"))
 				SCR.timeout = Existing.timeout;
+			EncodedScript =
+				Utils::base64encode((const unsigned char *)SCR.script.c_str(), SCR.script.size());
 		} else {
 			if (!DiagnosticScript && !ValidateScriptType(SCR.type)) {
 				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,
 							 RESTAPI::Errors::MissingOrInvalidParameters);
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
+			if(!DiagnosticScript) {
+				EncodedScript = SCR.script;
 			}
 		}
 
@@ -593,8 +605,6 @@ namespace OpenWifi {
 		}
 
 		// convert script to base64 ...
-		auto EncodedScript =
-			Utils::base64encode((const unsigned char *)SCR.script.c_str(), SCR.script.size());
 		Params.set(uCentralProtocol::TYPE, SCR.type);
 		if (!DiagnosticScript) {
 			Params.set(uCentralProtocol::SCRIPT, EncodedScript);
@@ -604,7 +614,7 @@ namespace OpenWifi {
 		std::stringstream ParamStream;
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
-		FileUploader()->AddUUID(CMD_UUID, 15min, "script_result");
+		FileUploader()->AddUUID(CMD_UUID, 15min, SCR.type == "shell" ? "txt" : "tgz" );
 
 		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::script, false, Cmd,
 										   Params, *Request, *Response, timeout, nullptr, this,
@@ -933,7 +943,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			FileUploader()->AddUUID(CMD_UUID, 10min, "trace");
+			FileUploader()->AddUUID(CMD_UUID, 10min, "pcap");
 			return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::trace, false, Cmd,
 											   Params, *Request, *Response, timeout, nullptr, this,
 											   Logger_);
