@@ -443,7 +443,7 @@ namespace OpenWifi::Utils {
 			return MediaTypeEncoding{.Encoding = PLAIN, .ContentType = "text/plain"};
 		if (E == "tgz")
 			return MediaTypeEncoding{.Encoding = BINARY, .ContentType = "application/tar+gzip"};
-		if (E == "gz")
+		if (E == "gz" || E=="gzip")
 			return MediaTypeEncoding{.Encoding = BINARY, .ContentType = "application/gzip"};
 
 		return MediaTypeEncoding{.Encoding = BINARY, .ContentType = "application/octet-stream"};

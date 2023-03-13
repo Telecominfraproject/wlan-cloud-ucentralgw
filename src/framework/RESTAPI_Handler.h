@@ -483,6 +483,7 @@ namespace OpenWifi {
 				Response->set("Content-Transfer-Encoding", "binary");
 				Response->set("Accept-Ranges", "bytes");
 			}
+			Response->set("Access-Control-Expose-Headers", "Content-Disposition");
 			Response->set("Content-Disposition", "attachment; filename=" + Name);
 			Response->set("Accept-Ranges", "bytes");
 			Response->set("Cache-Control", "no-store");
@@ -500,6 +501,7 @@ namespace OpenWifi {
 				Response->set("Content-Transfer-Encoding", "binary");
 				Response->set("Accept-Ranges", "bytes");
 			}
+			Response->set("Access-Control-Expose-Headers", "Content-Disposition");
 			Response->set("Content-Disposition", "attachment; filename=" + Name);
 			Response->set("Accept-Ranges", "bytes");
 			Response->set("Cache-Control", "no-store");

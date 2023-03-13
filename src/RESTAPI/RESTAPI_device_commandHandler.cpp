@@ -614,7 +614,7 @@ namespace OpenWifi {
 		std::stringstream ParamStream;
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
-		FileUploader()->AddUUID(CMD_UUID, 15min, SCR.type == "shell" ? "txt" : "gzip" );
+		FileUploader()->AddUUID(CMD_UUID, 15min, SCR.type == "shell" ? "txt" : "tgz" );
 
 		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::script, false, Cmd,
 										   Params, *Request, *Response, timeout, nullptr, this,

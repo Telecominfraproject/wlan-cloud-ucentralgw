@@ -28,8 +28,8 @@ namespace OpenWifi {
 		if (FileType == "pcap") {
 			SendFileContent(FileContent, "application/vnd.tcpdump.pcap", UUID + ".pcap");
 		}
-		else if (FileType == "gzip") {
-			SendFileContent(FileContent, "application/gzip", UUID + ".tar.gz");
+		else if (FileType == "tgz" ) {
+			SendFileContent(FileContent, "application/gzip", UUID + ".tgz");
 		}
 		else if (FileType == "txt") {
 			SendFileContent(FileContent, "txt/plain", UUID + ".txt");
