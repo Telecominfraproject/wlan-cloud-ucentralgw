@@ -1130,8 +1130,8 @@ namespace OpenWifi {
 				if (RTTYS_server()->UseInternal()) {
 					std::uint64_t SN = Utils::SerialNumberToInt(SerialNumber_);
 					bool mTLS = AP_WS_Server()->DeviceRequiresSecureRtty(SN);
-					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_, Utils::Now())
-									 .substr(0, RTTY_DEVICE_TOKEN_LENGTH);
+					auto Hash =  Utils::ComputeHash(UserInfo_.webtoken.refresh_token_, Utils::Now());
+					Rtty.Token = Hash.substr(0, RTTY_DEVICE_TOKEN_LENGTH);
 					if (!RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(),
 														SerialNumber_, mTLS)) {
 						return BadRequest(RESTAPI::Errors::MaximumRTTYSessionsReached);
