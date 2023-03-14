@@ -80,7 +80,7 @@ namespace OpenWifi {
 		void initialize(Poco::Util::Application &self) override;
 		inline void uninitialize() override {}
 		inline void reinitialize([[maybe_unused]] Poco::Util::Application &self) override {
-			poco_information(Logger_, "Reloading of this subsystem is not supported.");
+			poco_information(Logger_->L_, "Reloading of this subsystem is not supported.");
 		}
 		inline void defineOptions([[maybe_unused]] Poco::Util::OptionSet &options) override {}
 		inline const std::string &Name() const { return Name_; };
@@ -90,25 +90,29 @@ namespace OpenWifi {
 			return ConfigServersList_[index];
 		};
 		inline uint64_t HostSize() const { return ConfigServersList_.size(); }
-		inline Poco::Logger &Logger() const { return Logger_; }
+		inline Poco::Logger &Logger() const { return Logger_->L_; }
 		inline void SetLoggingLevel(const std::string &levelName) {
-			Logger_.setLevel(Poco::Logger::parseLevel(levelName));
+			Logger_->L_.setLevel(Poco::Logger::parseLevel(levelName));
 		}
-		inline int GetLoggingLevel() { return Logger_.getLevel(); }
+		inline int GetLoggingLevel() { return Logger_->L_.getLevel(); }
 
 		virtual int Start() = 0;
 		virtual void Stop() = 0;
+
+		struct LoggerWrapper {
+			Poco::Logger &L_;
+			LoggerWrapper(Poco::Logger &L) : L_(L) {}
+		};
 
 	  protected:
 		std::recursive_mutex Mutex_;
 		std::vector<PropertiesFileServerEntry> ConfigServersList_;
 
 	  private:
-		// std::unique_ptr<LoggerWrapper> Logger_;
-		std::string 	Name_;
-		std::string 	LoggerPrefix_;
-		std::string 	SubSystemConfigPrefix_;
-		Poco::Logger & 	Logger_;
+		std::unique_ptr<LoggerWrapper> Logger_;
+		std::string Name_;
+		std::string LoggerPrefix_;
+		std::string SubSystemConfigPrefix_;
 	};
 
 	typedef std::vector<SubSystemServer *> SubSystemVec;
