@@ -205,7 +205,7 @@ namespace OpenWifi {
 							poco_debug(
 								Logger(),
 								fmt::format("Device {} has been validated from {}.", CN, CId_));
-							auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_,Logger().get(CId_));
+							auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_,Logger());
 							std::lock_guard	Lock(ServerMutex_);
 							AddConnectedDeviceEventHandlers(NewDevice);
 							return;
@@ -213,12 +213,12 @@ namespace OpenWifi {
 					}
 					poco_debug(Logger(), fmt::format("Device cannot be validated from {}.", CId_));
 				} else {
-					auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_, Logger().get(CId_));
+					auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_, Logger());
 					std::lock_guard	Lock(ServerMutex_);
 					AddConnectedDeviceEventHandlers(NewDevice);
 					return;
 				}
-				auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_, Logger().get(CId_));
+				auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_, Logger());
 				std::lock_guard	Lock(ServerMutex_);
 				AddConnectedDeviceEventHandlers(NewDevice);
 				return;
@@ -772,7 +772,7 @@ namespace OpenWifi {
 		if (MaxConcurrentSessions_ != 0 && EndPoints_.size() == MaxConcurrentSessions_) {
 			return false;
 		}
-		EndPoints_[Id] = std::make_shared<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName, mTLS, this->Logger().get(SerialNumber));
+		EndPoints_[Id] = std::make_shared<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName, mTLS, Logger());
 		++TotalEndPoints_;
 		return true;
 	}
