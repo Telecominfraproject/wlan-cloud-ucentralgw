@@ -171,11 +171,6 @@ namespace OpenWifi {
 			WebServer_->stopAll(true);
 			WebServer_->stop();
 			Reactor_.stop();
-/*			Reactor_.removeEventHandler(
-				NoSecurity_ ? *DeviceSocket_ : *SecureDeviceSocket_,
-				Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-					*this, &RTTYS_server::onDeviceAccept));
-*/
 			ReactorThread_.join();
 		}
 		poco_information(Logger(),"Stopped...");
