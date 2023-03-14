@@ -208,6 +208,21 @@ namespace OpenWifi {
 			return Res;
 		}
 
+		inline std::shared_ptr<RTTYS_EndPoint> FindConnectingDevice(int fd) {
+			std::shared_ptr<RTTYS_EndPoint> Res;
+			std::lock_guard	Lock(ServerMutex_);
+			auto EndPoint = ConnectingDevices_.find(fd);
+			if (EndPoint != end(ConnectingDevices_)) {
+				Res = EndPoint->second;
+			}
+			return Res;
+		}
+
+		void RemoveConnectingDevice(int fd) {
+			std::lock_guard	Lock(ServerMutex_);
+			ConnectingDevices_.erase(fd);
+		}
+
 		void LogStdException(const std::exception &E, const std::string & msg);
 		inline std::map<int, std::shared_ptr<RTTYS_EndPoint>>::iterator ConnectingDevice(int fd) {
 			return ConnectingDevices_.find(fd);

@@ -325,14 +325,15 @@ namespace OpenWifi {
 
 			//	are we connected or not ?
 			{
-				auto ConnectingEp = RTTYS_server()->ConnectingDevice(fd);
-				if (ConnectingEp == RTTYS_server()->ConnectedDevices_.end()) {
-
+				auto ConnectingEp = RTTYS_server()->FindConnectingDevice(fd);
+				if (ConnectingEp == nullptr) {
+					poco_warning(Logger_, fmt::format("Unknown socket {} from device.", fd));
+					return false;
 				} else {
-					Connection->DeviceSocket_ = ConnectingEp->second->DeviceSocket_;
-					Connection->DeviceInBuf_ = ConnectingEp->second->DeviceInBuf_;
-					Connection->TID_ = ConnectingEp->second->TID_;
-					RTTYS_server()->ConnectingDevices_.erase(fd);
+					Connection->DeviceSocket_ = ConnectingEp->DeviceSocket_;
+					Connection->DeviceInBuf_ = ConnectingEp->DeviceInBuf_;
+					Connection->TID_ = ConnectingEp->TID_;
+					RTTYS_server()->RemoveConnectingDevice(fd);
 				}
 			}
 
