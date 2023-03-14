@@ -770,6 +770,7 @@ namespace OpenWifi {
 
 		auto Start = Utils::Now();
 		while(!ServerMutex_.try_lock()) {
+			Poco::Thread::yield();
 			Poco::Thread::trySleep(100);
 			if((Utils::Now()-Start)>10) {
 				poco_warning(Logger(),"RTTY too busy");
