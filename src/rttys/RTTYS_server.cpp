@@ -416,7 +416,9 @@ namespace OpenWifi {
 
 			bool good = true;
 
+			poco_warning(Logger(), "About to receive bytes");
 			auto received_bytes = EndPoint->DeviceSocket_->receiveBytes(*EndPoint->DeviceInBuf_);
+			poco_warning(Logger(), fmt::format("Received {} bytes",received_bytes));
 			if (received_bytes == 0) {
 				good = false;
 				poco_debug(Logger(), "Device Closing connection - 0 bytes received.");
@@ -424,7 +426,7 @@ namespace OpenWifi {
 				while (EndPoint->DeviceInBuf_->isReadable() && good) {
 					uint32_t msg_len = 0;
 					if (EndPoint->waiting_for_bytes_ != 0) {
-						poco_information(Logger(),fmt::format("Waiting for {} bytes",EndPoint->waiting_for_bytes_));
+						poco_warning(Logger(),fmt::format("Waiting for {} bytes",EndPoint->waiting_for_bytes_));
 					} else {
 						if (EndPoint->DeviceInBuf_->used() >= RTTY_HDR_SIZE) {
 							auto *head = (unsigned char *)EndPoint->DeviceInBuf_->begin();
