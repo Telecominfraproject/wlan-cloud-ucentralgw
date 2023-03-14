@@ -15,6 +15,8 @@
 
 #include "Poco/NObserver.h"
 #include "Poco/Net/SocketNotification.h"
+#include "Poco/Net/NetException.h"
+
 
 #define DBGLINE                                                                                    \
 	{ std::cout << __LINE__ << std::endl; }
@@ -273,8 +275,10 @@ namespace OpenWifi {
 		ep->DeviceSocket_->setBlocking(false);
 		ep->DeviceSocket_->setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 		ep->DeviceSocket_->setSendBufferSize(RTTY_DEVICE_BUFSIZE);
-		Poco::Timespan	TS(100000000);
-		ep->DeviceSocket_->setSendTimeout(TS);
+		Poco::Timespan	TS1(100000000);
+		ep->DeviceSocket_->setSendTimeout(TS1);
+		Poco::Timespan	TS2(1000);
+		ep->DeviceSocket_->setReceiveTimeout(TS2);
 		ConnectingDevices_[fd] = ep;
 	}
 
@@ -390,21 +394,19 @@ namespace OpenWifi {
 		// std::cout << __LINE__ << " " << "fd=" << fd << std::endl;
 
 		std::lock_guard	Lock(ServerMutex_);
-		auto Connection = ConnectedDevices_.end();
-		std::shared_ptr<RTTYS_EndPoint> EndPoint;
+		std::shared_ptr<RTTYS_EndPoint> Connection;
 		try {
-			Connection = ConnectedDevices_.find(fd);
-			if (Connection == end(ConnectedDevices_)) {
-				Connection = ConnectingDevices_.find(fd);
-				if(Connection==end(ConnectingDevices_)) {
+			Connection = RTTYS_server().FindConnectedDevice(fd);
+			if (Connection == nullptr) {
+				Connection = RTTYS_server().FindConnectingDevice(fd);
+				if(Connection == nullptr) {
 					poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
 													   fd));
 					return;
 				}
 			}
 
-			EndPoint = Connection->second;
-			if (EndPoint == nullptr || EndPoint->DeviceSocket_ == nullptr) {
+			if (Connection->DeviceSocket_ == nullptr) {
 				poco_warning(Logger(), fmt::format("Connection has invalid socket: {}",
 												   pNf->socket().impl()->sockfd()));
 				return;
@@ -412,70 +414,81 @@ namespace OpenWifi {
 
 			bool good = true;
 
-			poco_warning(Logger(), "About to receive bytes");
-			auto received_bytes = EndPoint->DeviceSocket_->receiveBytes(*EndPoint->DeviceInBuf_);
-			poco_warning(Logger(), fmt::format("Received {} bytes",received_bytes));
+			int received_bytes=0;
+			try {
+				poco_warning(Logger(), "About to receive bytes");
+				received_bytes =
+					Connection->DeviceSocket_->receiveBytes(*Connection->DeviceInBuf_);
+				poco_warning(Logger(), fmt::format("Received {} bytes", received_bytes));
+			} catch (const Poco::TimeoutException &E) {
+				return;
+			} catch (const Poco::Net::NetException &E) {
+				Logger().log(E);
+				EndConnection(Connection,__LINE__);
+				return;
+			}
+
 			if (received_bytes == 0) {
 				good = false;
 				poco_debug(Logger(), "Device Closing connection - 0 bytes received.");
 			} else {
-				while (EndPoint->DeviceInBuf_->isReadable() && good) {
+				while (Connection->DeviceInBuf_->isReadable() && good) {
 					uint32_t msg_len = 0;
-					if (EndPoint->waiting_for_bytes_ != 0) {
-						poco_warning(Logger(),fmt::format("Waiting for {} bytes",EndPoint->waiting_for_bytes_));
+					if (Connection->waiting_for_bytes_ != 0) {
+						poco_warning(Logger(),fmt::format("Waiting for {} bytes",Connection->waiting_for_bytes_));
 					} else {
-						if (EndPoint->DeviceInBuf_->used() >= RTTY_HDR_SIZE) {
-							auto *head = (unsigned char *)EndPoint->DeviceInBuf_->begin();
-							EndPoint->last_command_ = head[0];
+						if (Connection->DeviceInBuf_->used() >= RTTY_HDR_SIZE) {
+							auto *head = (unsigned char *)Connection->DeviceInBuf_->begin();
+							Connection->last_command_ = head[0];
 							msg_len = head[1] * 256 + head[2];
-							EndPoint->DeviceInBuf_->drain(RTTY_HDR_SIZE);
+							Connection->DeviceInBuf_->drain(RTTY_HDR_SIZE);
 						} else {
 							good = false;
-							std::cout << "Funky..." << EndPoint->DeviceInBuf_->used() << std::endl;
+							std::cout << "Funky..." << Connection->DeviceInBuf_->used() << std::endl;
 							continue;
 						}
 					}
 
-					switch (EndPoint->last_command_) {
+					switch (Connection->last_command_) {
 
 					case RTTYS_EndPoint::msgTypeRegister: {
-						good = EndPoint->do_msgTypeRegister(fd);
+						good = Connection->do_msgTypeRegister(fd);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogin: {
-						good = EndPoint->do_msgTypeLogin(msg_len);
+						good = Connection->do_msgTypeLogin(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogout: {
 						// good = EndPoint->do_msgTypeLogout(msg_len);
 						good = false;
 					} break;
 					case RTTYS_EndPoint::msgTypeTermData: {
-						good = EndPoint->do_msgTypeTermData(msg_len);
+						good = Connection->do_msgTypeTermData(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeWinsize: {
-						good = EndPoint->do_msgTypeWinsize(msg_len);
+						good = Connection->do_msgTypeWinsize(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeCmd: {
-						good = EndPoint->do_msgTypeCmd(msg_len);
+						good = Connection->do_msgTypeCmd(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeHeartbeat: {
-						good = EndPoint->do_msgTypeHeartbeat(msg_len);
+						good = Connection->do_msgTypeHeartbeat(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeFile: {
-						good = EndPoint->do_msgTypeFile(msg_len);
+						good = Connection->do_msgTypeFile(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeHttp: {
-						good = EndPoint->do_msgTypeHttp(msg_len);
+						good = Connection->do_msgTypeHttp(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeAck: {
-						good = EndPoint->do_msgTypeAck(msg_len);
+						good = Connection->do_msgTypeAck(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeMax: {
-						good = EndPoint->do_msgTypeMax(msg_len);
+						good = Connection->do_msgTypeMax(msg_len);
 					} break;
 					default: {
 						poco_warning(Logger(),
 									 fmt::format("Unknown command {}. GW closing connection.",
-												 (int)EndPoint->last_command_));
+												 (int)Connection->last_command_));
 						good = false;
 					}
 					}
@@ -483,15 +496,15 @@ namespace OpenWifi {
 			}
 
 			if (!good)
-				EndConnection(EndPoint,__LINE__);
+				EndConnection(Connection,__LINE__);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-			if (Connection != ConnectedDevices_.end() && EndPoint != nullptr) {
-				EndConnection(EndPoint,__LINE__);
+			if (Connection != nullptr) {
+				EndConnection(Connection,__LINE__);
 			}
 		} catch (...) {
-			if (Connection != ConnectedDevices_.end() && EndPoint != nullptr) {
-				EndConnection(EndPoint,__LINE__);
+			if (Connection != nullptr) {
+				EndConnection(Connection,__LINE__);
 			}
 		}
 	}

@@ -218,6 +218,16 @@ namespace OpenWifi {
 			return Res;
 		}
 
+		inline std::shared_ptr<RTTYS_EndPoint> FindConnectedDevice(int fd) {
+			std::shared_ptr<RTTYS_EndPoint> Res;
+			std::lock_guard	Lock(ServerMutex_);
+			auto EndPoint = ConnectedDevices_.find(fd);
+			if (EndPoint != end(ConnectedDevices_)) {
+				Res = EndPoint->second;
+			}
+			return Res;
+		}
+
 		void RemoveConnectingDevice(int fd) {
 			std::lock_guard	Lock(ServerMutex_);
 			ConnectingDevices_.erase(fd);
