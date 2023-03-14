@@ -157,7 +157,7 @@ namespace OpenWifi {
 		GCCallBack_ =
 			std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this, &RTTYS_server::onTimer);
 		Timer_.setStartInterval(30 * 1000); // first run in 30 seconds
-		Timer_.setPeriodicInterval(5 * 1000);
+		Timer_.setPeriodicInterval(60 * 1000);
 		Timer_.start(*GCCallBack_, MicroServiceTimerPool());
 		Running_ = true;
 		return 0;
@@ -726,7 +726,6 @@ namespace OpenWifi {
 
 		std::lock_guard	Lock(ServerMutex_);
 		auto Now = std::chrono::high_resolution_clock::now();
-		std::set<int> DS, CS;
 		for (auto EndPoint = EndPoints_.begin(); EndPoint != EndPoints_.end();) {
 			if ((Now - EndPoint->second->Created_) > 2min && !EndPoint->second->completed_) {
 				EndPoint = EndConnection(EndPoint->second,__LINE__);
@@ -737,7 +736,7 @@ namespace OpenWifi {
 
 		if (Utils::Now() - LastStats > (60 * 1)) {
 			LastStats = Utils::Now();
-			Logger().information(fmt::format(
+			poco_information(Logger(),fmt::format(
 				"Statistics: Total connections:{} Current-connections:{} Avg-Device-Connection "
 				"Time: {:.2f}ms Avg-Client-Connection Time: {:.2f}ms #Sockets: {}. Connecting "
 				"devices: {}",
