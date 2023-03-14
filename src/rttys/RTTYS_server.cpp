@@ -357,7 +357,8 @@ namespace OpenWifi {
 					return false;
 				}
 			}
-			RTTYS_server()->ConnectedDevices_[fd] = Connection;
+
+			RTTYS_server()->AddConnectedDevice(fd,Connection);
 
 			u_char OutBuf[8];
 			OutBuf[0] = RTTYS_EndPoint::msgTypeRegister;
@@ -396,9 +397,9 @@ namespace OpenWifi {
 		std::lock_guard	Lock(ServerMutex_);
 		std::shared_ptr<RTTYS_EndPoint> Connection;
 		try {
-			Connection = RTTYS_server().FindConnectedDevice(fd);
+			Connection = FindConnectedDevice(fd);
 			if (Connection == nullptr) {
-				Connection = RTTYS_server().FindConnectingDevice(fd);
+				Connection = FindConnectingDevice(fd);
 				if(Connection == nullptr) {
 					poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
 													   fd));

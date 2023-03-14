@@ -199,8 +199,8 @@ namespace OpenWifi {
 
 		inline std::shared_ptr<RTTYS_EndPoint> FindConnection(const std::string &Id,
 															  const std::string &Token) {
+			std::lock_guard		G(ServerMutex_);
 			std::shared_ptr<RTTYS_EndPoint> Res;
-			std::lock_guard	Lock(ServerMutex_);
 			auto EndPoint = EndPoints_.find(Id);
 			if (EndPoint != end(EndPoints_) && EndPoint->second->Token_ == Token) {
 				Res = EndPoint->second;
@@ -209,8 +209,8 @@ namespace OpenWifi {
 		}
 
 		inline std::shared_ptr<RTTYS_EndPoint> FindConnectingDevice(int fd) {
+			std::lock_guard		G(ServerMutex_);
 			std::shared_ptr<RTTYS_EndPoint> Res;
-			std::lock_guard	Lock(ServerMutex_);
 			auto EndPoint = ConnectingDevices_.find(fd);
 			if (EndPoint != end(ConnectingDevices_)) {
 				Res = EndPoint->second;
@@ -219,13 +219,18 @@ namespace OpenWifi {
 		}
 
 		inline std::shared_ptr<RTTYS_EndPoint> FindConnectedDevice(int fd) {
+			std::lock_guard		G(ServerMutex_);
 			std::shared_ptr<RTTYS_EndPoint> Res;
-			std::lock_guard	Lock(ServerMutex_);
 			auto EndPoint = ConnectedDevices_.find(fd);
 			if (EndPoint != end(ConnectedDevices_)) {
 				Res = EndPoint->second;
 			}
 			return Res;
+		}
+
+		void AddConnectedDevice(int fd, std::shared_ptr<RTTYS_EndPoint> ep) {
+			std::lock_guard		G(ServerMutex_);
+			ConnectedDevices_[fd]=ep;
 		}
 
 		void RemoveConnectingDevice(int fd) {
