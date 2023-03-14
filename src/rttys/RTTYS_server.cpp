@@ -270,6 +270,7 @@ namespace OpenWifi {
 									 *this, &RTTYS_server::onConnectedDeviceSocketError));
 		ep->DeviceSocket_->setNoDelay(true);
 		ep->DeviceSocket_->setKeepAlive(true);
+		ep->DeviceSocket_->setBlocking(false);
 		ep->DeviceSocket_->setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 		ep->DeviceSocket_->setSendBufferSize(RTTY_DEVICE_BUFSIZE);
 		Poco::Timespan	TS(100000000);
