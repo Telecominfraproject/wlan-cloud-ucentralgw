@@ -424,7 +424,7 @@ namespace OpenWifi {
 				while (EndPoint->DeviceInBuf_->isReadable() && good) {
 					uint32_t msg_len = 0;
 					if (EndPoint->waiting_for_bytes_ != 0) {
-
+						poco_debug(Logger(),fmt::format("Waiting for {} bytes",EndPoint->waiting_for_bytes_));
 					} else {
 						if (EndPoint->DeviceInBuf_->used() >= RTTY_HDR_SIZE) {
 							auto *head = (unsigned char *)EndPoint->DeviceInBuf_->begin();
