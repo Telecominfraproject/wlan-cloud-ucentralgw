@@ -122,7 +122,6 @@ namespace OpenWifi {
 		[[nodiscard]] bool WindowSize(int cols, int rows);
 		[[nodiscard]] bool KeyStrokes(const u_char *buf, size_t len);
 
-		inline Poco::Logger &Logger() { return Logger_; }
 		Poco::Net::SocketAddress device_address_;
 		std::string Id_;
 		std::string Token_;
@@ -219,11 +218,11 @@ namespace OpenWifi {
 	  private:
 		std::recursive_mutex		ServerMutex_;
 		Poco::Net::SocketReactor 	Reactor_;
-		Poco::Thread ReactorThread_;
-		std::string RTTY_UIAssets_;
-		bool Internal_ = false;
-		bool NoSecurity_ = false;
-		volatile bool Running_ = false;
+		Poco::Thread 				ReactorThread_;
+		std::string 				RTTY_UIAssets_;
+		bool 						Internal_ = false;
+		bool 						NoSecurity_ = false;
+		volatile bool 				Running_ = false;
 
 		std::unique_ptr<Poco::Net::HTTPServer> WebServer_;
 
@@ -234,7 +233,6 @@ namespace OpenWifi {
 
 		Poco::Timer Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>> GCCallBack_;
-		// std::mutex ServerMutex_;
 
 		std::atomic_uint64_t TotalEndPoints_ = 0;
 		std::chrono::duration<double, std::milli> TotalConnectedDeviceTime_{0ms},
