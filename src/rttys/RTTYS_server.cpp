@@ -767,12 +767,23 @@ namespace OpenWifi {
 									  const std::string &UserName,
 									  const std::string &SerialNumber,
 									  bool mTLS) {
-		std::lock_guard	Lock(ServerMutex_);
+
+		auto Start = Utils::Now();
+		while(!ServerMutex_.try_lock()) {
+			Poco::Thread::trySleep(100);
+			if((Utils::Now()-Start)>10) {
+				poco_warning(Logger(),"RTTY too busy");
+				return false;
+			}
+		}
+
 		if (MaxConcurrentSessions_ != 0 && EndPoints_.size() == MaxConcurrentSessions_) {
+			ServerMutex_.unlock();
 			return false;
 		}
 		EndPoints_[Id] = std::make_shared<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName, mTLS, Logger());
 		++TotalEndPoints_;
+		ServerMutex_.unlock();
 		return true;
 	}
 
