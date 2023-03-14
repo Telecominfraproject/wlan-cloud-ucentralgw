@@ -329,7 +329,6 @@ namespace OpenWifi {
 					return false;
 				} else {
 					Connection->DeviceSocket_ = ConnectingEp->DeviceSocket_;
-					Connection->DeviceInBuf_ = ConnectingEp->DeviceInBuf_;
 					Connection->TID_ = ConnectingEp->TID_;
 					RTTYS_server()->RemoveConnectingDevice(fd);
 				}
@@ -420,7 +419,7 @@ namespace OpenWifi {
 					Connection->DeviceSocket_->receiveBytes(*Connection->DeviceInBuf_);
 				poco_warning(Logger(), fmt::format("Received {} bytes", received_bytes));
 			} catch (const Poco::TimeoutException &E) {
-				poco_warning(Logger(), "Receive timeou");
+				poco_warning(Logger(), "Receive timeout");
 				return;
 			} catch (const Poco::Net::NetException &E) {
 				Logger().log(E);
@@ -1075,6 +1074,7 @@ namespace OpenWifi {
 		: Id_(Id), Token_(Token), SerialNumber_(SerialNumber), UserName_(UserName),
 	  	Logger_(Logger), mTLS_(mTLS) {
 		Created_ = std::chrono::high_resolution_clock::now();
+		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 	}
 
 	RTTYS_EndPoint::RTTYS_EndPoint(Poco::Net::StreamSocket &Socket, std::uint64_t tid,
@@ -1082,7 +1082,6 @@ namespace OpenWifi {
 		Logger_(Logger)
 	{
 		DeviceSocket_ = std::make_shared<Poco::Net::StreamSocket>(Socket);
-		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		TID_ = tid;
 	}
 
