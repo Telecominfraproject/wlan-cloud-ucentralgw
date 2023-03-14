@@ -1082,6 +1082,7 @@ namespace OpenWifi {
 		Logger_(Logger)
 	{
 		DeviceSocket_ = std::make_shared<Poco::Net::StreamSocket>(Socket);
+		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		TID_ = tid;
 	}
 
