@@ -271,7 +271,10 @@ namespace OpenWifi {
 
 	SubSystemServer::SubSystemServer(const std::string &Name, const std::string &LoggingPrefix,
 									 const std::string &SubSystemConfigPrefix)
-		: Name_(Name), LoggerPrefix_(LoggingPrefix), SubSystemConfigPrefix_(SubSystemConfigPrefix) {
+		: Name_(Name), LoggerPrefix_(LoggingPrefix), SubSystemConfigPrefix_(SubSystemConfigPrefix),
+		  Logger_(Poco::Logger::create(
+			  LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()))
+	{
 	}
 
 	void SubSystemServer::initialize([[maybe_unused]] Poco::Util::Application &self) {
@@ -279,13 +282,8 @@ namespace OpenWifi {
 		bool good = true;
 
 		auto NewLevel = MicroServiceConfigGetString("logging.level." + Name_, "");
-		if (NewLevel.empty())
-			Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(
-				LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
-		else
-			Logger_ = std::make_unique<LoggerWrapper>(
-				Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(),
-									 Poco::Logger::parseLevel(NewLevel)));
+		if (!NewLevel.empty())
+			Logger_.setLevel(Poco::Logger::parseLevel(NewLevel));
 
 		ConfigServersList_.clear();
 		while (good) {
