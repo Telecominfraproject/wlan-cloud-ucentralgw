@@ -275,9 +275,7 @@ namespace OpenWifi {
 		ep->DeviceSocket_->setBlocking(false);
 		ep->DeviceSocket_->setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
 		ep->DeviceSocket_->setSendBufferSize(RTTY_DEVICE_BUFSIZE);
-		Poco::Timespan	TS1(100000000);
-		ep->DeviceSocket_->setSendTimeout(TS1);
-		Poco::Timespan	TS2(1000);
+		Poco::Timespan	TS2(0,100);
 		ep->DeviceSocket_->setReceiveTimeout(TS2);
 		ConnectingDevices_[fd] = ep;
 	}
@@ -422,6 +420,7 @@ namespace OpenWifi {
 					Connection->DeviceSocket_->receiveBytes(*Connection->DeviceInBuf_);
 				poco_warning(Logger(), fmt::format("Received {} bytes", received_bytes));
 			} catch (const Poco::TimeoutException &E) {
+				poco_warning(Logger(), "Receive timeou");
 				return;
 			} catch (const Poco::Net::NetException &E) {
 				Logger().log(E);
