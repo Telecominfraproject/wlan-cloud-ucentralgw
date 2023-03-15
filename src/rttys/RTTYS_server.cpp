@@ -440,18 +440,29 @@ namespace OpenWifi {
 				return;
 			}
 
+			std::cout << __LINE__ << std::endl;
+
 			if (received_bytes == 0) {
+				std::cout << __LINE__ << std::endl;
 				good = false;
 				poco_debug(Logger(), "Device Closing connection - 0 bytes received.");
 			} else {
+				std::cout << __LINE__ << std::endl;
 				while (Connection->BufPos_<Connection->BufferCurrentSize_ && good) {
+					std::cout << __LINE__ << std::endl;
 					uint32_t msg_len = 0;
+					std::cout << __LINE__ << std::endl;
 					if (Connection->waiting_for_bytes_ != 0) {
+						std::cout << __LINE__ << std::endl;
 						poco_warning(Logger(),fmt::format("Waiting for {} bytes",Connection->waiting_for_bytes_));
+						std::cout << __LINE__ << std::endl;
 					} else {
+						std::cout << __LINE__ << std::endl;
 						if (Connection->BufferCurrentSize_ >= RTTY_HDR_SIZE) {
+							std::cout << __LINE__ << std::endl;
 							Connection->last_command_ = Connection->Buffer_[Connection->BufPos_+0];
 							msg_len = Connection->Buffer_[Connection->BufPos_+1] * 256 + Connection->Buffer_[Connection->BufPos_+2];
+							std::cout << __LINE__ << std::endl;
 							Connection->BufPos_+=RTTY_HDR_SIZE;
 						} else {
 							good = false;
@@ -460,6 +471,7 @@ namespace OpenWifi {
 						}
 					}
 
+					std::cout << __LINE__ << std::endl;
 					switch (Connection->last_command_) {
 
 					case RTTYS_EndPoint::msgTypeRegister: {
