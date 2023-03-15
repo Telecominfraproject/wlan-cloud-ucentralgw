@@ -467,7 +467,7 @@ namespace OpenWifi {
 					} else {
 						std::cout << __LINE__ << std::endl;
 						if (Connection->BufferCurrentSize_ >= RTTY_HDR_SIZE) {
-							std::cout << __LINE__ << std::endl;
+							std::cout << __LINE__ << " BP:" << Connection->BufPos_ << std::endl;
 							Connection->last_command_ = Connection->Buffer_[Connection->BufPos_+0];
 							msg_len = Connection->Buffer_[Connection->BufPos_+1] * 256 + Connection->Buffer_[Connection->BufPos_+2];
 							std::cout << __LINE__ << std::endl;
@@ -479,7 +479,7 @@ namespace OpenWifi {
 						}
 					}
 
-					std::cout << __LINE__ << " RB:" << received_bytes << " " << (int) Connection->last_command_ << " " << msg_len << std::endl;
+					std::cout << __LINE__ << " RB:" << received_bytes << " " << (int) Connection->last_command_ << " " << (int) Connection->Buffer_[0] << " " << msg_len << std::endl;
 					switch (Connection->last_command_) {
 
 					case RTTYS_EndPoint::msgTypeRegister: {
