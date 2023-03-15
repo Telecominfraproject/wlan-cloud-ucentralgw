@@ -26,6 +26,7 @@ namespace OpenWifi {
 	constexpr std::size_t RTTY_DEVICE_BUFSIZE = 256000;
 	constexpr std::size_t RTTY_SESSION_ID_LENGTH = 32;
 	constexpr std::size_t RTTY_HDR_SIZE = 3;
+	constexpr std::size_t RTTY_RECEIVE_BUFFER = 64000;
 
 	class RTTYS_server;
 
@@ -130,8 +131,8 @@ namespace OpenWifi {
 		std::shared_ptr<Poco::Net::StreamSocket> 	DeviceSocket_;
 		std::shared_ptr<Poco::Net::WebSocket> 		WSSocket_;
 		Poco::Logger &Logger_;
-		std::shared_ptr<Poco::FIFOBuffer> DeviceInBuf_;
-		char sid_=0;
+		// std::shared_ptr<Poco::FIFOBuffer> DeviceInBuf_;
+		unsigned char sid_=0;
 		std::size_t waiting_for_bytes_{0};
 		u_char last_command_ = 0;
 		unsigned char small_buf_[64 + RTTY_SESSION_ID_LENGTH]{0};
@@ -141,6 +142,10 @@ namespace OpenWifi {
 		std::chrono::time_point<std::chrono::high_resolution_clock> Created_{0s},
 			DeviceDisconnected_{0s}, ClientDisconnected_{0s}, DeviceConnected_{0s},
 			ClientConnected_{0s};
+
+		unsigned char 		Buffer_[RTTY_RECEIVE_BUFFER]{0};
+		std::size_t 		BufPos_=0,BufferCurrentSize_=0;
+
 	};
 
 	class RTTYS_server : public SubSystemServer {

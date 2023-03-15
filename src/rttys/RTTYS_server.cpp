@@ -412,11 +412,12 @@ namespace OpenWifi {
 
 			bool good = true;
 
-			int received_bytes=0;
+			std::size_t received_bytes=0;
 			try {
 				poco_warning(Logger(), "About to receive bytes");
-				received_bytes =
-					Connection->DeviceSocket_->receiveBytes(*Connection->DeviceInBuf_);
+//					Connection->DeviceSocket_->receiveBytes(*Connection->DeviceInBuf_);
+				Connection->BufPos_=0;
+				received_bytes = Connection->BufferCurrentSize_ = Connection->DeviceSocket_->receiveBytes( Connection->Buffer_, sizeof(Connection->Buffer_));
 				poco_warning(Logger(), fmt::format("Received {} bytes", received_bytes));
 			} catch (const Poco::TimeoutException &E) {
 				poco_warning(Logger(), "Receive timeout");
@@ -431,19 +432,18 @@ namespace OpenWifi {
 				good = false;
 				poco_debug(Logger(), "Device Closing connection - 0 bytes received.");
 			} else {
-				while (Connection->DeviceInBuf_->isReadable() && good) {
+				while (Connection->BufPos_<Connection->BufferCurrentSize_ && good) {
 					uint32_t msg_len = 0;
 					if (Connection->waiting_for_bytes_ != 0) {
 						poco_warning(Logger(),fmt::format("Waiting for {} bytes",Connection->waiting_for_bytes_));
 					} else {
-						if (Connection->DeviceInBuf_->used() >= RTTY_HDR_SIZE) {
-							auto *head = (unsigned char *)Connection->DeviceInBuf_->begin();
-							Connection->last_command_ = head[0];
-							msg_len = head[1] * 256 + head[2];
-							Connection->DeviceInBuf_->drain(RTTY_HDR_SIZE);
+						if (Connection->BufferCurrentSize_ >= RTTY_HDR_SIZE) {
+							Connection->last_command_ = Connection->Buffer_[Connection->BufPos_+0];
+							msg_len = Connection->Buffer_[Connection->BufPos_+1] * 256 + Connection->Buffer_[Connection->BufPos_+2];
+							Connection->BufPos_+=RTTY_HDR_SIZE;
 						} else {
 							good = false;
-							std::cout << "Funky..." << Connection->DeviceInBuf_->used() << std::endl;
+							std::cout << "Funky..." << Connection->BufferCurrentSize_ << std::endl;
 							continue;
 						}
 					}
@@ -918,14 +918,12 @@ namespace OpenWifi {
 
 	std::string RTTYS_EndPoint::ReadString() {
 		std::string Res;
-		while(DeviceInBuf_->used()) {
-			auto c = *DeviceInBuf_->begin();
+		while(BufPos_<BufferCurrentSize_) {
+			auto c = Buffer_[BufPos_++];
 			if(c==0) {
-				DeviceInBuf_->drain(1);
 				break;
 			}
 			Res += c;
-			DeviceInBuf_->drain(1);
 		}
 		return Res;
 	}
@@ -935,10 +933,9 @@ namespace OpenWifi {
 		if (WSSocket_ != nullptr) {
 			try {
 				nlohmann::json doc;
-				char Error;
-				DeviceInBuf_->read(&Error, 1);
+				unsigned char Error = Buffer_[BufPos_++];
 				if(Error==0) {
-					DeviceInBuf_->read(&sid_, 1);
+					sid_ = Buffer_[BufPos_++];
 				} else {
 					poco_error(Logger_,"Device login failed.");
 					return false;
@@ -960,8 +957,8 @@ namespace OpenWifi {
 
 	bool RTTYS_EndPoint::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
 		poco_debug(Logger_, "Logout");
-		char logout_session_id;
-		DeviceInBuf_->read(&logout_session_id, 1);
+		[[maybe_unused]] unsigned char logout_session_id = Buffer_[BufPos_++];
+
 		return false;
 	}
 
@@ -969,28 +966,28 @@ namespace OpenWifi {
 		bool good;
 		try {
 			if (waiting_for_bytes_ > 0) {
-				if (DeviceInBuf_->used() < waiting_for_bytes_) {
-					waiting_for_bytes_ = waiting_for_bytes_ - DeviceInBuf_->used();
-					good = SendToClient((unsigned char *)DeviceInBuf_->begin(),
-										(int)DeviceInBuf_->used());
-					DeviceInBuf_->drain();
+				if ((BufferCurrentSize_-BufPos_) < waiting_for_bytes_) {
+					waiting_for_bytes_ = waiting_for_bytes_ - (BufferCurrentSize_-BufPos_);
+					good = SendToClient(&Buffer_[BufPos_],
+										BufferCurrentSize_-BufPos_);
+					BufPos_ = BufferCurrentSize_;
 				} else {
-					good = SendToClient((unsigned char *)DeviceInBuf_->begin(), waiting_for_bytes_);
-					DeviceInBuf_->drain(waiting_for_bytes_);
+					good = SendToClient(&Buffer_[BufPos_], waiting_for_bytes_);
+					BufPos_ += waiting_for_bytes_;
 					waiting_for_bytes_ = 0;
 				}
 			} else {
-				DeviceInBuf_->drain(1);
+				BufPos_++;
 				msg_len -= 1;
-				if (DeviceInBuf_->used() < msg_len) {
+				if (BufferCurrentSize_-BufPos_ < msg_len) {
 					good =
-						SendToClient((unsigned char *)DeviceInBuf_->begin(), DeviceInBuf_->used());
-					waiting_for_bytes_ = msg_len - DeviceInBuf_->used();
-					DeviceInBuf_->drain();
+						SendToClient(&Buffer_[BufPos_], BufferCurrentSize_-BufPos_);
+					waiting_for_bytes_ = msg_len - (BufferCurrentSize_-BufPos_);
+					BufPos_ = BufferCurrentSize_;
 				} else {
 					waiting_for_bytes_ = 0;
-					good = SendToClient((unsigned char *)DeviceInBuf_->begin(), msg_len);
-					DeviceInBuf_->drain(msg_len);
+					good = SendToClient(&Buffer_[BufPos_], BufferCurrentSize_-BufPos_);
+					BufPos_ = BufferCurrentSize_;
 				}
 			}
 		} catch (const Poco::Exception &E) {
@@ -1028,8 +1025,7 @@ namespace OpenWifi {
 		if (DeviceSocket_ != nullptr) {
 			try {
 				u_char MsgBuf[RTTY_HDR_SIZE + 16]{0};
-				if (msg_len)
-					DeviceInBuf_->drain(msg_len);
+				BufPos_ += msg_len;
 				MsgBuf[0] = msgTypeHeartbeat;
 				MsgBuf[1] = 0;
 				MsgBuf[2] = 0;
@@ -1074,7 +1070,7 @@ namespace OpenWifi {
 		: Id_(Id), Token_(Token), SerialNumber_(SerialNumber), UserName_(UserName),
 	  	Logger_(Logger), mTLS_(mTLS) {
 		Created_ = std::chrono::high_resolution_clock::now();
-		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
+		// DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 	}
 
 	RTTYS_EndPoint::RTTYS_EndPoint(Poco::Net::StreamSocket &Socket, std::uint64_t tid,
@@ -1082,7 +1078,7 @@ namespace OpenWifi {
 		Logger_(Logger)
 	{
 		DeviceSocket_ = std::make_shared<Poco::Net::StreamSocket>(Socket);
-		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
+		// DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		TID_ = tid;
 	}
 
