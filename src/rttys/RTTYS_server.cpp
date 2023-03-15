@@ -328,7 +328,7 @@ namespace OpenWifi {
 					poco_warning(Logger_, fmt::format("Unknown socket {} from device.", fd));
 					return false;
 				} else {
-					Connection->DeviceSocket_ = ConnectingEp->DeviceSocket_;
+					Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(*ConnectingEp->DeviceSocket_);
 					Connection->TID_ = ConnectingEp->TID_;
 					RTTYS_server()->RemoveConnectingDevice(fd);
 				}
@@ -713,7 +713,7 @@ namespace OpenWifi {
 
 		//	OK Create and register this WS client
 		try {
-			EndPoint->second->WSSocket_ = std::make_shared<Poco::Net::WebSocket>(request, response);
+			EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request, response);
 			EndPoint->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
 			EndPoint->second->WSSocket_->setBlocking(false);
 			EndPoint->second->WSSocket_->setNoDelay(true);
@@ -1077,7 +1077,7 @@ namespace OpenWifi {
 								   Poco::Logger &Logger) :
 		Logger_(Logger)
 	{
-		DeviceSocket_ = std::make_shared<Poco::Net::StreamSocket>(Socket);
+		DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
 		// DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		TID_ = tid;
 	}

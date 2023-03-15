@@ -128,8 +128,8 @@ namespace OpenWifi {
 		std::string Token_;
 		std::string SerialNumber_;
 		std::string UserName_;
-		std::shared_ptr<Poco::Net::StreamSocket> 	DeviceSocket_;
-		std::shared_ptr<Poco::Net::WebSocket> 		WSSocket_;
+		std::unique_ptr<Poco::Net::StreamSocket> 	DeviceSocket_;
+		std::unique_ptr<Poco::Net::WebSocket> 		WSSocket_;
 		Poco::Logger &Logger_;
 		// std::shared_ptr<Poco::FIFOBuffer> DeviceInBuf_;
 		unsigned char sid_=0;
