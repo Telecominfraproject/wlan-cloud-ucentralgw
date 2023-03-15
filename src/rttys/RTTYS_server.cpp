@@ -850,6 +850,7 @@ namespace OpenWifi {
 		try {
 			poco_debug(Logger(), fmt::format("TID:{} Starting loggin on device.",Conn->TID_));
 			auto Sent = SendBytes(Socket,outBuf,3);
+			std::cout << "Sent -> " << Sent << std::endl;
 			Conn->completed_ = true;
 			return Sent == RTTY_HDR_SIZE;
 		} catch (const Poco::Exception &E) {
