@@ -410,10 +410,10 @@ namespace OpenWifi {
 													   fd));
 					return;
 				} else {
-					std::cout << "Connecting device found" << std::endl;
+//					std::cout << "Connecting device found" << std::endl;
 				}
 			} else {
-				std::cout << "Connected device found" << std::endl;
+//				std::cout << "Connected device found" << std::endl;
 			}
 
 			if (ConnectionPtr->DeviceSocket_ == nullptr) {
@@ -480,7 +480,7 @@ namespace OpenWifi {
 						}
 					}
 
-					std::cout << __LINE__ << " RB:" << received_bytes << " " << (int) Connection->last_command_ << " " << (int) Connection->Buffer_[0] << " " << msg_len << std::endl;
+//					std::cout << __LINE__ << " RB:" << received_bytes << " " << (int) Connection->last_command_ << " " << (int) Connection->Buffer_[0] << " " << msg_len << std::endl;
 					switch (Connection->last_command_) {
 
 					case RTTYS_EndPoint::msgTypeRegister: {
