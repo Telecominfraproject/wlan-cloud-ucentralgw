@@ -428,18 +428,18 @@ namespace OpenWifi {
 
 			std::size_t received_bytes=0;
 			try {
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				poco_warning(Logger(), "About to receive bytes");
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 //					Connection->DeviceSocket_->receiveBytes(*Connection->DeviceInBuf_);
 				Connection->BufPos_=0;
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				received_bytes = Connection->BufferCurrentSize_ =  // recv(fd, Connection->Buffer_, sizeof(Connection->Buffer_),0);
 						  Connection->DeviceSocket_->receiveBytes( Connection->Buffer_, sizeof(Connection->Buffer_));
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 
 				poco_warning(Logger(), fmt::format("Received {} bytes", received_bytes));
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 			} catch (const Poco::TimeoutException &E) {
 				poco_warning(Logger(), "Receive timeout");
 				return;
@@ -449,29 +449,29 @@ namespace OpenWifi {
 				return;
 			}
 
-			std::cout << __LINE__ << std::endl;
+//			std::cout << __LINE__ << std::endl;
 
 			if (received_bytes == 0) {
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				good = false;
 				poco_debug(Logger(), "Device Closing connection - 0 bytes received.");
 			} else {
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				while (Connection->BufPos_<Connection->BufferCurrentSize_ && good) {
-					std::cout << __LINE__ << std::endl;
+//					std::cout << __LINE__ << std::endl;
 					uint32_t msg_len = 0;
-					std::cout << __LINE__ << std::endl;
+//					std::cout << __LINE__ << std::endl;
 					if (Connection->waiting_for_bytes_ != 0) {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						poco_warning(Logger(),fmt::format("Waiting for {} bytes",Connection->waiting_for_bytes_));
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 					} else {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						if (Connection->BufferCurrentSize_ >= RTTY_HDR_SIZE) {
-							std::cout << __LINE__ << " BP:" << Connection->BufPos_ << std::endl;
+//							std::cout << __LINE__ << " BP:" << Connection->BufPos_ << std::endl;
 							Connection->last_command_ = Connection->Buffer_[Connection->BufPos_+0];
 							msg_len = Connection->Buffer_[Connection->BufPos_+1] * 256 + Connection->Buffer_[Connection->BufPos_+2];
-							std::cout << __LINE__ << std::endl;
+//							std::cout << __LINE__ << std::endl;
 							Connection->BufPos_+=RTTY_HDR_SIZE;
 						} else {
 							good = false;
@@ -484,52 +484,52 @@ namespace OpenWifi {
 					switch (Connection->last_command_) {
 
 					case RTTYS_EndPoint::msgTypeRegister: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeRegister(fd);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogin: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeLogin(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogout: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						// good = EndPoint->do_msgTypeLogout(msg_len);
 						good = false;
 					} break;
 					case RTTYS_EndPoint::msgTypeTermData: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeTermData(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeWinsize: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeWinsize(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeCmd: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeCmd(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeHeartbeat: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeHeartbeat(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeFile: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeFile(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeHttp: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeHttp(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeAck: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeAck(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeMax: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeMax(msg_len);
 					} break;
 					default: {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						poco_warning(Logger(),
 									 fmt::format("Unknown command {}. GW closing connection.",
 												 (int)Connection->last_command_));
@@ -539,19 +539,19 @@ namespace OpenWifi {
 				}
 			}
 
-			std::cout << __LINE__ << std::endl;
+//			std::cout << __LINE__ << std::endl;
 			if (!good) {
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				EndConnection(ConnectionPtr, __LINE__);
 			}
 		} catch (const Poco::Exception &E) {
-			std::cout << __LINE__ << std::endl;
+//			std::cout << __LINE__ << std::endl;
 			Logger().log(E);
 			if (ConnectionPtr != nullptr) {
 				EndConnection(ConnectionPtr,__LINE__);
 			}
 		} catch (...) {
-			std::cout << __LINE__ << std::endl;
+//			std::cout << __LINE__ << std::endl;
 			if (ConnectionPtr != nullptr) {
 				EndConnection(ConnectionPtr,__LINE__);
 			}
