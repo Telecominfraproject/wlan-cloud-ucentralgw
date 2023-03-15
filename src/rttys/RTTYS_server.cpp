@@ -417,7 +417,7 @@ namespace OpenWifi {
 				poco_warning(Logger(), "About to receive bytes");
 //					Connection->DeviceSocket_->receiveBytes(*Connection->DeviceInBuf_);
 				Connection->BufPos_=0;
-				received_bytes = Connection->BufferCurrentSize_ = recv(fd, &Connection->Buffer_[0], sizeof(Connection->Buffer_),0);
+				received_bytes = Connection->BufferCurrentSize_ = recv(fd, Connection->Buffer_, sizeof(Connection->Buffer_),0);
 					// Connection->DeviceSocket_->receiveBytes( Connection->Buffer_, sizeof(Connection->Buffer_));
 				poco_warning(Logger(), fmt::format("Received {} bytes", received_bytes));
 			} catch (const Poco::TimeoutException &E) {
