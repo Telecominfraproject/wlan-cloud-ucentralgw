@@ -383,11 +383,11 @@ namespace OpenWifi {
 	void RTTYS_server::onConnectedDeviceSocketReadable(
 		const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
-		int fd = pNf->socket().impl()->sockfd();
-
-		std::lock_guard	Lock(ServerMutex_);
 		std::shared_ptr<RTTYS_EndPoint> ConnectionPtr;
+
 		try {
+			int fd = pNf->socket().impl()->sockfd();
+			std::lock_guard	Lock(ServerMutex_);
 			ConnectionPtr = FindConnectedDevice(fd);
 			if (ConnectionPtr == nullptr) {
 				ConnectionPtr = FindConnectingDevice(fd);
@@ -407,12 +407,13 @@ namespace OpenWifi {
 			bool good = true;
 
 			std::size_t received_bytes=0;
+
 			try {
-				poco_warning(Logger(), "About to receive bytes");
+				poco_debug(Logger(), "About to receive bytes");
 				Connection->BufPos_=0;
 				received_bytes = Connection->BufferCurrentSize_ =
 						  Connection->DeviceSocket_.receiveBytes( Connection->Buffer_, sizeof(Connection->Buffer_));
-				poco_warning(Logger(), fmt::format("Received {} bytes", received_bytes));
+				poco_debug(Logger(), fmt::format("Received {} bytes", received_bytes));
 			} catch (const Poco::TimeoutException &E) {
 				poco_warning(Logger(), "Receive timeout");
 				return;
@@ -443,47 +444,46 @@ namespace OpenWifi {
 					}
 
 					switch (Connection->last_command_) {
-
-					case RTTYS_EndPoint::msgTypeRegister: {
-						good = Connection->do_msgTypeRegister(fd);
-					} break;
-					case RTTYS_EndPoint::msgTypeLogin: {
-						good = Connection->do_msgTypeLogin(msg_len);
-					} break;
-					case RTTYS_EndPoint::msgTypeLogout: {
-						// good = EndPoint->do_msgTypeLogout(msg_len);
-						good = false;
-					} break;
-					case RTTYS_EndPoint::msgTypeTermData: {
-						good = Connection->do_msgTypeTermData(msg_len);
-					} break;
-					case RTTYS_EndPoint::msgTypeWinsize: {
-						good = Connection->do_msgTypeWinsize(msg_len);
-					} break;
-					case RTTYS_EndPoint::msgTypeCmd: {
-						good = Connection->do_msgTypeCmd(msg_len);
-					} break;
-					case RTTYS_EndPoint::msgTypeHeartbeat: {
-						good = Connection->do_msgTypeHeartbeat(msg_len);
-					} break;
-					case RTTYS_EndPoint::msgTypeFile: {
-						good = Connection->do_msgTypeFile(msg_len);
-					} break;
-					case RTTYS_EndPoint::msgTypeHttp: {
-						good = Connection->do_msgTypeHttp(msg_len);
-					} break;
-					case RTTYS_EndPoint::msgTypeAck: {
-						good = Connection->do_msgTypeAck(msg_len);
-					} break;
-					case RTTYS_EndPoint::msgTypeMax: {
-						good = Connection->do_msgTypeMax(msg_len);
-					} break;
-					default: {
-						poco_warning(Logger(),
-									 fmt::format("Unknown command {}. GW closing connection.",
-												 (int)Connection->last_command_));
-						good = false;
-					}
+						case RTTYS_EndPoint::msgTypeRegister: {
+							good = Connection->do_msgTypeRegister(fd);
+						} break;
+						case RTTYS_EndPoint::msgTypeLogin: {
+							good = Connection->do_msgTypeLogin(msg_len);
+						} break;
+						case RTTYS_EndPoint::msgTypeLogout: {
+							// good = EndPoint->do_msgTypeLogout(msg_len);
+							good = false;
+						} break;
+						case RTTYS_EndPoint::msgTypeTermData: {
+							good = Connection->do_msgTypeTermData(msg_len);
+						} break;
+						case RTTYS_EndPoint::msgTypeWinsize: {
+							good = Connection->do_msgTypeWinsize(msg_len);
+						} break;
+						case RTTYS_EndPoint::msgTypeCmd: {
+							good = Connection->do_msgTypeCmd(msg_len);
+						} break;
+						case RTTYS_EndPoint::msgTypeHeartbeat: {
+							good = Connection->do_msgTypeHeartbeat(msg_len);
+						} break;
+						case RTTYS_EndPoint::msgTypeFile: {
+							good = Connection->do_msgTypeFile(msg_len);
+						} break;
+						case RTTYS_EndPoint::msgTypeHttp: {
+							good = Connection->do_msgTypeHttp(msg_len);
+						} break;
+						case RTTYS_EndPoint::msgTypeAck: {
+							good = Connection->do_msgTypeAck(msg_len);
+						} break;
+						case RTTYS_EndPoint::msgTypeMax: {
+							good = Connection->do_msgTypeMax(msg_len);
+						} break;
+						default: {
+							poco_warning(Logger(),
+										 fmt::format("Unknown command {}. GW closing connection.",
+													 (int)Connection->last_command_));
+							good = false;
+						}
 					}
 				}
 			}
