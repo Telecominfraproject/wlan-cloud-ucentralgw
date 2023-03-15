@@ -401,7 +401,11 @@ namespace OpenWifi {
 					poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
 													   fd));
 					return;
+				} else {
+					std::cout << "Connecting device found" << std::endl;
 				}
+			} else {
+				std::cout << "Connected device found" << std::endl;
 			}
 
 			if (Connection->DeviceSocket_ == nullptr) {
