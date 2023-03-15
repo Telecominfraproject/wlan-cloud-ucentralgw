@@ -487,37 +487,48 @@ namespace OpenWifi {
 						good = Connection->do_msgTypeRegister(fd);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogin: {
+						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeLogin(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogout: {
+						std::cout << __LINE__ << std::endl;
 						// good = EndPoint->do_msgTypeLogout(msg_len);
 						good = false;
 					} break;
 					case RTTYS_EndPoint::msgTypeTermData: {
+						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeTermData(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeWinsize: {
+						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeWinsize(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeCmd: {
+						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeCmd(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeHeartbeat: {
+						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeHeartbeat(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeFile: {
+						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeFile(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeHttp: {
+						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeHttp(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeAck: {
+						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeAck(msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeMax: {
+						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeMax(msg_len);
 					} break;
 					default: {
+						std::cout << __LINE__ << std::endl;
 						poco_warning(Logger(),
 									 fmt::format("Unknown command {}. GW closing connection.",
 												 (int)Connection->last_command_));
@@ -527,14 +538,19 @@ namespace OpenWifi {
 				}
 			}
 
-			if (!good)
-				EndConnection(ConnectionPtr,__LINE__);
+			std::cout << __LINE__ << std::endl;
+			if (!good) {
+				std::cout << __LINE__ << std::endl;
+				EndConnection(ConnectionPtr, __LINE__);
+			}
 		} catch (const Poco::Exception &E) {
+			std::cout << __LINE__ << std::endl;
 			Logger().log(E);
 			if (ConnectionPtr != nullptr) {
 				EndConnection(ConnectionPtr,__LINE__);
 			}
 		} catch (...) {
+			std::cout << __LINE__ << std::endl;
 			if (ConnectionPtr != nullptr) {
 				EndConnection(ConnectionPtr,__LINE__);
 			}
