@@ -182,6 +182,9 @@ namespace OpenWifi {
 		void RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket);
 		void RemoveConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
 
+		void RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
+		void AddDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
+
 		void AddConnectedDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep);
 		void AddClientEventHandlers(Poco::Net::StreamSocket &Socket,
 									std::shared_ptr<RTTYS_EndPoint> EndPoint);

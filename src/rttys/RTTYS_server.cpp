@@ -243,8 +243,7 @@ namespace OpenWifi {
 		Clients_.erase(fd);
 	}
 
-	void RTTYS_server::RemoveConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
-		int fd = Socket.impl()->sockfd();
+	void RTTYS_server::RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
 		if(Reactor_.has(Socket)) {
 			Reactor_.removeEventHandler(Socket,
 										Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -256,20 +255,30 @@ namespace OpenWifi {
 										Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 											*this, &RTTYS_server::onConnectedDeviceSocketError));
 		}
+	}
+
+
+	void RTTYS_server::RemoveConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		RemoveDeviceEventHandlers(Socket);
+		int fd = Socket.impl()->sockfd();
 		ConnectedDevices_.erase(fd);
 	}
 
-	void RTTYS_server::AddConnectedDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep) {
-		int fd = ep->DeviceSocket_.impl()->sockfd();
-		Reactor_.addEventHandler(ep->DeviceSocket_,
+	void RTTYS_server::AddDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 									 *this, &RTTYS_server::onConnectedDeviceSocketReadable));
-		Reactor_.addEventHandler(ep->DeviceSocket_,
+		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
 									 *this, &RTTYS_server::onConnectedDeviceSocketShutdown));
-		Reactor_.addEventHandler(ep->DeviceSocket_,
+		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 									 *this, &RTTYS_server::onConnectedDeviceSocketError));
+	}
+
+	void RTTYS_server::AddConnectedDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep) {
+		AddDeviceEventHandlers(ep->DeviceSocket_);
+		int fd = ep->DeviceSocket_.impl()->sockfd();
 		ep->DeviceSocket_.setNoDelay(true);
 		ep->DeviceSocket_.setKeepAlive(true);
 		ep->DeviceSocket_.setBlocking(false);
@@ -326,7 +335,10 @@ namespace OpenWifi {
 				poco_warning(Logger_, fmt::format("Unknown socket {} from device.", fd));
 				return false;
 			} else {
+				RTTYS_server()->RemoveDeviceEventHandlers(ConnectedDevice->DeviceSocket_);
 				ConnectionEp->DeviceSocket_ = ConnectedDevice->DeviceSocket_;
+				RTTYS_server()->AddDeviceEventHandlers(ConnectionEp->DeviceSocket_);
+				// register the new socket
 				RTTYS_server()->RemoveConnectingDevice(fd);
 			}
 
