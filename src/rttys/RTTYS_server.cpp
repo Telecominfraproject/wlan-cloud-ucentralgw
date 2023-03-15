@@ -259,7 +259,7 @@ namespace OpenWifi {
 		ConnectedDevices_.erase(fd);
 	}
 
-	void RTTYS_server::AddConnectedDeviceEventHandlers(const std::shared_ptr<RTTYS_EndPoint> &ep) {
+	void RTTYS_server::AddConnectedDeviceEventHandlers(std::shared_ptr<RTTYS_EndPoint> ep) {
 		int fd = ep->DeviceSocket_->impl()->sockfd();
 		Reactor_.addEventHandler(*ep->DeviceSocket_,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
