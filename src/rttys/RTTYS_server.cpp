@@ -302,24 +302,32 @@ namespace OpenWifi {
 	bool RTTYS_EndPoint::do_msgTypeRegister(int fd) {
 		bool good = true;
 		try {
+			std::cout << __LINE__ << std::endl;
 			std::string id_ = ReadString();
+			std::cout << __LINE__ << std::endl;
 			std::string desc_ = ReadString();
+			std::cout << __LINE__ << std::endl;
 			std::string token_ = ReadString();
+			std::cout << __LINE__ << std::endl;
 
 			poco_debug(Logger_,fmt::format("Device registration: description:{} id:{} token:{}", desc_, id_, token_));
+			std::cout << __LINE__ << std::endl;
 			if (id_.size() != RTTY_DEVICE_TOKEN_LENGTH ||
 				token_.size() != RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
 				poco_warning(Logger_,fmt::format("Wrong register header. {} {} {}", id_,desc_,token_));
 				return false;
 			}
+			std::cout << __LINE__ << std::endl;
 
 			//	find this device in our connectio end points...
 			auto Connection = RTTYS_server()->FindConnection(id_, token_);
+			std::cout << __LINE__ << std::endl;
 			if (Connection == nullptr) {
 				poco_warning(Logger_, fmt::format("Unknown session {} from device.", id_));
 				std::cout << "Session '" << id_ << "' invalid" << std::endl;
 				return false;
 			}
+			std::cout << __LINE__ << std::endl;
 
 			//	are we connected or not ?
 			{
@@ -475,6 +483,7 @@ namespace OpenWifi {
 					switch (Connection->last_command_) {
 
 					case RTTYS_EndPoint::msgTypeRegister: {
+						std::cout << __LINE__ << std::endl;
 						good = Connection->do_msgTypeRegister(fd);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogin: {
