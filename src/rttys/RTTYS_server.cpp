@@ -420,12 +420,17 @@ namespace OpenWifi {
 
 			std::size_t received_bytes=0;
 			try {
+				std::cout << __LINE__ << std::endl;
 				poco_warning(Logger(), "About to receive bytes");
+				std::cout << __LINE__ << std::endl;
 //					Connection->DeviceSocket_->receiveBytes(*Connection->DeviceInBuf_);
 				Connection->BufPos_=0;
+				std::cout << __LINE__ << std::endl;
 				received_bytes = Connection->BufferCurrentSize_ = recv(fd, Connection->Buffer_, sizeof(Connection->Buffer_),0);
+				std::cout << __LINE__ << std::endl;
 					// Connection->DeviceSocket_->receiveBytes( Connection->Buffer_, sizeof(Connection->Buffer_));
 				poco_warning(Logger(), fmt::format("Received {} bytes", received_bytes));
+				std::cout << __LINE__ << std::endl;
 			} catch (const Poco::TimeoutException &E) {
 				poco_warning(Logger(), "Receive timeout");
 				return;
