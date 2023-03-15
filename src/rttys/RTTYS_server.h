@@ -131,7 +131,6 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::StreamSocket> 	DeviceSocket_;
 		std::unique_ptr<Poco::Net::WebSocket> 		WSSocket_;
 		Poco::Logger &Logger_;
-		// std::shared_ptr<Poco::FIFOBuffer> DeviceInBuf_;
 		unsigned char sid_=0;
 		std::size_t waiting_for_bytes_{0};
 		u_char last_command_ = 0;
@@ -187,22 +186,19 @@ namespace OpenWifi {
 		void AddClientEventHandlers(Poco::Net::StreamSocket &Socket,
 									std::shared_ptr<RTTYS_EndPoint> EndPoint);
 
-		void MoveToConnectedDevice(std::shared_ptr<RTTYS_EndPoint> &EndPoint);
-
 		inline auto Uptime() const { return Utils::Now() - Started_; }
 
 		void CreateWSClient(Poco::Net::HTTPServerRequest &request,
 							Poco::Net::HTTPServerResponse &response, const std::string &Id);
 
 		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator EndConnection(std::shared_ptr<RTTYS_EndPoint> Connection, std::uint64_t l);
-		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator EndConnection(std::lock_guard<std::shared_mutex> &Lock, std::shared_ptr<RTTYS_EndPoint> Connection, std::uint64_t l);
 
 		Poco::Net::SocketReactor &Reactor() { return Reactor_; }
 
 		void SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const u_char *Buf, size_t len);
 		void SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const std::string &s);
 
-		inline std::shared_ptr<RTTYS_EndPoint> FindConnection(const std::string &Id,
+		inline std::shared_ptr<RTTYS_EndPoint> FindRegisteredEndPoint(const std::string &Id,
 															  const std::string &Token) {
 			std::lock_guard		G(ServerMutex_);
 			std::shared_ptr<RTTYS_EndPoint> Res;
@@ -211,6 +207,15 @@ namespace OpenWifi {
 				Res = EndPoint->second;
 			}
 			return Res;
+		}
+
+		inline void RemoveRegisteredEndPoint(const std::string &Id,
+																	  const std::string &Token) {
+			std::lock_guard		G(ServerMutex_);
+			auto EndPoint = EndPoints_.find(Id);
+			if (EndPoint != end(EndPoints_) && EndPoint->second->Token_ == Token) {
+				EndPoints_.erase(Id);
+			}
 		}
 
 		inline std::shared_ptr<RTTYS_EndPoint> FindConnectingDevice(int fd) {
@@ -244,9 +249,6 @@ namespace OpenWifi {
 		}
 
 		void LogStdException(const std::exception &E, const std::string & msg);
-		inline std::map<int, std::shared_ptr<RTTYS_EndPoint>>::iterator ConnectingDevice(int fd) {
-			return ConnectingDevices_.find(fd);
-		}
 
 		friend class RTTYS_EndPoint;
 
@@ -275,8 +277,8 @@ namespace OpenWifi {
 
 		std::atomic_uint64_t Started_ = Utils::Now();
 		std::atomic_uint64_t MaxConcurrentSessions_ = 0;
-		std::unique_ptr<Poco::Net::ServerSocket> DeviceSocket_;
-		std::unique_ptr<Poco::Net::SecureServerSocket> SecureDeviceSocket_;
+		std::unique_ptr<Poco::Net::ServerSocket> 		ServerDeviceSocket_;
+		std::unique_ptr<Poco::Net::SecureServerSocket> 	SecureServerDeviceSocket_;
 		bool enforce_mTLS_ = false;
 
 		static inline std::uint64_t CurrentTID_ = 0;
