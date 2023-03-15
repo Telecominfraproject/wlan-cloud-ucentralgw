@@ -330,7 +330,7 @@ namespace OpenWifi {
 				ConnectingEp->mTLS_ = Connection->mTLS_;
 				ConnectingEp->Id_ = Connection->Id_;
 				ConnectingEp->Token_ = Connection->Token_;
-				ConnectingEp->WSSocket_ = std::move(Connection->WSSocket_);
+				ConnectingEp->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(*Connection->WSSocket_);
 				RTTYS_server()->RemoveRegisteredEndPoint(id_,token_);
 			}
 
