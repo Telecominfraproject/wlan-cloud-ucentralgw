@@ -431,7 +431,7 @@ namespace OpenWifi {
 				return;
 			} catch (const Poco::Net::NetException &E) {
 				Logger().log(E);
-				EndConnection(Connection,__LINE__);
+				EndConnection(ConnectionPtr,__LINE__);
 				return;
 			}
 
@@ -502,15 +502,15 @@ namespace OpenWifi {
 			}
 
 			if (!good)
-				EndConnection(Connection,__LINE__);
+				EndConnection(ConnectionPtr,__LINE__);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-			if (Connection != nullptr) {
-				EndConnection(Connection,__LINE__);
+			if (ConnectionPtr != nullptr) {
+				EndConnection(ConnectionPtr,__LINE__);
 			}
 		} catch (...) {
-			if (Connection != nullptr) {
-				EndConnection(Connection,__LINE__);
+			if (ConnectionPtr != nullptr) {
+				EndConnection(ConnectionPtr,__LINE__);
 			}
 		}
 	}
