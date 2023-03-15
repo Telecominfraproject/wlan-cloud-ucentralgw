@@ -479,7 +479,7 @@ namespace OpenWifi {
 						}
 					}
 
-					std::cout << __LINE__ << " RB:" << received_bytes << " " << (int) Connection->last_command_ << std::endl;
+					std::cout << __LINE__ << " RB:" << received_bytes << " " << (int) Connection->last_command_ << " " << msg_len << std::endl;
 					switch (Connection->last_command_) {
 
 					case RTTYS_EndPoint::msgTypeRegister: {
