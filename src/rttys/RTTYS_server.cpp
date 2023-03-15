@@ -336,7 +336,7 @@ namespace OpenWifi {
 					poco_warning(Logger_, fmt::format("Unknown socket {} from device.", fd));
 					return false;
 				} else {
-					Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(*ConnectingEp->DeviceSocket_);
+					Connection->DeviceSocket_ = std::move(ConnectingEp->DeviceSocket_);
 					Connection->TID_ = ConnectingEp->TID_;
 					RTTYS_server()->RemoveConnectingDevice(fd);
 				}
