@@ -385,8 +385,6 @@ namespace OpenWifi {
 
 		int fd = pNf->socket().impl()->sockfd();
 
-		// std::cout << __LINE__ << " " << "fd=" << fd << std::endl;
-
 		std::lock_guard	Lock(ServerMutex_);
 		std::shared_ptr<RTTYS_EndPoint> ConnectionPtr;
 		try {
