@@ -128,14 +128,14 @@ namespace OpenWifi {
 		std::string Token_;
 		std::string SerialNumber_;
 		std::string UserName_;
-		std::unique_ptr<Poco::Net::StreamSocket> 	DeviceSocket_;
-		std::unique_ptr<Poco::Net::WebSocket> 		WSSocket_;
+		Poco::Net::StreamSocket		 				DeviceSocket_;
+		std::uint64_t TID_ = 0;
 		Poco::Logger &Logger_;
+		std::unique_ptr<Poco::Net::WebSocket> 		WSSocket_;
 		unsigned char sid_=0;
 		std::size_t waiting_for_bytes_{0};
 		u_char last_command_ = 0;
 		unsigned char small_buf_[64 + RTTY_SESSION_ID_LENGTH]{0};
-		std::uint64_t TID_ = 0;
 		bool completed_ = false;
 		bool mTLS_=false;
 		std::chrono::time_point<std::chrono::high_resolution_clock> Created_{0s},
