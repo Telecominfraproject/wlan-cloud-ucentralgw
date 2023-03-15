@@ -392,12 +392,12 @@ namespace OpenWifi {
 		// std::cout << __LINE__ << " " << "fd=" << fd << std::endl;
 
 		std::lock_guard	Lock(ServerMutex_);
-		std::shared_ptr<RTTYS_EndPoint> Connection;
+		std::shared_ptr<RTTYS_EndPoint> ConnectionPtr;
 		try {
-			Connection = FindConnectedDevice(fd);
-			if (Connection == nullptr) {
-				Connection = FindConnectingDevice(fd);
-				if(Connection == nullptr) {
+			ConnectionPtr = FindConnectedDevice(fd);
+			if (ConnectionPtr == nullptr) {
+				ConnectionPtr = FindConnectingDevice(fd);
+				if(ConnectionPtr == nullptr) {
 					poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
 													   fd));
 					return;
@@ -408,11 +408,13 @@ namespace OpenWifi {
 				std::cout << "Connected device found" << std::endl;
 			}
 
-			if (Connection->DeviceSocket_ == nullptr) {
+			if (ConnectionPtr->DeviceSocket_ == nullptr) {
 				poco_warning(Logger(), fmt::format("Connection has invalid socket: {}",
 												   pNf->socket().impl()->sockfd()));
 				return;
 			}
+
+			RTTYS_EndPoint * Connection = ConnectionPtr.get();
 
 			bool good = true;
 
