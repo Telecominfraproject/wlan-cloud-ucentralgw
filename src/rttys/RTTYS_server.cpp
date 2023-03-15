@@ -329,19 +329,27 @@ namespace OpenWifi {
 				return false;
 			}
 
+			poco_warning(Logger_,fmt::format("Line: {}",__LINE__));
+
 			//	are we connected or not ?
 			auto ConnectedDevice = RTTYS_server()->FindConnectingDevice(fd);
 			if (ConnectedDevice == nullptr) {
 				poco_warning(Logger_, fmt::format("Unknown socket {} from device.", fd));
 				return false;
 			} else {
+				poco_warning(Logger_,fmt::format("Line: {}",__LINE__));
 				RTTYS_server()->RemoveDeviceEventHandlers(ConnectedDevice->DeviceSocket_);
+				poco_warning(Logger_,fmt::format("Line: {}",__LINE__));
 				ConnectionEp->DeviceSocket_ = ConnectedDevice->DeviceSocket_;
+				poco_warning(Logger_,fmt::format("Line: {}",__LINE__));
 				RTTYS_server()->AddDeviceEventHandlers(ConnectionEp->DeviceSocket_);
 				// register the new socket
+				poco_warning(Logger_,fmt::format("Line: {}",__LINE__));
 				RTTYS_server()->RemoveConnectingDevice(fd);
+				poco_warning(Logger_,fmt::format("Line: {}",__LINE__));
 			}
 
+			poco_warning(Logger_,fmt::format("Line: {}",__LINE__));
 			if (ConnectionEp->mTLS_) {
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(ConnectionEp->DeviceSocket_.impl());
 				auto PeerAddress_ = SS->peerAddress().host();
@@ -363,7 +371,9 @@ namespace OpenWifi {
 				}
 			}
 
+			poco_warning(Logger_,fmt::format("Line: {}",__LINE__));
 			RTTYS_server()->AddConnectedDevice(fd,ConnectionEp);
+			poco_warning(Logger_,fmt::format("Line: {}",__LINE__));
 
 			u_char OutBuf[8];
 			OutBuf[0] = RTTYS_EndPoint::msgTypeRegister;
@@ -373,6 +383,8 @@ namespace OpenWifi {
 			OutBuf[4] = 'O';
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
+			poco_warning(Logger_,fmt::format("Line: {}",__LINE__));
+
 			if (ConnectionEp->send_ssl_bytes(OutBuf, 7) != 7) {
 				poco_error(
 					Logger_,
@@ -421,11 +433,11 @@ namespace OpenWifi {
 			std::size_t received_bytes=0;
 
 			try {
-				poco_debug(Logger(), "About to receive bytes");
+				poco_warning(Logger(), "About to receive bytes");
 				Connection->BufPos_=0;
 				received_bytes = Connection->BufferCurrentSize_ =
 						  Connection->DeviceSocket_.receiveBytes( Connection->Buffer_, sizeof(Connection->Buffer_));
-				poco_debug(Logger(), fmt::format("Received {} bytes", received_bytes));
+				poco_warning(Logger(), fmt::format("Received {} bytes", received_bytes));
 			} catch (const Poco::TimeoutException &E) {
 				poco_warning(Logger(), "Receive timeout");
 				return;
@@ -437,7 +449,7 @@ namespace OpenWifi {
 
 			if (received_bytes == 0) {
 				good = false;
-				poco_debug(Logger(), "Device Closing connection - 0 bytes received.");
+				poco_warning(Logger(), "Device Closing connection - 0 bytes received.");
 			} else {
 				while (Connection->BufPos_<Connection->BufferCurrentSize_ && good) {
 					uint32_t msg_len = 0;
@@ -499,16 +511,19 @@ namespace OpenWifi {
 					}
 				}
 			}
-
+			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 			if (!good) {
+				poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 				EndConnection(ConnectionPtr, __LINE__);
 			}
 		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 			Logger().log(E);
 			if (ConnectionPtr != nullptr) {
 				EndConnection(ConnectionPtr,__LINE__);
 			}
 		} catch (...) {
+			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 			if (ConnectionPtr != nullptr) {
 				EndConnection(ConnectionPtr,__LINE__);
 			}
