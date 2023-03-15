@@ -434,8 +434,8 @@ namespace OpenWifi {
 //					Connection->DeviceSocket_->receiveBytes(*Connection->DeviceInBuf_);
 				Connection->BufPos_=0;
 				std::cout << __LINE__ << std::endl;
-				received_bytes = Connection->BufferCurrentSize_ =  recv(fd, Connection->Buffer_, sizeof(Connection->Buffer_),0);
-						  // Connection->DeviceSocket_->receiveBytes( Connection->Buffer_, sizeof(Connection->Buffer_));
+				received_bytes = Connection->BufferCurrentSize_ =  // recv(fd, Connection->Buffer_, sizeof(Connection->Buffer_),0);
+						  Connection->DeviceSocket_->receiveBytes( Connection->Buffer_, sizeof(Connection->Buffer_));
 				std::cout << __LINE__ << std::endl;
 
 				poco_warning(Logger(), fmt::format("Received {} bytes", received_bytes));
