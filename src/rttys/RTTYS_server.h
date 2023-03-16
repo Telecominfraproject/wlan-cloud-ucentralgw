@@ -36,7 +36,7 @@ namespace OpenWifi {
 	  public:
 		RTTYS_EndPoint(const std::string &Id, const std::string &Token,
 					   const std::string &SerialNumber, const std::string &UserName,
-					   bool mTLS, Poco::Logger &Logger);
+					   bool mTLS);
 
 		~RTTYS_EndPoint();
 
@@ -124,7 +124,6 @@ namespace OpenWifi {
 		bool DeviceIsAttached_ = false;
 		int 										Device_fd=0;
 		std::uint64_t TID_ = 0;
-		Poco::Logger &Logger_;
 		std::unique_ptr<Poco::Net::WebSocket> 		WSSocket_;
 		unsigned char sid_=0;
 		unsigned char small_buf_[64 + RTTY_SESSION_ID_LENGTH]{0};

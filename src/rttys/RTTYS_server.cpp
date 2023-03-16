@@ -295,7 +295,9 @@ namespace OpenWifi {
 	int RTTYS_server::SendBytes(int fd, const unsigned char *buffer, std::size_t len) {
 		std::lock_guard	G(ServerMutex_);
 
+		std::cout << __LINE__ << std::endl;
 		auto hint = Sockets_.find(fd);
+		std::cout << __LINE__ << std::endl;
 		if(hint==end(Sockets_)) {
 			poco_error(Logger(),fmt::format("Cannot find this socket: {}",fd));
 			return -1;
@@ -449,10 +451,12 @@ namespace OpenWifi {
 					case RTTYS_EndPoint::msgTypeTermData: {
 						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeTermData(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
+						std::cout << __LINE__ << std::endl;
 					} break;
 					case RTTYS_EndPoint::msgTypeWinsize: {
 						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeWinsize(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
+						std::cout << __LINE__ << std::endl;
 					} break;
 					case RTTYS_EndPoint::msgTypeCmd: {
 						std::cout << __LINE__ << std::endl;
@@ -795,7 +799,7 @@ namespace OpenWifi {
 			ServerMutex_.unlock();
 			return false;
 		}
-		EndPoints_[Id] = std::make_shared<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName, mTLS, Logger());
+		EndPoints_[Id] = std::make_shared<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName, mTLS);
 		++TotalEndPoints_;
 		ServerMutex_.unlock();
 		return true;
@@ -1051,10 +1055,9 @@ namespace OpenWifi {
 
 	RTTYS_EndPoint::RTTYS_EndPoint(const std::string &Id, const std::string &Token,
 								   const std::string &SerialNumber, const std::string &UserName,
-								   bool mTLS,
-								   Poco::Logger &Logger)
+								   bool mTLS)
 		: Id_(Id), Token_(Token), SerialNumber_(SerialNumber), UserName_(UserName),
-	  	Logger_(Logger), mTLS_(mTLS) {
+	  	mTLS_(mTLS) {
 		Created_ = std::chrono::high_resolution_clock::now();
 	}
 
