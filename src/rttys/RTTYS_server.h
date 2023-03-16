@@ -223,7 +223,7 @@ namespace OpenWifi {
 		bool SendToClient(Poco::Net::WebSocket &WebSocket, const u_char *Buf, int len);
 		bool SendToClient(Poco::Net::WebSocket &WebSocket, const std::string &s);
 
-		std::recursive_mutex		ServerMutex_;
+		std::mutex					ServerMutex_;
 		Poco::Net::SocketReactor 	Reactor_;
 		Poco::Thread 				ReactorThread_;
 		std::string 				RTTY_UIAssets_;
