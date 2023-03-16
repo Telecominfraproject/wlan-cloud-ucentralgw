@@ -237,7 +237,7 @@ namespace OpenWifi {
 		Clients_.erase(fd);
 	}
 
-	void RTTYS_server::AddNewSocket(Poco::Net::StreamSocket &Socket) {
+	void RTTYS_server::AddNewSocket(Poco::Net::Socket &Socket) {
 		std::lock_guard		G(ServerMutex_);
 
 		Socket.setNoDelay(true);
@@ -248,7 +248,6 @@ namespace OpenWifi {
 		Poco::Timespan	TS2(0,100);
 		Socket.setReceiveTimeout(TS2);
 
-		Sockets_[Socket.impl()->sockfd()] = Socket;
 		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 									 *this, &RTTYS_server::onConnectedDeviceSocketReadable));
@@ -258,6 +257,9 @@ namespace OpenWifi {
 		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 									 *this, &RTTYS_server::onConnectedDeviceSocketError));
+
+		Sockets_[Socket.impl()->sockfd()] = Socket;
+
 	}
 
 	void RTTYS_server::RemoveSocket(const Poco::Net::StreamSocket &Socket) {

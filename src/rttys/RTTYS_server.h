@@ -212,7 +212,7 @@ namespace OpenWifi {
 			}
 		}
 
-		void AddNewSocket(Poco::Net::StreamSocket &Socket);
+		void AddNewSocket(Poco::Net::Socket &Socket);
 		void RemoveSocket(const Poco::Net::StreamSocket &Socket);
 		void LogStdException(const std::exception &E, const std::string & msg);
 
@@ -253,7 +253,7 @@ namespace OpenWifi {
 		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>> 	EndPoints_; //	id, endpoint
 		std::map<int, std::shared_ptr<RTTYS_EndPoint>> 			Connected_; //	id, endpoint
 		std::map<int, std::shared_ptr<RTTYS_EndPoint>> 			Clients_;
-		std::map<int, Poco::Net::StreamSocket>					Sockets_;
+		std::map<int, Poco::Net::Socket>						Sockets_;
 
 		Poco::Timer Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>> GCCallBack_;
