@@ -297,9 +297,7 @@ namespace OpenWifi {
 	int RTTYS_server::SendBytes(int fd, const unsigned char *buffer, std::size_t len) {
 		std::lock_guard	G(ServerMutex_);
 
-		std::cout << __LINE__ << std::endl;
 		auto hint = Sockets_.find(fd);
-		std::cout << __LINE__ << std::endl;
 		if(hint==end(Sockets_)) {
 			poco_error(Logger(),fmt::format("Cannot find this socket: {}",fd));
 			return -1;
@@ -331,7 +329,6 @@ namespace OpenWifi {
 			auto ConnectionEp = FindRegisteredEndPoint(id_, token_);
 			if (ConnectionEp == nullptr) {
 				poco_warning(Logger(), fmt::format("Unknown session {} from device.", id_));
-				std::cout << "Session '" << id_ << "' invalid" << std::endl;
 				return false;
 			}
 
@@ -383,11 +380,8 @@ namespace OpenWifi {
 			ConnectionEp->DeviceIsAttached_ = true;
 			ConnectionEp->DeviceSocket_ = Socket;
 			if(ConnectionEp->WSSocket_!= nullptr) {
-				std::cout << __LINE__ << std::endl;
 				Login(Socket, ConnectionEp);
-				std::cout << __LINE__ << std::endl;
 			}
-			std::cout << __LINE__ << std::endl;
 			return true;
 		} catch (...) {
 			good = false;
@@ -436,57 +430,41 @@ namespace OpenWifi {
 					continue;
 				}
 
-				std::cout << __LINE__ << " -> " << (int) LastCommand << std::endl;
-
 				switch (LastCommand) {
 					case RTTYS_EndPoint::msgTypeRegister: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeRegister(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogin: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeLogin(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogout: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeLogout(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeTermData: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeTermData(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
-						std::cout << __LINE__ << std::endl;
 					} break;
 					case RTTYS_EndPoint::msgTypeWinsize: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeWinsize(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
-						std::cout << __LINE__ << std::endl;
 					} break;
 					case RTTYS_EndPoint::msgTypeCmd: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeCmd(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeHeartbeat: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeHeartbeat(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeFile: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeFile(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeHttp: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeHttp(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeAck: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeAck(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeMax: {
-						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeMax(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					default: {
-						std::cout << __LINE__ << std::endl;
 						poco_warning(Logger(),
 									 fmt::format("Unknown command {}. GW closing connection.",
 												 (int)LastCommand));
@@ -494,17 +472,14 @@ namespace OpenWifi {
 					}
 				}
 			}
-			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
+
 			if (!good) {
-				poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 				EndConnection(pNf->socket(), __LINE__);
 			}
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 			Logger().log(E);
 			EndConnection(pNf->socket(),__LINE__);
 		} catch (...) {
-			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 			EndConnection(pNf->socket(),__LINE__);
 		}
 	}
@@ -533,33 +508,26 @@ namespace OpenWifi {
 				return;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			Connection = Client->second;
 			if (Connection == nullptr) {
 				std::cout << "NULL EndPoint Client" << std::endl;
 				return;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			if (Connection->WSSocket_ == nullptr) {
 				std::cout << "NULL WS Client" << std::endl;
 				return;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			int flags;
 			unsigned char FrameBuffer[1024];
 
-			std::cout << __LINE__ << std::endl;
 			auto ReceivedBytes =
 				Connection->WSSocket_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
-			std::cout << __LINE__ << std::endl;
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
-			std::cout << __LINE__ << std::endl;
 			switch (Op) {
 
 			case Poco::Net::WebSocket::FRAME_OP_PING: {
-				std::cout << __LINE__ << std::endl;
 				Connection->WSSocket_->sendFrame("", 0,
 											   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 												   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
@@ -572,7 +540,6 @@ namespace OpenWifi {
 					EndConnection(Connection,__LINE__);
 					return;
 				} else {
-					std::cout << __LINE__ << std::endl;
 					std::string Frame((const char *)FrameBuffer, ReceivedBytes);
 					try {
 						auto Doc = nlohmann::json::parse(Frame);
@@ -581,13 +548,11 @@ namespace OpenWifi {
 							if (Type == "winsize") {
 								auto cols = Doc["cols"];
 								auto rows = Doc["rows"];
-								std::cout << __LINE__ << std::endl;
 								if (!RTTYS_server().WindowSize(Connection,cols, rows)) {
 									poco_error(Logger(), "Winsize shutdown.");
 									EndConnection(Connection,__LINE__);
 									return;
 								}
-								std::cout << __LINE__ << std::endl;
 							}
 						}
 					} catch (...) {
@@ -606,13 +571,11 @@ namespace OpenWifi {
 				} else {
 					poco_trace(Logger(),
 							   fmt::format("Sending {} key strokes to device.", ReceivedBytes));
-					std::cout << __LINE__ << std::endl;
 					if (!RTTYS_server().KeyStrokes(Connection, FrameBuffer, ReceivedBytes)) {
 						poco_error(Logger(), "Cannot send keys to device. Close connection.");
 						EndConnection(Connection,__LINE__);
 						return;
 					}
-					std::cout << __LINE__ << std::endl;
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
@@ -761,7 +724,6 @@ namespace OpenWifi {
 
 		//	find the client linked to this one...
 		if(Connection->WSSocket_!= nullptr) {
-			std::cout << __LINE__ << std::endl;
 			RemoveClientEventHandlers(*Connection->WSSocket_);
 			Connection->WSSocket_->close();
 		}
@@ -779,9 +741,7 @@ namespace OpenWifi {
 		//	find the client linked to this one...
 		auto hint = Connected_.find(fd);
 		if(hint!=end(Connected_)) {
-			std::cout << __LINE__ << std::endl;
 			if(hint->second->WSSocket_!= nullptr) {
-				std::cout << __LINE__ << std::endl;
 				RemoveClientEventHandlers(*hint->second->WSSocket_);
 				hint->second->WSSocket_->close();
 			}
@@ -864,7 +824,6 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::WindowSize(std::shared_ptr<RTTYS_EndPoint> Conn, int cols, int rows) {
-		std::cout << __LINE__ << std::endl;
 		u_char outBuf[8 + RTTY_SESSION_ID_LENGTH]{0};
 		outBuf[0] = RTTYS_EndPoint::msgTypeWinsize;
 		outBuf[1] = 0;
@@ -874,18 +833,14 @@ namespace OpenWifi {
 		outBuf[RTTY_HDR_SIZE + 1 + 1] = cols & 0x00ff;
 		outBuf[RTTY_HDR_SIZE + 2 + 1] = rows >> 8;
 		outBuf[RTTY_HDR_SIZE + 3 + 1] = rows & 0x00ff;
-		std::cout << __LINE__ << std::endl;
 		try {
-			std::cout << __LINE__ << std::endl;
 			auto Sent = SendBytes(Conn->DeviceSocket_, outBuf, RTTY_HDR_SIZE + 4 + 1);
-			std::cout << __LINE__ << std::endl;
 			return (Sent == (int)(RTTY_HDR_SIZE + 4 + 1));
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (const std::exception &E) {
 			LogStdException(E, "Cannot send window size");
 		}
-		std::cout << __LINE__ << std::endl;
 		return false;
 	}
 
@@ -898,7 +853,6 @@ namespace OpenWifi {
 		try {
 			poco_debug(Logger(), fmt::format("TID:{} Starting login on device.",Conn->TID_));
 			auto Sent = SendBytes(Socket,outBuf,3);
-			std::cout << "Sent -> " << Sent << std::endl;
 			Conn->completed_ = true;
 			return Sent == RTTY_HDR_SIZE;
 		} catch (const Poco::Exception &E) {
@@ -989,14 +943,10 @@ namespace OpenWifi {
 		auto EndPoint = Connected_.find(Socket.impl()->sockfd());
 		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_ != nullptr) {
 			try {
-				std::cout << __LINE__ << std::endl;
 				BufferPos++;
-				std::cout << __LINE__ << std::endl;
 				auto good = SendToClient(*EndPoint->second->WSSocket_, &Buffer[BufferPos],
 										 BufferCurrentSize - BufferPos);
-				std::cout << __LINE__ << std::endl;
 				BufferPos = BufferCurrentSize;
-				std::cout << __LINE__ << std::endl;
 				return good;
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
