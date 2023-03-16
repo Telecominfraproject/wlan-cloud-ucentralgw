@@ -372,7 +372,7 @@ namespace OpenWifi {
 			OutBuf[6] = 0;
 			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 
-			if (SendBytes(fd,OutBuf, 7) != 7) {
+			if (SendBytes(Socket,OutBuf, 7) != 7) {
 				poco_error(
 					Logger(),
 					fmt::format("{}: Description:{} Could not send data to complete registration",
@@ -381,6 +381,7 @@ namespace OpenWifi {
 			}
 			ConnectionEp->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			ConnectionEp->DeviceIsAttached_ = true;
+			ConnectionEp->DeviceSocket_ = Socket;
 			if(ConnectionEp->WSSocket_!= nullptr) {
 				std::cout << __LINE__ << std::endl;
 				Login(Socket, ConnectionEp);
@@ -821,7 +822,7 @@ namespace OpenWifi {
 			Conn->small_buf_[3] = Conn->sid_;
 			memcpy(&Conn->small_buf_[RTTY_HDR_SIZE + 1], &buf[1], len - 1);
 			try {
-				auto Sent = SendBytes(Conn->Device_fd, Conn->small_buf_,
+				auto Sent = SendBytes(Conn->DeviceSocket_, Conn->small_buf_,
 													 RTTY_HDR_SIZE + 1 + len - 1);
 				return (Sent == (int)(RTTY_HDR_SIZE + 1 + len - 1));
 			} catch (const Poco::Exception &E) {
@@ -839,7 +840,7 @@ namespace OpenWifi {
 			Msg.get()[3] = Conn->sid_;
 			memcpy((Msg.get() + RTTY_HDR_SIZE + 1), &buf[1], len - 1);
 			try {
-				auto Sent = SendBytes(Conn->Device_fd,Msg.get(),
+				auto Sent = SendBytes(Conn->DeviceSocket_,Msg.get(),
 													 RTTY_HDR_SIZE + 1 + len - 1);
 				return (Sent == (int)(RTTY_HDR_SIZE + 1 + len - 1));
 			} catch (const Poco::Exception &E) {
@@ -867,7 +868,7 @@ namespace OpenWifi {
 		std::cout << __LINE__ << std::endl;
 		try {
 			std::cout << __LINE__ << std::endl;
-			auto Sent = SendBytes(Conn->Device_fd, outBuf, RTTY_HDR_SIZE + 4 + 1);
+			auto Sent = SendBytes(Conn->DeviceSocket_, outBuf, RTTY_HDR_SIZE + 4 + 1);
 			std::cout << __LINE__ << std::endl;
 			return (Sent == (int)(RTTY_HDR_SIZE + 4 + 1));
 		} catch (const Poco::Exception &E) {

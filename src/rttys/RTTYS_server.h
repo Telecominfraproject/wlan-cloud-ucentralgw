@@ -129,6 +129,7 @@ namespace OpenWifi {
 		unsigned char small_buf_[64 + RTTY_SESSION_ID_LENGTH]{0};
 		bool completed_ = false;
 		bool mTLS_=false;
+		Poco::Net::Socket							DeviceSocket_;
 		std::chrono::time_point<std::chrono::high_resolution_clock> Created_{0s},
 			DeviceDisconnected_{0s}, ClientDisconnected_{0s}, DeviceConnected_{0s},
 			ClientConnected_{0s};
