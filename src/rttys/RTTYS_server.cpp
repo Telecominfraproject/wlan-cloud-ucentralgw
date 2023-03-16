@@ -300,7 +300,7 @@ namespace OpenWifi {
 			poco_error(Logger(),fmt::format("Cannot find this socket: {}",fd));
 			return -1;
 		}
-		return hint->second.sendBytes(buffer,len);
+		return hint->second.impl()->sendBytes(buffer,len);
 	}
 
 	int RTTYS_server::SendBytes(const Poco::Net::Socket &Socket, const unsigned char *buffer, std::size_t len) {
@@ -848,6 +848,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::WindowSize(std::shared_ptr<RTTYS_EndPoint> Conn, int cols, int rows) {
+		std::cout << __LINE__ << std::endl;
 		u_char outBuf[8 + RTTY_SESSION_ID_LENGTH]{0};
 		outBuf[0] = RTTYS_EndPoint::msgTypeWinsize;
 		outBuf[1] = 0;
@@ -857,16 +858,18 @@ namespace OpenWifi {
 		outBuf[RTTY_HDR_SIZE + 1 + 1] = cols & 0x00ff;
 		outBuf[RTTY_HDR_SIZE + 2 + 1] = rows >> 8;
 		outBuf[RTTY_HDR_SIZE + 3 + 1] = rows & 0x00ff;
+		std::cout << __LINE__ << std::endl;
 		try {
+			std::cout << __LINE__ << std::endl;
 			auto Sent = SendBytes(Conn->Device_fd, outBuf, RTTY_HDR_SIZE + 4 + 1);
+			std::cout << __LINE__ << std::endl;
 			return (Sent == (int)(RTTY_HDR_SIZE + 4 + 1));
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-			return false;
 		} catch (const std::exception &E) {
 			LogStdException(E, "Cannot send window size");
-			return false;
 		}
+		std::cout << __LINE__ << std::endl;
 		return false;
 	}
 
