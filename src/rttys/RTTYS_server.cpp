@@ -685,8 +685,9 @@ namespace OpenWifi {
 			}
 		}
 
-		std::cout << "EP:" << EndPoints_.size() << " C:" << Connected_.size() << " S:"
-				  << Sockets_.size() << " CL:" << Clients_.size() << std::endl;
+		poco_information(Logger(),fmt::format("EndPoints:{} Connected:{} Sockets:{} Clients:{}",
+											   EndPoints_.size(),Connected_.size(),
+											   Sockets_.size(), Clients_.size()));
 
 		if (Utils::Now() - LastStats > (60 * 1)) {
 			LastStats = Utils::Now();
