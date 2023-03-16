@@ -770,15 +770,18 @@ namespace OpenWifi {
 
 	void RTTYS_server::EndConnection(const Poco::Net::Socket &Socket, std::uint32_t Line) {
 		//	remove the device
+		auto fd = Socket.impl()->sockfd();
 		std::lock_guard	G(ServerMutex_);
 		RemoveSocket(Socket);
 
 		//	find the client linked to this one...
-		auto hint = Connected_.find(Socket.impl()->sockfd());
+		auto hint = Connected_.find(fd);
 		if(hint!=end(Connected_)) {
 			if(hint->second->WSSocket_!= nullptr) {
 				RemoveClientEventHandlers(*hint->second->WSSocket_);
 			}
+		} else {
+			std::cout << "Cannot find the associated WS" << std::endl;
 		}
 		poco_debug(Logger(),fmt::format("Closing connection at line {}",Line));
 	}
