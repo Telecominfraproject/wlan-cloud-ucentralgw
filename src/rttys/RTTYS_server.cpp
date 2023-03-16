@@ -181,6 +181,7 @@ namespace OpenWifi {
 
 	void RTTYS_server::onDeviceAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		try {
+			std::lock_guard	Lock(ServerMutex_);
 			Poco::Net::SocketAddress Client;
 			Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
 			if (NewSocket.impl()->secure()) {
@@ -239,8 +240,6 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::AddNewSocket(Poco::Net::Socket &Socket) {
-		std::lock_guard		G(ServerMutex_);
-
 		Socket.setNoDelay(true);
 		Socket.setKeepAlive(true);
 		Socket.setBlocking(false);
@@ -264,8 +263,6 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::RemoveSocket(const Poco::Net::Socket &Socket) {
-		std::lock_guard		G(ServerMutex_);
-
 		auto hint = Sockets_.find(Socket.impl()->sockfd());
 		if(hint!=end(Sockets_)) {
 			Reactor_.removeEventHandler(
@@ -296,8 +293,6 @@ namespace OpenWifi {
 	}
 
 	int RTTYS_server::SendBytes(int fd, const unsigned char *buffer, std::size_t len) {
-		std::lock_guard	G(ServerMutex_);
-
 		auto hint = Sockets_.find(fd);
 		if(hint==end(Sockets_)) {
 			poco_error(Logger(),fmt::format("Cannot find this socket: {}",fd));
@@ -391,6 +386,7 @@ namespace OpenWifi {
 		const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
 		std::shared_ptr<RTTYS_EndPoint> ConnectionPtr;
+		std::lock_guard	Lock(ServerMutex_);
 
 		try {
 			unsigned char 	Buffer[64000];
@@ -413,7 +409,6 @@ namespace OpenWifi {
 				return;
 			}
 
-			std::lock_guard	Lock(ServerMutex_);
 			bool good = true;
 
 			while (BufferPos<BufferCurrentSize && good) {
@@ -483,10 +478,12 @@ namespace OpenWifi {
 
 	void RTTYS_server::onConnectedDeviceSocketShutdown(
 		const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
+		std::lock_guard	Lock(ServerMutex_);
 		EndConnection(pNf->socket(), __func__,__LINE__);
 	}
 
 	void RTTYS_server::onConnectedDeviceSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
+		std::lock_guard	Lock(ServerMutex_);
 		EndConnection(pNf->socket(), __func__,__LINE__);
 	}
 
@@ -697,7 +694,6 @@ namespace OpenWifi {
 
 	std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator RTTYS_server::EndConnection(std::shared_ptr<RTTYS_EndPoint> Connection, const char * func, std::uint64_t Line) {
 
-		std::lock_guard	G(ServerMutex_);
 		auto hint1 = Sockets_.find(Connection->Device_fd);
 		if(hint1!=end(Sockets_))
 			RemoveSocket(hint1->second);
@@ -715,7 +711,6 @@ namespace OpenWifi {
 	void RTTYS_server::EndConnection(const Poco::Net::Socket &Socket, const char * func, std::uint32_t Line) {
 		//	remove the device
 		auto fd = Socket.impl()->sockfd();
-		std::lock_guard	G(ServerMutex_);
 		RemoveSocket(Socket);
 
 		//	find the client linked to this one...
@@ -751,6 +746,7 @@ namespace OpenWifi {
 			ServerMutex_.unlock();
 			return false;
 		}
+
 		EndPoints_[Id] = std::make_shared<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName, mTLS);
 		++TotalEndPoints_;
 		ServerMutex_.unlock();

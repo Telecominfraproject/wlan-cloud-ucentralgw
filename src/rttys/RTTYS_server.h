@@ -133,11 +133,17 @@ namespace OpenWifi {
 							const std::string &UserName, const std::string &SerialNumber,
 							bool mTLS);
 
-		bool ValidId(const std::string &Id);
-
-		void onTimer(Poco::Timer &timer);
+		void CreateWSClient(Poco::Net::HTTPServerRequest &request,
+							Poco::Net::HTTPServerResponse &response, const std::string &Id);
 
 		inline bool UseInternal() const { return Internal_; }
+
+		bool ValidId(const std::string &Id);
+		inline auto Uptime() const { return Utils::Now() - Started_; }
+
+
+	  private:
+		void onTimer(Poco::Timer &timer);
 
 		void onDeviceAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 
@@ -159,10 +165,7 @@ namespace OpenWifi {
 		void AddClientEventHandlers(Poco::Net::WebSocket &Socket,
 									std::shared_ptr<RTTYS_EndPoint> EndPoint);
 
-		inline auto Uptime() const { return Utils::Now() - Started_; }
 
-		void CreateWSClient(Poco::Net::HTTPServerRequest &request,
-							Poco::Net::HTTPServerResponse &response, const std::string &Id);
 
 		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator EndConnection(std::shared_ptr<RTTYS_EndPoint> Connection, const char * func, std::uint64_t l);
 		void EndConnection(const Poco::Net::Socket &Socket, const char * func, std::uint32_t Line);
@@ -221,9 +224,6 @@ namespace OpenWifi {
 		bool SendToClient(Poco::Net::WebSocket &WebSocket, const u_char *Buf, int len);
 		bool SendToClient(Poco::Net::WebSocket &WebSocket, const std::string &s);
 
-		friend class RTTYS_EndPoint;
-
-	  private:
 		std::recursive_mutex		ServerMutex_;
 		Poco::Net::SocketReactor 	Reactor_;
 		Poco::Thread 				ReactorThread_;
