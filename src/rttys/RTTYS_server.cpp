@@ -504,7 +504,7 @@ namespace OpenWifi {
 												   pNf->socket().impl()->sockfd()));
 				return;
 			}
-
+			Connection = Client->second;
 			int flags;
 			unsigned char FrameBuffer[1024];
 
