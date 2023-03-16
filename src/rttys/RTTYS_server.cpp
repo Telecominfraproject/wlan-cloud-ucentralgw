@@ -526,26 +526,33 @@ namespace OpenWifi {
 				return;
 			}
 
+			std::cout << __LINE__ << std::endl;
 			Connection = Client->second;
 			if (Connection == nullptr) {
 				std::cout << "NULL EndPoint Client" << std::endl;
 				return;
 			}
 
+			std::cout << __LINE__ << std::endl;
 			if (Connection->WSSocket_ == nullptr) {
 				std::cout << "NULL WS Client" << std::endl;
 				return;
 			}
 
+			std::cout << __LINE__ << std::endl;
 			int flags;
 			unsigned char FrameBuffer[1024];
 
+			std::cout << __LINE__ << std::endl;
 			auto ReceivedBytes =
 				Connection->WSSocket_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
+			std::cout << __LINE__ << std::endl;
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
+			std::cout << __LINE__ << std::endl;
 			switch (Op) {
 
 			case Poco::Net::WebSocket::FRAME_OP_PING: {
+				std::cout << __LINE__ << std::endl;
 				Connection->WSSocket_->sendFrame("", 0,
 											   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 												   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
@@ -558,6 +565,7 @@ namespace OpenWifi {
 					EndConnection(Connection,__LINE__);
 					return;
 				} else {
+					std::cout << __LINE__ << std::endl;
 					std::string Frame((const char *)FrameBuffer, ReceivedBytes);
 					try {
 						auto Doc = nlohmann::json::parse(Frame);
@@ -566,11 +574,13 @@ namespace OpenWifi {
 							if (Type == "winsize") {
 								auto cols = Doc["cols"];
 								auto rows = Doc["rows"];
+								std::cout << __LINE__ << std::endl;
 								if (!RTTYS_server().WindowSize(Connection,cols, rows)) {
 									poco_error(Logger(), "Winsize shutdown.");
 									EndConnection(Connection,__LINE__);
 									return;
 								}
+								std::cout << __LINE__ << std::endl;
 							}
 						}
 					} catch (...) {
@@ -589,11 +599,13 @@ namespace OpenWifi {
 				} else {
 					poco_trace(Logger(),
 							   fmt::format("Sending {} key strokes to device.", ReceivedBytes));
+					std::cout << __LINE__ << std::endl;
 					if (!RTTYS_server().KeyStrokes(Connection, FrameBuffer, ReceivedBytes)) {
 						poco_error(Logger(), "Cannot send keys to device. Close connection.");
 						EndConnection(Connection,__LINE__);
 						return;
 					}
+					std::cout << __LINE__ << std::endl;
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
