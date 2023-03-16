@@ -243,8 +243,8 @@ namespace OpenWifi {
 		Socket.setNoDelay(true);
 		Socket.setKeepAlive(true);
 		Socket.setBlocking(false);
-		Socket.setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
-		Socket.setSendBufferSize(RTTY_DEVICE_BUFSIZE);
+		Socket.setReceiveBufferSize(RTTY_RECEIVE_BUFFER);
+		Socket.setSendBufferSize(RTTY_RECEIVE_BUFFER);
 		Poco::Timespan	TS2(0,100);
 		Socket.setReceiveTimeout(TS2);
 
@@ -389,7 +389,7 @@ namespace OpenWifi {
 		std::lock_guard	Lock(ServerMutex_);
 
 		try {
-			unsigned char 	Buffer[64000];
+			unsigned char 	Buffer[RTTY_RECEIVE_BUFFER];
 			std::size_t 	BufferCurrentSize=0, BufferPos=0;
 
 			try {
