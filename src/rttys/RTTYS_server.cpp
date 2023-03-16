@@ -332,7 +332,6 @@ namespace OpenWifi {
 			}
 
 			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
-			ConnectionEp->Device_fd = fd;
 
 			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 			if (ConnectionEp->mTLS_) {
@@ -357,6 +356,7 @@ namespace OpenWifi {
 			}
 
 			ConnectionEp->Device_fd = fd;
+			Connected_[fd] = ConnectionEp;
 
 			u_char OutBuf[8];
 			OutBuf[0] = RTTYS_EndPoint::msgTypeRegister;
@@ -848,17 +848,15 @@ namespace OpenWifi {
 		outBuf[1] = 0;
 		outBuf[2] = 0;
 		try {
-			poco_debug(Logger(), fmt::format("TID:{} Starting loggin on device.",Conn->TID_));
+			poco_debug(Logger(), fmt::format("TID:{} Starting login on device.",Conn->TID_));
 			auto Sent = SendBytes(Socket,outBuf,3);
 			std::cout << "Sent -> " << Sent << std::endl;
 			Conn->completed_ = true;
 			return Sent == RTTY_HDR_SIZE;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-			return false;
 		} catch (const std::exception &E) {
 			LogStdException(E, fmt::format("TID:{} Cannot send login.", Conn->TID_));
-			return false;
 		}
 		return false;
 	}
@@ -925,10 +923,8 @@ namespace OpenWifi {
 				return SendToClient(*EndPoint->second->WSSocket_, login_msg);
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
-				return false;
 			} catch (const std::exception &E) {
 				LogStdException(E, "Cannot send login");
-				return false;
 			}
 		}
 		return false;
