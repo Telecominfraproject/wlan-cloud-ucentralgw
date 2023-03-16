@@ -502,6 +502,12 @@ namespace OpenWifi {
 				return;
 			}
 			Connection = Client->second;
+			if(Connection->WSSocket_==nullptr || Connection->WSSocket_->impl()==nullptr) {
+				poco_warning(Logger(), fmt::format("WebSocket is no valid: {}",
+												   Connection->SerialNumber_));
+				return;
+			}
+
 			int flags;
 			unsigned char FrameBuffer[1024];
 
@@ -597,7 +603,7 @@ namespace OpenWifi {
 
 	void RTTYS_server::SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const u_char *Buf,
 								size_t len) {
-		if (Connection->WSSocket_ != nullptr) {
+		if (Connection->WSSocket_ != nullptr && Connection->WSSocket_->impl()!= nullptr) {
 			try {
 				Connection->WSSocket_->sendFrame(Buf, len,
 												 Poco::Net::WebSocket::FRAME_FLAG_FIN |
@@ -611,7 +617,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const std::string &s) {
-		if (Connection->WSSocket_ != nullptr) {
+		if (Connection->WSSocket_ != nullptr && Connection->WSSocket_->impl()!= nullptr) {
 			try {
 				Connection->WSSocket_->sendFrame(s.c_str(), s.length());
 				return;
@@ -699,7 +705,7 @@ namespace OpenWifi {
 			RemoveSocket(hint1->second);
 
 		//	find the client linked to this one...
-		if(Connection->WSSocket_->impl()!= nullptr) {
+		if(Connection->WSSocket_!= nullptr && Connection->WSSocket_->impl()!= nullptr) {
 			RemoveClientEventHandlers(*Connection->WSSocket_);
 			Connection->WSSocket_->close();
 		}
@@ -716,7 +722,7 @@ namespace OpenWifi {
 		//	find the client linked to this one...
 		auto hint = Connected_.find(fd);
 		if(hint!=end(Connected_)) {
-			if(hint->second->WSSocket_->impl()!= nullptr) {
+			if(hint->second->WSSocket_!= nullptr && hint->second->WSSocket_->impl()!= nullptr) {
 				RemoveClientEventHandlers(*hint->second->WSSocket_);
 				hint->second->WSSocket_->close();
 			}
@@ -885,7 +891,7 @@ namespace OpenWifi {
 	bool RTTYS_server::do_msgTypeLogin(const Poco::Net::Socket &Socket, unsigned char *Buffer, [[maybe_unused]] std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		poco_debug(Logger(), "Asking for login");
 		auto EndPoint = Connected_.find(Socket.impl()->sockfd());
-		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_->impl() != nullptr) {
+		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
 			try {
 				nlohmann::json doc;
 				unsigned char Error = Buffer[BufferPos++];
@@ -917,7 +923,7 @@ namespace OpenWifi {
 
 	bool RTTYS_server::do_msgTypeTermData(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		auto EndPoint = Connected_.find(Socket.impl()->sockfd());
-		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_->impl() != nullptr) {
+		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
 			try {
 				BufferPos++;
 				auto good = SendToClient(*EndPoint->second->WSSocket_, &Buffer[BufferPos],
