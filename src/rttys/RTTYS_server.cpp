@@ -746,7 +746,7 @@ namespace OpenWifi {
 				hint->second->WSSocket_->close();
 			}
 		} else {
-			std::cout << "Cannot find the associated WS" << std::endl;
+			std::cout << "Cannot find the associated WS..." << std::endl;
 		}
 		EndPoints_.erase(hint->second->Id_);
 		poco_debug(Logger(),fmt::format("Closing connection at line {}",Line));
