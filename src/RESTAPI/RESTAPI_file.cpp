@@ -22,7 +22,7 @@ namespace OpenWifi {
 
 		std::string FileType;
 		std::string FileContent;
-		if (!StorageService()->GetAttachedFileContent(UUID, SerialNumber, FileContent, FileType)) {
+		if (!StorageService()->GetAttachedFileContent(UUID, SerialNumber, FileContent, FileType) || FileContent.empty()) {
 			return NotFound();
 		}
 		if (FileType == "pcap") {
