@@ -376,7 +376,7 @@ namespace OpenWifi {
 			ConnectionEp->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			ConnectionEp->DeviceIsAttached_ = true;
 			ConnectionEp->DeviceSocket_ = Socket;
-			if(ConnectionEp->WSSocket_.impl()!= nullptr) {
+			if(ConnectionEp->WSSocket_!= nullptr) {
 				Login(Socket, ConnectionEp);
 			}
 			return true;
@@ -508,12 +508,12 @@ namespace OpenWifi {
 			int flags;
 			unsigned char FrameBuffer[1024];
 
-			auto ReceivedBytes = Connection->WSSocket_.receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
+			auto ReceivedBytes = Connection->WSSocket_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 			switch (Op) {
 
 			case Poco::Net::WebSocket::FRAME_OP_PING: {
-				Connection->WSSocket_.sendFrame("", 0,
+				Connection->WSSocket_->sendFrame("", 0,
 											   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 												   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 			} break;
@@ -600,9 +600,9 @@ namespace OpenWifi {
 
 	void RTTYS_server::SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const u_char *Buf,
 								size_t len) {
-		if (Connection->WSSocket_.impl() != nullptr) {
+		if (Connection->WSSocket_ != nullptr) {
 			try {
-				Connection->WSSocket_.sendFrame(Buf, len,
+				Connection->WSSocket_->sendFrame(Buf, len,
 												 Poco::Net::WebSocket::FRAME_FLAG_FIN |
 													 Poco::Net::WebSocket::FRAME_OP_BINARY);
 				return;
@@ -614,9 +614,9 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const std::string &s) {
-		if (Connection->WSSocket_.impl() != nullptr) {
+		if (Connection->WSSocket_ != nullptr) {
 			try {
-				Connection->WSSocket_.sendFrame(s.c_str(), s.length());
+				Connection->WSSocket_->sendFrame(s.c_str(), s.length());
 				return;
 			} catch (...) {
 				poco_error(Logger(), "SendData shutdown.");
@@ -641,7 +641,7 @@ namespace OpenWifi {
 			return;
 		}
 
-		if (EndPoint->second->WSSocket_.impl() != nullptr) {
+		if (EndPoint->second->WSSocket_ != nullptr) {
 			poco_warning(Logger(), fmt::format("Session {} is a duplicate.", Id));
 			return;
 		}
@@ -649,12 +649,12 @@ namespace OpenWifi {
 		//	OK Create and register this WS client
 		try {
 			// EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request, response);
-			EndPoint->second->WSSocket_ = Poco::Net::WebSocket(request, response);
+			EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request, response);
 			EndPoint->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
-			EndPoint->second->WSSocket_.setBlocking(false);
-			EndPoint->second->WSSocket_.setNoDelay(true);
-			EndPoint->second->WSSocket_.setKeepAlive(true);
-			AddClientEventHandlers(EndPoint->second->WSSocket_, EndPoint->second);
+			EndPoint->second->WSSocket_->setBlocking(false);
+			EndPoint->second->WSSocket_->setNoDelay(true);
+			EndPoint->second->WSSocket_->setKeepAlive(true);
+			AddClientEventHandlers(*EndPoint->second->WSSocket_, EndPoint->second);
 			if (EndPoint->second->DeviceIsAttached_ && !EndPoint->second->completed_) {
 				auto hint = Sockets_.find(EndPoint->second->Device_fd);
 				if(hint!=end(Sockets_))
@@ -703,9 +703,9 @@ namespace OpenWifi {
 			RemoveSocket(hint1->second);
 
 		//	find the client linked to this one...
-		if(Connection->WSSocket_.impl()!= nullptr) {
-			RemoveClientEventHandlers(Connection->WSSocket_);
-			Connection->WSSocket_.close();
+		if(Connection->WSSocket_->impl()!= nullptr) {
+			RemoveClientEventHandlers(*Connection->WSSocket_);
+			Connection->WSSocket_->close();
 		}
 		poco_debug(Logger(),fmt::format("Closing connection {}:{}", func, Line));
 		auto hint2 = EndPoints_.find(Connection->Id_);
@@ -721,9 +721,9 @@ namespace OpenWifi {
 		//	find the client linked to this one...
 		auto hint = Connected_.find(fd);
 		if(hint!=end(Connected_)) {
-			if(hint->second->WSSocket_.impl()!= nullptr) {
-				RemoveClientEventHandlers(hint->second->WSSocket_);
-				hint->second->WSSocket_.close();
+			if(hint->second->WSSocket_->impl()!= nullptr) {
+				RemoveClientEventHandlers(*hint->second->WSSocket_);
+				hint->second->WSSocket_->close();
 			}
 		} else {
 			std::cout << "Cannot find the associated WS..." << std::endl;
@@ -889,7 +889,7 @@ namespace OpenWifi {
 	bool RTTYS_server::do_msgTypeLogin(const Poco::Net::Socket &Socket, unsigned char *Buffer, [[maybe_unused]] std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		poco_debug(Logger(), "Asking for login");
 		auto EndPoint = Connected_.find(Socket.impl()->sockfd());
-		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_.impl() != nullptr) {
+		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_->impl() != nullptr) {
 			try {
 				nlohmann::json doc;
 				unsigned char Error = Buffer[BufferPos++];
@@ -902,7 +902,7 @@ namespace OpenWifi {
 				doc["type"] = "login";
 				doc["err"] = Error;
 				const auto login_msg = to_string(doc);
-				return SendToClient(EndPoint->second->WSSocket_, login_msg);
+				return SendToClient(*EndPoint->second->WSSocket_, login_msg);
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
 			} catch (const std::exception &E) {
@@ -921,10 +921,10 @@ namespace OpenWifi {
 
 	bool RTTYS_server::do_msgTypeTermData(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		auto EndPoint = Connected_.find(Socket.impl()->sockfd());
-		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_.impl() != nullptr) {
+		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_->impl() != nullptr) {
 			try {
 				BufferPos++;
-				auto good = SendToClient(EndPoint->second->WSSocket_, &Buffer[BufferPos],
+				auto good = SendToClient(*EndPoint->second->WSSocket_, &Buffer[BufferPos],
 										 BufferCurrentSize - BufferPos);
 				BufferPos = BufferCurrentSize;
 				return good;
@@ -1001,7 +1001,6 @@ namespace OpenWifi {
 		: Id_(Id), Token_(Token), SerialNumber_(SerialNumber), UserName_(UserName),
 	  	mTLS_(mTLS) {
 		Created_ = std::chrono::high_resolution_clock::now();
-		WSSocket_.close();
 	}
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {

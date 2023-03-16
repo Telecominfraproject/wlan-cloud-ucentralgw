@@ -106,7 +106,7 @@ namespace OpenWifi {
 		bool DeviceIsAttached_ = false;
 		poco_socket_t	Device_fd=-1;
 		std::uint64_t TID_ = 0;
-		Poco::Net::WebSocket 		WSSocket_{Poco::Net::Socket()};
+		std::unique_ptr<Poco::Net::WebSocket>		WSSocket_;
 		unsigned char sid_=0;
 		unsigned char small_buf_[64 + RTTY_SESSION_ID_LENGTH]{0};
 		bool completed_ = false;
