@@ -958,10 +958,14 @@ namespace OpenWifi {
 		auto EndPoint = Connected_.find(Socket.impl()->sockfd());
 		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_ != nullptr) {
 			try {
+				std::cout << __LINE__ << std::endl;
 				BufferPos++;
+				std::cout << __LINE__ << std::endl;
 				auto good = SendToClient(*EndPoint->second->WSSocket_, &Buffer[BufferPos],
 										 BufferCurrentSize - BufferPos);
+				std::cout << __LINE__ << std::endl;
 				BufferPos = BufferCurrentSize;
+				std::cout << __LINE__ << std::endl;
 				return good;
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
