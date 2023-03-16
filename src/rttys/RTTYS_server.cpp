@@ -707,6 +707,8 @@ namespace OpenWifi {
 		if(hint1!=end(Sockets_))
 			RemoveSocket(hint1->second);
 
+		Connected_.erase(Connection->Device_fd);
+
 		//	find the client linked to this one...
 		if(Connection->WSSocket_!= nullptr && Connection->WSSocket_->impl()!= nullptr) {
 			RemoveClientEventHandlers(*Connection->WSSocket_);
@@ -728,6 +730,7 @@ namespace OpenWifi {
 			if(hint->second->WSSocket_!= nullptr && hint->second->WSSocket_->impl()!= nullptr) {
 				RemoveClientEventHandlers(*hint->second->WSSocket_);
 				hint->second->WSSocket_->close();
+				Connected_.erase(hint);
 			}
 		} else {
 			std::cout << "Cannot find the associated WS..." << std::endl;
