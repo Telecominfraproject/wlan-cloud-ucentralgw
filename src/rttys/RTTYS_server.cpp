@@ -332,9 +332,6 @@ namespace OpenWifi {
 				return false;
 			}
 
-			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
-
-			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 			if (ConnectionEp->mTLS_) {
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket.impl());
 				auto PeerAddress_ = SS->peerAddress().host();
@@ -367,7 +364,6 @@ namespace OpenWifi {
 			OutBuf[4] = 'O';
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
-			poco_warning(Logger(),fmt::format("Line: {}",__LINE__));
 
 			if (SendBytes(Socket,OutBuf, 7) != 7) {
 				poco_error(
