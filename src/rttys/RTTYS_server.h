@@ -179,22 +179,12 @@ namespace OpenWifi {
 
 		inline std::shared_ptr<RTTYS_EndPoint> FindRegisteredEndPoint(const std::string &Id,
 															  const std::string &Token) {
-			std::lock_guard		G(ServerMutex_);
 			std::shared_ptr<RTTYS_EndPoint> Res;
 			auto EndPoint = EndPoints_.find(Id);
 			if (EndPoint != end(EndPoints_) && EndPoint->second->Token_ == Token) {
 				Res = EndPoint->second;
 			}
 			return Res;
-		}
-
-		inline void RemoveRegisteredEndPoint(const std::string &Id,
-																	  const std::string &Token) {
-			std::lock_guard		G(ServerMutex_);
-			auto EndPoint = EndPoints_.find(Id);
-			if (EndPoint != end(EndPoints_) && EndPoint->second->Token_ == Token) {
-				EndPoints_.erase(Id);
-			}
 		}
 
 		void AddNewSocket(Poco::Net::Socket &Socket);
