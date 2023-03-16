@@ -761,7 +761,9 @@ namespace OpenWifi {
 
 		//	find the client linked to this one...
 		if(Connection->WSSocket_!= nullptr) {
+			std::cout << __LINE__ << std::endl;
 			RemoveClientEventHandlers(*Connection->WSSocket_);
+			Connection->WSSocket_->close();
 		}
 		poco_debug(Logger(),fmt::format("Closing connection at line {}",Line));
 		auto hint2 = EndPoints_.find(Connection->Id_);
@@ -777,8 +779,11 @@ namespace OpenWifi {
 		//	find the client linked to this one...
 		auto hint = Connected_.find(fd);
 		if(hint!=end(Connected_)) {
+			std::cout << __LINE__ << std::endl;
 			if(hint->second->WSSocket_!= nullptr) {
+				std::cout << __LINE__ << std::endl;
 				RemoveClientEventHandlers(*hint->second->WSSocket_);
+				hint->second->WSSocket_->close();
 			}
 		} else {
 			std::cout << "Cannot find the associated WS" << std::endl;
