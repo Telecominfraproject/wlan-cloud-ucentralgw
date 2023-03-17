@@ -201,6 +201,17 @@ namespace OpenWifi {
 			RX = RX_;
 		}
 
+		inline bool GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers) {
+			std::lock_guard		G(WSServerMutex_);
+
+			for(const auto &connection:Sessions_) {
+				if(	lowLimit<=connection.second->RawLastHealthcheck_.Sanity 	&&
+					highLimit>=connection.second->RawLastHealthcheck_.Sanity) {
+					SerialNumbers.push_back(connection.second->SerialNumber_);
+				}
+			}
+			return true;
+		}
 	  private:
 		mutable std::recursive_mutex WSServerMutex_;
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
@@ -214,7 +225,6 @@ namespace OpenWifi {
 		bool SimulatorEnabled_ = false;
 		std::unique_ptr<AP_WS_ReactorThreadPool> Reactor_pool_;
 		std::atomic_bool Running_ = false;
-		// std::map<uint64_t,	std::pair<std::shared_ptr<AP_WS_Connection>,bool>>	Sessions_;
 		std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>> Sessions_;
 		std::map<uint64_t, std::pair<uint64_t, std::shared_ptr<AP_WS_Connection>>> SerialNumbers_;
 		std::atomic_bool AllowSerialNumberMismatch_ = true;
