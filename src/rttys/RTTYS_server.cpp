@@ -775,12 +775,15 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 				RemoveClientEventHandlers(*hint->second->WSSocket_);
 				hint->second->WSSocket_->close();
+				auto id = hint->second->Id_;
 				Connected_.erase(hint);
+				EndPoints_.erase(id);
+				std::cout << __LINE__ << std::endl;
+			} else {
+				std::cout << __LINE__ << std::endl;
+				EndPoints_.erase(hint->second->Id_);
 				std::cout << __LINE__ << std::endl;
 			}
-			std::cout << __LINE__ << std::endl;
-			EndPoints_.erase(hint->second->Id_);
-			std::cout << __LINE__ << std::endl;
 		} else {
 			std::cout << "Cannot find the associated WS..." << std::endl;
 		}
