@@ -314,7 +314,7 @@ namespace OpenWifi {
 			std::string desc_ = ReadString(Buffer, BufferCurrentSize, BufferPos);
 			std::string token_ = ReadString(Buffer, BufferCurrentSize, BufferPos);
 
-			poco_debug(Logger(),fmt::format("Device registration: description:{} id:{} token:{}", desc_, id_, token_));
+			poco_information(Logger(),fmt::format("Device registration: description:{} id:{} token:{}", desc_, id_, token_));
 			if (id_.size() != RTTY_DEVICE_TOKEN_LENGTH ||
 				token_.size() != RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
 				poco_warning(Logger(),fmt::format("Wrong register header. {} {} {}", id_,desc_,token_));
@@ -327,26 +327,27 @@ namespace OpenWifi {
 				poco_warning(Logger(), fmt::format("Unknown session {} from device.", id_));
 				return false;
 			}
-
 			if (ConnectionEp->mTLS_) {
-				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket.impl());
-				auto PeerAddress_ = SS->peerAddress().host();
-				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-				if (SS->havePeerCertificate()) {
+				poco_information(Logger(),fmt::format("{}: Validation of certificate in progress.", ConnectionEp->SerialNumber_));
+				auto SS = dynamic_cast<Poco::Net::SecureSocketImpl *>(Socket.impl());
+				auto CId_ = SS->getPeerHostName();
+//				auto PeerAddress_ = SS->peerAddress().host();
+//				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+//				if (SS->havePeerCertificate()) {
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
 					auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
-						poco_debug(
+						poco_information(
 							Logger(),
 							fmt::format("Device mTLS {} has been validated from {}.", CN, CId_));
 					} else {
 						poco_warning(Logger(), fmt::format("Device failed mTLS validation {}. Certificate fails validation.", CId_));
 						return false;
 					}
-				} else {
-					poco_warning(Logger(), fmt::format("Device failed mTLS validation {} (no certificate).", CId_));
-					return false;
-				}
+//				} else {
+//					poco_warning(Logger(), fmt::format("Device failed mTLS validation {} (no certificate).", CId_));
+//					return false;
+//				}
 			}
 
 			ConnectionEp->Device_fd = fd;
