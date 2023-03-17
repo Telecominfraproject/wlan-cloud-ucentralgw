@@ -185,17 +185,17 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress Client;
 			Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
 			if (NewSocket.impl()->secure()) {
-/*				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(NewSocket.impl());
+				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(NewSocket.impl());
 				auto PeerAddress_ = SS->peerAddress().host();
 				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-				poco_debug(Logger(),fmt::format("Completing TLS handshake: {}", CId_));
+				poco_information(Logger(),fmt::format("Completing TLS handshake: {}", CId_));
 				while (true) {
 					auto V = SS->completeHandshake();
 					if (V == 1)
 						break;
 				}
-				poco_debug(Logger(),fmt::format("Completed TLS handshake: {}", CId_));
-
+				poco_information(Logger(),fmt::format("Completed TLS handshake: {}", CId_));
+/*
 				if (enforce_mTLS_) {
 					if (SS->havePeerCertificate()) {
 						Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
