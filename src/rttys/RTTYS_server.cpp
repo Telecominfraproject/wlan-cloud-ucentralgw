@@ -102,8 +102,6 @@ namespace OpenWifi {
 				SecureServerDeviceSocket_ = std::make_unique<Poco::Net::SecureServerSocket>(
 					SockAddr, 64, DeviceSecureContext);
 
-//				Poco::Net::SocketReactor	ListeningReactor_;
-				// auto Acceptor = std::make_unique<Poco::Net::SocketAcceptor>(*SecureServerDeviceSocket_, Reactor_);
 				Reactor_.addEventHandler(
 					*SecureServerDeviceSocket_,
 					Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -194,30 +192,29 @@ namespace OpenWifi {
 				auto PeerAddress_ = SS->peerAddress().host();
 				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 				std::string cn;
-				poco_information(Logger(),fmt::format("Completing TLS handshake: {}", CId_));
+				poco_debug(Logger(),fmt::format("{}: Completing TLS handshake.", CId_));
 				while (true) {
 					auto V = SS->completeHandshake();
 					if (V == 1)
 						break;
 				}
-
-				poco_information(Logger(),fmt::format("Completed TLS handshake: {}", CId_));
+				poco_debug(Logger(),fmt::format("{}: Completed TLS handshake.", CId_));
 				std::unique_ptr<Poco::Crypto::X509Certificate>	Cert;
 				if (SS->havePeerCertificate()) {
-					poco_information(Logger(),fmt::format("Device has certificate: {}", CId_));
+					poco_debug(Logger(),fmt::format("{}: Device has certificate.", CId_));
 					Cert = std::make_unique<Poco::Crypto::X509Certificate>(SS->peerCertificate());
 					cn = Poco::trim(Poco::toLower(Cert->commonName()));
 					if (AP_WS_Server()->ValidateCertificate(CId_, *Cert)) {
 						poco_information(
 							Logger(),
-							fmt::format("Device {} has been validated from {}.", cn, CId_));
+							fmt::format("{}: Device {} has been validated.", cn, CId_));
 						AddNewSocket(NewSocket, std::move(Cert), true, CId_, cn);
 					} else {
-						poco_warning(Logger(),fmt::format("Device does not have a va;id certificate: {}", CId_));
+						poco_warning(Logger(),fmt::format("{}: Device {} cannot be validate", CId_, cn));
 						AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
 					}
 				} else {
-					poco_warning(Logger(), fmt::format("Device has no certificate from {}.", CId_));
+					poco_warning(Logger(), fmt::format("{}: Device has no certificate.", CId_));
 					AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
 				}
 				return;
@@ -731,58 +728,38 @@ namespace OpenWifi {
 	}
 
 	std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator RTTYS_server::EndConnection(std::shared_ptr<RTTYS_EndPoint> Connection, const char * func, std::uint64_t Line) {
-		std::cout << __LINE__ << std::endl;
-
 		auto hint1 = Sockets_.find(Connection->Device_fd);
-		std::cout << __LINE__ << std::endl;
 		if(hint1!=end(Sockets_))
 			RemoveSocket(hint1->second->socket);
 
-		std::cout << __LINE__ << std::endl;
 		Connected_.erase(Connection->Device_fd);
-		std::cout << __LINE__ << std::endl;
 
 		//	find the client linked to this one...
-		std::cout << __LINE__ << std::endl;
 		if(Connection->WSSocket_!= nullptr && Connection->WSSocket_->impl()!= nullptr) {
-			std::cout << __LINE__ << std::endl;
 			RemoveClientEventHandlers(*Connection->WSSocket_);
-			std::cout << __LINE__ << std::endl;
 			Connection->WSSocket_->close();
 		}
-		std::cout << __LINE__ << std::endl;
 		poco_debug(Logger(),fmt::format("Closing connection {}:{}", func, Line));
-		std::cout << __LINE__ << std::endl;
 		auto hint2 = EndPoints_.find(Connection->Id_);
-		std::cout << __LINE__ << std::endl;
 		return EndPoints_.erase(hint2);
 	}
 
 	void RTTYS_server::EndConnection(const Poco::Net::Socket &Socket, const char * func, std::uint32_t Line) {
 		//	remove the device
-		std::cout << __LINE__ << std::endl;
 		auto fd = Socket.impl()->sockfd();
-		std::cout << __LINE__ << std::endl;
 		RemoveSocket(Socket);
-		std::cout << __LINE__ << std::endl;
 
 		//	find the client linked to this one...
 		auto hint = Connected_.find(fd);
-		std::cout << __LINE__ << std::endl;
 		if(hint!=end(Connected_)) {
-			std::cout << __LINE__ << std::endl;
 			if(hint->second->WSSocket_!= nullptr && hint->second->WSSocket_->impl()!= nullptr) {
-				std::cout << __LINE__ << std::endl;
 				RemoveClientEventHandlers(*hint->second->WSSocket_);
 				hint->second->WSSocket_->close();
 				auto id = hint->second->Id_;
 				Connected_.erase(hint);
 				EndPoints_.erase(id);
-				std::cout << __LINE__ << std::endl;
 			} else {
-				std::cout << __LINE__ << std::endl;
 				EndPoints_.erase(hint->second->Id_);
-				std::cout << __LINE__ << std::endl;
 			}
 		} else {
 			std::cout << "Cannot find the associated WS..." << std::endl;
