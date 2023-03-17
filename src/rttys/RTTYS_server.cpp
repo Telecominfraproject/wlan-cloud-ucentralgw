@@ -185,7 +185,7 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress Client;
 			Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
 			if (NewSocket.impl()->secure()) {
-				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(NewSocket.impl());
+/*				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(NewSocket.impl());
 				auto PeerAddress_ = SS->peerAddress().host();
 				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 				poco_debug(Logger(),fmt::format("Completing TLS handshake: {}", CId_));
@@ -213,6 +213,7 @@ namespace OpenWifi {
 					AddNewSocket(NewSocket);
 					return;
 				}
+				*/
 				AddNewSocket(NewSocket);
 				return;
 			}
@@ -329,25 +330,41 @@ namespace OpenWifi {
 			}
 			if (ConnectionEp->mTLS_) {
 				poco_information(Logger(),fmt::format("{}: Validation of certificate in progress.", ConnectionEp->SerialNumber_));
-				auto SS = dynamic_cast<Poco::Net::SecureSocketImpl *>(Socket.impl());
-				auto CId_ = SS->getPeerHostName();
-//				auto PeerAddress_ = SS->peerAddress().host();
-//				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-//				if (SS->havePeerCertificate()) {
-					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
-					auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
-					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
-						poco_information(
-							Logger(),
-							fmt::format("Device mTLS {} has been validated from {}.", CN, CId_));
+				if(Socket.secure()) {
+					auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket.impl());
+					if (SS != nullptr) {
+						auto PeerAddress_ = SS->peerAddress().host();
+						auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+						if (SS->havePeerCertificate()) {
+							Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
+							auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
+							if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
+								poco_information(
+									Logger(),
+									fmt::format("Device mTLS {} has been validated from {}.", CN,
+												CId_));
+							} else {
+								poco_warning(Logger(),
+											 fmt::format("Device failed mTLS validation {}. Certificate fails validation.",
+														 CId_));
+								return false;
+							}
+						} else {
+							poco_warning(
+								Logger(),
+								fmt::format("Device failed mTLS validation {} (no certificate).",
+											CId_));
+							return false;
+						}
 					} else {
-						poco_warning(Logger(), fmt::format("Device failed mTLS validation {}. Certificate fails validation.", CId_));
+						poco_error(Logger(), fmt::format("{}: Cannot convert to secure stream",
+														 ConnectionEp->SerialNumber_));
 						return false;
 					}
-//				} else {
-//					poco_warning(Logger(), fmt::format("Device failed mTLS validation {} (no certificate).", CId_));
-//					return false;
-//				}
+				} else {
+					poco_error(Logger(),fmt::format("{}: Socket is not secure", ConnectionEp->SerialNumber_));
+					return false;
+				}
 			}
 
 			ConnectionEp->Device_fd = fd;
