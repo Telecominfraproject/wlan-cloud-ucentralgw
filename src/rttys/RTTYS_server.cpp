@@ -324,14 +324,17 @@ namespace OpenWifi {
 			}
 
 			//	find this device in our connectio end points...
+			poco_information(Logger(),fmt::format("{}: Looking for session", id_));
 			auto ConnectionEp = FindRegisteredEndPoint(id_, token_);
 			if (ConnectionEp == nullptr) {
-				poco_warning(Logger(), fmt::format("Unknown session {} from device.", id_));
+				poco_warning(Logger(), fmt::format("{}: Unknown session from device.", id_));
 				return false;
 			}
+			poco_information(Logger(),fmt::format("{}: Evaluation of mTLS requirements",id_));
 			if (ConnectionEp->mTLS_) {
-				poco_information(Logger(),fmt::format("{}: Validation of certificate in progress.", ConnectionEp->SerialNumber_));
+				poco_information(Logger(),fmt::format("{}: Validation of certificate in progress.", id_));
 				if(Socket.secure()) {
+					poco_information(Logger(),fmt::format("{}: Socket is secure.", id_));
 					auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket.impl());
 					if (SS != nullptr) {
 						auto PeerAddress_ = SS->peerAddress().host();
@@ -366,6 +369,8 @@ namespace OpenWifi {
 					poco_error(Logger(),fmt::format("{}: Socket is not secure", ConnectionEp->SerialNumber_));
 					return false;
 				}
+			} else {
+				poco_information(Logger(),fmt::format("{}: mTLS not required", id_));
 			}
 
 			ConnectionEp->Device_fd = fd;
