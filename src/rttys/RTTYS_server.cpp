@@ -208,16 +208,16 @@ namespace OpenWifi {
 					Cert = std::make_unique<Poco::Crypto::X509Certificate>(SS->peerCertificate());
 					cn = Poco::trim(Poco::toLower(Cert->commonName()));
 					if (AP_WS_Server()->ValidateCertificate(CId_, *Cert)) {
-						poco_debug(
+						poco_information(
 							Logger(),
 							fmt::format("Device {} has been validated from {}.", cn, CId_));
 						AddNewSocket(NewSocket, std::move(Cert), true, CId_, cn);
 					} else {
-						poco_information(Logger(),fmt::format("Device does not have a va;id certificate: {}", CId_));
+						poco_warning(Logger(),fmt::format("Device does not have a va;id certificate: {}", CId_));
 						AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
 					}
 				} else {
-					poco_debug(Logger(), fmt::format("Device has no certificate from {}.", CId_));
+					poco_warning(Logger(), fmt::format("Device has no certificate from {}.", CId_));
 					AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
 				}
 				return;
