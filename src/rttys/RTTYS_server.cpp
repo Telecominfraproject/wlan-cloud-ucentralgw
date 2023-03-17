@@ -731,40 +731,59 @@ namespace OpenWifi {
 	}
 
 	std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator RTTYS_server::EndConnection(std::shared_ptr<RTTYS_EndPoint> Connection, const char * func, std::uint64_t Line) {
+		std::cout << __LINE__ << std::endl;
 
 		auto hint1 = Sockets_.find(Connection->Device_fd);
+		std::cout << __LINE__ << std::endl;
 		if(hint1!=end(Sockets_))
 			RemoveSocket(hint1->second->socket);
 
+		std::cout << __LINE__ << std::endl;
 		Connected_.erase(Connection->Device_fd);
+		std::cout << __LINE__ << std::endl;
 
 		//	find the client linked to this one...
+		std::cout << __LINE__ << std::endl;
 		if(Connection->WSSocket_!= nullptr && Connection->WSSocket_->impl()!= nullptr) {
+			std::cout << __LINE__ << std::endl;
 			RemoveClientEventHandlers(*Connection->WSSocket_);
+			std::cout << __LINE__ << std::endl;
 			Connection->WSSocket_->close();
 		}
+		std::cout << __LINE__ << std::endl;
 		poco_debug(Logger(),fmt::format("Closing connection {}:{}", func, Line));
+		std::cout << __LINE__ << std::endl;
 		auto hint2 = EndPoints_.find(Connection->Id_);
+		std::cout << __LINE__ << std::endl;
 		return EndPoints_.erase(hint2);
 	}
 
 	void RTTYS_server::EndConnection(const Poco::Net::Socket &Socket, const char * func, std::uint32_t Line) {
 		//	remove the device
+		std::cout << __LINE__ << std::endl;
 		auto fd = Socket.impl()->sockfd();
+		std::cout << __LINE__ << std::endl;
 		RemoveSocket(Socket);
+		std::cout << __LINE__ << std::endl;
 
 		//	find the client linked to this one...
 		auto hint = Connected_.find(fd);
+		std::cout << __LINE__ << std::endl;
 		if(hint!=end(Connected_)) {
+			std::cout << __LINE__ << std::endl;
 			if(hint->second->WSSocket_!= nullptr && hint->second->WSSocket_->impl()!= nullptr) {
+				std::cout << __LINE__ << std::endl;
 				RemoveClientEventHandlers(*hint->second->WSSocket_);
 				hint->second->WSSocket_->close();
 				Connected_.erase(hint);
+				std::cout << __LINE__ << std::endl;
 			}
+			std::cout << __LINE__ << std::endl;
+			EndPoints_.erase(hint->second->Id_);
+			std::cout << __LINE__ << std::endl;
 		} else {
 			std::cout << "Cannot find the associated WS..." << std::endl;
 		}
-		EndPoints_.erase(hint->second->Id_);
 		poco_debug(Logger(),fmt::format("Closing connection at {}:{}", func, Line));
 	}
 
