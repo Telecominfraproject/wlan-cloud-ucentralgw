@@ -22655,7 +22655,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/devices?offset=56&limit=56&filter=filter_example&select=serial1,serial2,serial3&serialOnly=true&countOnly=false&deviceWithStatus=true&orderBy=serialNumber:a,created:d&orderSpec=true&connectionStatistics=true"
+ "https://localhost:16001/api/v1/devices?offset=56&limit=56&filter=filter_example&select=serial1,serial2,serial3&serialOnly=true&countOnly=false&deviceWithStatus=true&orderBy=serialNumber:a,created:d&orderSpec=true&connectionStatistics=true&health=true&lowLimit=56&highLimits=56"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Devices-getDeviceList-0-java">
@@ -22693,9 +22693,12 @@ public class DevicesApiExample {
         String orderBy = serialNumber:a,created:d; // String | return extended information
         Boolean orderSpec = true; // Boolean | return extended information
         Boolean connectionStatistics = true; // Boolean | return extended information
+        Boolean health = true; // Boolean | return devices with their health value in between lowLimit and highLimit
+        Integer lowLimit = 56; // Integer | lowLimit for the health selection criteria
+        Integer highLimits = 56; // Integer | highLimit for the health selection criteria
 
         try {
-            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics);
+            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DevicesApi#getDeviceList");
@@ -22722,9 +22725,12 @@ public class DevicesApiExample {
         String orderBy = serialNumber:a,created:d; // String | return extended information
         Boolean orderSpec = true; // Boolean | return extended information
         Boolean connectionStatistics = true; // Boolean | return extended information
+        Boolean health = true; // Boolean | return devices with their health value in between lowLimit and highLimit
+        Integer lowLimit = 56; // Integer | lowLimit for the health selection criteria
+        Integer highLimits = 56; // Integer | highLimit for the health selection criteria
 
         try {
-            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics);
+            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DevicesApi#getDeviceList");
@@ -22760,6 +22766,9 @@ Boolean *deviceWithStatus = true; // Return extra information with the device in
 String *orderBy = serialNumber:a,created:d; // return extended information (optional) (default to null)
 Boolean *orderSpec = true; // return extended information (optional) (default to false)
 Boolean *connectionStatistics = true; // return extended information (optional) (default to false)
+Boolean *health = true; // return devices with their health value in between lowLimit and highLimit (optional) (default to false)
+Integer *lowLimit = 56; // lowLimit for the health selection criteria (optional) (default to 30)
+Integer *highLimits = 56; // highLimit for the health selection criteria (optional) (default to 70)
 
 // Returns a list of devices.
 [apiInstance getDeviceListWith:offset
@@ -22772,6 +22781,9 @@ Boolean *connectionStatistics = true; // return extended information (optional) 
     orderBy:orderBy
     orderSpec:orderSpec
     connectionStatistics:connectionStatistics
+    health:health
+    lowLimit:lowLimit
+    highLimits:highLimits
               completionHandler: ^(getDeviceList_200_response output, NSError* error) {
     if (output) {
         NSLog(@"%@", output);
@@ -22809,7 +22821,10 @@ var opts = {
   'deviceWithStatus': true, // {Boolean} Return extra information with the device information
   'orderBy': serialNumber:a,created:d, // {String} return extended information
   'orderSpec': true, // {Boolean} return extended information
-  'connectionStatistics': true // {Boolean} return extended information
+  'connectionStatistics': true, // {Boolean} return extended information
+  'health': true, // {Boolean} return devices with their health value in between lowLimit and highLimit
+  'lowLimit': 56, // {Integer} lowLimit for the health selection criteria
+  'highLimits': 56 // {Integer} highLimit for the health selection criteria
 };
 
 var callback = function(error, data, response) {
@@ -22858,10 +22873,13 @@ namespace Example
             var orderBy = serialNumber:a,created:d;  // String | return extended information (optional)  (default to null)
             var orderSpec = true;  // Boolean | return extended information (optional)  (default to false)
             var connectionStatistics = true;  // Boolean | return extended information (optional)  (default to false)
+            var health = true;  // Boolean | return devices with their health value in between lowLimit and highLimit (optional)  (default to false)
+            var lowLimit = 56;  // Integer | lowLimit for the health selection criteria (optional)  (default to 30)
+            var highLimits = 56;  // Integer | highLimit for the health selection criteria (optional)  (default to 70)
 
             try {
                 // Returns a list of devices.
-                getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics);
+                getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits);
                 Debug.WriteLine(result);
             } catch (Exception e) {
                 Debug.Print("Exception when calling DevicesApi.getDeviceList: " + e.Message );
@@ -22896,9 +22914,12 @@ $deviceWithStatus = true; // Boolean | Return extra information with the device 
 $orderBy = serialNumber:a,created:d; // String | return extended information
 $orderSpec = true; // Boolean | return extended information
 $connectionStatistics = true; // Boolean | return extended information
+$health = true; // Boolean | return devices with their health value in between lowLimit and highLimit
+$lowLimit = 56; // Integer | lowLimit for the health selection criteria
+$highLimits = 56; // Integer | highLimit for the health selection criteria
 
 try {
-    $result = $api_instance->getDeviceList($offset, $limit, $filter, $select, $serialOnly, $countOnly, $deviceWithStatus, $orderBy, $orderSpec, $connectionStatistics);
+    $result = $api_instance->getDeviceList($offset, $limit, $filter, $select, $serialOnly, $countOnly, $deviceWithStatus, $orderBy, $orderSpec, $connectionStatistics, $health, $lowLimit, $highLimits);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling DevicesApi->getDeviceList: ', $e->getMessage(), PHP_EOL;
@@ -22931,9 +22952,12 @@ my $deviceWithStatus = true; # Boolean | Return extra information with the devic
 my $orderBy = serialNumber:a,created:d; # String | return extended information
 my $orderSpec = true; # Boolean | return extended information
 my $connectionStatistics = true; # Boolean | return extended information
+my $health = true; # Boolean | return devices with their health value in between lowLimit and highLimit
+my $lowLimit = 56; # Integer | lowLimit for the health selection criteria
+my $highLimits = 56; # Integer | highLimit for the health selection criteria
 
 eval {
-    my $result = $api_instance->getDeviceList(offset => $offset, limit => $limit, filter => $filter, select => $select, serialOnly => $serialOnly, countOnly => $countOnly, deviceWithStatus => $deviceWithStatus, orderBy => $orderBy, orderSpec => $orderSpec, connectionStatistics => $connectionStatistics);
+    my $result = $api_instance->getDeviceList(offset => $offset, limit => $limit, filter => $filter, select => $select, serialOnly => $serialOnly, countOnly => $countOnly, deviceWithStatus => $deviceWithStatus, orderBy => $orderBy, orderSpec => $orderSpec, connectionStatistics => $connectionStatistics, health => $health, lowLimit => $lowLimit, highLimits => $highLimits);
     print Dumper($result);
 };
 if ($@) {
@@ -22968,10 +22992,13 @@ deviceWithStatus = true # Boolean | Return extra information with the device inf
 orderBy = serialNumber:a,created:d # String | return extended information (optional) (default to null)
 orderSpec = true # Boolean | return extended information (optional) (default to false)
 connectionStatistics = true # Boolean | return extended information (optional) (default to false)
+health = true # Boolean | return devices with their health value in between lowLimit and highLimit (optional) (default to false)
+lowLimit = 56 # Integer | lowLimit for the health selection criteria (optional) (default to 30)
+highLimits = 56 # Integer | highLimit for the health selection criteria (optional) (default to 70)
 
 try:
     # Returns a list of devices.
-    api_response = api_instance.get_device_list(offset=offset, limit=limit, filter=filter, select=select, serialOnly=serialOnly, countOnly=countOnly, deviceWithStatus=deviceWithStatus, orderBy=orderBy, orderSpec=orderSpec, connectionStatistics=connectionStatistics)
+    api_response = api_instance.get_device_list(offset=offset, limit=limit, filter=filter, select=select, serialOnly=serialOnly, countOnly=countOnly, deviceWithStatus=deviceWithStatus, orderBy=orderBy, orderSpec=orderSpec, connectionStatistics=connectionStatistics, health=health, lowLimit=lowLimit, highLimits=highLimits)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling DevicesApi->getDeviceList: %s\n" % e)</code></pre>
@@ -22991,9 +23018,12 @@ pub fn main() {
     let orderBy = serialNumber:a,created:d; // String
     let orderSpec = true; // Boolean
     let connectionStatistics = true; // Boolean
+    let health = true; // Boolean
+    let lowLimit = 56; // Integer
+    let highLimits = 56; // Integer
 
     let mut context = DevicesApi::Context::default();
-    let result = client.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, &context).wait();
+    let result = client.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, &context).wait();
 
     println!("{:?}", result);
 }
@@ -23211,6 +23241,66 @@ return extended information
 
                     <div class="inner description marked">
 return extended information
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">health</td>
+<td>
+
+
+    <div id="d2e199_getDeviceList_health">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    Boolean
+                </span>
+
+                    <div class="inner description marked">
+return devices with their health value in between lowLimit and highLimit
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">lowLimit</td>
+<td>
+
+
+    <div id="d2e199_getDeviceList_lowLimit">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    Integer
+                </span>
+
+                    <div class="inner description marked">
+lowLimit for the health selection criteria
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">highLimits</td>
+<td>
+
+
+    <div id="d2e199_getDeviceList_highLimits">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    Integer
+                </span>
+
+                    <div class="inner description marked">
+highLimit for the health selection criteria
                     </div>
             </div>
         </div>
