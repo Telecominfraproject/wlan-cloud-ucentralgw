@@ -371,8 +371,11 @@ namespace OpenWifi {
 			ConnectionEp->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			ConnectionEp->DeviceIsAttached_ = true;
 			ConnectionEp->DeviceSocket_ = Socket;
-			if(ConnectionEp->WSSocket_!= nullptr) {
+			if(ConnectionEp->WSSocket_!= nullptr && ConnectionEp->WSSocket_->impl()!= nullptr) {
+				poco_information(Logger(),fmt::format("REG{}: Device registered, Client Registered - sending login", ConnectionEp->SerialNumber_));
 				Login(Socket, ConnectionEp);
+			} else {
+				poco_information(Logger(),fmt::format("REG{}: Device registered, Client Not Registered", ConnectionEp->SerialNumber_));
 			}
 			return true;
 		} catch (...) {
@@ -659,9 +662,12 @@ namespace OpenWifi {
 			EndPoint->second->WSSocket_->setKeepAlive(true);
 			AddClientEventHandlers(*EndPoint->second->WSSocket_, EndPoint->second);
 			if (EndPoint->second->DeviceIsAttached_ && !EndPoint->second->completed_) {
+				poco_information(Logger(),fmt::format("CLN{}: Device registered, Client Registered - sending login", EndPoint->second->SerialNumber_));
 				auto hint = Sockets_.find(EndPoint->second->Device_fd);
 				if(hint!=end(Sockets_))
 					Login(hint->second, EndPoint->second);
+			} else {
+				poco_information(Logger(),fmt::format("CLN{}: Device not registered, Client Registered", EndPoint->second->SerialNumber_));
 			}
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -841,7 +847,7 @@ namespace OpenWifi {
 		outBuf[2] = 0;
 		try {
 			poco_debug(Logger(), fmt::format("TID:{} Starting login on device.",Conn->TID_));
-			auto Sent = SendBytes(Socket,outBuf,3);
+			auto Sent = SendBytes(Socket,outBuf,RTTY_HDR_SIZE);
 			Conn->completed_ = true;
 			return Sent == RTTY_HDR_SIZE;
 		} catch (const Poco::Exception &E) {
