@@ -17,6 +17,8 @@
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/WebSocketImpl.h"
+#include "Poco/Net/SocketAcceptor.h"
+#include "Poco/Net/SocketAcceptor.h"
 
 
 #define DBGLINE                                                                                    \
@@ -99,6 +101,9 @@ namespace OpenWifi {
 
 				SecureServerDeviceSocket_ = std::make_unique<Poco::Net::SecureServerSocket>(
 					SockAddr, 64, DeviceSecureContext);
+
+//				Poco::Net::SocketReactor	ListeningReactor_;
+				// auto Acceptor = std::make_unique<Poco::Net::SocketAcceptor>(*SecureServerDeviceSocket_, Reactor_);
 				Reactor_.addEventHandler(
 					*SecureServerDeviceSocket_,
 					Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -349,7 +354,8 @@ namespace OpenWifi {
 				poco_information(Logger(),fmt::format("{}: Validation of certificate in progress.", id_));
 				if(Socket.secure()) {
 					poco_information(Logger(),fmt::format("{}: Socket is secure.", id_));
-					auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket.impl());
+					auto SS0 = dynamic_cast<Poco::Net::StreamSocketImpl *>(Socket.impl());
+					auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(SS0);
 					if (SS != nullptr) {
 						auto PeerAddress_ = SS->peerAddress().host();
 						auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
