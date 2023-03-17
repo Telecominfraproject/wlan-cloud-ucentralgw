@@ -194,6 +194,7 @@ namespace OpenWifi {
 					if (V == 1)
 						break;
 				}
+
 				poco_information(Logger(),fmt::format("Completed TLS handshake: {}", CId_));
 /*
 				if (enforce_mTLS_) {
