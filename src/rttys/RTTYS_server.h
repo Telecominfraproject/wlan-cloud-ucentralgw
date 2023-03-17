@@ -177,15 +177,8 @@ namespace OpenWifi {
 		int SendBytes(int fd, const unsigned char *buffer, std::size_t len);
 		int SendBytes(const Poco::Net::Socket &Socket, const unsigned char *buffer, std::size_t len);
 
-		inline std::shared_ptr<RTTYS_EndPoint> FindRegisteredEndPoint(const std::string &Id,
-															  const std::string &Token) {
-			std::shared_ptr<RTTYS_EndPoint> Res;
-			auto EndPoint = EndPoints_.find(Id);
-			if (EndPoint != end(EndPoints_) && EndPoint->second->Token_ == Token) {
-				Res = EndPoint->second;
-			}
-			return Res;
-		}
+		std::shared_ptr<RTTYS_EndPoint> FindRegisteredEndPoint(const std::string &Id,
+															  const std::string &Token);
 
 		void AddNewSocket(Poco::Net::Socket &Socket);
 		void RemoveSocket(const Poco::Net::Socket &Socket);

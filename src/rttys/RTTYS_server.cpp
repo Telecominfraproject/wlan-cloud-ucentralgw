@@ -307,6 +307,16 @@ namespace OpenWifi {
 		return Socket.impl()->sendBytes(buffer,len);
 	}
 
+	std::shared_ptr<RTTYS_EndPoint> RTTYS_server::FindRegisteredEndPoint(const std::string &Id,
+														   const std::string &Token) {
+		auto EndPoint = EndPoints_.find(Id);
+		if (EndPoint != end(EndPoints_) && EndPoint->second->Token_ == Token) {
+			return EndPoint->second;
+		}
+		return nullptr;
+	}
+
+
 	bool RTTYS_server::do_msgTypeRegister(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		bool good = true;
 		try {
@@ -325,11 +335,15 @@ namespace OpenWifi {
 
 			//	find this device in our connectio end points...
 			poco_information(Logger(),fmt::format("{}: Looking for session", id_));
-			auto ConnectionEp = FindRegisteredEndPoint(id_, token_);
-			if (ConnectionEp == nullptr) {
+
+			auto ConnectionHint = EndPoints_.find(id_);
+			if (ConnectionHint == end(EndPoints_) || ConnectionHint->second->Token_ != token_) {
 				poco_warning(Logger(), fmt::format("{}: Unknown session from device.", id_));
 				return false;
 			}
+
+			auto ConnectionEp = ConnectionHint->second;
+
 			poco_information(Logger(),fmt::format("{}: Evaluation of mTLS requirements",id_));
 			if (ConnectionEp->mTLS_) {
 				poco_information(Logger(),fmt::format("{}: Validation of certificate in progress.", id_));
