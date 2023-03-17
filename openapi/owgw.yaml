@@ -1339,6 +1339,27 @@ paths:
             type: boolean
             default: false
           required: false
+        - in: query
+          description: return devices with their health value in between lowLimit and highLimit
+          name: health
+          schema:
+            type: boolean
+            default: false
+          required: false
+        - in: query
+          description: lowLimit for the health selection criteria
+          name: lowLimit
+          schema:
+            type: integer
+            default: 30
+          required: false
+        - in: query
+          description: highLimit for the health selection criteria
+          name: highLimits
+          schema:
+            type: integer
+            default: 70
+          required: false
       responses:
         200:
           description: List devices
