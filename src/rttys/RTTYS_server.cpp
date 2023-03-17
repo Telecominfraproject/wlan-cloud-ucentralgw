@@ -203,7 +203,8 @@ namespace OpenWifi {
 
 				poco_information(Logger(),fmt::format("Completed TLS handshake: {}", CId_));
 				std::unique_ptr<Poco::Crypto::X509Certificate>	Cert;
-					if (SS->havePeerCertificate()) {
+				if (SS->havePeerCertificate()) {
+					poco_information(Logger(),fmt::format("Device has certificate: {}", CId_));
 					Cert = std::make_unique<Poco::Crypto::X509Certificate>(SS->peerCertificate());
 					cn = Poco::trim(Poco::toLower(Cert->commonName()));
 					if (AP_WS_Server()->ValidateCertificate(CId_, *Cert)) {
@@ -211,13 +212,12 @@ namespace OpenWifi {
 							Logger(),
 							fmt::format("Device {} has been validated from {}.", cn, CId_));
 						AddNewSocket(NewSocket, std::move(Cert), true, CId_, cn);
-						return;
 					} else {
+						poco_information(Logger(),fmt::format("Device does not have a va;id certificate: {}", CId_));
 						AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
-						return;
 					}
 				} else {
-					poco_debug(Logger(), fmt::format("Device cannot be validated from {}.", CId_));
+					poco_debug(Logger(), fmt::format("Device has no certificate from {}.", CId_));
 					AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
 				}
 				return;
