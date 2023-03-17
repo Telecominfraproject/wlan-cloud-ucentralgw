@@ -123,6 +123,14 @@ namespace OpenWifi {
 			return instance;
 		}
 
+		struct SecureSocketPair {
+			Poco::Net::StreamSocket							socket;
+			std::unique_ptr<Poco::Crypto::X509Certificate>	cert;
+			bool 											valid=false;
+			std::string 									cid;
+			std::string 									cn;
+		};
+
 		int Start() final;
 		void Stop() final;
 
@@ -180,7 +188,7 @@ namespace OpenWifi {
 		std::shared_ptr<RTTYS_EndPoint> FindRegisteredEndPoint(const std::string &Id,
 															  const std::string &Token);
 
-		void AddNewSocket(Poco::Net::Socket &Socket);
+		void AddNewSocket(Poco::Net::StreamSocket &S, std::unique_ptr<Poco::Crypto::X509Certificate> P, bool valid, const std::string &cid, const std::string &CN);
 		void RemoveSocket(const Poco::Net::Socket &Socket);
 		void LogStdException(const std::exception &E, const std::string & msg);
 
@@ -218,7 +226,7 @@ namespace OpenWifi {
 		std::map<std::string, std::shared_ptr<RTTYS_EndPoint>> 	EndPoints_; //	id, endpoint
 		std::map<int, std::shared_ptr<RTTYS_EndPoint>> 			Connected_; //	id, endpoint
 		std::map<int, std::shared_ptr<RTTYS_EndPoint>> 			Clients_;
-		std::map<int, Poco::Net::Socket>						Sockets_;
+		std::map<int, std::unique_ptr<SecureSocketPair>>		Sockets_;
 
 		Poco::Timer Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>> GCCallBack_;

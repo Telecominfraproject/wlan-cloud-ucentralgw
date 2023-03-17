@@ -188,11 +188,12 @@ namespace OpenWifi {
 		try {
 			std::lock_guard	Lock(ServerMutex_);
 			Poco::Net::SocketAddress Client;
-			Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
-			if (NewSocket.impl()->secure()) {
+			Poco::Net::StreamSocket NewSocket(pNf->socket().impl()->acceptConnection(Client));
+			if (NewSocket.secure()) {
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(NewSocket.impl());
 				auto PeerAddress_ = SS->peerAddress().host();
 				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+				std::string cn;
 				poco_information(Logger(),fmt::format("Completing TLS handshake: {}", CId_));
 				while (true) {
 					auto V = SS->completeHandshake();
@@ -201,26 +202,24 @@ namespace OpenWifi {
 				}
 
 				poco_information(Logger(),fmt::format("Completed TLS handshake: {}", CId_));
-/*
-				if (enforce_mTLS_) {
+				std::unique_ptr<Poco::Crypto::X509Certificate>	Cert;
 					if (SS->havePeerCertificate()) {
-						Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
-						auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
-						if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
-							poco_debug(
-								Logger(),
-								fmt::format("Device {} has been validated from {}.", CN, CId_));
-							AddNewSocket(NewSocket);
-							return;
-						}
+					Cert = std::make_unique<Poco::Crypto::X509Certificate>(SS->peerCertificate());
+					cn = Poco::trim(Poco::toLower(Cert->commonName()));
+					if (AP_WS_Server()->ValidateCertificate(CId_, *Cert)) {
+						poco_debug(
+							Logger(),
+							fmt::format("Device {} has been validated from {}.", cn, CId_));
+						AddNewSocket(NewSocket, std::move(Cert), true, CId_, cn);
+						return;
+					} else {
+						AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
+						return;
 					}
-					poco_debug(Logger(), fmt::format("Device cannot be validated from {}.", CId_));
 				} else {
-					AddNewSocket(NewSocket);
-					return;
+					poco_debug(Logger(), fmt::format("Device cannot be validated from {}.", CId_));
+					AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
 				}
-				*/
-				AddNewSocket(NewSocket);
 				return;
 			}
 			NewSocket.close();
@@ -246,13 +245,13 @@ namespace OpenWifi {
 		Clients_.erase(fd);
 	}
 
-	void RTTYS_server::AddNewSocket(Poco::Net::Socket &Socket) {
+	void RTTYS_server::AddNewSocket(Poco::Net::StreamSocket &Socket, std::unique_ptr<Poco::Crypto::X509Certificate> P, bool valid, const std::string &cid, const std::string &cn) {
 		Socket.setNoDelay(true);
 		Socket.setKeepAlive(true);
 		Socket.setBlocking(false);
 		Socket.setReceiveBufferSize(RTTY_RECEIVE_BUFFER);
 		Socket.setSendBufferSize(RTTY_RECEIVE_BUFFER);
-		Poco::Timespan	TS2(0,100);
+		Poco::Timespan TS2(0, 100);
 		Socket.setReceiveTimeout(TS2);
 
 		Reactor_.addEventHandler(Socket,
@@ -264,10 +263,10 @@ namespace OpenWifi {
 		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 									 *this, &RTTYS_server::onConnectedDeviceSocketError));
-
-		Sockets_[Socket.impl()->sockfd()] = Socket;
-
+		int fd = Socket.impl()->sockfd();
+		Sockets_[fd] = std::make_unique<SecureSocketPair>(SecureSocketPair{Socket, std::move(P), valid, cid, cn});
 	}
+
 
 	void RTTYS_server::RemoveSocket(const Poco::Net::Socket &Socket) {
 		auto hint = Sockets_.find(Socket.impl()->sockfd());
@@ -305,7 +304,7 @@ namespace OpenWifi {
 			poco_error(Logger(),fmt::format("Cannot find this socket: {}",fd));
 			return -1;
 		}
-		return hint->second.impl()->sendBytes(buffer,len);
+		return hint->second->socket.impl()->sendBytes(buffer,len);
 	}
 
 	int RTTYS_server::SendBytes(const Poco::Net::Socket &Socket, const unsigned char *buffer, std::size_t len) {
@@ -347,51 +346,30 @@ namespace OpenWifi {
 				return false;
 			}
 
-			auto ConnectionEp = ConnectionHint->second;
+			auto SocketHint = Sockets_.find(Socket.impl()->sockfd());
+			if(SocketHint==end(Sockets_)) {
+				poco_warning(Logger(), fmt::format("{}: Unknown socket from device.", id_));
+				return false;
+			}
 
+			auto ConnectionEp = ConnectionHint->second;
 			poco_information(Logger(),fmt::format("{}: Evaluation of mTLS requirements",id_));
 			if (ConnectionEp->mTLS_) {
-				poco_information(Logger(),fmt::format("{}: Validation of certificate in progress.", id_));
-				if(Socket.secure()) {
-					poco_information(Logger(),fmt::format("{}: Socket is secure.", id_));
-					auto SS0 = dynamic_cast<Poco::Net::StreamSocketImpl *>(Socket.impl());
-					auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(SS0);
-					if (SS != nullptr) {
-						auto PeerAddress_ = SS->peerAddress().host();
-						auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-						if (SS->havePeerCertificate()) {
-							Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
-							auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
-							if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
-								poco_information(
-									Logger(),
-									fmt::format("Device mTLS {} has been validated from {}.", CN,
-												CId_));
-							} else {
-								poco_warning(Logger(),
-											 fmt::format("Device failed mTLS validation {}. Certificate fails validation.",
-														 CId_));
-								return false;
-							}
-						} else {
-							poco_warning(
-								Logger(),
-								fmt::format("Device failed mTLS validation {} (no certificate).",
-											CId_));
-							return false;
-						}
-					} else {
-						poco_error(Logger(), fmt::format("{}: Cannot convert to secure stream",
-														 ConnectionEp->SerialNumber_));
-						return false;
-					}
+				if(SocketHint->second->valid) {
+					poco_information(Logger(),
+									 fmt::format("Device mTLS {} has been validated from {}.",
+												 SocketHint->second->cn, SocketHint->second->cid));
 				} else {
-					poco_error(Logger(),fmt::format("{}: Socket is not secure", ConnectionEp->SerialNumber_));
+					poco_error(Logger(),
+							   fmt::format("{}: Device failed certificate validation", id_));
 					return false;
 				}
 			} else {
-				poco_information(Logger(),fmt::format("{}: mTLS not required", id_));
+				poco_information(Logger(),
+								 fmt::format("Device mTLS {} does not require mTLS from {}.",
+											 SocketHint->second->cn, SocketHint->second->cid));
 			}
+			Poco::Thread::trySleep(50);
 
 			ConnectionEp->Device_fd = fd;
 			Connected_[fd] = ConnectionEp;
@@ -709,7 +687,7 @@ namespace OpenWifi {
 				poco_information(Logger(),fmt::format("CLN{}: Device registered, Client Registered - sending login", EndPoint->second->SerialNumber_));
 				auto hint = Sockets_.find(EndPoint->second->Device_fd);
 				if(hint!=end(Sockets_))
-					Login(hint->second, EndPoint->second);
+					Login(hint->second->socket, EndPoint->second);
 			} else {
 				poco_information(Logger(),fmt::format("CLN{}: Device not registered, Client Registered", EndPoint->second->SerialNumber_));
 			}
@@ -756,7 +734,7 @@ namespace OpenWifi {
 
 		auto hint1 = Sockets_.find(Connection->Device_fd);
 		if(hint1!=end(Sockets_))
-			RemoveSocket(hint1->second);
+			RemoveSocket(hint1->second->socket);
 
 		Connected_.erase(Connection->Device_fd);
 
