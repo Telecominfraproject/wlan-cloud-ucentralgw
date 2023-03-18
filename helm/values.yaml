@@ -47,7 +47,6 @@ services:
       rttys-view:
         servicePort: 5913
         targetPort: 5913
-        protocol: TCP
   radius:
     type: ClusterIP
     ports:
