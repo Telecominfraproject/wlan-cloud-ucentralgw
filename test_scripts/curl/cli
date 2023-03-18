@@ -538,6 +538,13 @@ getfile() {
  	-O -J
 }
 
+gethealthrange() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?health=true&lowLimit=$1&highLimit=$2" \
+		-H "accept: */*" \
+		-H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
 rtty() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/rtty" \
 			-H "Content-Type: application/json" \
@@ -1110,6 +1117,7 @@ case "$1" in
 	"getscript") login; getscript "$2"; logout;;
 	"regulatory") login; regulatory "$2"; logout;;
 	"regulatory_reload") login; regulatory_reload; logout;;
+	"gethealthrange") login; gethealthrange "$2" "$3"; logout;;
 	"testtoken") testtoken;;
   *) help ;;
 esac

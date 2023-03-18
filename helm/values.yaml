@@ -43,6 +43,7 @@ services:
       rttys:
         servicePort: 5912
         targetPort: 5912
+        protocol: TCP
       rttys-view:
         servicePort: 5913
         targetPort: 5913

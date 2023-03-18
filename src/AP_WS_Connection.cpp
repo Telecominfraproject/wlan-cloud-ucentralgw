@@ -100,7 +100,7 @@ namespace OpenWifi {
 				return false;
 			}
 
-			poco_debug(Logger_, fmt::format("TLS-CONNECTION({}): Session={} Connection is secure.",
+			poco_trace(Logger_, fmt::format("TLS-CONNECTION({}): Session={} Connection is secure.",
 											CId_, State_.sessionId));
 
 			if (!SS->havePeerCertificate()) {
@@ -126,7 +126,7 @@ namespace OpenWifi {
 
 			CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 			State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
-			poco_debug(Logger_,
+			poco_information(Logger_,
 					   fmt::format("TLS-CONNECTION({}): Session={} Valid certificate: CN={}", CId_,
 								   State_.sessionId, CN_));
 
@@ -155,7 +155,7 @@ namespace OpenWifi {
 			SerialNumber_ = CN_;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
-			poco_debug(Logger_,
+			poco_trace(Logger_,
 					   fmt::format("TLS-CONNECTION({}): Session={} CN={} Completed. (t={})", CId_,
 								   State_.sessionId, CN_, ConcurrentStartingDevices_));
 			DeviceValidated_ = true;

@@ -15,6 +15,11 @@
 
 #include "Poco/NObserver.h"
 #include "Poco/Net/SocketNotification.h"
+#include "Poco/Net/NetException.h"
+#include "Poco/Net/WebSocketImpl.h"
+#include "Poco/Net/SocketAcceptor.h"
+#include "Poco/Net/SocketAcceptor.h"
+
 
 #define DBGLINE                                                                                    \
 	{ std::cout << __LINE__ << std::endl; }
@@ -38,9 +43,9 @@ namespace OpenWifi {
 					Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
 													  : Poco::Net::AddressFamily::IPv4));
 				Poco::Net::SocketAddress SockAddr(Addr, DSport);
-				DeviceSocket_ = std::make_unique<Poco::Net::ServerSocket>(SockAddr, 64);
+				ServerDeviceSocket_ = std::make_unique<Poco::Net::ServerSocket>(SockAddr, 64);
 				Reactor_.addEventHandler(
-					*DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+					*ServerDeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										*this, &RTTYS_server::onDeviceAccept));
 			} else {
 				const auto &CertFileName =
@@ -94,10 +99,11 @@ namespace OpenWifi {
 													  : Poco::Net::AddressFamily::IPv4));
 				Poco::Net::SocketAddress SockAddr(Addr, DSport);
 
-				SecureDeviceSocket_ = std::make_unique<Poco::Net::SecureServerSocket>(
+				SecureServerDeviceSocket_ = std::make_unique<Poco::Net::SecureServerSocket>(
 					SockAddr, 64, DeviceSecureContext);
+
 				Reactor_.addEventHandler(
-					*SecureDeviceSocket_,
+					*SecureServerDeviceSocket_,
 					Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 						*this, &RTTYS_server::onDeviceAccept));
 			}
@@ -157,7 +163,7 @@ namespace OpenWifi {
 		GCCallBack_ =
 			std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this, &RTTYS_server::onTimer);
 		Timer_.setStartInterval(30 * 1000); // first run in 30 seconds
-		Timer_.setPeriodicInterval(5 * 1000);
+		Timer_.setPeriodicInterval(60 * 1000);
 		Timer_.start(*GCCallBack_, MicroServiceTimerPool());
 		Running_ = true;
 		return 0;
@@ -171,11 +177,6 @@ namespace OpenWifi {
 			WebServer_->stopAll(true);
 			WebServer_->stop();
 			Reactor_.stop();
-/*			Reactor_.removeEventHandler(
-				NoSecurity_ ? *DeviceSocket_ : *SecureDeviceSocket_,
-				Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-					*this, &RTTYS_server::onDeviceAccept));
-*/
 			ReactorThread_.join();
 		}
 		poco_information(Logger(),"Stopped...");
@@ -183,44 +184,39 @@ namespace OpenWifi {
 
 	void RTTYS_server::onDeviceAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		try {
+			std::lock_guard	Lock(ServerMutex_);
 			Poco::Net::SocketAddress Client;
-			Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
-			if (NewSocket.impl()->secure()) {
+			Poco::Net::StreamSocket NewSocket(pNf->socket().impl()->acceptConnection(Client));
+			if (NewSocket.secure()) {
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(NewSocket.impl());
 				auto PeerAddress_ = SS->peerAddress().host();
 				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-				poco_debug(Logger(),fmt::format("Completing TLS handshake: {}", CId_));
+				std::string cn;
+				poco_debug(Logger(),fmt::format("{}: Completing TLS handshake.", CId_));
 				while (true) {
 					auto V = SS->completeHandshake();
 					if (V == 1)
 						break;
 				}
-				poco_debug(Logger(),fmt::format("Completed TLS handshake: {}", CId_));
-
-				if (enforce_mTLS_) {
-					if (SS->havePeerCertificate()) {
-						Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
-						auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
-						if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
-							poco_debug(
-								Logger(),
-								fmt::format("Device {} has been validated from {}.", CN, CId_));
-							auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_,Logger().get(CId_));
-							std::lock_guard	Lock(ServerMutex_);
-							AddConnectedDeviceEventHandlers(NewDevice);
-							return;
-						}
+				poco_debug(Logger(),fmt::format("{}: Completed TLS handshake.", CId_));
+				std::unique_ptr<Poco::Crypto::X509Certificate>	Cert;
+				if (SS->havePeerCertificate()) {
+					poco_debug(Logger(),fmt::format("{}: Device has certificate.", CId_));
+					Cert = std::make_unique<Poco::Crypto::X509Certificate>(SS->peerCertificate());
+					cn = Poco::trim(Poco::toLower(Cert->commonName()));
+					if (AP_WS_Server()->ValidateCertificate(CId_, *Cert)) {
+						poco_information(
+							Logger(),
+							fmt::format("{}: Device {} has been validated.", cn, CId_));
+						AddNewSocket(NewSocket, std::move(Cert), true, CId_, cn);
+					} else {
+						poco_warning(Logger(),fmt::format("{}: Device {} cannot be validate", CId_, cn));
+						AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
 					}
-					poco_debug(Logger(), fmt::format("Device cannot be validated from {}.", CId_));
 				} else {
-					auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_, Logger().get(CId_));
-					std::lock_guard	Lock(ServerMutex_);
-					AddConnectedDeviceEventHandlers(NewDevice);
-					return;
+					poco_warning(Logger(), fmt::format("{}: Device has no certificate.", CId_));
+					AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
 				}
-				auto NewDevice = std::make_shared<RTTYS_EndPoint>(NewSocket, ++CurrentTID_, Logger().get(CId_));
-				std::lock_guard	Lock(ServerMutex_);
-				AddConnectedDeviceEventHandlers(NewDevice);
 				return;
 			}
 			NewSocket.close();
@@ -230,7 +226,7 @@ namespace OpenWifi {
 		}
 	}
 
-	void RTTYS_server::RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket) {
+	void RTTYS_server::RemoveClientEventHandlers(Poco::Net::WebSocket &Socket) {
 		int fd = Socket.impl()->sockfd();
 		if(Reactor_.has(Socket)) {
 			Reactor_.removeEventHandler(
@@ -246,44 +242,47 @@ namespace OpenWifi {
 		Clients_.erase(fd);
 	}
 
-	void RTTYS_server::RemoveConnectedDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+	void RTTYS_server::AddNewSocket(Poco::Net::StreamSocket &Socket, std::unique_ptr<Poco::Crypto::X509Certificate> P, bool valid, const std::string &cid, const std::string &cn) {
+		Socket.setNoDelay(true);
+		Socket.setKeepAlive(true);
+		Socket.setBlocking(false);
+		Socket.setReceiveBufferSize(RTTY_RECEIVE_BUFFER);
+		Socket.setSendBufferSize(RTTY_RECEIVE_BUFFER);
+		Poco::Timespan TS2(0, 100);
+		Socket.setReceiveTimeout(TS2);
+
+		Reactor_.addEventHandler(Socket,
+								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+									 *this, &RTTYS_server::onConnectedDeviceSocketReadable));
+		Reactor_.addEventHandler(Socket,
+								 Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+									 *this, &RTTYS_server::onConnectedDeviceSocketShutdown));
+		Reactor_.addEventHandler(Socket,
+								 Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
+									 *this, &RTTYS_server::onConnectedDeviceSocketError));
 		int fd = Socket.impl()->sockfd();
-		if(Reactor_.has(Socket)) {
-			Reactor_.removeEventHandler(Socket,
-										Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-											*this, &RTTYS_server::onConnectedDeviceSocketReadable));
-			Reactor_.removeEventHandler(Socket,
-										Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
-											*this, &RTTYS_server::onConnectedDeviceSocketShutdown));
+		Sockets_[fd] = std::make_unique<SecureSocketPair>(SecureSocketPair{Socket, std::move(P), valid, cid, cn});
+	}
+
+
+	void RTTYS_server::RemoveSocket(const Poco::Net::Socket &Socket) {
+		auto hint = Sockets_.find(Socket.impl()->sockfd());
+		if(hint!=end(Sockets_)) {
+			Reactor_.removeEventHandler(
+				Socket, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+							*this, &RTTYS_server::onConnectedDeviceSocketReadable));
+			Reactor_.removeEventHandler(
+				Socket, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+							*this, &RTTYS_server::onConnectedDeviceSocketShutdown));
 			Reactor_.removeEventHandler(Socket,
 										Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 											*this, &RTTYS_server::onConnectedDeviceSocketError));
+			Sockets_.erase(hint);
 		}
-		ConnectedDevices_.erase(fd);
 	}
 
-	void RTTYS_server::AddConnectedDeviceEventHandlers(const std::shared_ptr<RTTYS_EndPoint> &ep) {
-		int fd = ep->DeviceSocket_->impl()->sockfd();
-		Reactor_.addEventHandler(*ep->DeviceSocket_,
-								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-									 *this, &RTTYS_server::onConnectedDeviceSocketReadable));
-		Reactor_.addEventHandler(*ep->DeviceSocket_,
-								 Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
-									 *this, &RTTYS_server::onConnectedDeviceSocketShutdown));
-		Reactor_.addEventHandler(*ep->DeviceSocket_,
-								 Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
-									 *this, &RTTYS_server::onConnectedDeviceSocketError));
-		ep->DeviceSocket_->setNoDelay(true);
-		ep->DeviceSocket_->setKeepAlive(true);
-		ep->DeviceSocket_->setReceiveBufferSize(RTTY_DEVICE_BUFSIZE);
-		ep->DeviceSocket_->setSendBufferSize(RTTY_DEVICE_BUFSIZE);
-		Poco::Timespan	TS(100000000);
-		ep->DeviceSocket_->setSendTimeout(TS);
-		ConnectingDevices_[fd] = ep;
-	}
-
-	void RTTYS_server::AddClientEventHandlers(Poco::Net::StreamSocket &Socket,
-											  std::shared_ptr<RTTYS_EndPoint> &EndPoint) {
+	void RTTYS_server::AddClientEventHandlers(Poco::Net::WebSocket &Socket,
+											  std::shared_ptr<RTTYS_EndPoint> EndPoint) {
 		Clients_[Socket.impl()->sockfd()] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 								 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -296,19 +295,39 @@ namespace OpenWifi {
 									 *this, &RTTYS_server::onClientSocketError));
 	}
 
-	int RTTYS_EndPoint::send_ssl_bytes(unsigned char *b,int size) {
-
-		return DeviceSocket_->sendBytes(b,size);
+	int RTTYS_server::SendBytes(int fd, const unsigned char *buffer, std::size_t len) {
+		auto hint = Sockets_.find(fd);
+		if(hint==end(Sockets_)) {
+			poco_error(Logger(),fmt::format("Cannot find this socket: {}",fd));
+			return -1;
+		}
+		return hint->second->socket.impl()->sendBytes(buffer,len);
 	}
 
-	bool RTTYS_EndPoint::do_msgTypeRegister(int fd) {
+	int RTTYS_server::SendBytes(const Poco::Net::Socket &Socket, const unsigned char *buffer, std::size_t len) {
+		return Socket.impl()->sendBytes(buffer,len);
+	}
+
+	std::shared_ptr<RTTYS_EndPoint> RTTYS_server::FindRegisteredEndPoint(const std::string &Id,
+														   const std::string &Token) {
+		auto EndPoint = EndPoints_.find(Id);
+		if (EndPoint != end(EndPoints_) && EndPoint->second->Token_ == Token) {
+			return EndPoint->second;
+		}
+		return nullptr;
+	}
+
+
+	bool RTTYS_server::do_msgTypeRegister(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		bool good = true;
 		try {
-			std::string id_ = ReadString();
-			std::string desc_ = ReadString();
-			std::string token_ = ReadString();
 
-			poco_debug(Logger(),fmt::format("Device registration: description:{} id:{} token:{}", desc_, id_, token_));
+			auto fd = Socket.impl()->sockfd();
+			std::string id_ = ReadString(Buffer, BufferCurrentSize, BufferPos);
+			std::string desc_ = ReadString(Buffer, BufferCurrentSize, BufferPos);
+			std::string token_ = ReadString(Buffer, BufferCurrentSize, BufferPos);
+
+			poco_information(Logger(),fmt::format("Device registration: description:{} id:{} token:{}", desc_, id_, token_));
 			if (id_.size() != RTTY_DEVICE_TOKEN_LENGTH ||
 				token_.size() != RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
 				poco_warning(Logger(),fmt::format("Wrong register header. {} {} {}", id_,desc_,token_));
@@ -316,48 +335,41 @@ namespace OpenWifi {
 			}
 
 			//	find this device in our connectio end points...
-			auto Connection = RTTYS_server()->FindConnection(id_, token_);
-			if (Connection == nullptr) {
-				poco_warning(Logger(), fmt::format("Unknown session {} from device.", id_));
-				std::cout << "Session '" << id_ << "' invalid" << std::endl;
+			poco_information(Logger(),fmt::format("{}: Looking for session", id_));
+
+			auto ConnectionHint = EndPoints_.find(id_);
+			if (ConnectionHint == end(EndPoints_) || ConnectionHint->second->Token_ != token_) {
+				poco_warning(Logger(), fmt::format("{}: Unknown session from device.", id_));
 				return false;
 			}
 
-			//	are we connected or not ?
-			{
-				auto ConnectingEp = RTTYS_server()->ConnectingDevice(fd);
-				if (ConnectingEp == RTTYS_server()->ConnectedDevices_.end()) {
-
-				} else {
-					Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(
-						*ConnectingEp->second->DeviceSocket_);
-					Connection->DeviceInBuf_ = ConnectingEp->second->DeviceInBuf_;
-					Connection->TID_ = ConnectingEp->second->TID_;
-					RTTYS_server()->ConnectingDevices_.erase(fd);
-				}
+			auto SocketHint = Sockets_.find(Socket.impl()->sockfd());
+			if(SocketHint==end(Sockets_)) {
+				poco_warning(Logger(), fmt::format("{}: Unknown socket from device.", id_));
+				return false;
 			}
 
-			if (Connection->mTLS_) {
-				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Connection->DeviceSocket_->impl());
-				auto PeerAddress_ = SS->peerAddress().host();
-				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-				if (SS->havePeerCertificate()) {
-					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
-					auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
-					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
-						poco_debug(
-							Logger(),
-							fmt::format("Device mTLS {} has been validated from {}.", CN, CId_));
-					} else {
-						poco_warning(Logger(), fmt::format("Device failed mTLS validation {}. Certificate fails validation.", CId_));
-						return false;
-					}
+			auto ConnectionEp = ConnectionHint->second;
+			poco_information(Logger(),fmt::format("{}: Evaluation of mTLS requirements",id_));
+			if (ConnectionEp->mTLS_) {
+				if(SocketHint->second->valid) {
+					poco_information(Logger(),
+									 fmt::format("Device mTLS {} has been validated from {}.",
+												 SocketHint->second->cn, SocketHint->second->cid));
 				} else {
-					poco_warning(Logger(), fmt::format("Device failed mTLS validation {} (no certificate).", CId_));
+					poco_error(Logger(),
+							   fmt::format("{}: Device failed certificate validation", id_));
 					return false;
 				}
+			} else {
+				poco_information(Logger(),
+								 fmt::format("Device mTLS {} does not require mTLS from {}.",
+											 SocketHint->second->cn, SocketHint->second->cid));
 			}
-			RTTYS_server()->ConnectedDevices_[fd] = Connection;
+			Poco::Thread::trySleep(50);
+
+			ConnectionEp->Device_fd = fd;
+			Connected_[fd] = ConnectionEp;
 
 			u_char OutBuf[8];
 			OutBuf[0] = RTTYS_EndPoint::msgTypeRegister;
@@ -367,16 +379,22 @@ namespace OpenWifi {
 			OutBuf[4] = 'O';
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
-			if (Connection->send_ssl_bytes(OutBuf, 7) != 7) {
+
+			if (SendBytes(Socket,OutBuf, 7) != 7) {
 				poco_error(
 					Logger(),
 					fmt::format("{}: Description:{} Could not send data to complete registration",
 								id_, desc_));
 				return false;
 			}
-			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
-			if(Connection->WSSocket_!= nullptr) {
-				Connection->Login();
+			ConnectionEp->DeviceConnected_ = std::chrono::high_resolution_clock::now();
+			ConnectionEp->DeviceIsAttached_ = true;
+			ConnectionEp->DeviceSocket_ = Socket;
+			if(ConnectionEp->WSSocket_!= nullptr && ConnectionEp->WSSocket_->impl()!= nullptr) {
+				poco_information(Logger(),fmt::format("REG{}: Device registered, Client Registered - sending login", ConnectionEp->SerialNumber_));
+				Login(Socket, ConnectionEp);
+			} else {
+				poco_information(Logger(),fmt::format("REG{}: Device registered, Client Not Registered", ConnectionEp->SerialNumber_));
 			}
 			return true;
 		} catch (...) {
@@ -389,138 +407,106 @@ namespace OpenWifi {
 	void RTTYS_server::onConnectedDeviceSocketReadable(
 		const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
-		int fd = pNf->socket().impl()->sockfd();
-
-		// std::cout << __LINE__ << " " << "fd=" << fd << std::endl;
-
+		std::shared_ptr<RTTYS_EndPoint> ConnectionPtr;
 		std::lock_guard	Lock(ServerMutex_);
-		auto Connection = ConnectedDevices_.end();
-		std::shared_ptr<RTTYS_EndPoint> EndPoint;
+
 		try {
-			Connection = ConnectedDevices_.find(fd);
-			if (Connection == end(ConnectedDevices_)) {
-				Connection = ConnectingDevices_.find(fd);
-				if(Connection==end(ConnectingDevices_)) {
-					poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
-													   fd));
+			unsigned char 	Buffer[RTTY_RECEIVE_BUFFER];
+			std::size_t 	BufferCurrentSize=0, BufferPos=0;
+
+			try {
+				BufferCurrentSize = pNf->socket().impl()->receiveBytes(Buffer, sizeof(Buffer));
+				if(BufferCurrentSize==0) {
+					poco_warning(Logger(), "Device Closing connection - 0 bytes received.");
+					EndConnection( pNf->socket(), __func__, __LINE__ );
 					return;
 				}
-			}
-
-			EndPoint = Connection->second;
-			if (EndPoint == nullptr || EndPoint->DeviceSocket_ == nullptr) {
-				poco_warning(Logger(), fmt::format("Connection has invalid socket: {}",
-												   pNf->socket().impl()->sockfd()));
+			} catch (const Poco::TimeoutException &E) {
+				poco_warning(Logger(), "Receive timeout");
+				EndConnection( pNf->socket(), __func__, __LINE__ );
+				return;
+			} catch (const Poco::Net::NetException &E) {
+				Logger().log(E);
+				EndConnection( pNf->socket(), __func__, __LINE__ );
 				return;
 			}
 
 			bool good = true;
 
-			auto received_bytes = EndPoint->DeviceSocket_->receiveBytes(*EndPoint->DeviceInBuf_);
-			if (received_bytes == 0) {
-				good = false;
-				poco_debug(Logger(), "Device Closing connection - 0 bytes received.");
-			} else {
-				while (EndPoint->DeviceInBuf_->isReadable() && good) {
-					uint32_t msg_len = 0;
-					if (EndPoint->waiting_for_bytes_ != 0) {
+			while (BufferPos<BufferCurrentSize && good) {
+				unsigned char LastCommand=0;
+				if (BufferCurrentSize >= RTTY_HDR_SIZE) {
+					LastCommand = Buffer[BufferPos+0];
+					BufferPos+=RTTY_HDR_SIZE;
+				} else {
+					good = false;
+					std::cout << "Funky..." << BufferCurrentSize << std::endl;
+					continue;
+				}
 
-					} else {
-						if (EndPoint->DeviceInBuf_->used() >= RTTY_HDR_SIZE) {
-							auto *head = (unsigned char *)EndPoint->DeviceInBuf_->begin();
-							EndPoint->last_command_ = head[0];
-							msg_len = head[1] * 256 + head[2];
-							EndPoint->DeviceInBuf_->drain(RTTY_HDR_SIZE);
-						} else {
-							good = false;
-							std::cout << "Funky..." << EndPoint->DeviceInBuf_->used() << std::endl;
-							continue;
-						}
-					}
-
-					switch (EndPoint->last_command_) {
-
+				switch (LastCommand) {
 					case RTTYS_EndPoint::msgTypeRegister: {
-						good = EndPoint->do_msgTypeRegister(fd);
+						good = do_msgTypeRegister(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogin: {
-						good = EndPoint->do_msgTypeLogin(msg_len);
+						good = do_msgTypeLogin(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeLogout: {
-						// good = EndPoint->do_msgTypeLogout(msg_len);
-						good = false;
+						good = do_msgTypeLogout(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeTermData: {
-						good = EndPoint->do_msgTypeTermData(msg_len);
+						good = do_msgTypeTermData(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeWinsize: {
-						good = EndPoint->do_msgTypeWinsize(msg_len);
+						good = do_msgTypeWinsize(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeCmd: {
-						good = EndPoint->do_msgTypeCmd(msg_len);
+						good = do_msgTypeCmd(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeHeartbeat: {
-						good = EndPoint->do_msgTypeHeartbeat(msg_len);
+						good = do_msgTypeHeartbeat(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeFile: {
-						good = EndPoint->do_msgTypeFile(msg_len);
+						good = do_msgTypeFile(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeHttp: {
-						good = EndPoint->do_msgTypeHttp(msg_len);
+						good = do_msgTypeHttp(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeAck: {
-						good = EndPoint->do_msgTypeAck(msg_len);
+						good = do_msgTypeAck(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeMax: {
-						good = EndPoint->do_msgTypeMax(msg_len);
+						good = do_msgTypeMax(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					default: {
 						poco_warning(Logger(),
 									 fmt::format("Unknown command {}. GW closing connection.",
-												 (int)EndPoint->last_command_));
+												 (int)LastCommand));
 						good = false;
-					}
 					}
 				}
 			}
 
-			if (!good)
-				EndConnection(EndPoint,__LINE__);
+			if (!good) {
+				EndConnection(pNf->socket(), __func__, __LINE__);
+			}
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-			if (Connection != ConnectedDevices_.end() && EndPoint != nullptr) {
-				EndConnection(EndPoint,__LINE__);
-			}
+			EndConnection(pNf->socket(), __func__,__LINE__);
 		} catch (...) {
-			if (Connection != ConnectedDevices_.end() && EndPoint != nullptr) {
-				EndConnection(EndPoint,__LINE__);
-			}
+			EndConnection(pNf->socket(), __func__,__LINE__);
 		}
 	}
 
 	void RTTYS_server::onConnectedDeviceSocketShutdown(
 		const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		std::lock_guard	Lock(ServerMutex_);
-
-		auto Device = ConnectedDevices_.find(pNf->socket().impl()->sockfd());
-		if (Device == end(ConnectedDevices_)) {
-			poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
-											   pNf->socket().impl()->sockfd()));
-			return;
-		}
-		EndConnection(Device->second,__LINE__);
+		EndConnection(pNf->socket(), __func__,__LINE__);
 	}
 
 	void RTTYS_server::onConnectedDeviceSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
 		std::lock_guard	Lock(ServerMutex_);
-
-		auto Device = ConnectedDevices_.find(pNf->socket().impl()->sockfd());
-		if (Device == end(ConnectedDevices_)) {
-			poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
-											   pNf->socket().impl()->sockfd()));
-			return;
-		}
-		EndConnection(Device->second,__LINE__);
+		EndConnection(pNf->socket(), __func__,__LINE__);
 	}
 
 	void RTTYS_server::onClientSocketReadable(
@@ -537,23 +523,17 @@ namespace OpenWifi {
 												   pNf->socket().impl()->sockfd()));
 				return;
 			}
-
 			Connection = Client->second;
-			if (Connection == nullptr) {
-				std::cout << "NULL EndPoint Client" << std::endl;
-				return;
-			}
-
-			if (Connection->WSSocket_ == nullptr) {
-				std::cout << "NULL WS Client" << std::endl;
+			if(Connection->WSSocket_==nullptr || Connection->WSSocket_->impl()==nullptr) {
+				poco_warning(Logger(), fmt::format("WebSocket is no valid: {}",
+												   Connection->SerialNumber_));
 				return;
 			}
 
 			int flags;
 			unsigned char FrameBuffer[1024];
 
-			auto ReceivedBytes =
-				Connection->WSSocket_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
+			auto ReceivedBytes = Connection->WSSocket_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 			switch (Op) {
 
@@ -566,55 +546,45 @@ namespace OpenWifi {
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 				if (ReceivedBytes == 0) {
-					poco_trace(Logger(), "Client closing connection.");
-					EndConnection(Connection,__LINE__);
+					EndConnection(Connection,__func__,__LINE__);
 					return;
 				} else {
-					if (Connection->DeviceSocket_ != nullptr) {
-						std::string Frame((const char *)FrameBuffer, ReceivedBytes);
-						try {
-							auto Doc = nlohmann::json::parse(Frame);
-							if (Doc.contains("type")) {
-								auto Type = Doc["type"];
-								if (Type == "winsize") {
-									auto cols = Doc["cols"];
-									auto rows = Doc["rows"];
-									if (!Connection->WindowSize(cols, rows)) {
-										poco_error(Logger(), "Winsize shutdown.");
-										EndConnection(Connection,__LINE__);
-										return;
-									}
+					std::string Frame((const char *)FrameBuffer, ReceivedBytes);
+					try {
+						auto Doc = nlohmann::json::parse(Frame);
+						if (Doc.contains("type")) {
+							auto Type = Doc["type"];
+							if (Type == "winsize") {
+								auto cols = Doc["cols"];
+								auto rows = Doc["rows"];
+								if (!RTTYS_server().WindowSize(Connection,cols, rows)) {
+									EndConnection(Connection,__func__,__LINE__);
+									return;
 								}
 							}
-						} catch (...) {
-							// just ignore parse errors
-							poco_error(Logger(), "Frame text exception shutdown.");
-							EndConnection(Connection,__LINE__);
-							return;
 						}
+					} catch (...) {
+						// just ignore parse errors
+						EndConnection(Connection,__func__,__LINE__);
+						return;
 					}
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
 				if (ReceivedBytes == 0) {
-					poco_error(Logger(), "Client closing connection.");
-					EndConnection(Connection,__LINE__);
+					EndConnection(Connection,__func__,__LINE__);
 					return;
 				} else {
 					poco_trace(Logger(),
 							   fmt::format("Sending {} key strokes to device.", ReceivedBytes));
-					if (Connection->DeviceSocket_ != nullptr) {
-						if (!Connection->KeyStrokes(FrameBuffer, ReceivedBytes)) {
-							poco_error(Logger(), "Cannot send keys to device. Close connection.");
-							EndConnection(Connection,__LINE__);
-							return;
-						}
+					if (!RTTYS_server().KeyStrokes(Connection, FrameBuffer, ReceivedBytes)) {
+						EndConnection(Connection,__func__,__LINE__);
+						return;
 					}
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-				poco_trace(Logger(), "Frame close shutdown.");
-				EndConnection(Connection,__LINE__);
+				EndConnection(Connection,__func__,__LINE__);
 				return;
 			} break;
 
@@ -624,7 +594,7 @@ namespace OpenWifi {
 		} catch (...) {
 			poco_error(Logger(), "Frame readable shutdown.");
 			if (Client != Clients_.end() && Connection != nullptr) {
-				EndConnection(Connection,__LINE__);
+				EndConnection(Connection,__func__,__LINE__);
 			}
 			return;
 		}
@@ -639,7 +609,7 @@ namespace OpenWifi {
 											   pNf->socket().impl()->sockfd()));
 			return;
 		}
-		EndConnection(Client->second,__LINE__);
+		EndConnection(Client->second,__func__,__LINE__);
 	}
 
 	void RTTYS_server::onClientSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
@@ -650,12 +620,12 @@ namespace OpenWifi {
 											   pNf->socket().impl()->sockfd()));
 			return;
 		}
-		EndConnection(Client->second,__LINE__);
+		EndConnection(Client->second,__func__,__LINE__);
 	}
 
 	void RTTYS_server::SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const u_char *Buf,
 								size_t len) {
-		if (Connection->WSSocket_ != nullptr) {
+		if (Connection->WSSocket_ != nullptr && Connection->WSSocket_->impl()!= nullptr) {
 			try {
 				Connection->WSSocket_->sendFrame(Buf, len,
 												 Poco::Net::WebSocket::FRAME_FLAG_FIN |
@@ -665,11 +635,11 @@ namespace OpenWifi {
 				poco_error(Logger(), "SendData shutdown.");
 			}
 		}
-		EndConnection(Connection,__LINE__);
+		EndConnection(Connection,__func__,__LINE__);
 	}
 
 	void RTTYS_server::SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const std::string &s) {
-		if (Connection->WSSocket_ != nullptr) {
+		if (Connection->WSSocket_ != nullptr && Connection->WSSocket_->impl()!= nullptr) {
 			try {
 				Connection->WSSocket_->sendFrame(s.c_str(), s.length());
 				return;
@@ -677,7 +647,7 @@ namespace OpenWifi {
 				poco_error(Logger(), "SendData shutdown.");
 			}
 		}
-		EndConnection(Connection,__LINE__);
+		EndConnection(Connection,__func__,__LINE__);
 	}
 
 	void RTTYS_server::LogStdException(const std::exception &E, const std::string & msg) {
@@ -703,14 +673,20 @@ namespace OpenWifi {
 
 		//	OK Create and register this WS client
 		try {
+			// EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request, response);
 			EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request, response);
 			EndPoint->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
 			EndPoint->second->WSSocket_->setBlocking(false);
 			EndPoint->second->WSSocket_->setNoDelay(true);
 			EndPoint->second->WSSocket_->setKeepAlive(true);
 			AddClientEventHandlers(*EndPoint->second->WSSocket_, EndPoint->second);
-			if (EndPoint->second->DeviceSocket_ != nullptr && !EndPoint->second->completed_) {
-				EndPoint->second->Login();
+			if (EndPoint->second->DeviceIsAttached_ && !EndPoint->second->completed_) {
+				poco_information(Logger(),fmt::format("CLN{}: Device registered, Client Registered - sending login", EndPoint->second->SerialNumber_));
+				auto hint = Sockets_.find(EndPoint->second->Device_fd);
+				if(hint!=end(Sockets_))
+					Login(hint->second->socket, EndPoint->second);
+			} else {
+				poco_information(Logger(),fmt::format("CLN{}: Device not registered, Client Registered", EndPoint->second->SerialNumber_));
 			}
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -726,54 +702,94 @@ namespace OpenWifi {
 
 		std::lock_guard	Lock(ServerMutex_);
 		auto Now = std::chrono::high_resolution_clock::now();
-		std::set<int> DS, CS;
 		for (auto EndPoint = EndPoints_.begin(); EndPoint != EndPoints_.end();) {
 			if ((Now - EndPoint->second->Created_) > 2min && !EndPoint->second->completed_) {
-				EndPoint = EndConnection(EndPoint->second,__LINE__);
+				EndPoint = EndConnection(EndPoint->second,__func__,__LINE__);
 			} else {
 				++EndPoint;
 			}
 		}
 
+		poco_information(Logger(),fmt::format("EndPoints:{} Connected:{} Sockets:{} Clients:{}",
+											   EndPoints_.size(),Connected_.size(),
+											   Sockets_.size(), Clients_.size()));
+
 		if (Utils::Now() - LastStats > (60 * 1)) {
 			LastStats = Utils::Now();
-			Logger().information(fmt::format(
+			poco_information(Logger(),fmt::format(
 				"Statistics: Total connections:{} Current-connections:{} Avg-Device-Connection "
 				"Time: {:.2f}ms Avg-Client-Connection Time: {:.2f}ms #Sockets: {}. Connecting "
 				"devices: {}",
 				TotalEndPoints_, EndPoints_.size(),
 				TotalEndPoints_ ? TotalConnectedDeviceTime_.count() / (double)TotalEndPoints_ : 0.0,
 				TotalEndPoints_ ? TotalConnectedClientTime_.count() / (double)TotalEndPoints_ : 0.0,
-				ConnectedDevices_.size(), ConnectingDevices_.size()));
+				Sockets_.size(), 0));
 		}
 	}
 
-	std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator  RTTYS_server::EndConnection(std::shared_ptr<RTTYS_EndPoint> Connection, std::uint64_t line) {
-		poco_trace(Logger(),fmt::format("Ending connection: line {}",line));
-		if(Connection->DeviceSocket_!= nullptr) {
-			Connection->DeviceDisconnected_ = std::chrono::high_resolution_clock::now();
-			TotalConnectedDeviceTime_ += Connection->DeviceDisconnected_ - Connection->DeviceConnected_;
-			RemoveConnectedDeviceEventHandlers(*Connection->DeviceSocket_);
-		}
-		if(Connection->WSSocket_!= nullptr) {
-			Connection->ClientDisconnected_ = std::chrono::high_resolution_clock::now();
-			TotalConnectedClientTime_ += Connection->ClientDisconnected_ - Connection->ClientConnected_;
+	std::map<std::string, std::shared_ptr<RTTYS_EndPoint>>::iterator RTTYS_server::EndConnection(std::shared_ptr<RTTYS_EndPoint> Connection, const char * func, std::uint64_t Line) {
+		auto hint1 = Sockets_.find(Connection->Device_fd);
+		if(hint1!=end(Sockets_))
+			RemoveSocket(hint1->second->socket);
+
+		Connected_.erase(Connection->Device_fd);
+
+		//	find the client linked to this one...
+		if(Connection->WSSocket_!= nullptr && Connection->WSSocket_->impl()!= nullptr) {
 			RemoveClientEventHandlers(*Connection->WSSocket_);
+			Connection->WSSocket_->close();
 		}
-		auto hint = EndPoints_.find(Connection->Id_);
-		return EndPoints_.erase(hint);
+		poco_debug(Logger(),fmt::format("Closing connection {}:{}", func, Line));
+		auto hint2 = EndPoints_.find(Connection->Id_);
+		return EndPoints_.erase(hint2);
+	}
+
+	void RTTYS_server::EndConnection(const Poco::Net::Socket &Socket, const char * func, std::uint32_t Line) {
+		//	remove the device
+		auto fd = Socket.impl()->sockfd();
+		RemoveSocket(Socket);
+
+		//	find the client linked to this one...
+		auto hint = Connected_.find(fd);
+		if(hint!=end(Connected_)) {
+			if(hint->second->WSSocket_!= nullptr && hint->second->WSSocket_->impl()!= nullptr) {
+				RemoveClientEventHandlers(*hint->second->WSSocket_);
+				hint->second->WSSocket_->close();
+				auto id = hint->second->Id_;
+				Connected_.erase(hint);
+				EndPoints_.erase(id);
+			} else {
+				EndPoints_.erase(hint->second->Id_);
+			}
+		} else {
+			std::cout << "Cannot find the associated WS..." << std::endl;
+		}
+		poco_debug(Logger(),fmt::format("Closing connection at {}:{}", func, Line));
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string &Token,
 									  const std::string &UserName,
 									  const std::string &SerialNumber,
 									  bool mTLS) {
-		std::lock_guard	Lock(ServerMutex_);
+
+		auto Start = Utils::Now();
+		while(!ServerMutex_.try_lock()) {
+			Poco::Thread::yield();
+			Poco::Thread::trySleep(100);
+			if((Utils::Now()-Start)>10) {
+				poco_warning(Logger(),"RTTY too busy");
+				return false;
+			}
+		}
+
 		if (MaxConcurrentSessions_ != 0 && EndPoints_.size() == MaxConcurrentSessions_) {
+			ServerMutex_.unlock();
 			return false;
 		}
-		EndPoints_[Id] = std::make_unique<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName, mTLS, Logger().get(SerialNumber));
+
+		EndPoints_[Id] = std::make_shared<RTTYS_EndPoint>(Id, Token, SerialNumber, UserName, mTLS);
 		++TotalEndPoints_;
+		ServerMutex_.unlock();
 		return true;
 	}
 
@@ -782,142 +798,139 @@ namespace OpenWifi {
 		return EndPoints_.find(Id) != EndPoints_.end();
 	}
 
-	bool RTTYS_EndPoint::KeyStrokes(const u_char *buf, size_t len) {
+	bool RTTYS_server::KeyStrokes(std::shared_ptr<RTTYS_EndPoint> Conn, const u_char *buf, size_t len) {
 
-		if (DeviceSocket_ != nullptr) {
-			if (len <= (sizeof(small_buf_) - RTTY_HDR_SIZE - 1)) {
-				small_buf_[0] = msgTypeTermData;
-				small_buf_[1] = ((len - 1 + 1) & 0xff00) >> 8;
-				small_buf_[2] = ((len - 1 + 1) & 0x00ff);
-				small_buf_[3] = sid_;
-				memcpy(&small_buf_[RTTY_HDR_SIZE + 1], &buf[1], len - 1);
-				try {
-					auto Sent = send_ssl_bytes(small_buf_,
-														 RTTY_HDR_SIZE + 1 + len - 1);
-					return (Sent == (int)(RTTY_HDR_SIZE + 1 + len - 1));
-				} catch (const Poco::Exception &E) {
-					Logger().log(E);
-					return false;
-				} catch (const std::exception &E) {
-					RTTYS_server()->LogStdException(E, "Cannot send keystrokes.");
-					return false;
-				}
-			} else {
-				auto Msg = std::make_unique<unsigned char[]>(len + RTTY_HDR_SIZE + 1);
-				Msg.get()[0] = msgTypeTermData;
-				Msg.get()[1] = ((len - 1 + 1) & 0xff00) >> 8;
-				Msg.get()[2] = ((len - 1 + 1) & 0x00ff);
-				Msg.get()[3] = sid_;
-				memcpy((Msg.get() + RTTY_HDR_SIZE + 1), &buf[1], len - 1);
-				try {
-					auto Sent = send_ssl_bytes(Msg.get(),
-														 RTTY_HDR_SIZE + 1 + len - 1);
-					return (Sent == (int)(RTTY_HDR_SIZE + 1 + len - 1));
-				} catch (const Poco::Exception &E) {
-					Logger().log(E);
-					return false;
-				} catch (const std::exception &E) {
-					RTTYS_server()->LogStdException(E, "Cannot send keystrokes");
-					return false;
-				}
-			}
-		}
-		return false;
-	}
-
-	bool RTTYS_EndPoint::WindowSize(int cols, int rows) {
-		if (DeviceSocket_ != nullptr) {
-			u_char outBuf[8 + RTTY_SESSION_ID_LENGTH]{0};
-			outBuf[0] = msgTypeWinsize;
-			outBuf[1] = 0;
-			outBuf[2] = 4 + 1;
-			outBuf[3] = sid_;
-			outBuf[RTTY_HDR_SIZE + 0 + 1] = cols >> 8;
-			outBuf[RTTY_HDR_SIZE + 1 + 1] = cols & 0x00ff;
-			outBuf[RTTY_HDR_SIZE + 2 + 1] = rows >> 8;
-			outBuf[RTTY_HDR_SIZE + 3 + 1] = rows & 0x00ff;
+		if (len <= (sizeof(Conn->small_buf_) - RTTY_HDR_SIZE - 1)) {
+			Conn->small_buf_[0] = RTTYS_EndPoint::msgTypeTermData;
+			Conn->small_buf_[1] = ((len - 1 + 1) & 0xff00) >> 8;
+			Conn->small_buf_[2] = ((len - 1 + 1) & 0x00ff);
+			Conn->small_buf_[3] = Conn->sid_;
+			memcpy(&Conn->small_buf_[RTTY_HDR_SIZE + 1], &buf[1], len - 1);
 			try {
-				auto Sent = send_ssl_bytes(outBuf, RTTY_HDR_SIZE + 4 + 1);
-				return (Sent == (int)(RTTY_HDR_SIZE + 4 + 1));
+				auto Sent = SendBytes(Conn->DeviceSocket_, Conn->small_buf_,
+													 RTTY_HDR_SIZE + 1 + len - 1);
+				return (Sent == (int)(RTTY_HDR_SIZE + 1 + len - 1));
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
 				return false;
 			} catch (const std::exception &E) {
-				RTTYS_server()->LogStdException(E, "Cannot send window size");
+				LogStdException(E, "Cannot send keystrokes.");
 				return false;
 			}
-		}
-		return false;
-	}
-
-	bool RTTYS_EndPoint::Login() {
-		if (DeviceSocket_ != nullptr) {
-			Poco::Thread::sleep(500);
-			u_char outBuf[RTTY_HDR_SIZE + RTTY_SESSION_ID_LENGTH]{0};
-			outBuf[0] = msgTypeLogin;
-			outBuf[1] = 0;
-			outBuf[2] = 0;
+		} else {
+			auto Msg = std::make_unique<unsigned char[]>(len + RTTY_HDR_SIZE + 1);
+			Msg.get()[0] = RTTYS_EndPoint::msgTypeTermData;
+			Msg.get()[1] = ((len - 1 + 1) & 0xff00) >> 8;
+			Msg.get()[2] = ((len - 1 + 1) & 0x00ff);
+			Msg.get()[3] = Conn->sid_;
+			memcpy((Msg.get() + RTTY_HDR_SIZE + 1), &buf[1], len - 1);
 			try {
-				poco_debug(Logger(), fmt::format("TID:{} Starting loggin on device.",TID_));
-				auto Sent = send_ssl_bytes(outBuf,3);
-				completed_ = true;
-				return Sent == RTTY_HDR_SIZE;
+				auto Sent = SendBytes(Conn->DeviceSocket_,Msg.get(),
+													 RTTY_HDR_SIZE + 1 + len - 1);
+				return (Sent == (int)(RTTY_HDR_SIZE + 1 + len - 1));
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
 				return false;
 			} catch (const std::exception &E) {
-				RTTYS_server()->LogStdException(E, fmt::format("TID:{} Cannot send login.", TID_));
+				LogStdException(E, "Cannot send keystrokes");
 				return false;
 			}
 		}
 		return false;
 	}
 
-	bool RTTYS_EndPoint::Logout() {
-		if (DeviceSocket_ != nullptr) {
-			u_char outBuf[4 + RTTY_SESSION_ID_LENGTH]{0};
-			outBuf[0] = msgTypeLogout;
-			outBuf[1] = 0;
-			outBuf[2] = 1;
-			outBuf[3] = sid_;
-			poco_debug(Logger(), "{}: Logout");
-			try {
-				auto Sent = send_ssl_bytes(outBuf, RTTY_HDR_SIZE + 1);
-				return Sent == (int)(RTTY_HDR_SIZE + 1);
-			} catch (const Poco::Exception &E) {
-				Logger().log(E);
-				return false;
-			} catch (const std::exception &E) {
-				RTTYS_server()->LogStdException(E, "Cannot send logout");
-				return false;
-			}
+	bool RTTYS_server::WindowSize(std::shared_ptr<RTTYS_EndPoint> Conn, int cols, int rows) {
+		u_char outBuf[8 + RTTY_SESSION_ID_LENGTH]{0};
+		outBuf[0] = RTTYS_EndPoint::msgTypeWinsize;
+		outBuf[1] = 0;
+		outBuf[2] = 4 + 1;
+		outBuf[3] = Conn->sid_;
+		outBuf[RTTY_HDR_SIZE + 0 + 1] = cols >> 8;
+		outBuf[RTTY_HDR_SIZE + 1 + 1] = cols & 0x00ff;
+		outBuf[RTTY_HDR_SIZE + 2 + 1] = rows >> 8;
+		outBuf[RTTY_HDR_SIZE + 3 + 1] = rows & 0x00ff;
+		try {
+			auto Sent = SendBytes(Conn->DeviceSocket_, outBuf, RTTY_HDR_SIZE + 4 + 1);
+			return (Sent == (int)(RTTY_HDR_SIZE + 4 + 1));
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (const std::exception &E) {
+			LogStdException(E, "Cannot send window size");
 		}
 		return false;
 	}
 
-	std::string RTTYS_EndPoint::ReadString() {
+	bool RTTYS_server::Login(const Poco::Net::Socket &Socket, std::shared_ptr<RTTYS_EndPoint> Conn) {
+		Poco::Thread::sleep(500);
+		u_char outBuf[RTTY_HDR_SIZE + RTTY_SESSION_ID_LENGTH]{0};
+		outBuf[0] = RTTYS_EndPoint::msgTypeLogin;
+		outBuf[1] = 0;
+		outBuf[2] = 0;
+		try {
+			poco_debug(Logger(), fmt::format("TID:{} Starting login on device.",Conn->TID_));
+			auto Sent = SendBytes(Socket,outBuf,RTTY_HDR_SIZE);
+			Conn->completed_ = true;
+			return Sent == RTTY_HDR_SIZE;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (const std::exception &E) {
+			LogStdException(E, fmt::format("TID:{} Cannot send login.", Conn->TID_));
+		}
+		return false;
+	}
+
+	bool RTTYS_server::Logout(const Poco::Net::Socket &Socket, std::shared_ptr<RTTYS_EndPoint> Conn) {
+		u_char outBuf[4 + RTTY_SESSION_ID_LENGTH]{0};
+		outBuf[0] = RTTYS_EndPoint::msgTypeLogout;
+		outBuf[1] = 0;
+		outBuf[2] = 1;
+		outBuf[3] = Conn->sid_;
+		poco_debug(Logger(), fmt::format("{}: Logout", Conn->TID_));
+		try {
+			auto Sent = SendBytes(Socket, outBuf, RTTY_HDR_SIZE + 1);
+			return Sent == (int)(RTTY_HDR_SIZE + 1);
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+			return false;
+		} catch (const std::exception &E) {
+			LogStdException(E, "Cannot send logout");
+			return false;
+		}
+		return false;
+	}
+
+	std::string RTTYS_server::ReadString(unsigned char *Buffer, std::size_t BufferCurrentSize, std::size_t &BufferPos) {
 		std::string Res;
-		while(DeviceInBuf_->used()) {
-			auto c = *DeviceInBuf_->begin();
+		while(BufferPos<BufferCurrentSize) {
+			auto c = Buffer[BufferPos++];
 			if(c==0) {
-				DeviceInBuf_->drain(1);
 				break;
 			}
 			Res += c;
-			DeviceInBuf_->drain(1);
 		}
 		return Res;
 	}
 
-	bool RTTYS_EndPoint::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
+	bool RTTYS_server::SendToClient(Poco::Net::WebSocket &WebSocket, const u_char *Buf, int len) {
+		WebSocket.sendFrame(
+			Buf, len, Poco::Net::WebSocket::FRAME_FLAG_FIN | Poco::Net::WebSocket::FRAME_OP_BINARY);
+		return true;
+	}
+
+	bool RTTYS_server::SendToClient(Poco::Net::WebSocket &WebSocket, const std::string &s) {
+		WebSocket.sendFrame(s.c_str(), s.length());
+		return true;
+	}
+
+	bool RTTYS_server::do_msgTypeLogin(const Poco::Net::Socket &Socket, unsigned char *Buffer, [[maybe_unused]] std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		poco_debug(Logger(), "Asking for login");
-		if (WSSocket_ != nullptr) {
+		auto EndPoint = Connected_.find(Socket.impl()->sockfd());
+		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
 			try {
 				nlohmann::json doc;
-				char Error;
-				DeviceInBuf_->read(&Error, 1);
+				unsigned char Error = Buffer[BufferPos++];
 				if(Error==0) {
-					DeviceInBuf_->read(&sid_, 1);
+					EndPoint->second->sid_ = Buffer[BufferPos++];
 				} else {
 					poco_error(Logger(),"Device login failed.");
 					return false;
@@ -925,122 +938,94 @@ namespace OpenWifi {
 				doc["type"] = "login";
 				doc["err"] = Error;
 				const auto login_msg = to_string(doc);
-				return SendToClient(login_msg);
+				return SendToClient(*EndPoint->second->WSSocket_, login_msg);
+			} catch (const Poco::Exception &E) {
+				Logger().log(E);
+			} catch (const std::exception &E) {
+				LogStdException(E, "Cannot send login");
+			}
+		}
+		return false;
+	}
+
+	bool RTTYS_server::do_msgTypeLogout([[maybe_unused]] const Poco::Net::Socket &Socket, unsigned char *Buffer, [[maybe_unused]] std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
+		poco_debug(Logger(), "Logout");
+		[[maybe_unused]] unsigned char logout_session_id = Buffer[BufferPos++];
+
+		return false;
+	}
+
+	bool RTTYS_server::do_msgTypeTermData(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
+		auto EndPoint = Connected_.find(Socket.impl()->sockfd());
+		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
+			try {
+				BufferPos++;
+				auto good = SendToClient(*EndPoint->second->WSSocket_, &Buffer[BufferPos],
+										 BufferCurrentSize - BufferPos);
+				BufferPos = BufferCurrentSize;
+				return good;
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
 				return false;
 			} catch (const std::exception &E) {
-				RTTYS_server()->LogStdException(E, "Cannot send login");
+				LogStdException(E, "Cannot send data to UI Client");
 				return false;
 			}
 		}
 		return false;
 	}
 
-	bool RTTYS_EndPoint::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(), "Logout");
-		char logout_session_id;
-		DeviceInBuf_->read(&logout_session_id, 1);
-		return false;
+	bool RTTYS_server::do_msgTypeWinsize([[maybe_unused]] const Poco::Net::Socket &Socket, [[maybe_unused]] unsigned char *Buffer,[[maybe_unused]] std::size_t  BufferCurrentSize, [[maybe_unused]] std::size_t  &BufferPos) {
+		poco_debug(Logger(), "Asking for msgTypeWinsize");
+		BufferPos = BufferCurrentSize;
+		return true;
 	}
 
-	bool RTTYS_EndPoint::do_msgTypeTermData(std::size_t msg_len) {
-		bool good;
+	bool RTTYS_server::do_msgTypeCmd([[maybe_unused]] const Poco::Net::Socket &Socket, [[maybe_unused]] unsigned char *Buffer,[[maybe_unused]]  std::size_t  BufferCurrentSize, [[maybe_unused]] std::size_t  &BufferPos) {
+		poco_debug(Logger(), "Asking for msgTypeCmd");
+		BufferPos = BufferCurrentSize;
+		return true;
+	}
+
+	bool RTTYS_server::do_msgTypeHeartbeat(const Poco::Net::Socket &Socket, [[maybe_unused]] unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		try {
-			if (waiting_for_bytes_ > 0) {
-				if (DeviceInBuf_->used() < waiting_for_bytes_) {
-					waiting_for_bytes_ = waiting_for_bytes_ - DeviceInBuf_->used();
-					good = SendToClient((unsigned char *)DeviceInBuf_->begin(),
-										(int)DeviceInBuf_->used());
-					DeviceInBuf_->drain();
-				} else {
-					good = SendToClient((unsigned char *)DeviceInBuf_->begin(), waiting_for_bytes_);
-					DeviceInBuf_->drain(waiting_for_bytes_);
-					waiting_for_bytes_ = 0;
-				}
-			} else {
-				DeviceInBuf_->drain(1);
-				msg_len -= 1;
-				if (DeviceInBuf_->used() < msg_len) {
-					good =
-						SendToClient((unsigned char *)DeviceInBuf_->begin(), DeviceInBuf_->used());
-					waiting_for_bytes_ = msg_len - DeviceInBuf_->used();
-					DeviceInBuf_->drain();
-				} else {
-					waiting_for_bytes_ = 0;
-					good = SendToClient((unsigned char *)DeviceInBuf_->begin(), msg_len);
-					DeviceInBuf_->drain(msg_len);
-				}
-			}
+			u_char MsgBuf[RTTY_HDR_SIZE + 16]{0};
+			BufferPos = BufferCurrentSize;
+			MsgBuf[0] = RTTYS_EndPoint::msgTypeHeartbeat;
+			MsgBuf[1] = 0;
+			MsgBuf[2] = 0;
+			auto Sent = SendBytes(Socket,MsgBuf, RTTY_HDR_SIZE);
+			return Sent == RTTY_HDR_SIZE;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 			return false;
 		} catch (const std::exception &E) {
-			RTTYS_server()->LogStdException(E, "Cannot send data to UI Client");
+			LogStdException(E, "Cannot send heartbeat");
 			return false;
-		}
-		return good;
-	}
-
-	bool RTTYS_EndPoint::SendToClient(const u_char *Buf, int len) {
-		WSSocket_->sendFrame(
-			Buf, len, Poco::Net::WebSocket::FRAME_FLAG_FIN | Poco::Net::WebSocket::FRAME_OP_BINARY);
-		return true;
-	}
-
-	bool RTTYS_EndPoint::SendToClient(const std::string &s) {
-		WSSocket_->sendFrame(s.c_str(), s.length());
-		return true;
-	}
-
-	bool RTTYS_EndPoint::do_msgTypeWinsize([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(), "Asking for msgTypeWinsize");
-		return true;
-	}
-
-	bool RTTYS_EndPoint::do_msgTypeCmd([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(), "Asking for msgTypeCmd");
-		return true;
-	}
-
-	bool RTTYS_EndPoint::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
-		if (DeviceSocket_ != nullptr) {
-			try {
-				u_char MsgBuf[RTTY_HDR_SIZE + 16]{0};
-				if (msg_len)
-					DeviceInBuf_->drain(msg_len);
-				MsgBuf[0] = msgTypeHeartbeat;
-				MsgBuf[1] = 0;
-				MsgBuf[2] = 0;
-				auto Sent = send_ssl_bytes(MsgBuf, RTTY_HDR_SIZE);
-				return Sent == RTTY_HDR_SIZE;
-			} catch (const Poco::Exception &E) {
-				Logger().log(E);
-				return false;
-			} catch (const std::exception &E) {
-				RTTYS_server()->LogStdException(E, "Cannot send heartbeat");
-				return false;
-			}
 		}
 		return false;
 	}
 
-	bool RTTYS_EndPoint::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
+	bool RTTYS_server::do_msgTypeFile([[maybe_unused]] const Poco::Net::Socket &Socket, [[maybe_unused]] unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		poco_debug(Logger(), "Asking for msgTypeFile");
+		BufferPos = BufferCurrentSize;
 		return true;
 	}
 
-	bool RTTYS_EndPoint::do_msgTypeHttp([[maybe_unused]] std::size_t msg_len) {
+	bool RTTYS_server::do_msgTypeHttp([[maybe_unused]] const Poco::Net::Socket &Socket, [[maybe_unused]] unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		poco_debug(Logger(), "Asking for msgTypeHttp");
+		BufferPos = BufferCurrentSize;
 		return true;
 	}
 
-	bool RTTYS_EndPoint::do_msgTypeAck([[maybe_unused]] std::size_t msg_len) {
+	bool RTTYS_server::do_msgTypeAck([[maybe_unused]] const Poco::Net::Socket &Socket, [[maybe_unused]] unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
 		poco_debug(Logger(), "Asking for msgTypeAck");
+		BufferPos = BufferCurrentSize;
 		return true;
 	}
 
-	bool RTTYS_EndPoint::do_msgTypeMax([[maybe_unused]] std::size_t msg_len) {
+	bool RTTYS_server::do_msgTypeMax([[maybe_unused]] const Poco::Net::Socket &Socket, [[maybe_unused]] unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
+		BufferPos = BufferCurrentSize;
 		poco_debug(Logger(), "Asking for msgTypeMax");
 		return true;
 	}
@@ -1048,20 +1033,10 @@ namespace OpenWifi {
 
 	RTTYS_EndPoint::RTTYS_EndPoint(const std::string &Id, const std::string &Token,
 								   const std::string &SerialNumber, const std::string &UserName,
-								   bool mTLS,
-								   Poco::Logger &Logger)
+								   bool mTLS)
 		: Id_(Id), Token_(Token), SerialNumber_(SerialNumber), UserName_(UserName),
-	  	Logger_(Logger), mTLS_(mTLS) {
+	  	mTLS_(mTLS) {
 		Created_ = std::chrono::high_resolution_clock::now();
-	}
-
-	RTTYS_EndPoint::RTTYS_EndPoint(Poco::Net::StreamSocket &Socket, std::uint64_t tid,
-								   Poco::Logger &Logger) :
-		Logger_(Logger)
-	{
-		DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
-		DeviceInBuf_ = std::make_shared<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
-		TID_ = tid;
 	}
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {

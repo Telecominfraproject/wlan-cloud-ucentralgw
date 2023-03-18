@@ -129,6 +129,16 @@ namespace OpenWifi {
 				Objects.add(i);
 			}
 			RetObj.set(RESTAPI::Protocol::SERIALNUMBERS, Objects);
+		} else if (GetBoolParameter("health")) {
+			auto lowLimit = GetParameter("lowLimit",30);
+			auto highLimit = GetParameter("highLImit",80);
+			std::vector<std::string>	SerialNumbers;
+			AP_WS_Server()->GetHealthDevices(lowLimit,highLimit,SerialNumbers);
+
+			Poco::JSON::Array Objects;
+			for(const auto &s:SerialNumbers)
+				Objects.add(s);
+			RetObj.set("serialNumbers", Objects);
 		} else {
 			std::vector<GWObjects::Device> Devices;
 			StorageService()->GetDevices(QB_.Offset, QB_.Limit, Devices, OrderBy);
