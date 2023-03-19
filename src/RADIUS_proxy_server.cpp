@@ -265,6 +265,9 @@ namespace OpenWifi {
 			auto CalledStationID = P.ExtractCalledStationID();
 			Poco::Net::SocketAddress Dst(Destination);
 
+			std::cout << "Sending accounting packet to proxy..." << std::endl;
+			P.Log(std::cout);
+
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
 			auto FinalDestination = Route(radius_type::acct, Dst, P, UseRADSEC);
