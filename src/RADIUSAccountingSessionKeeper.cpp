@@ -28,7 +28,8 @@ namespace OpenWifi {
 
 			try {
 				if (Session != nullptr) {
-
+					std::cout << "Sending accounting packet to proxy..." << std::endl;
+					Session->Packet_.Log(std::cout);
 				}
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);

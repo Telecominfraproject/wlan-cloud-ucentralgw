@@ -115,8 +115,6 @@ namespace OpenWifi {
 						}
 					} else if (P.IsAccounting()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
-						std::cout << "Received RADIUS packet from proxy" << std::endl;
-						P.Log(std::cout);
 						if (!SerialNumber.empty()) {
 							poco_debug(Logger_,
 									   fmt::format("{}: {} Received {} bytes.", SerialNumber,

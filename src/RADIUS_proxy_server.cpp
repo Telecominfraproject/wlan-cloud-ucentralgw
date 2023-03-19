@@ -9,6 +9,7 @@
 #include "RADIUS_proxy_server.h"
 
 #include "framework/MicroServiceFuncs.h"
+#include "RADIUSAccountingSessionKeeper.h"
 
 namespace OpenWifi {
 
@@ -16,6 +17,8 @@ namespace OpenWifi {
 	const int DEFAULT_RADIUS_AUTHENTICATION_PORT = 1812;
 	const int DEFAULT_RADIUS_ACCOUNTING_PORT = 1813;
 	const int DEFAULT_RADIUS_CoA_PORT = 3799;
+
+
 
 	int RADIUS_proxy_server::Start() {
 
@@ -265,8 +268,7 @@ namespace OpenWifi {
 			auto CalledStationID = P.ExtractCalledStationID();
 			Poco::Net::SocketAddress Dst(Destination);
 
-			std::cout << "Sending accounting packet to proxy..." << std::endl;
-			P.Log(std::cout);
+			RADIUSAccountingSessionKeeper()->AddSession(serialNumber, P);
 
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
