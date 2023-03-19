@@ -173,6 +173,7 @@ namespace OpenWifi::RADIUS {
 		{0, nullptr}};
 
 	constexpr std::uint8_t ACCT_STATUS_TYPE = 40;
+	constexpr std::uint8_t ACCT_AUTHENTIC = 45;
 
 	static const struct tok radius_attribute_names[] = {{1, "User-Name"},
 														{2, "User-Password"},
@@ -216,7 +217,7 @@ namespace OpenWifi::RADIUS {
 														{42, "Acct-Input-Octets"},
 														{43, "Acct-Output-Octets"},
 														{44, "Acct-Session-Id"},
-														{45, "Acct-Authentic"},
+														{ACCT_AUTHENTIC, "Acct-Authentic"},
 														{46, "Acct-Session-Time"},
 														{47, "Acct-Input-Packets"},
 														{48, "Acct-Output-Packets"},
@@ -557,7 +558,7 @@ namespace OpenWifi::RADIUS {
 		const std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_OFF = 8;
 		const std::uint8_t ACCT_STATUS_TYPE_FAILED = 15;
 
-		void PrintAccountStatusType(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
+		void PrintAccount_StatusType(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
 			os << spaces ;
 			if (buf[3]==ACCT_STATUS_TYPE_START)
 				os << "Start";
@@ -575,6 +576,20 @@ namespace OpenWifi::RADIUS {
 				BufLog(os,"",buf,len);
 		}
 
+		const std::uint8_t ACCT_AUTHENTIC_RADIUS = 1;
+		const std::uint8_t ACCT_AUTHENTIC_LOCAL = 2;
+		const std::uint8_t ACCT_AUTHENTIC_REMOTE = 3;
+
+		void PrintAccount_AcctAuthentic(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
+			os << spaces ;
+			if (buf[3]==ACCT_AUTHENTIC_RADIUS)
+				os << "RADIUS";
+			else if (buf[3]==ACCT_AUTHENTIC_LOCAL)
+				os << "Local";
+			else if (buf[3]==ACCT_AUTHENTIC_REMOTE)
+				BufLog(os,"",buf,len);
+		}
+
 		inline void Print(std::ostream &os) {
 			os << "Packet type: (" << (uint)P_.code << ") " << CommandName(P_.code) << std::endl;
 			os << "  Identifier: " << (uint)P_.identifier << std::endl;
@@ -586,9 +601,10 @@ namespace OpenWifi::RADIUS {
 				os << "    " << std::setfill(' ') << "(" << std::setw(4) << (uint)attr.type << ") "
 				   << AttributeName(attr.type) << "   Len:" << attr.len << std::endl;
 				std::string attr_offset = "           ";
-				if(attr.type == ACCT_STATUS_TYPE) {
-					PrintAccountStatusType(os, attr_offset, &P_.attributes[attr.pos], attr.len);
-				} else {
+				switch(attr.type) {
+				case ACCT_STATUS_TYPE: PrintAccount_StatusType(os, attr_offset, &P_.attributes[attr.pos], attr.len); break;
+				case ACCT_AUTHENTIC: PrintAccount_AcctAuthentic(os, attr_offset, &P_.attributes[attr.pos], attr.len); break;
+				default:
 					BufLog(os, attr_offset.c_str(), &P_.attributes[attr.pos], attr.len);
 				}
 			}
