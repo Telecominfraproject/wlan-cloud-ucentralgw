@@ -4,6 +4,7 @@
 
 #include "RADIUSAccountingSessionKeeper.h"
 #include <framework/utils.h>
+#include <fmt/format.h>
 
 namespace OpenWifi {
 
@@ -30,11 +31,10 @@ namespace OpenWifi {
 				if (Session != nullptr) {
 					switch(Session->Type_) {
 						case SessionNotification::NotificationType::session_message: {
-							std::cout << "Sending accounting packet to proxy..." << std::endl;
-							Session->Packet_.Log(std::cout);
+							ProcessSession(*Session);
 						} break;
 						case SessionNotification::NotificationType::ap_disconnect: {
-							std::cout << "AP Disconnecting  and quitting all RADIUS sessions" << std::endl;
+							DisconnectSession(Session->SerialNumber_);
 						} break;
 					}
 				}
@@ -46,6 +46,15 @@ namespace OpenWifi {
 			NextSession = SessionMessageQueue_.waitDequeueNotification();
 		}
 		poco_information(Logger(), "RADIUS session manager stopping.");
+	}
+
+	void RADIUSAccountingSessionKeeper::ProcessSession(OpenWifi::SessionNotification &Notification) {
+		std::cout << "Sending accounting packet to proxy..." << std::endl;
+		Notification.Packet_.Log(std::cout);
+	}
+
+	void RADIUSAccountingSessionKeeper::DisconnectSession(const std::string &SerialNumber) {
+		poco_information(Logger(),fmt::format("{}: Disconnecting.", SerialNumber));
 	}
 
 } // namespace OpenWifi

@@ -57,6 +57,9 @@ namespace OpenWifi {
 		Poco::NotificationQueue 	SessionMessageQueue_;
 		Poco::Thread				QueueManager_;
 
+		void ProcessSession(SessionNotification &Notification);
+		void DisconnectSession(const std::string &SerialNumber);
+
 		RADIUSAccountingSessionKeeper() noexcept
 			: SubSystemServer("RADIUSAccountingSessionKeeper", "RADIUS-SESSION", "radius.session") {}
 	};
