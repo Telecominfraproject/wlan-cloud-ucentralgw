@@ -561,17 +561,17 @@ namespace OpenWifi::RADIUS {
 		void PrintAccount_StatusType(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
 			os << spaces ;
 			if (buf[3]==ACCT_STATUS_TYPE_START)
-				os << "Start";
+				os << "Start" << std::endl;
 			else if (buf[3]==ACCT_STATUS_TYPE_STOP)
-				os << "Stop";
+				os << "Stop" << std::endl;
 			else if (buf[3]==ACCT_STATUS_TYPE_INTERIM_UPDATE)
-				os << "Interim-Update";
+				os << "Interim-Update" << std::endl;
 			else if (buf[3]==ACCT_STATUS_TYPE_ACCOUNTING_ON)
-				os << "Accounting-On";
+				os << "Accounting-On" << std::endl;
 			else if (buf[3]==ACCT_STATUS_TYPE_ACCOUNTING_OFF)
-				os << "Accounting-Off";
+				os << "Accounting-Off" << std::endl;
 			else if (buf[3]==ACCT_STATUS_TYPE_FAILED)
-				os << "Failed";
+				os << "Failed" << std::endl;
 			else
 				BufLog(os,"",buf,len);
 		}
@@ -583,10 +583,12 @@ namespace OpenWifi::RADIUS {
 		void PrintAccount_AcctAuthentic(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
 			os << spaces ;
 			if (buf[3]==ACCT_AUTHENTIC_RADIUS)
-				os << "RADIUS";
+				os << "RADIUS" << std::endl;
 			else if (buf[3]==ACCT_AUTHENTIC_LOCAL)
-				os << "Local";
+				os << "Local" << std::endl;
 			else if (buf[3]==ACCT_AUTHENTIC_REMOTE)
+				os << "Remote" << std::endl;
+			else
 				BufLog(os,"",buf,len);
 		}
 
