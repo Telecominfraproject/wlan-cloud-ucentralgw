@@ -28,8 +28,15 @@ namespace OpenWifi {
 
 			try {
 				if (Session != nullptr) {
-					std::cout << "Sending accounting packet to proxy..." << std::endl;
-					Session->Packet_.Log(std::cout);
+					switch(Session->Type_) {
+						case SessionNotification::NotificationType::session_message: {
+							std::cout << "Sending accounting packet to proxy..." << std::endl;
+							Session->Packet_.Log(std::cout);
+						} break;
+						case SessionNotification::NotificationType::ap_disconnect: {
+							std::cout << "AP Disconnecting  and quitting all RADIUS sessions" << std::endl;
+						} break;
+					}
 				}
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);

@@ -15,8 +15,23 @@ namespace OpenWifi {
 
 	class SessionNotification : public Poco::Notification {
 	  public:
-		SessionNotification(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P)
-			: Destination_(Destination), SerialNumber_(SerialNumber), Packet_(P) {}
+
+		enum class NotificationType {
+			session_message,
+			ap_disconnect
+		};
+
+		explicit SessionNotification(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P)
+			: Type_(NotificationType::session_message), Destination_(Destination), SerialNumber_(SerialNumber), Packet_(P) {
+
+		}
+
+		explicit SessionNotification(const std::string &SerialNumber)
+			: Type_(NotificationType::ap_disconnect), SerialNumber_(SerialNumber) {
+
+		}
+
+		NotificationType			Type_;
 		std::string 				Destination_;
 		std::string 				SerialNumber_;
 		RADIUS::RadiusPacket		Packet_;
