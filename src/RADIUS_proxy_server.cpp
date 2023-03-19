@@ -255,20 +255,12 @@ namespace OpenWifi {
 		AP_WS_Server()->SendRadiusCoAData(SerialNumber, P.Buffer(), P.Size());
 	}
 
-	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber,
-												 const char *buffer, std::size_t size) {
-
-		if (!Continue())
-			return;
-
-		try {
-			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
-			auto Destination = P.ExtractProxyStateDestination();
+	void RADIUS_proxy_server::RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P) {
+		try{
 			auto CallingStationID = P.ExtractCallingStationID();
 			auto CalledStationID = P.ExtractCalledStationID();
 			Poco::Net::SocketAddress Dst(Destination);
 
-			RADIUSAccountingSessionKeeper()->AddSession(serialNumber, P);
 
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
@@ -277,8 +269,7 @@ namespace OpenWifi {
 				Poco::Net::SocketAddress RSP(FinalDestination.host(), 0);
 				auto DestinationServer = RADSECservers_.find(RSP);
 				if (DestinationServer != end(RADSECservers_)) {
-					DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer,
-														size);
+					DestinationServer->second->SendData(serialNumber, P.Buffer(), P.Size());
 				}
 			} else {
 				if ((Dst.family() == Poco::Net::SocketAddress::IPv4 &&
@@ -294,8 +285,8 @@ namespace OpenWifi {
 				}
 				auto AllSent =
 					SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *AccountingSocketV4_
-																			: *AccountingSocketV6_,
-							 (const unsigned char *)buffer, size, FinalDestination);
+																			: *AccountingSocketV6_
+							 , P.Buffer(), P.Size(), FinalDestination);
 				if (!AllSent)
 					poco_error(Logger(),
 							   fmt::format("{}: Could not send Accounting packet packet to {}.",
@@ -306,6 +297,25 @@ namespace OpenWifi {
 													 serialNumber, FinalDestination.toString(),
 													 CalledStationID, CallingStationID));
 			}
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
+			poco_warning(Logger(),
+						 fmt::format("Bad RADIUS ACCT Packet from {}. Dropped.", serialNumber));
+		}
+	}
+
+	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber,
+												 const char *buffer, std::size_t size) {
+
+		if (!Continue())
+			return;
+
+		try {
+			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
+			auto Destination = P.ExtractProxyStateDestination();
+			RADIUSAccountingSessionKeeper()->AddSession(Destination, serialNumber, P);
+			RouteAndSendAccountingPacket(Destination, serialNumber, P);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {

@@ -15,8 +15,9 @@ namespace OpenWifi {
 
 	class SessionNotification : public Poco::Notification {
 	  public:
-		SessionNotification(const std::string &SerialNumber, const RADIUS::RadiusPacket &P)
-			: SerialNumber_(SerialNumber), Packet_(P) {}
+		SessionNotification(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P)
+			: Destination_(Destination), SerialNumber_(SerialNumber), Packet_(P) {}
+		std::string 				Destination_;
 		std::string 				SerialNumber_;
 		RADIUS::RadiusPacket		Packet_;
 	};
@@ -32,8 +33,8 @@ namespace OpenWifi {
 		int Start() override;
 		void Stop() override;
 		void run() final;
-		void AddSession(const std::string &SerialNumber, const RADIUS::RadiusPacket &P) {
-			SessionMessageQueue_.enqueueNotification(new SessionNotification(SerialNumber,P));
+		void AddSession(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P) {
+			SessionMessageQueue_.enqueueNotification(new SessionNotification(Destination, SerialNumber, P));
 		}
 
 	  private:
