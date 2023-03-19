@@ -172,6 +172,8 @@ namespace OpenWifi::RADIUS {
 		{RADCMD_RES_ALT_RECLAIM_REQ, "Alternate-Resource-Reclaim-Request"},
 		{0, nullptr}};
 
+	constexpr std::uint8_t ACCT_STATUS_TYPE = 40;
+
 	static const struct tok radius_attribute_names[] = {{1, "User-Name"},
 														{2, "User-Password"},
 														{3, "CHAP-Password"},
@@ -209,7 +211,7 @@ namespace OpenWifi::RADIUS {
 														{37, "Framed-AppleTalk-Link"},
 														{38, "Framed-AppleTalk-Network"},
 														{39, "Framed-AppleTalk-Zone"},
-														{40, "Acct-Status-Type"},
+														{ACCT_STATUS_TYPE, "Acct-Status-Type"},
 														{41, "Acct-Delay-Time"},
 														{42, "Acct-Input-Octets"},
 														{43, "Acct-Output-Octets"},
@@ -548,6 +550,31 @@ namespace OpenWifi::RADIUS {
 			os << std::dec;
 		}
 
+		const std::uint8_t ACCT_STATUS_TYPE_START = 1;
+		const std::uint8_t ACCT_STATUS_TYPE_STOP = 2;
+		const std::uint8_t ACCT_STATUS_TYPE_INTERIM_UPDATE = 3;
+		const std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_ON = 7;
+		const std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_OFF = 8;
+		const std::uint8_t ACCT_STATUS_TYPE_FAILED = 15;
+
+		void PrintAccountStatusType(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
+			os << spaces ;
+			if (buf[3]==ACCT_STATUS_TYPE_START)
+				os << "Start";
+			else if (buf[3]==ACCT_STATUS_TYPE_STOP)
+				os << "Stop";
+			else if (buf[3]==ACCT_STATUS_TYPE_INTERIM_UPDATE)
+				os << "Interim-Update";
+			else if (buf[3]==ACCT_STATUS_TYPE_ACCOUNTING_ON)
+				os << "Accounting-On";
+			else if (buf[3]==ACCT_STATUS_TYPE_ACCOUNTING_OFF)
+				os << "Accounting-Off";
+			else if (buf[3]==ACCT_STATUS_TYPE_FAILED)
+				os << "Failed";
+			else
+				BufLog(os,"",buf,len);
+		}
+
 		inline void Print(std::ostream &os) {
 			os << "Packet type: (" << (uint)P_.code << ") " << CommandName(P_.code) << std::endl;
 			os << "  Identifier: " << (uint)P_.identifier << std::endl;
@@ -558,7 +585,12 @@ namespace OpenWifi::RADIUS {
 			for (const auto &attr : Attrs_) {
 				os << "    " << std::setfill(' ') << "(" << std::setw(4) << (uint)attr.type << ") "
 				   << AttributeName(attr.type) << "   Len:" << attr.len << std::endl;
-				BufLog(os, "           ", &P_.attributes[attr.pos], attr.len);
+				std::string attr_offset = "           ";
+				if(attr.type == ACCT_STATUS_TYPE) {
+					PrintAccountStatusType(os, attr_offset, &P_.attributes[attr.pos], attr.len);
+				} else {
+					BufLog(os, attr_offset.c_str(), &P_.attributes[attr.pos], attr.len);
+				}
 			}
 			os << std::dec << std::endl << std::endl;
 		}
