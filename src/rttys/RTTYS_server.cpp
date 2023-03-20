@@ -248,7 +248,7 @@ namespace OpenWifi {
 		Socket.setBlocking(false);
 		Socket.setReceiveBufferSize(RTTY_RECEIVE_BUFFER);
 		Socket.setSendBufferSize(RTTY_RECEIVE_BUFFER);
-		Poco::Timespan TS2(0, 100);
+		Poco::Timespan TS2(300, 100);
 		Socket.setReceiveTimeout(TS2);
 
 		Reactor_.addEventHandler(Socket,
