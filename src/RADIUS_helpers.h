@@ -172,6 +172,10 @@ namespace OpenWifi::RADIUS {
 		{RADCMD_RES_ALT_RECLAIM_REQ, "Alternate-Resource-Reclaim-Request"},
 		{0, nullptr}};
 
+	constexpr std::uint8_t ACCT_STATUS_TYPE = 40;
+	constexpr std::uint8_t ACCT_AUTHENTIC = 45;
+	constexpr std::uint8_t CALLING_STATION_ID = 31;
+
 	static const struct tok radius_attribute_names[] = {{1, "User-Name"},
 														{2, "User-Password"},
 														{3, "CHAP-Password"},
@@ -200,7 +204,7 @@ namespace OpenWifi::RADIUS {
 														{28, "Idle-Timeout"},
 														{29, "Termination-Action"},
 														{30, "Called-Station-Id"},
-														{31, "Calling-Station-Id"},
+														{CALLING_STATION_ID, "Calling-Station-Id"},
 														{32, "NAS-Identifier"},
 														{33, "Proxy-State"},
 														{34, "Login-LAT-Service"},
@@ -209,12 +213,12 @@ namespace OpenWifi::RADIUS {
 														{37, "Framed-AppleTalk-Link"},
 														{38, "Framed-AppleTalk-Network"},
 														{39, "Framed-AppleTalk-Zone"},
-														{40, "Acct-Status-Type"},
+														{ACCT_STATUS_TYPE, "Acct-Status-Type"},
 														{41, "Acct-Delay-Time"},
 														{42, "Acct-Input-Octets"},
 														{43, "Acct-Output-Octets"},
 														{44, "Acct-Session-Id"},
-														{45, "Acct-Authentic"},
+														{ACCT_AUTHENTIC, "Acct-Authentic"},
 														{46, "Acct-Session-Time"},
 														{47, "Acct-Input-Packets"},
 														{48, "Acct-Output-Packets"},
@@ -290,6 +294,17 @@ namespace OpenWifi::RADIUS {
 	constexpr unsigned char CoA_NAK = 45;
 
 	constexpr unsigned char ATTR_MessageAuthenticator = 80;
+
+	constexpr std::uint8_t ACCT_STATUS_TYPE_START = 1;
+	constexpr std::uint8_t ACCT_STATUS_TYPE_STOP = 2;
+	constexpr std::uint8_t ACCT_STATUS_TYPE_INTERIM_UPDATE = 3;
+	constexpr std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_ON = 7;
+	constexpr std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_OFF = 8;
+	constexpr std::uint8_t ACCT_STATUS_TYPE_FAILED = 15;
+
+	constexpr std::uint8_t ACCT_AUTHENTIC_RADIUS = 1;
+	constexpr std::uint8_t ACCT_AUTHENTIC_LOCAL = 2;
+	constexpr std::uint8_t ACCT_AUTHENTIC_REMOTE = 3;
 
 	inline bool IsAuthentication(unsigned char t) {
 		return (t == RADIUS::Access_Request || t == RADIUS::Access_Accept ||
@@ -413,11 +428,19 @@ namespace OpenWifi::RADIUS {
 				Valid_ = ParseRadius(0, (unsigned char *)&P_.attributes[0], Size_ - 20, Attrs_);
 		}
 
-		explicit RadiusPacket(const RadiusPacket &P) {
+		RadiusPacket(const RadiusPacket &P) {
 			Valid_ = P.Valid_;
 			Size_ = P.Size_;
 			P_ = P.P_;
 			Attrs_ = P.Attrs_;
+		}
+
+		inline RadiusPacket& operator=(const RadiusPacket& other) {
+			Valid_ = other.Valid_;
+			Size_ = other.Size_;
+			P_ = other.P_;
+			Attrs_ = other.Attrs_;
+			return *this;
 		}
 
 		explicit RadiusPacket() = default;
@@ -475,7 +498,7 @@ namespace OpenWifi::RADIUS {
 
 		inline const char *PacketType() { return CommandName(P_.code); }
 
-		inline int PacketTypeInt() { return (int)(P_.code); }
+		inline std::uint8_t PacketTypeInt() { return P_.code; }
 
 		void ComputeMessageAuthenticator(const std::string &secret) {
 			RawRadiusPacket P = P_;
@@ -498,9 +521,9 @@ namespace OpenWifi::RADIUS {
 					NewAuthenticator[p++] = i;
 
 				if (memcmp(OldAuthenticator, NewAuthenticator, 16) == 0) {
-					std::cout << "Authenticator match..." << std::endl;
+					// std::cout << "Authenticator match..." << std::endl;
 				} else {
-					std::cout << "Authenticator MIS-match..." << std::endl;
+					// std::cout << "Authenticator MIS-match..." << std::endl;
 					for (const auto &attr : Attrs_) {
 						if (attr.type == 80) {
 							memcpy(&P_.attributes[attr.pos], NewAuthenticator, 16);
@@ -548,6 +571,36 @@ namespace OpenWifi::RADIUS {
 			os << std::dec;
 		}
 
+		void PrintAccount_StatusType(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
+			os << spaces ;
+			if (buf[3]==ACCT_STATUS_TYPE_START)
+				os << "Start" << std::endl;
+			else if (buf[3]==ACCT_STATUS_TYPE_STOP)
+				os << "Stop" << std::endl;
+			else if (buf[3]==ACCT_STATUS_TYPE_INTERIM_UPDATE)
+				os << "Interim-Update" << std::endl;
+			else if (buf[3]==ACCT_STATUS_TYPE_ACCOUNTING_ON)
+				os << "Accounting-On" << std::endl;
+			else if (buf[3]==ACCT_STATUS_TYPE_ACCOUNTING_OFF)
+				os << "Accounting-Off" << std::endl;
+			else if (buf[3]==ACCT_STATUS_TYPE_FAILED)
+				os << "Failed" << std::endl;
+			else
+				BufLog(os,"",buf,len);
+		}
+
+		void PrintAccount_AcctAuthentic(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
+			os << spaces ;
+			if (buf[3]==ACCT_AUTHENTIC_RADIUS)
+				os << "RADIUS" << std::endl;
+			else if (buf[3]==ACCT_AUTHENTIC_LOCAL)
+				os << "Local" << std::endl;
+			else if (buf[3]==ACCT_AUTHENTIC_REMOTE)
+				os << "Remote" << std::endl;
+			else
+				BufLog(os,"",buf,len);
+		}
+
 		inline void Print(std::ostream &os) {
 			os << "Packet type: (" << (uint)P_.code << ") " << CommandName(P_.code) << std::endl;
 			os << "  Identifier: " << (uint)P_.identifier << std::endl;
@@ -558,7 +611,13 @@ namespace OpenWifi::RADIUS {
 			for (const auto &attr : Attrs_) {
 				os << "    " << std::setfill(' ') << "(" << std::setw(4) << (uint)attr.type << ") "
 				   << AttributeName(attr.type) << "   Len:" << attr.len << std::endl;
-				BufLog(os, "           ", &P_.attributes[attr.pos], attr.len);
+				std::string attr_offset = "           ";
+				switch(attr.type) {
+				case ACCT_STATUS_TYPE: PrintAccount_StatusType(os, attr_offset, &P_.attributes[attr.pos], attr.len); break;
+				case ACCT_AUTHENTIC: PrintAccount_AcctAuthentic(os, attr_offset, &P_.attributes[attr.pos], attr.len); break;
+				default:
+					BufLog(os, attr_offset.c_str(), &P_.attributes[attr.pos], attr.len);
+				}
 			}
 			os << std::dec << std::endl << std::endl;
 		}
@@ -672,10 +731,9 @@ namespace OpenWifi::RADIUS {
 			return "";
 		}
 
-	  private:
+		AttributeList Attrs_;
 		RawRadiusPacket P_;
 		uint16_t Size_{0};
-		AttributeList Attrs_;
 		bool Valid_ = false;
 	};
 

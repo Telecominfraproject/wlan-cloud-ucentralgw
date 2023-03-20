@@ -17,6 +17,7 @@
 #include "FileUploader.h"
 #include "FindCountry.h"
 #include "OUIServer.h"
+#include "RADIUSAccountingSessionKeeper.h"
 #include "RADIUS_proxy_server.h"
 #include "RegulatoryInfo.h"
 #include "ScriptManager.h"
@@ -41,7 +42,8 @@ namespace OpenWifi {
 						 CommandManager(), FileUploader(), StorageArchiver(), TelemetryStream(),
 						 RTTYS_server(), RADIUS_proxy_server(), VenueBroadcaster(), ScriptManager(),
 						 SignatureManager(), AP_WS_Server(),
-						 RegulatoryInfo()
+						 RegulatoryInfo(),
+						 RADIUSAccountingSessionKeeper()
 			});
 		return &instance;
 	}
