@@ -89,26 +89,25 @@ namespace OpenWifi {
 			std::map<std::string,RADIUSAccountingSession>  Sessions;
 			Sessions[CallingStationId] = S;
 			Sessions_[Notification.SerialNumber_] = Sessions;
-			std::cout << "Calling Station Id: " << CallingStationId << " type=" << (std::uint16_t) AccountingPacketType << std::endl;
-
+			poco_debug(Logger(),fmt::format("{}: Creating session", CallingStationId));
 		} else {
 
 			//  If we receive a stop, just remove that session
-			if(AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_STOP) {
-				std::cout << "Deleting session" << std::endl;
+			if(AccountingPacketType==OpenWifi::RADIUS::ACCT_STATUS_TYPE_STOP) {
+				poco_debug(Logger(),fmt::format("{}: Deleting session", CallingStationId));
 				hint->second.erase(CallingStationId);
 			} else {
 				//  we are either starting or interim, which means ths same.
 				auto device_session = hint->second.find(CallingStationId);
 				if(device_session == end(hint->second)) {
-					std::cout << "Creating session" << std::endl;
+					poco_debug(Logger(),fmt::format("{}: Creating session", CallingStationId));
 					RADIUSAccountingSession S;
 					S.Started_ = Utils::Now();
 					S.Destination = Notification.Destination_;
 					S.Packet_ = Notification.Packet_;
 					hint->second[CallingStationId] = S;
 				} else {
-					std::cout << "Updating session" << std::endl;
+					poco_debug(Logger(),fmt::format("{}: Updating session", CallingStationId));
 					device_session->second.Packet_ = Notification.Packet_;
 					device_session->second.Destination = Notification.Destination_;
 				}
