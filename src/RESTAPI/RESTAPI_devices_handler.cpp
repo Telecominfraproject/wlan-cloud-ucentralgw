@@ -131,7 +131,7 @@ namespace OpenWifi {
 			RetObj.set(RESTAPI::Protocol::SERIALNUMBERS, Objects);
 		} else if (GetBoolParameter("health")) {
 			auto lowLimit = GetParameter("lowLimit",30);
-			auto highLimit = GetParameter("highLImit",80);
+			auto highLimit = GetParameter("highLimit",80);
 			std::vector<std::string>	SerialNumbers;
 			AP_WS_Server()->GetHealthDevices(lowLimit,highLimit,SerialNumbers);
 
