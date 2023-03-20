@@ -9,14 +9,17 @@
 namespace OpenWifi {
 
 	int RADIUSAccountingSessionKeeper::Start() {
+		poco_information(Logger(),"Starting...");
 		QueueManager_.start(*this);
 		return 0;
 	}
 
 	void RADIUSAccountingSessionKeeper::Stop() {
+		poco_information(Logger(),"Stopping...");
 		Running_ = false;
 		SessionMessageQueue_.wakeUpAll();
 		QueueManager_.join();
+		poco_information(Logger(),"Stopped...");
 	}
 
 	void RADIUSAccountingSessionKeeper::run() {
