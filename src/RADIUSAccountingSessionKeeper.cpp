@@ -55,29 +55,64 @@ namespace OpenWifi {
 
 		std::lock_guard     Guard(Mutex_);
 
+		std::string CallingStationId;
+		std::uint8_t AccountingPacketType = 0;
+		for (const auto &attribute : Notification.Packet_.Attrs_) {
+			switch (attribute.type) {
+			case RADIUS::CALLING_STATION_ID: {
+				CallingStationId.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+				std::cout << "Calling station ID:" << CallingStationId << std::endl;
+			} break;
+			case RADIUS::ACCT_STATUS_TYPE: {
+				AccountingPacketType = Notification.Packet_.P_.attributes[attribute.pos + 3];
+			} break;
+			default: {
+			} break;
+			}
+		}
+
 		auto hint = Sessions_.find(Notification.SerialNumber_);
 		if(hint==end(Sessions_)) {
 			//  find the calling_station_id
-			std::string CallingStationId;
-			std::uint8_t AccountingPacketType = 0;
-			for (const auto &attribute : Notification.Packet_.Attrs_) {
-				switch (attribute.type) {
-				case RADIUS::CALLING_STATION_ID: {
-					CallingStationId.assign(
-						&Notification.Packet_.P_.attributes[attribute.pos],
-						&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
-					std::cout << "Calling station ID:" << CallingStationId << std::endl;
-				} break;
-				case RADIUS::ACCT_STATUS_TYPE: {
-					AccountingPacketType = Notification.Packet_.P_.attributes[attribute.pos + 3];
-				} break;
-				default: {
-				} break;
-				}
-			}
+			//  if we are getting a stop for something we do not know, nothing to do...
+			if( AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_START &&
+				AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_INTERIM_UPDATE)
+				return;
+
+			RADIUSAccountingSession S;
+			S.Started_ = Utils::Now();
+			S.Destination = Notification.Destination_;
+			S.Packet_ = Notification.Packet_;
+
+			std::map<std::string,RADIUSAccountingSession>  Sessions;
+			Sessions[CallingStationId] = S;
+			Sessions_[Notification.SerialNumber_] = Sessions;
 			std::cout << "Calling Station Id: " << CallingStationId << " type=" << (std::uint16_t) AccountingPacketType << std::endl;
+
 		} else {
 
+			//  If we receive a stop, just remove that session
+			if(AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_STOP) {
+				std::cout << "Deleting session" << std::endl;
+				hint->second.erase(CallingStationId);
+			} else {
+				//  we are either starting or interim, which means ths same.
+				auto device_session = hint->second.find(CallingStationId);
+				if(device_session == end(hint->second)) {
+					std::cout << "Creating session" << std::endl;
+					RADIUSAccountingSession S;
+					S.Started_ = Utils::Now();
+					S.Destination = Notification.Destination_;
+					S.Packet_ = Notification.Packet_;
+					hint->second[CallingStationId] = S;
+				} else {
+					std::cout << "Updating session" << std::endl;
+					device_session->second.Packet_ = Notification.Packet_;
+					device_session->second.Destination = Notification.Destination_;
+				}
+			}
 		}
 	}
 

@@ -295,6 +295,17 @@ namespace OpenWifi::RADIUS {
 
 	constexpr unsigned char ATTR_MessageAuthenticator = 80;
 
+	constexpr std::uint8_t ACCT_STATUS_TYPE_START = 1;
+	constexpr std::uint8_t ACCT_STATUS_TYPE_STOP = 2;
+	constexpr std::uint8_t ACCT_STATUS_TYPE_INTERIM_UPDATE = 3;
+	constexpr std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_ON = 7;
+	constexpr std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_OFF = 8;
+	constexpr std::uint8_t ACCT_STATUS_TYPE_FAILED = 15;
+
+	constexpr std::uint8_t ACCT_AUTHENTIC_RADIUS = 1;
+	constexpr std::uint8_t ACCT_AUTHENTIC_LOCAL = 2;
+	constexpr std::uint8_t ACCT_AUTHENTIC_REMOTE = 3;
+
 	inline bool IsAuthentication(unsigned char t) {
 		return (t == RADIUS::Access_Request || t == RADIUS::Access_Accept ||
 				t == RADIUS::Access_Challenge || t == RADIUS::Access_Reject);
@@ -417,11 +428,19 @@ namespace OpenWifi::RADIUS {
 				Valid_ = ParseRadius(0, (unsigned char *)&P_.attributes[0], Size_ - 20, Attrs_);
 		}
 
-		explicit RadiusPacket(const RadiusPacket &P) {
+		RadiusPacket(const RadiusPacket &P) {
 			Valid_ = P.Valid_;
 			Size_ = P.Size_;
 			P_ = P.P_;
 			Attrs_ = P.Attrs_;
+		}
+
+		inline RadiusPacket& operator=(const RadiusPacket& other) {
+			Valid_ = other.Valid_;
+			Size_ = other.Size_;
+			P_ = other.P_;
+			Attrs_ = other.Attrs_;
+			return *this;
 		}
 
 		explicit RadiusPacket() = default;
@@ -552,13 +571,6 @@ namespace OpenWifi::RADIUS {
 			os << std::dec;
 		}
 
-		const std::uint8_t ACCT_STATUS_TYPE_START = 1;
-		const std::uint8_t ACCT_STATUS_TYPE_STOP = 2;
-		const std::uint8_t ACCT_STATUS_TYPE_INTERIM_UPDATE = 3;
-		const std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_ON = 7;
-		const std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_OFF = 8;
-		const std::uint8_t ACCT_STATUS_TYPE_FAILED = 15;
-
 		void PrintAccount_StatusType(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
 			os << spaces ;
 			if (buf[3]==ACCT_STATUS_TYPE_START)
@@ -576,10 +588,6 @@ namespace OpenWifi::RADIUS {
 			else
 				BufLog(os,"",buf,len);
 		}
-
-		const std::uint8_t ACCT_AUTHENTIC_RADIUS = 1;
-		const std::uint8_t ACCT_AUTHENTIC_LOCAL = 2;
-		const std::uint8_t ACCT_AUTHENTIC_REMOTE = 3;
 
 		void PrintAccount_AcctAuthentic(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
 			os << spaces ;
