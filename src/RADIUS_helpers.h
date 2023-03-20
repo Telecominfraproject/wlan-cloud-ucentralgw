@@ -174,6 +174,7 @@ namespace OpenWifi::RADIUS {
 
 	constexpr std::uint8_t ACCT_STATUS_TYPE = 40;
 	constexpr std::uint8_t ACCT_AUTHENTIC = 45;
+	constexpr std::uint8_t CALLING_STATION_ID = 31;
 
 	static const struct tok radius_attribute_names[] = {{1, "User-Name"},
 														{2, "User-Password"},
@@ -203,7 +204,7 @@ namespace OpenWifi::RADIUS {
 														{28, "Idle-Timeout"},
 														{29, "Termination-Action"},
 														{30, "Called-Station-Id"},
-														{31, "Calling-Station-Id"},
+														{CALLING_STATION_ID, "Calling-Station-Id"},
 														{32, "NAS-Identifier"},
 														{33, "Proxy-State"},
 														{34, "Login-LAT-Service"},
@@ -478,7 +479,7 @@ namespace OpenWifi::RADIUS {
 
 		inline const char *PacketType() { return CommandName(P_.code); }
 
-		inline int PacketTypeInt() { return (int)(P_.code); }
+		inline std::uint8_t PacketTypeInt() { return P_.code; }
 
 		void ComputeMessageAuthenticator(const std::string &secret) {
 			RawRadiusPacket P = P_;
@@ -722,10 +723,9 @@ namespace OpenWifi::RADIUS {
 			return "";
 		}
 
-	  private:
+		AttributeList Attrs_;
 		RawRadiusPacket P_;
 		uint16_t Size_{0};
-		AttributeList Attrs_;
 		bool Valid_ = false;
 	};
 

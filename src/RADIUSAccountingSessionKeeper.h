@@ -37,6 +37,12 @@ namespace OpenWifi {
 		RADIUS::RadiusPacket		Packet_;
 	};
 
+	struct RADIUSAccountingSession {
+		std::uint64_t 			Started_=0;
+		std::string 			Destination;
+		RADIUS::RadiusPacket	Packet_;
+	};
+
 	class RADIUSAccountingSessionKeeper : public SubSystemServer, Poco::Runnable {
 	  public:
 
@@ -56,6 +62,8 @@ namespace OpenWifi {
 		std::atomic_bool 			Running_=false;
 		Poco::NotificationQueue 	SessionMessageQueue_;
 		Poco::Thread				QueueManager_;
+
+		std::map<std::string,std::map<std::string,RADIUSAccountingSession>>	Sessions_;
 
 		void ProcessSession(SessionNotification &Notification);
 		void DisconnectSession(const std::string &SerialNumber);
