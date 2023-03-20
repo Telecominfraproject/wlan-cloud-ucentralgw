@@ -52,10 +52,6 @@ namespace OpenWifi {
 	}
 
 	void RADIUSAccountingSessionKeeper::ProcessSession(OpenWifi::SessionNotification &Notification) {
-		std::cout << "Sending accounting packet to proxy..." << std::endl;
-
-		// Notification.Packet_.Log(std::cout);
-
 		std::lock_guard     Guard(Mutex_);
 
 		std::string CallingStationId;
@@ -66,7 +62,6 @@ namespace OpenWifi {
 				CallingStationId.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
-				std::cout << "Calling station ID:" << CallingStationId << std::endl;
 			} break;
 			case RADIUS::ACCT_STATUS_TYPE: {
 				AccountingPacketType = Notification.Packet_.P_.attributes[attribute.pos + 3];

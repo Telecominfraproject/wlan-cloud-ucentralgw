@@ -521,9 +521,9 @@ namespace OpenWifi::RADIUS {
 					NewAuthenticator[p++] = i;
 
 				if (memcmp(OldAuthenticator, NewAuthenticator, 16) == 0) {
-					std::cout << "Authenticator match..." << std::endl;
+					// std::cout << "Authenticator match..." << std::endl;
 				} else {
-					std::cout << "Authenticator MIS-match..." << std::endl;
+					// std::cout << "Authenticator MIS-match..." << std::endl;
 					for (const auto &attr : Attrs_) {
 						if (attr.type == 80) {
 							memcpy(&P_.attributes[attr.pos], NewAuthenticator, 16);
