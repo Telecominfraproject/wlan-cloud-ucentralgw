@@ -205,8 +205,8 @@ namespace OpenWifi {
 			std::lock_guard		G(WSServerMutex_);
 
 			for(const auto &connection:Sessions_) {
-				if(	lowLimit<=connection.second->RawLastHealthcheck_.Sanity 	&&
-					highLimit>=connection.second->RawLastHealthcheck_.Sanity) {
+				if(	connection.second->RawLastHealthcheck_.Sanity>=lowLimit 	&&
+					connection.second->RawLastHealthcheck_.Sanity<=highLimit) {
 					SerialNumbers.push_back(connection.second->SerialNumber_);
 				}
 			}
