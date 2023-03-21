@@ -758,10 +758,9 @@ namespace OpenWifi::RADIUS {
 			}
 		}
 
-		void ReplaceAttribute(std::uint8_t attribute, std::uint16_t t_value) {
+		void ReplaceAttribute(std::uint8_t attribute, std::uint16_t value) {
 			for (const auto &attr : Attrs_) {
 				if(attr.type==attribute) {
-					auto value = htons(t_value);
 					P_.attributes[attr.pos+0] = value >> 8;
 					P_.attributes[attr.pos+1] = value & 0x00ff;
 					return;
@@ -769,10 +768,9 @@ namespace OpenWifi::RADIUS {
 			}
 		}
 
-		void ReplaceAttribute(std::uint8_t attribute, std::uint32_t t_value) {
+		void ReplaceAttribute(std::uint8_t attribute, std::uint32_t value) {
 			for (const auto &attr : Attrs_) {
 				if(attr.type==attribute) {
-					auto value = htonl(t_value);
 					P_.attributes[attr.pos+0] = (std::uint8_t ) ((value & 0xff000000) >> 24);
 					P_.attributes[attr.pos+1] = (std::uint8_t ) ((value & 0x00ff0000) >> 16);
 					P_.attributes[attr.pos+2] = (std::uint8_t ) ((value & 0x0000ff00) >> 8);
@@ -831,8 +829,7 @@ namespace OpenWifi::RADIUS {
 			ReParse();
 		}
 
-		void AppendAttribute(std::uint8_t attribute, std::uint16_t t_value) {
-			auto value = htons(t_value);
+		void AppendAttribute(std::uint8_t attribute, std::uint16_t value) {
 			P_.attributes[Size_+0] = attribute;
 			P_.attributes[Size_+1] = 2+2;
 			P_.attributes[Size_+2] = (value & 0xff00) >> 8;
@@ -841,8 +838,7 @@ namespace OpenWifi::RADIUS {
 			ReParse();
 		}
 
-		void AppendAttribute(std::uint8_t attribute, std::uint32_t t_value) {
-			auto value = htonl(t_value);
+		void AppendAttribute(std::uint8_t attribute, std::uint32_t value) {
 			P_.attributes[Size_+0] = attribute;
 			P_.attributes[Size_+1] = 4+2;
 			P_.attributes[Size_+2] = (value & 0xff000000) >> 24;
@@ -879,11 +875,10 @@ namespace OpenWifi::RADIUS {
 			}
 		}
 
-		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint16_t t_value) {
+		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint16_t value) {
 			for (const auto &attr : Attrs_) {
 				if(attr.type==location) {
 					int Augment = 2;
-					auto value = htons(t_value);
 					memmove(&P_.attributes[attr.pos+attr.len+1+1+Augment], &P_.attributes[attr.pos+attr.len], Size_-(attr.pos+attr.len));
 					P_.attributes[attr.pos+attr.len+0] = attribute;
 					P_.attributes[attr.pos+attr.len+1] = Augment+2;
@@ -896,11 +891,10 @@ namespace OpenWifi::RADIUS {
 			}
 		}
 
-		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint32_t t_value) {
+		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint32_t value) {
 			for (const auto &attr: Attrs_) {
 				if (attr.type == location) {
 					int Augment = 4;
-					auto value = htonl(t_value);
 					memmove(&P_.attributes[attr.pos + attr.len + 1 + 1 + Augment], &P_.attributes[attr.pos + attr.len],
 							Size_ - (attr.pos + attr.len));
 					P_.attributes[attr.pos + attr.len + 0] = attribute;
