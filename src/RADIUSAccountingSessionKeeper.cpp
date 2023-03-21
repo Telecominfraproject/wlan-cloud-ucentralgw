@@ -142,7 +142,7 @@ namespace OpenWifi {
 			RADIUS::RadiusPacket	P(session.second.Packet_);
 			P.P_.identifier++;
 			P.ReplaceAttribute(RADIUS::ACCT_STATUS_TYPE, (std::uint32_t) RADIUS::ACCT_STATUS_TYPE_STOP);
-			P.ReplaceAttribute(RADIUS::EVENT_TIMESTAMP, (std::uint32_t) std::time(nullptr));
+			P.ReplaceOrAdd(RADIUS::EVENT_TIMESTAMP, (std::uint32_t) std::time(nullptr));
 
 			RADIUS_proxy_server()->RouteAndSendAccountingPacket(session.second.Destination, SerialNumber, P, true);
 			store_packet(SerialNumber, (const char *)P.Buffer(), P.Size());

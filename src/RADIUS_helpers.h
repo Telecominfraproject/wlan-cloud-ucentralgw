@@ -931,6 +931,45 @@ namespace OpenWifi::RADIUS {
 			AddAttribute(location, attribute, attribute_value.c_str(), attribute_value.size());
 		}
 
+		bool HasAttribute(std::uint8_t attribute) {
+			return std::any_of(Attrs_.begin(),Attrs_.end(),[attribute](const RadiusAttribute &Attr) { return Attr.type ==attribute; });
+		}
+
+		void ReplaceOrAdd(std::uint8_t attribute, std::uint8_t attribute_value) {
+			if(HasAttribute(attribute))
+				ReplaceAttribute(attribute, attribute_value);
+			else
+				AppendAttribute(attribute, attribute_value);
+		}
+
+		void ReplaceOrAdd(std::uint8_t attribute, std::uint16_t attribute_value) {
+			if(HasAttribute(attribute))
+				ReplaceAttribute(attribute, attribute_value);
+			else
+				AppendAttribute(attribute, attribute_value);
+		}
+
+		void ReplaceOrAdd(std::uint8_t attribute, std::uint32_t attribute_value) {
+			if(HasAttribute(attribute))
+				ReplaceAttribute(attribute, attribute_value);
+			else
+				AppendAttribute(attribute, attribute_value);
+		}
+
+		void ReplaceOrAdd(std::uint8_t attribute, const char *attribute_value, std::uint8_t attribute_len) {
+			if(HasAttribute(attribute))
+				ReplaceAttribute(attribute, attribute_value, attribute_len);
+			else
+				AppendAttribute(attribute, attribute_value, attribute_len);
+		}
+
+		void ReplaceOrAdd(std::uint8_t attribute, const std::string & attribute_value) {
+			if(HasAttribute(attribute))
+				ReplaceAttribute(attribute, attribute_value.c_str(), attribute_value.size());
+			else
+				AppendAttribute(attribute, attribute_value.c_str(), attribute_value.size());
+
+		}
 
 		AttributeList Attrs_;
 		RawRadiusPacket P_;
