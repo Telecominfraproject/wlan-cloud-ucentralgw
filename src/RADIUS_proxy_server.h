@@ -39,7 +39,7 @@ namespace OpenWifi {
 									std::size_t size);
 		void SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size);
 
-		void RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P);
+		void RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P, bool reComputeAuthenticator);
 
 		void SetConfig(const GWObjects::RadiusProxyPoolList &C);
 		void DeleteConfig();

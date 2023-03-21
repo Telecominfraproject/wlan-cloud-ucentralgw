@@ -255,12 +255,11 @@ namespace OpenWifi {
 		AP_WS_Server()->SendRadiusCoAData(SerialNumber, P.Buffer(), P.Size());
 	}
 
-	void RADIUS_proxy_server::RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P) {
+	void RADIUS_proxy_server::RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P, [[maybe_unused]] bool RecomputeAuthenticator) {
 		try{
 			auto CallingStationID = P.ExtractCallingStationID();
 			auto CalledStationID = P.ExtractCalledStationID();
 			Poco::Net::SocketAddress Dst(Destination);
-
 
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
@@ -305,6 +304,16 @@ namespace OpenWifi {
 		}
 	}
 
+	void store_packet(const std::string &serialNumber, const char *buffer, std::size_t size) {
+		static std::uint64_t pkt=0;
+
+		std::string filename = MicroServiceDataDirectory() + "/radius." + serialNumber + "." + std::to_string(pkt) + ".bin";
+
+		std::ofstream ofs(filename,std::ios_base::binary | std::ios_base::trunc | std::ios_base::out);
+		ofs.write(buffer,size);
+		ofs.close();
+	}
+
 	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber,
 												 const char *buffer, std::size_t size) {
 
@@ -314,8 +323,9 @@ namespace OpenWifi {
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
 			auto Destination = P.ExtractProxyStateDestination();
+			store_packet(serialNumber, buffer, size);
 			RADIUSAccountingSessionKeeper()->AddSession(Destination, serialNumber, P);
-			RouteAndSendAccountingPacket(Destination, serialNumber, P);
+			RouteAndSendAccountingPacket(Destination, serialNumber, P, false);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {

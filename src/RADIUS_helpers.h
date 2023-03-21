@@ -731,6 +731,85 @@ namespace OpenWifi::RADIUS {
 			return "";
 		}
 
+/*
+		void ReplaceAttribute(std::uint8_t attribute, std::uint8_t value) {
+			for (const auto &attr : Attrs_) {
+				if(attr.type==attribute) {
+					P_.attributes[attr.pos] = value;
+					return;
+				}
+			}
+		}
+
+		void ReplaceAttribute(std::uint8_t attribute, std::uint16_t value) {
+			for (const auto &attr : Attrs_) {
+				if(attr.type==attribute) {
+					P_.attributes[attr.pos+0] = value >> 8;
+					P_.attributes[attr.pos+1] = value & 0x00ff;
+					return;
+				}
+			}
+		}
+
+		void ReplaceAttribute(std::uint8_t attribute, std::uint32_t value) {
+			for (const auto &attr : Attrs_) {
+				if(attr.type==attribute) {
+					P_.attributes[attr.pos+0] = (std::uint8_t ) ((value & 0xff000000) >> 24);
+					P_.attributes[attr.pos+1] = (std::uint8_t ) ((value & 0x00ff0000) >> 16);
+					P_.attributes[attr.pos+2] = (std::uint8_t ) ((value & 0x0000ff00) >> 8);
+					P_.attributes[attr.pos+3] = (std::uint8_t ) ((value & 0x000000ff) >> 0);
+					return;
+				}
+			}
+		}
+
+		void ReplaceAttribute(std::uint8_t attribute, const char *attribute_value, std::uint8_t attribute_len) {
+			for (const auto &attr : Attrs_) {
+				if(attr.type==attribute) {
+					if(attr.len==attribute_len) {
+						memcpy(&P_.attributes[attr.pos], attribute_value, attribute_len);
+					} else if(attr.len>attribute_len){
+						memcpy(&P_.attributes[attr.pos], attribute_value, attribute_len);
+						memmove(&P_.attributes[attr.pos+attribute_len], &P_.attributes[attr.pos+attr.len], P_.rawlen - (attr.pos+attr.len));
+						P_.rawlen -= (attr.len - attribute_len);
+					} else {
+						memmove(&P_.attributes[attr.pos+attribute_len], &P_.attributes[attr.pos+attr.len], P_.rawlen - (attr.pos+attr.len));
+						memcpy(&P_.attributes[attr.pos], attribute_value, attribute_len);
+						P_.rawlen += (attribute_len - attr.len);
+					}
+					return;
+				}
+			}
+		}
+
+		void ReplaceAttribute(std::uint8_t attribute, const std::string &attribute_value) {
+			ReplaceAttribute(attribute,attribute_value.c_str(),attribute_value.size());
+		}
+
+		void RemoveAttribute(std::uint8_t attribute) {
+
+		}
+
+		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint8_t value) {
+
+		}
+
+		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint16_t value) {
+
+		}
+
+		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint32_t value) {
+
+		}
+
+		void AddAttribute(std::uint8_t location, std::uint8_t attribute, const char *attribute_value, std::uint8_t attribute_len) {
+
+		}
+
+		void AddAttribute(std::uint8_t location, std::uint8_t attribute, const std::string &attribute_value) {
+
+		}
+*/
 		AttributeList Attrs_;
 		RawRadiusPacket P_;
 		uint16_t Size_{0};
