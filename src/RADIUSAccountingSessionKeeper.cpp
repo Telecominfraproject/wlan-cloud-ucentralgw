@@ -6,6 +6,8 @@
 #include <framework/utils.h>
 #include <fmt/format.h>
 
+#include "RADIUS_proxy_server.h"
+
 namespace OpenWifi {
 
 	int RADIUSAccountingSessionKeeper::Start() {
@@ -115,6 +117,25 @@ namespace OpenWifi {
 
 	void RADIUSAccountingSessionKeeper::DisconnectSession(const std::string &SerialNumber) {
 		poco_information(Logger(),fmt::format("{}: Disconnecting.", SerialNumber));
+
+		std::lock_guard		Guard(Mutex_);
+
+		auto hint = Sessions_.find(SerialNumber);
+		if(hint==end(Sessions_)) {
+			return;
+		}
+
+		//	we need to go through all sessions and send an accounting stop
+		for(const auto &session:hint->second) {
+			poco_debug(Logger(), fmt::format("Stopping accounting for {}:{}", SerialNumber, session.first ));
+
+			RADIUS::RadiusPacket	P(session.second.Packet_);
+
+			P.ReplaceAttribute(RADIUS::ACCT_STATUS_TYPE, (std::uint32_t) RADIUS::ACCT_STATUS_TYPE_STOP);
+			P.ReplaceAttribute(RADIUS::EVENT_TIMESTAMP, (std::uint32_t) std::time(nullptr));
+
+			RADIUS_proxy_server()->RouteAndSendAccountingPacket(session.second.Destination, SerialNumber, P, true);
+		}
 	}
 
 } // namespace OpenWifi

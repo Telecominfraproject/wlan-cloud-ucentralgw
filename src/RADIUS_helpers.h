@@ -306,6 +306,8 @@ namespace OpenWifi::RADIUS {
 	constexpr std::uint8_t ACCT_AUTHENTIC_LOCAL = 2;
 	constexpr std::uint8_t ACCT_AUTHENTIC_REMOTE = 3;
 
+	constexpr std::uint8_t EVENT_TIMESTAMP = 55;
+
 	inline bool IsAuthentication(unsigned char t) {
 		return (t == RADIUS::Access_Request || t == RADIUS::Access_Accept ||
 				t == RADIUS::Access_Challenge || t == RADIUS::Access_Reject);
