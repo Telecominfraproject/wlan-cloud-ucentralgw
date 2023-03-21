@@ -399,7 +399,7 @@ namespace OpenWifi::RADIUS {
 			}
 			memcpy((void *)&P_, Buf.begin(), Buf.size());
 			Size_ = Buf.size();
-			Valid_ = (Size_ == htons(P_.rawlen));
+			Valid_ = (Size_ == ntohs(P_.rawlen));
 			if (Valid_)
 				Valid_ = ParseRadius(0, (unsigned char *)&P_.attributes[0], Size_ - 20, Attrs_);
 		}
@@ -411,7 +411,7 @@ namespace OpenWifi::RADIUS {
 			}
 			memcpy((void *)&P_, buffer, size);
 			Size_ = size;
-			Valid_ = (Size_ == htons(P_.rawlen));
+			Valid_ = (Size_ == ntohs(P_.rawlen));
 			if (Valid_)
 				Valid_ = ParseRadius(0, (unsigned char *)&P_.attributes[0], Size_ - 20, Attrs_);
 		}
@@ -423,7 +423,7 @@ namespace OpenWifi::RADIUS {
 			}
 			memcpy((void *)&P_, (const unsigned char *)p.c_str(), p.size());
 			Size_ = p.size();
-			Valid_ = (Size_ == htons(P_.rawlen));
+			Valid_ = (Size_ == ntohs(P_.rawlen));
 			if (Valid_)
 				Valid_ = ParseRadius(0, (unsigned char *)&P_.attributes[0], Size_ - 20, Attrs_);
 		}
@@ -434,6 +434,11 @@ namespace OpenWifi::RADIUS {
 			P_ = P.P_;
 			Attrs_ = P.Attrs_;
 		}
+
+        void ReParse() {
+            P_.rawlen = htons(Size_);
+            Valid_ = ParseRadius(0, (unsigned char *)&P_.attributes[0], Size_ - 20, Attrs_);
+        }
 
 		inline RadiusPacket& operator=(const RadiusPacket& other) {
 			Valid_ = other.Valid_;
@@ -453,7 +458,7 @@ namespace OpenWifi::RADIUS {
 			Valid_ = ParseRadius(0, (unsigned char *)&P_.attributes[0], Size_ - 20, Attrs_);
 		}
 
-		[[nodiscard]] uint16_t Len() const { return htons(P_.rawlen); }
+		[[nodiscard]] uint16_t Len() const { return ntohs(P_.rawlen); }
 		[[nodiscard]] uint16_t Size() const { return Size_; }
 
 		friend std::ostream &operator<<(std::ostream &os, RadiusPacket const &P);
@@ -531,6 +536,17 @@ namespace OpenWifi::RADIUS {
 					}
 				}
 			}
+		}
+
+		void RecomputeAuthenticator(const std::string &secret) {
+			memset(P_.authenticator,0,sizeof(P_.authenticator));
+			Poco::MD5Engine md5;
+			md5.update((const unsigned char *)&P_, Size_);
+			md5.update(secret.c_str(), secret.size());
+			auto digest = md5.digest();
+			int p = 0;
+			for (const auto &i : digest)
+				P_.authenticator[p++] = i;
 		}
 
 		bool VerifyMessageAuthenticator(const std::string &secret) {
@@ -731,7 +747,6 @@ namespace OpenWifi::RADIUS {
 			return "";
 		}
 
-/*
 		void ReplaceAttribute(std::uint8_t attribute, std::uint8_t value) {
 			for (const auto &attr : Attrs_) {
 				if(attr.type==attribute) {
@@ -741,9 +756,10 @@ namespace OpenWifi::RADIUS {
 			}
 		}
 
-		void ReplaceAttribute(std::uint8_t attribute, std::uint16_t value) {
+		void ReplaceAttribute(std::uint8_t attribute, std::uint16_t t_value) {
 			for (const auto &attr : Attrs_) {
 				if(attr.type==attribute) {
+					auto value = htons(t_value);
 					P_.attributes[attr.pos+0] = value >> 8;
 					P_.attributes[attr.pos+1] = value & 0x00ff;
 					return;
@@ -751,9 +767,10 @@ namespace OpenWifi::RADIUS {
 			}
 		}
 
-		void ReplaceAttribute(std::uint8_t attribute, std::uint32_t value) {
+		void ReplaceAttribute(std::uint8_t attribute, std::uint32_t t_value) {
 			for (const auto &attr : Attrs_) {
 				if(attr.type==attribute) {
+					auto value = htonl(t_value);
 					P_.attributes[attr.pos+0] = (std::uint8_t ) ((value & 0xff000000) >> 24);
 					P_.attributes[attr.pos+1] = (std::uint8_t ) ((value & 0x00ff0000) >> 16);
 					P_.attributes[attr.pos+2] = (std::uint8_t ) ((value & 0x0000ff00) >> 8);
@@ -768,14 +785,20 @@ namespace OpenWifi::RADIUS {
 				if(attr.type==attribute) {
 					if(attr.len==attribute_len) {
 						memcpy(&P_.attributes[attr.pos], attribute_value, attribute_len);
-					} else if(attr.len>attribute_len){
+					} else if(attribute_len<attr.len){
 						memcpy(&P_.attributes[attr.pos], attribute_value, attribute_len);
-						memmove(&P_.attributes[attr.pos+attribute_len], &P_.attributes[attr.pos+attr.len], P_.rawlen - (attr.pos+attr.len));
-						P_.rawlen -= (attr.len - attribute_len);
+                        P_.attributes[attr.pos-1] = attribute_len + 2;
+                        auto Shrink = attr.len - attribute_len;
+						memmove(&P_.attributes[attr.pos+attribute_len], &P_.attributes[attr.pos+attr.len], Size_ - Shrink);
+						Size_ -= Shrink;
+						ReParse();
 					} else {
-						memmove(&P_.attributes[attr.pos+attribute_len], &P_.attributes[attr.pos+attr.len], P_.rawlen - (attr.pos+attr.len));
+						auto Augment = (attribute_len - attr.len);
+						memmove(&P_.attributes[attr.pos+attribute_len], &P_.attributes[attr.pos+attr.len], Size_ + Augment);
 						memcpy(&P_.attributes[attr.pos], attribute_value, attribute_len);
-						P_.rawlen += (attribute_len - attr.len);
+						P_.attributes[attr.pos-1] = attribute_len+2;
+						Size_ += Augment;
+						ReParse();
 					}
 					return;
 				}
@@ -787,29 +810,132 @@ namespace OpenWifi::RADIUS {
 		}
 
 		void RemoveAttribute(std::uint8_t attribute) {
-
+			for (const auto &attr : Attrs_) {
+				if(attr.type==attribute) {
+					auto Shrink = attr.len+2;
+					memmove(&P_.attributes[attr.pos-2], &P_.attributes[attr.pos+attr.len], Size_ - Shrink);
+					Size_ -= Shrink;
+					ReParse();
+					return;
+				}
+			}
 		}
 
+		void AppendAttribute(std::uint8_t attribute, std::uint8_t value) {
+			P_.attributes[Size_+0] = attribute;
+			P_.attributes[Size_+1] = 1+2;
+			P_.attributes[Size_+2] = value;
+			Size_+= 3;
+			ReParse();
+		}
+
+		void AppendAttribute(std::uint8_t attribute, std::uint16_t t_value) {
+			auto value = htons(t_value);
+			P_.attributes[Size_+0] = attribute;
+			P_.attributes[Size_+1] = 2+2;
+			P_.attributes[Size_+2] = (value & 0xff00) >> 8;
+			P_.attributes[Size_+3] = (value & 0x00ff) >> 0;
+			Size_+= 4;
+			ReParse();
+		}
+
+		void AppendAttribute(std::uint8_t attribute, std::uint32_t t_value) {
+			auto value = htonl(t_value);
+			P_.attributes[Size_+0] = attribute;
+			P_.attributes[Size_+1] = 4+2;
+			P_.attributes[Size_+2] = (value & 0xff000000) >> 24;
+			P_.attributes[Size_+3] = (value & 0x00ff0000) >> 16;
+			P_.attributes[Size_+4] = (value & 0x0000ff00) >> 8;
+			P_.attributes[Size_+5] = (value & 0x000000ff) >> 0;
+			Size_+= 6;
+			ReParse();
+		}
+
+		void AppendAttribute(std::uint8_t attribute, const char *attribute_value, std::uint8_t attribute_len) {
+			P_.attributes[Size_+0] = attribute;
+			P_.attributes[Size_+1] = attribute_len+2;
+			memcpy(&P_.attributes[Size_+2],attribute_value,attribute_len);
+			Size_+= 2 + attribute_len;
+			ReParse();
+		}
+
+		void AppendAttribute(std::uint8_t attribute, const std::string &attribute_value) {
+			AppendAttribute(attribute, attribute_value.c_str(), attribute_value.size());
+		}
 		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint8_t value) {
-
+			for (const auto &attr : Attrs_) {
+				if(attr.type==location) {
+					int Augment = 1;
+					memmove(&P_.attributes[attr.pos+attr.len+1+1+Augment], &P_.attributes[attr.pos+attr.len], Size_-(attr.pos+attr.len));
+					P_.attributes[attr.pos+attr.len+0] = attribute;
+					P_.attributes[attr.pos+attr.len+1] = Augment+2;
+					P_.attributes[attr.pos+attr.len+2] = value;
+					Size_+=2+Augment;
+					ReParse();
+					return;
+				}
+			}
 		}
 
-		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint16_t value) {
-
+		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint16_t t_value) {
+			for (const auto &attr : Attrs_) {
+				if(attr.type==location) {
+					int Augment = 2;
+					auto value = htons(t_value);
+					memmove(&P_.attributes[attr.pos+attr.len+1+1+Augment], &P_.attributes[attr.pos+attr.len], Size_-(attr.pos+attr.len));
+					P_.attributes[attr.pos+attr.len+0] = attribute;
+					P_.attributes[attr.pos+attr.len+1] = Augment+2;
+					P_.attributes[attr.pos+attr.len+2] = (value & 0xff00) >> 8;
+					P_.attributes[attr.pos+attr.len+3] = (value & 0x00ff) >> 0;
+					Size_+=2+Augment;
+					ReParse();
+					return;
+				}
+			}
 		}
 
-		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint32_t value) {
-
+		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint32_t t_value) {
+			for (const auto &attr: Attrs_) {
+				if (attr.type == location) {
+					int Augment = 4;
+					auto value = htonl(t_value);
+					memmove(&P_.attributes[attr.pos + attr.len + 1 + 1 + Augment], &P_.attributes[attr.pos + attr.len],
+							Size_ - (attr.pos + attr.len));
+					P_.attributes[attr.pos + attr.len + 0] = attribute;
+					P_.attributes[attr.pos + attr.len + 1] = Augment+2;
+					P_.attributes[attr.pos + attr.len + 2] = (value & 0xff000000) >> 24;
+					P_.attributes[attr.pos + attr.len + 3] = (value & 0x00ff0000) >> 16;
+					P_.attributes[attr.pos + attr.len + 4] = (value & 0x0000ff00) >> 8;
+					P_.attributes[attr.pos + attr.len + 5] = (value & 0x000000ff) >> 0;
+					Size_ += 2 + Augment;
+					ReParse();
+					return;
+				}
+			}
 		}
+
 
 		void AddAttribute(std::uint8_t location, std::uint8_t attribute, const char *attribute_value, std::uint8_t attribute_len) {
-
+			for (const auto &attr: Attrs_) {
+				if (attr.type == location) {
+					int Augment = attribute_len;
+					memmove(&P_.attributes[attr.pos + attr.len + 1 + 1 + Augment], &P_.attributes[attr.pos + attr.len],
+							Size_ - (attr.pos + attr.len));
+					P_.attributes[attr.pos + attr.len + 0] = attribute;
+					P_.attributes[attr.pos + attr.len + 1] = Augment+2;
+					memcpy(&P_.attributes[attr.pos + attr.len + 2], attribute_value, attribute_len);
+					Size_ += 2 + Augment;
+					ReParse();
+					return;
+				}
+			}
 		}
 
 		void AddAttribute(std::uint8_t location, std::uint8_t attribute, const std::string &attribute_value) {
-
+			AddAttribute(location, attribute, attribute_value.c_str(), attribute_value.size());
 		}
-*/
+
+
 		AttributeList Attrs_;
 		RawRadiusPacket P_;
 		uint16_t Size_{0};
@@ -827,10 +953,11 @@ namespace OpenWifi::RADIUS {
 			unsigned char MessageAuthenticator[16]{0};
 			AddAttribute(ATTR_MessageAuthenticator, sizeof(MessageAuthenticator),
 						 MessageAuthenticator);
-			P_.rawlen = 1 + 1 + 2 + 16 + 1 + 1 + 16;
+            int PktLen = 1 + 1 + 2 + 16 + 1 + 1 + 16;
+			P_.rawlen = htons(PktLen);
 
 			Poco::HMACEngine<Poco::MD5Engine> H(Secret_);
-			H.update((const unsigned char *)&P_, P_.rawlen);
+			H.update((const unsigned char *)&P_, PktLen);
 			auto digest = H.digest();
 			int p = 0;
 			for (const auto &i : digest)
@@ -847,7 +974,7 @@ namespace OpenWifi::RADIUS {
 		[[nodiscard]] inline const unsigned char *Data() const {
 			return (const unsigned char *)&P_;
 		}
-		[[nodiscard]] inline std::uint16_t Len() const { return P_.rawlen; }
+		[[nodiscard]] inline std::uint16_t Len() const { return ntohs(P_.rawlen); }
 
 	  private:
 		RawRadiusPacket P_;

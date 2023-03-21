@@ -32,6 +32,7 @@
 #include "framework/ow_constants.h"
 
 #include "RADIUS_proxy_server.h"
+#include "RADIUSAccountingSessionKeeper.h"
 
 namespace OpenWifi {
 
@@ -237,6 +238,13 @@ namespace OpenWifi {
 		EndConnection();
 	}
 
+	void DeviceDisconnectionCleanup(const std::string &SerialNumber) {
+		if (KafkaManager()->Enabled()) {
+			NotifyKafkaDisconnect(SerialNumber);
+		}
+		RADIUSAccountingSessionKeeper()->DeviceDisconnect(SerialNumber);
+	}
+
 	void AP_WS_Connection::EndConnection() {
 		Valid_ = false;
 		if (!Dead_.test_and_set()) {
@@ -255,10 +263,9 @@ namespace OpenWifi {
 			}
 			WS_->close();
 
-			if (KafkaManager()->Enabled() && !SerialNumber_.empty()) {
-				std::string s(SerialNumber_);
-				std::thread t([s]() { NotifyKafkaDisconnect(s); });
-				t.detach();
+			if(!SerialNumber_.empty()) {
+				std::thread	Cleanup(DeviceDisconnectionCleanup,SerialNumber_);
+				Cleanup.detach();
 			}
 
 			auto SessionDeleted = AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);

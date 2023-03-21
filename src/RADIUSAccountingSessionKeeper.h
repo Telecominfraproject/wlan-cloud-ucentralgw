@@ -54,8 +54,11 @@ namespace OpenWifi {
 		int Start() override;
 		void Stop() override;
 		void run() final;
-		void AddSession(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P) {
+		inline void AddSession(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P) {
 			SessionMessageQueue_.enqueueNotification(new SessionNotification(Destination, SerialNumber, P));
+		}
+		inline void DeviceDisconnect(const std::string &serialNumber) {
+			SessionMessageQueue_.enqueueNotification(new SessionNotification(serialNumber));
 		}
 
 	  private:
