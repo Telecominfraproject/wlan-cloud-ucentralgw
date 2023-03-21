@@ -115,6 +115,16 @@ namespace OpenWifi {
 		}
 	}
 
+	static void store_packet(const std::string &serialNumber, const char *buffer, std::size_t size) {
+		static std::uint64_t pkt=0;
+
+		std::string filename = MicroServiceDataDirectory() + "/radius." + serialNumber + ".stop." + std::to_string(pkt++) + ".bin";
+
+		std::ofstream ofs(filename,std::ios_base::binary | std::ios_base::trunc | std::ios_base::out);
+		ofs.write(buffer,size);
+		ofs.close();
+	}
+
 	void RADIUSAccountingSessionKeeper::DisconnectSession(const std::string &SerialNumber) {
 		poco_information(Logger(),fmt::format("{}: Disconnecting.", SerialNumber));
 
@@ -130,12 +140,15 @@ namespace OpenWifi {
 			poco_debug(Logger(), fmt::format("Stopping accounting for {}:{}", SerialNumber, session.first ));
 
 			RADIUS::RadiusPacket	P(session.second.Packet_);
-
+			P.P_.identifier++;
 			P.ReplaceAttribute(RADIUS::ACCT_STATUS_TYPE, (std::uint32_t) RADIUS::ACCT_STATUS_TYPE_STOP);
 			P.ReplaceAttribute(RADIUS::EVENT_TIMESTAMP, (std::uint32_t) std::time(nullptr));
 
 			RADIUS_proxy_server()->RouteAndSendAccountingPacket(session.second.Destination, SerialNumber, P, true);
+			store_packet(SerialNumber, (const char *)P.Buffer(), P.Size());
 		}
+
+		Sessions_.erase(hint);
 	}
 
 } // namespace OpenWifi
