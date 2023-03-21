@@ -307,7 +307,7 @@ namespace OpenWifi {
 	void store_packet(const std::string &serialNumber, const char *buffer, std::size_t size) {
 		static std::uint64_t pkt=0;
 
-		std::string filename = MicroServiceDataDirectory() + "/radius." + serialNumber + "." + std::to_string(pkt) + ".bin";
+		std::string filename = MicroServiceDataDirectory() + "/radius." + serialNumber + "." + std::to_string(pkt++) + ".bin";
 
 		std::ofstream ofs(filename,std::ios_base::binary | std::ios_base::trunc | std::ios_base::out);
 		ofs.write(buffer,size);
