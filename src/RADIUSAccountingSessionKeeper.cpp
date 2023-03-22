@@ -115,7 +115,7 @@ namespace OpenWifi {
 		}
 	}
 
-	static void store_packet(const std::string &serialNumber, const char *buffer, std::size_t size) {
+	[[maybe_unused]] static void store_packet(const std::string &serialNumber, const char *buffer, std::size_t size) {
 		static std::uint64_t pkt=0;
 
 		std::string filename = MicroServiceDataDirectory() + "/radius." + serialNumber + ".stop." + std::to_string(pkt++) + ".bin";
@@ -146,7 +146,7 @@ namespace OpenWifi {
 			P.AppendAttribute(RADIUS::ACCT_TERMINATE_CAUSE, (std::uint32_t) RADIUS::ACCT_TERMINATE_PORT_REBOOT);
 
 			RADIUS_proxy_server()->RouteAndSendAccountingPacket(session.second.Destination, SerialNumber, P, true);
-			store_packet(SerialNumber, (const char *)P.Buffer(), P.Size());
+			// store_packet(SerialNumber, (const char *)P.Buffer(), P.Size());
 		}
 
 		Sessions_.erase(hint);

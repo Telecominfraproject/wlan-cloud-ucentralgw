@@ -332,7 +332,7 @@ namespace OpenWifi {
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
 			auto Destination = P.ExtractProxyStateDestination();
-			store_packet(serialNumber, buffer, size);
+			// store_packet(serialNumber, buffer, size);
 			RADIUSAccountingSessionKeeper()->AddSession(Destination, serialNumber, P);
 			RouteAndSendAccountingPacket(Destination, serialNumber, P, false);
 		} catch (const Poco::Exception &E) {
