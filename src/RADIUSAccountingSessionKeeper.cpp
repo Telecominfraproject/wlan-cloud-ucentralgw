@@ -115,10 +115,11 @@ namespace OpenWifi {
 		}
 	}
 
-	[[maybe_unused]] static void store_packet(const std::string &serialNumber, const char *buffer, std::size_t size) {
+	[[maybe_unused]] static void store_packet(const std::string &serialNumber, const char *buffer, std::size_t size, int i) {
 		static std::uint64_t pkt=0;
 
-		std::string filename = MicroServiceDataDirectory() + "/radius." + serialNumber + ".stop." + std::to_string(pkt++) + ".bin";
+		std::string filename = MicroServiceDataDirectory() + "/radius." + serialNumber + ".stop." +
+							   std::to_string(pkt++) + "." + std::to_string(i) + ".bin";
 
 		std::ofstream ofs(filename,std::ios_base::binary | std::ios_base::trunc | std::ios_base::out);
 		ofs.write(buffer,size);
@@ -140,12 +141,15 @@ namespace OpenWifi {
 			poco_debug(Logger(), fmt::format("Stopping accounting for {}:{}", SerialNumber, session.first ));
 
 			RADIUS::RadiusPacket	P(session.second.Packet_);
+
+			store_packet(SerialNumber, (const char *)P.Buffer(), P.Size(), 0);
+
 			P.P_.identifier++;
 			P.ReplaceAttribute(RADIUS::ACCT_STATUS_TYPE, (std::uint32_t) RADIUS::ACCT_STATUS_TYPE_STOP);
 			P.ReplaceOrAdd(RADIUS::EVENT_TIMESTAMP, (std::uint32_t) std::time(nullptr));
 			P.AppendAttribute(RADIUS::ACCT_TERMINATE_CAUSE, (std::uint32_t) RADIUS::ACCT_TERMINATE_LOST_CARRIER);
 			RADIUS_proxy_server()->RouteAndSendAccountingPacket(session.second.Destination, SerialNumber, P, true);
-			store_packet(SerialNumber, (const char *)P.Buffer(), P.Size());
+			store_packet(SerialNumber, (const char *)P.Buffer(), P.Size(), 1);
 		}
 
 		Sessions_.erase(hint);
