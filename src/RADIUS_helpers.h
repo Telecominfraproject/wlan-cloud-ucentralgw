@@ -172,6 +172,8 @@ namespace OpenWifi::RADIUS {
 		{RADCMD_RES_ALT_RECLAIM_REQ, "Alternate-Resource-Reclaim-Request"},
 		{0, nullptr}};
 
+	constexpr std::uint32_t AttributeOffset = 20;
+
 	constexpr std::uint8_t ACCT_STATUS_TYPE = 40;
 	constexpr std::uint8_t ACCT_AUTHENTIC = 45;
 	constexpr std::uint8_t CALLING_STATION_ID = 31;
@@ -843,37 +845,41 @@ namespace OpenWifi::RADIUS {
 		}
 
 		void AppendAttribute(std::uint8_t attribute, std::uint8_t value) {
-			P_.attributes[Size_+0] = attribute;
-			P_.attributes[Size_+1] = 1+2;
-			P_.attributes[Size_+2] = value;
+			auto Pos = Size_ - AttributeOffset;
+			P_.attributes[Pos+0] = attribute;
+			P_.attributes[Pos+1] = 1+2;
+			P_.attributes[Pos+2] = value;
 			Size_+= 3;
 			ReParse();
 		}
 
 		void AppendAttribute(std::uint8_t attribute, std::uint16_t value) {
-			P_.attributes[Size_+0] = attribute;
-			P_.attributes[Size_+1] = 2+2;
-			P_.attributes[Size_+2] = (value & 0xff00) >> 8;
-			P_.attributes[Size_+3] = (value & 0x00ff) >> 0;
+			auto Pos = Size_ - AttributeOffset;
+			P_.attributes[Pos+0] = attribute;
+			P_.attributes[Pos+1] = 2+2;
+			P_.attributes[Pos+2] = (value & 0xff00) >> 8;
+			P_.attributes[Pos+3] = (value & 0x00ff) >> 0;
 			Size_+= 4;
 			ReParse();
 		}
 
 		void AppendAttribute(std::uint8_t attribute, std::uint32_t value) {
-			P_.attributes[Size_+0] = attribute;
-			P_.attributes[Size_+1] = 4+2;
-			P_.attributes[Size_+2] = (value & 0xff000000) >> 24;
-			P_.attributes[Size_+3] = (value & 0x00ff0000) >> 16;
-			P_.attributes[Size_+4] = (value & 0x0000ff00) >> 8;
-			P_.attributes[Size_+5] = (value & 0x000000ff) >> 0;
+			auto Pos = Size_ - AttributeOffset;
+			P_.attributes[Pos+0] = attribute;
+			P_.attributes[Pos+1] = 4+2;
+			P_.attributes[Pos+2] = (value & 0xff000000) >> 24;
+			P_.attributes[Pos+3] = (value & 0x00ff0000) >> 16;
+			P_.attributes[Pos+4] = (value & 0x0000ff00) >> 8;
+			P_.attributes[Pos+5] = (value & 0x000000ff) >> 0;
 			Size_+= 6;
 			ReParse();
 		}
 
 		void AppendAttribute(std::uint8_t attribute, const char *attribute_value, std::uint8_t attribute_len) {
-			P_.attributes[Size_+0] = attribute;
-			P_.attributes[Size_+1] = attribute_len+2;
-			memcpy(&P_.attributes[Size_+2],attribute_value,attribute_len);
+			auto Pos = Size_ - AttributeOffset;
+			P_.attributes[Pos+0] = attribute;
+			P_.attributes[Pos+1] = attribute_len+2;
+			memcpy(&P_.attributes[Pos+2],attribute_value,attribute_len);
 			Size_+= 2 + attribute_len;
 			ReParse();
 		}
@@ -881,6 +887,7 @@ namespace OpenWifi::RADIUS {
 		void AppendAttribute(std::uint8_t attribute, const std::string &attribute_value) {
 			AppendAttribute(attribute, attribute_value.c_str(), attribute_value.size());
 		}
+
 		void AddAttribute(std::uint8_t location, std::uint8_t attribute, std::uint8_t value) {
 			for (const auto &attr : Attrs_) {
 				if(attr.type==location) {
