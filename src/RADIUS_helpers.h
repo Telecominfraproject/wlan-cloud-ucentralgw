@@ -175,6 +175,7 @@ namespace OpenWifi::RADIUS {
 	constexpr std::uint8_t ACCT_STATUS_TYPE = 40;
 	constexpr std::uint8_t ACCT_AUTHENTIC = 45;
 	constexpr std::uint8_t CALLING_STATION_ID = 31;
+	constexpr std::uint8_t ACCT_TERMINATE_CAUSE = 49;
 
 	static const struct tok radius_attribute_names[] = {{1, "User-Name"},
 														{2, "User-Password"},
@@ -222,7 +223,7 @@ namespace OpenWifi::RADIUS {
 														{46, "Acct-Session-Time"},
 														{47, "Acct-Input-Packets"},
 														{48, "Acct-Output-Packets"},
-														{49, "Acct-Terminate-Cause"},
+														{ACCT_TERMINATE_CAUSE, "Acct-Terminate-Cause"},
 														{50, "Acct-Multi-Session-Id"},
 														{51, "Acct-Link-Count"},
 														{52, "Acct-Input-Gigawords"},
@@ -306,7 +307,27 @@ namespace OpenWifi::RADIUS {
 	constexpr std::uint8_t ACCT_AUTHENTIC_LOCAL = 2;
 	constexpr std::uint8_t ACCT_AUTHENTIC_REMOTE = 3;
 
+	constexpr std::uint8_t ACCT_TERMINATE_USER_REQUEST = 1;
+	constexpr std::uint8_t ACCT_TERMINATE_LOST_CARRIER = 2;
+	constexpr std::uint8_t ACCT_TERMINATE_LOST_SERVICE = 3;
+	constexpr std::uint8_t ACCT_TERMINATE_IDLE_TIMEOUT = 4;
+	constexpr std::uint8_t ACCT_TERMINATE_SESSION_TIMEOUT = 5;
+	constexpr std::uint8_t ACCT_TERMINATE_ADMIN_RESET = 6;
+	constexpr std::uint8_t ACCT_TERMINATE_ADMIN_REBOOT = 7;
+	constexpr std::uint8_t ACCT_TERMINATE_PORT_ERROR = 8;
+	constexpr std::uint8_t ACCT_TERMINATE_NAS_ERROR = 9;
+	constexpr std::uint8_t ACCT_TERMINATE_NAS_REQUEST = 10;
+	constexpr std::uint8_t ACCT_TERMINATE_PORT_REBOOT = 11;
+	constexpr std::uint8_t ACCT_TERMINATE_PORT_UNNEEDED = 12;
+	constexpr std::uint8_t ACCT_TERMINATE_PORT_PREEMPTED = 13;
+	constexpr std::uint8_t ACCT_TERMINATE_PORT_SUSPEND = 14;
+	constexpr std::uint8_t ACCT_TERMINATE_SERVICE_UNAVAILABLE = 15;
+	constexpr std::uint8_t ACCT_TERMINATE_CALLBACK = 16;
+	constexpr std::uint8_t ACCT_TERMINATE_USER_ERROR = 17;
+	constexpr std::uint8_t ACCT_TERMINATE_HOST_REQUEST = 18;
+
 	constexpr std::uint8_t EVENT_TIMESTAMP = 55;
+
 
 	inline bool IsAuthentication(unsigned char t) {
 		return (t == RADIUS::Access_Request || t == RADIUS::Access_Accept ||
