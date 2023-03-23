@@ -460,8 +460,6 @@ namespace OpenWifi {
 					continue;
 				}
 
-				std::cout << BufferCurrentSize << " : " << msg_len << std::endl;
-
 				switch (LastCommand) {
 					case RTTYS_EndPoint::msgTypeRegister: {
 						good = do_msgTypeRegister(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
@@ -483,7 +481,6 @@ namespace OpenWifi {
 					} break;
 					case RTTYS_EndPoint::msgTypeHeartbeat: {
 						good = do_msgTypeHeartbeat(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
-						std::cout << "Sending heartbeat" << std::endl;
 					} break;
 					case RTTYS_EndPoint::msgTypeFile: {
 						good = do_msgTypeFile(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
