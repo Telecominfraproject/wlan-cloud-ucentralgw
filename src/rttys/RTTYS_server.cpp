@@ -480,6 +480,7 @@ namespace OpenWifi {
 						good = do_msgTypeCmd(pNf->socket(), Buffer, BufferCurrentSize, BufferPos, msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeHeartbeat: {
+						std::cout << "Heart beat" << std::endl;
 						good = do_msgTypeHeartbeat(pNf->socket(), Buffer, BufferCurrentSize, BufferPos, msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeFile: {
