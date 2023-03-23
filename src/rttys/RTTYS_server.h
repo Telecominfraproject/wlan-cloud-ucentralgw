@@ -194,17 +194,17 @@ namespace OpenWifi {
 		void RemoveSocket(const Poco::Net::Socket &Socket);
 		void LogStdException(const std::exception &E, const std::string & msg);
 
-		bool do_msgTypeRegister(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos);
-		bool do_msgTypeLogin(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos);
+		bool do_msgTypeRegister(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferP, std::size_t msl_lenos);
+		bool do_msgTypeLogin(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msl_len);
 		bool do_msgTypeTermData(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msl_len);
-		bool do_msgTypeLogout(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos);
-		bool do_msgTypeWinsize(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos);
-		bool do_msgTypeCmd(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos);
-		bool do_msgTypeHeartbeat(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos);
-		bool do_msgTypeFile(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos);
-		bool do_msgTypeHttp(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos);
-		bool do_msgTypeAck(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos);
-		bool do_msgTypeMax(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos);
+		bool do_msgTypeLogout(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msl_len);
+		bool do_msgTypeWinsize(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msl_len);
+		bool do_msgTypeCmd(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msl_len);
+		bool do_msgTypeHeartbeat(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msl_len);
+		bool do_msgTypeFile(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msl_len);
+		bool do_msgTypeHttp(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msl_len);
+		bool do_msgTypeAck(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msl_len);
+		bool do_msgTypeMax(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msl_len);
 
 		bool WindowSize(std::shared_ptr<RTTYS_EndPoint> Conn, int cols, int rows);
 		bool KeyStrokes(std::shared_ptr<RTTYS_EndPoint> Conn, const u_char *buf, size_t len);
