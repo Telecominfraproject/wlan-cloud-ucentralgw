@@ -979,6 +979,7 @@ namespace OpenWifi {
 		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
 			try {
 				BufferPos++;
+				msg_len--;
 				auto good = SendToClient(*EndPoint->second->WSSocket_, &Buffer[BufferPos], (int) msg_len );
 				BufferPos += msg_len;
 				return good;
