@@ -460,7 +460,8 @@ namespace OpenWifi {
 					continue;
 				}
 
-				std::cout << "BufferCurrentSize: " << BufferCurrentSize << "  MsgLen: " << msg_len << " Pos: " << BufferPos << std::endl;
+				std::cout << "Cmd: " << (int) LastCommand << "  BufferCurrentSize: " << BufferCurrentSize
+						  << "  MsgLen: " << msg_len << "  Pos: " << BufferPos << std::endl;
 				switch (LastCommand) {
 					case RTTYS_EndPoint::msgTypeRegister: {
 						good = do_msgTypeRegister(pNf->socket(), Buffer, BufferCurrentSize, BufferPos, msg_len);
