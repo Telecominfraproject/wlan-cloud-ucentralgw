@@ -158,6 +158,8 @@ namespace OpenWifi {
 		void onConnectedDeviceSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onConnectedDeviceSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
+		void onConnectedDeviceTimeOut(const Poco::AutoPtr<Poco::Net::TimeoutNotification> &pNf);
+
 		void onClientSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void onClientSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onClientSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);

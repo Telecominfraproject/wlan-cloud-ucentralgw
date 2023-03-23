@@ -404,6 +404,20 @@ namespace OpenWifi {
 		return good;
 	}
 
+	void RTTYS_server::onConnectedDeviceTimeOut(const Poco::AutoPtr<Poco::Net::TimeoutNotification> &pNf) {
+		try {
+			u_char MsgBuf[RTTY_HDR_SIZE];
+			MsgBuf[0] = RTTYS_EndPoint::msgTypeHeartbeat;
+			MsgBuf[1] = 0;
+			MsgBuf[2] = 0;
+			pNf->socket().impl()->sendBytes(MsgBuf, RTTY_HDR_SIZE);
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (const std::exception &E) {
+			LogStdException(E, "Cannot send heartbeat");
+		}
+	}
+
 	void RTTYS_server::onConnectedDeviceSocketReadable(
 		const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
@@ -465,6 +479,7 @@ namespace OpenWifi {
 					} break;
 					case RTTYS_EndPoint::msgTypeHeartbeat: {
 						good = do_msgTypeHeartbeat(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
+						std::cout << "Sending heartbeat" << std::endl;
 					} break;
 					case RTTYS_EndPoint::msgTypeFile: {
 						good = do_msgTypeFile(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
