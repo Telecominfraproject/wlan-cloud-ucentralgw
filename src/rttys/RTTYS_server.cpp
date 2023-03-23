@@ -947,6 +947,7 @@ namespace OpenWifi {
 				unsigned char Error = Buffer[BufferPos];
 				if(Error==0) {
 					EndPoint->second->sid_ = Buffer[BufferPos+1];
+					BufferPos += msg_len;
 				} else {
 					BufferPos += msg_len;
 					poco_error(Logger(),"Device login failed.");
@@ -983,10 +984,8 @@ namespace OpenWifi {
 				return good;
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
-				return false;
 			} catch (const std::exception &E) {
 				LogStdException(E, "Cannot send data to UI Client");
-				return false;
 			}
 		}
 		return false;
@@ -1015,10 +1014,8 @@ namespace OpenWifi {
 			return Sent == RTTY_HDR_SIZE;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-			return false;
 		} catch (const std::exception &E) {
 			LogStdException(E, "Cannot send heartbeat");
-			return false;
 		}
 		return false;
 	}
