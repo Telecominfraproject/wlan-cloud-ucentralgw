@@ -435,8 +435,9 @@ namespace OpenWifi {
 
 			Poco::FIFOBuffer &buffer = *hint->second->buffer;
 
-			int received_bytes=0;
+			int received_bytes=0, line=0;
 			try {
+				std::cout << "Available: " << buffer.available() ;
 				received_bytes = hint->second->socket.receiveBytes(*hint->second->buffer);
 				if(received_bytes==0) {
 					poco_warning(Logger(), "Device Closing connection - 0 bytes received.");
@@ -475,7 +476,7 @@ namespace OpenWifi {
 
 				buffer.drain(RTTY_HDR_SIZE);
 
-				std::cout << "Cmd: " << (int) LastCommand << "  Received: " << received_bytes
+				std::cout << line++ <<"  Cmd: " << (int) LastCommand << "  Received: " << received_bytes
 						  << "  MsgLen: " << msg_len << "  Data in buffer: " << buffer.used() << std::endl;
 				switch (LastCommand) {
 					case RTTYS_EndPoint::msgTypeRegister: {
