@@ -449,14 +449,18 @@ namespace OpenWifi {
 
 			while (BufferPos<BufferCurrentSize && good) {
 				unsigned char LastCommand=0;
+				std::uint16_t len = 0;
 				if (BufferCurrentSize >= RTTY_HDR_SIZE) {
 					LastCommand = Buffer[BufferPos+0];
+					len = (Buffer[BufferPos+1] << 8) + Buffer[BufferPos+2];
 					BufferPos+=RTTY_HDR_SIZE;
 				} else {
 					good = false;
 					std::cout << "Funky..." << BufferCurrentSize << std::endl;
 					continue;
 				}
+
+				std::cout << BufferCurrentSize << " : " << len << std::endl;
 
 				switch (LastCommand) {
 					case RTTYS_EndPoint::msgTypeRegister: {
