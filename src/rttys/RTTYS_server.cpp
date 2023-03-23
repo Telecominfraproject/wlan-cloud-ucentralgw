@@ -404,6 +404,20 @@ namespace OpenWifi {
 		return good;
 	}
 
+	void RTTYS_server::onConnectedDeviceTimeOut(const Poco::AutoPtr<Poco::Net::TimeoutNotification> &pNf) {
+		try {
+			u_char MsgBuf[RTTY_HDR_SIZE];
+			MsgBuf[0] = RTTYS_EndPoint::msgTypeHeartbeat;
+			MsgBuf[1] = 0;
+			MsgBuf[2] = 0;
+			pNf->socket().impl()->sendBytes(MsgBuf, RTTY_HDR_SIZE);
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (const std::exception &E) {
+			LogStdException(E, "Cannot send heartbeat");
+		}
+	}
+
 	void RTTYS_server::onConnectedDeviceSocketReadable(
 		const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
@@ -435,8 +449,10 @@ namespace OpenWifi {
 
 			while (BufferPos<BufferCurrentSize && good) {
 				unsigned char LastCommand=0;
+				std::uint16_t msg_len = 0;
 				if (BufferCurrentSize >= RTTY_HDR_SIZE) {
 					LastCommand = Buffer[BufferPos+0];
+					msg_len = (Buffer[BufferPos+1] << 8) + Buffer[BufferPos+2];
 					BufferPos+=RTTY_HDR_SIZE;
 				} else {
 					good = false;
@@ -455,7 +471,7 @@ namespace OpenWifi {
 						good = do_msgTypeLogout(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
 					} break;
 					case RTTYS_EndPoint::msgTypeTermData: {
-						good = do_msgTypeTermData(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
+						good = do_msgTypeTermData(pNf->socket(), Buffer, BufferCurrentSize, BufferPos, msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeWinsize: {
 						good = do_msgTypeWinsize(pNf->socket(), Buffer, BufferCurrentSize, BufferPos);
@@ -955,14 +971,14 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool RTTYS_server::do_msgTypeTermData(const Poco::Net::Socket &Socket, unsigned char *Buffer, std::size_t  BufferCurrentSize, std::size_t  &BufferPos) {
+	bool RTTYS_server::do_msgTypeTermData(const Poco::Net::Socket &Socket, unsigned char *Buffer, [[maybe_unused]] std::size_t  BufferCurrentSize, std::size_t  &BufferPos, std::size_t msg_len) {
 		auto EndPoint = Connected_.find(Socket.impl()->sockfd());
 		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
 			try {
 				BufferPos++;
-				auto good = SendToClient(*EndPoint->second->WSSocket_, &Buffer[BufferPos],
-										 BufferCurrentSize - BufferPos);
-				BufferPos = BufferCurrentSize;
+				msg_len--;
+				auto good = SendToClient(*EndPoint->second->WSSocket_, &Buffer[BufferPos], (int) msg_len );
+				BufferPos += msg_len;
 				return good;
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
