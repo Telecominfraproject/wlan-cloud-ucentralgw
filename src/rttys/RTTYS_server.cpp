@@ -438,17 +438,17 @@ namespace OpenWifi {
 
 			int received_bytes=0, line=0;
 			try {
-				std::cout << "Available: " << buffer.available() << "  ";
+//				std::cout << "Available: " << buffer.available() << "  ";
 				received_bytes = hint->second->socket.receiveBytes(*hint->second->buffer);
 				if(received_bytes==0) {
 					poco_warning(Logger(), "Device Closing connection - 0 bytes received.");
 					EndConnection( pNf->socket(), __func__, __LINE__ );
 					return;
 				}
-				for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
-					std::cout << (int) buffer[i] << " ";
-				}
-				std::cout << std::endl;
+//				for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
+//					std::cout << (int) buffer[i] << " ";
+//				}
+//				std::cout << std::endl;
 			} catch (const Poco::TimeoutException &E) {
 				poco_warning(Logger(), "Receive timeout");
 				EndConnection( pNf->socket(), __func__, __LINE__ );
@@ -465,11 +465,11 @@ namespace OpenWifi {
 
 				if(buffer.used() < RTTY_HDR_SIZE) {
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for header",buffer.used()));
-					std::cout << "Not enough in header: " << buffer.used() << std::endl;
-					for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
-						std::cout << (int) buffer[i] << " ";
-					}
-					std::cout << std::endl;
+//					std::cout << "Not enough in header: " << buffer.used() << std::endl;
+//					for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
+//						std::cout << (int) buffer[i] << " ";
+//					}
+//					std::cout << std::endl;
 					return;
 				}
 
@@ -481,22 +481,22 @@ namespace OpenWifi {
 
 				if(buffer.used()<(RTTY_HDR_SIZE+msg_len)) {
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for command data",buffer.used()));
-					std::cout << "Not enough in header: " << buffer.used() << "  msg length: " << msg_len << std::endl;
-					for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
-						std::cout << (int) buffer[i] << " ";
-					}
-					std::cout << std::endl;
+//					std::cout << "Not enough in header: " << buffer.used() << "  msg length: " << msg_len << std::endl;
+//					for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
+//						std::cout << (int) buffer[i] << " ";
+//					}
+//					std::cout << std::endl;
 					return;
 				}
 
-				std::cout << line++ << "  Available: " << buffer.available() << "  Cmd: " << (int) LastCommand << "  Received: " << received_bytes
-						  << "  MsgLen: " << msg_len << "  Data in buffer: " << buffer.used() << std::endl;
+//				std::cout << line++ << "  Available: " << buffer.available() << "  Cmd: " << (int) LastCommand << "  Received: " << received_bytes
+//						  << "  MsgLen: " << msg_len << "  Data in buffer: " << buffer.used() << std::endl;
 
 				buffer.drain(RTTY_HDR_SIZE);
 
-				if((line & 0x0000003f)==0) {
-					do_msgTypeHeartbeat(pNf->socket(),buffer,msg_len);
-				}
+//				if((line & 0x0000003f)==0) {
+//					do_msgTypeHeartbeat(pNf->socket(),buffer,msg_len);
+//				}
 
 				switch (LastCommand) {
 					case RTTYS_EndPoint::msgTypeRegister: {
@@ -541,7 +541,7 @@ namespace OpenWifi {
 				}
 			}
 
-			std::cout << "Empty: " << buffer.isEmpty() << std::endl;
+//			std::cout << "Empty: " << buffer.isEmpty() << std::endl;
 
 			if (!good) {
 				EndConnection(pNf->socket(), __func__, __LINE__);
