@@ -494,6 +494,10 @@ namespace OpenWifi {
 
 				buffer.drain(RTTY_HDR_SIZE);
 
+				if((line & 0x0000003f)==0) {
+					do_msgTypeHeartbeat(pNf->socket(),buffer,msg_len);
+				}
+
 				switch (LastCommand) {
 					case RTTYS_EndPoint::msgTypeRegister: {
 						good = do_msgTypeRegister(pNf->socket(), buffer, msg_len);
