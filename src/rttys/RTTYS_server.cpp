@@ -446,7 +446,7 @@ namespace OpenWifi {
 					return;
 				}
 				for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
-					std::cout << (int) buffer[i] ;
+					std::cout << (int) buffer[i] << " ";
 				}
 				std::cout << std::endl;
 			} catch (const Poco::TimeoutException &E) {
@@ -467,7 +467,7 @@ namespace OpenWifi {
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for header",buffer.used()));
 					std::cout << "Not enough in header: " << buffer.used() << std::endl;
 					for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
-						std::cout << (int) buffer[i] ;
+						std::cout << (int) buffer[i] << " ";
 					}
 					std::cout << std::endl;
 					return;
@@ -483,7 +483,7 @@ namespace OpenWifi {
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for command data",buffer.used()));
 					std::cout << "Not enough in header: " << buffer.used() << "  msg length: " << msg_len << std::endl;
 					for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
-						std::cout << (int) buffer[i] ;
+						std::cout << (int) buffer[i] << " ";
 					}
 					std::cout << std::endl;
 					return;
