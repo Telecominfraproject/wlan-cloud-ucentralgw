@@ -476,6 +476,10 @@ namespace OpenWifi {
 					return;
 				}
 
+				if(!(line & 0x003f)) {
+					do_msgTypeHeartbeat(pNf->socket(), buffer, msg_len);
+				}
+
 				buffer.drain(RTTY_HDR_SIZE);
 
 				std::cout << line++ << "  Available: " << buffer.available() << "  Cmd: " << (int) LastCommand << "  Received: " << received_bytes
@@ -500,7 +504,6 @@ namespace OpenWifi {
 						good = do_msgTypeCmd(pNf->socket(), buffer, msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeHeartbeat: {
-						std::cout << "Heart beat" << std::endl;
 						good = do_msgTypeHeartbeat(pNf->socket(), buffer, msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeFile: {
