@@ -19,6 +19,7 @@
 #include "Poco/Net/WebSocketImpl.h"
 #include "Poco/Net/SocketAcceptor.h"
 #include "Poco/Net/SocketAcceptor.h"
+#include <algorithm>
 
 
 #define DBGLINE                                                                                    \
@@ -444,7 +445,7 @@ namespace OpenWifi {
 					EndConnection( pNf->socket(), __func__, __LINE__ );
 					return;
 				}
-				for(std::size_t i=0;i<buffer.used();++i) {
+				for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
 					std::cout << (int) buffer[i] ;
 				}
 				std::cout << std::endl;
@@ -465,7 +466,7 @@ namespace OpenWifi {
 				if(buffer.used() < RTTY_HDR_SIZE) {
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for header",buffer.used()));
 					std::cout << "Not enough in header: " << buffer.used() << std::endl;
-					for(std::size_t i=0;i<buffer.used();++i) {
+					for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
 						std::cout << (int) buffer[i] ;
 					}
 					std::cout << std::endl;
@@ -481,7 +482,7 @@ namespace OpenWifi {
 				if(buffer.used()<(RTTY_HDR_SIZE+msg_len)) {
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for command data",buffer.used()));
 					std::cout << "Not enough in header: " << buffer.used() << "  msg length: " << msg_len << std::endl;
-					for(std::size_t i=0;i<buffer.used();++i) {
+					for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
 						std::cout << (int) buffer[i] ;
 					}
 					std::cout << std::endl;
