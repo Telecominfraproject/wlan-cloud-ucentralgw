@@ -476,14 +476,11 @@ namespace OpenWifi {
 					return;
 				}
 
-				if(!(line & 0x003f)) {
-					do_msgTypeHeartbeat(pNf->socket(), buffer, msg_len);
-				}
+				std::cout << line++ << "  Available: " << buffer.available() << "  Cmd: " << (int) LastCommand << "  Received: " << received_bytes
+						  << "  MsgLen: " << msg_len << "  Data in buffer: " << buffer.used() << std::endl;
 
 				buffer.drain(RTTY_HDR_SIZE);
 
-				std::cout << line++ << "  Available: " << buffer.available() << "  Cmd: " << (int) LastCommand << "  Received: " << received_bytes
-						  << "  MsgLen: " << msg_len << "  Data in buffer: " << buffer.used() << std::endl;
 				switch (LastCommand) {
 					case RTTYS_EndPoint::msgTypeRegister: {
 						good = do_msgTypeRegister(pNf->socket(), buffer, msg_len);
@@ -1019,8 +1016,6 @@ namespace OpenWifi {
 			try {
 				buffer.drain(1);
 				msg_len--;
-/*				char temp_buf[RTTY_RECEIVE_BUFFER];
-				buffer.peek(temp_buf,msg_len); */
 				auto good = SendToClient(*EndPoint->second->WSSocket_, (unsigned char*) buffer.begin(), (int) msg_len );
 				buffer.drain(msg_len);
 				return good;
