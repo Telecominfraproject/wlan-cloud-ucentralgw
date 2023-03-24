@@ -1033,6 +1033,7 @@ namespace OpenWifi {
 				buffer.drain(msg_len);
 				return good;
 			} catch (const Poco::Exception &E) {
+				std::cout << "Failed to send WS stuff" << std::endl;
 				Logger().log(E);
 			} catch (const std::exception &E) {
 				LogStdException(E, "Cannot send data to UI Client");
