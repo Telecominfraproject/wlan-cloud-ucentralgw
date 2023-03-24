@@ -723,6 +723,7 @@ namespace OpenWifi {
 			return;
 		}
 
+
 		//	OK Create and register this WS client
 		try {
 			// EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request, response);
