@@ -1019,9 +1019,9 @@ namespace OpenWifi {
 			try {
 				buffer.drain(1);
 				msg_len--;
-				char temp_buf[RTTY_RECEIVE_BUFFER];
-				buffer.peek(temp_buf,msg_len);
-				auto good = SendToClient(*EndPoint->second->WSSocket_, (unsigned char*)temp_buf, (int) msg_len );
+/*				char temp_buf[RTTY_RECEIVE_BUFFER];
+				buffer.peek(temp_buf,msg_len); */
+				auto good = SendToClient(*EndPoint->second->WSSocket_, (unsigned char*) buffer.begin(), (int) msg_len );
 				buffer.drain(msg_len);
 				return good;
 			} catch (const Poco::Exception &E) {
