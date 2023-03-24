@@ -734,7 +734,9 @@ namespace OpenWifi {
 			EndPoint->second->WSSocket_->setKeepAlive(true);
 			Poco::Timespan	ST(600,0);
 			EndPoint->second->WSSocket_->setSendTimeout(ST);
-			EndPoint->second->WSSocket_->setSendBufferSize(256000);
+			EndPoint->second->WSSocket_->setSendBufferSize(1000000);
+			EndPoint->second->WSSocket_->setReceiveTimeout(ST);
+			EndPoint->second->WSSocket_->setReceiveBufferSize(1000000);
 			AddClientEventHandlers(*EndPoint->second->WSSocket_, EndPoint->second);
 			if (EndPoint->second->DeviceIsAttached_ && !EndPoint->second->completed_) {
 				poco_information(Logger(),fmt::format("CLN{}: Device registered, Client Registered - sending login", EndPoint->second->SerialNumber_));
