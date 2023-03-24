@@ -729,8 +729,11 @@ namespace OpenWifi {
 			EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request, response);
 			EndPoint->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
 			EndPoint->second->WSSocket_->setBlocking(false);
-			EndPoint->second->WSSocket_->setNoDelay(true);
+			EndPoint->second->WSSocket_->setNoDelay(false);
 			EndPoint->second->WSSocket_->setKeepAlive(true);
+			Poco::Timespan	ST(600,0);
+			EndPoint->second->WSSocket_->setSendTimeout(ST);
+			EndPoint->second->WSSocket_->setSendBufferSize(256000);
 			AddClientEventHandlers(*EndPoint->second->WSSocket_, EndPoint->second);
 			if (EndPoint->second->DeviceIsAttached_ && !EndPoint->second->completed_) {
 				poco_information(Logger(),fmt::format("CLN{}: Device registered, Client Registered - sending login", EndPoint->second->SerialNumber_));
