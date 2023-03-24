@@ -436,7 +436,8 @@ namespace OpenWifi {
 
 			Poco::FIFOBuffer &buffer = *hint->second->buffer;
 
-			int received_bytes=0, line=0;
+			int received_bytes=0;
+//			int line=0;
 			try {
 //				std::cout << "Available: " << buffer.available() << "  ";
 				received_bytes = hint->second->socket.receiveBytes(*hint->second->buffer);
