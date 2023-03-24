@@ -1067,7 +1067,6 @@ namespace OpenWifi {
 
 	bool RTTYS_server::do_msgTypeHeartbeat(const Poco::Net::Socket &Socket, [[maybe_unused]] Poco::FIFOBuffer &buffer, [[maybe_unused]] std::size_t msg_len) {
 		try {
-			std::cout << "Sending heartbeat" << std::endl;
 			u_char MsgBuf[RTTY_HDR_SIZE + 16]{0};
 			MsgBuf[0] = RTTYS_EndPoint::msgTypeHeartbeat;
 			MsgBuf[1] = 0;
