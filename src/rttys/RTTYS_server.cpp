@@ -461,6 +461,10 @@ namespace OpenWifi {
 				if(buffer.used() < RTTY_HDR_SIZE) {
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for header",buffer.used()));
 					std::cout << "Not enough in header: " << buffer.used() << std::endl;
+					for(std::size_t i=0;i<buffer.used();++i) {
+						std::cout << (int) buffer[i] ;
+					}
+					std::cout << std::endl;
 					return;
 				}
 
@@ -473,6 +477,10 @@ namespace OpenWifi {
 				if(buffer.used()<(RTTY_HDR_SIZE+msg_len)) {
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for command data",buffer.used()));
 					std::cout << "Not enough in header: " << buffer.used() << "  msg length: " << msg_len << std::endl;
+					for(std::size_t i=0;i<buffer.used();++i) {
+						std::cout << (int) buffer[i] ;
+					}
+					std::cout << std::endl;
 					return;
 				}
 
