@@ -444,6 +444,10 @@ namespace OpenWifi {
 					EndConnection( pNf->socket(), __func__, __LINE__ );
 					return;
 				}
+				for(std::size_t i=0;i<buffer.used();++i) {
+					std::cout << (int) buffer[i] ;
+				}
+				std::cout << std::endl;
 			} catch (const Poco::TimeoutException &E) {
 				poco_warning(Logger(), "Receive timeout");
 				EndConnection( pNf->socket(), __func__, __LINE__ );
