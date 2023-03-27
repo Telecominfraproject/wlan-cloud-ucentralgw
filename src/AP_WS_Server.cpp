@@ -232,7 +232,7 @@ namespace OpenWifi {
 
 		std::ostringstream OS;
 		FullEvent.stringify(OS);
-		KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "*",
+		KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system",
 									OS.str());
 	}
 
