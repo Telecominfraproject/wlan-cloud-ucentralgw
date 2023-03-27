@@ -11,8 +11,8 @@ namespace OpenWifi::GWWebSocketNotifications {
 
 	struct SingleDevice {
 		std::string serialNumber;
-		inline void to_json(Poco::JSON::Object &Obj) const;
-		inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct SingleDeviceConfigurationChange {
@@ -20,15 +20,15 @@ namespace OpenWifi::GWWebSocketNotifications {
 		uint64_t oldUUID;
 		uint64_t newUUID;
 
-		inline void to_json(Poco::JSON::Object &Obj) const;
-		inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct SingleDeviceFirmwareChange {
 		std::string serialNumber;
 		std::string newFirmware;
-		inline void to_json(Poco::JSON::Object &Obj) const;
-		inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct NumberOfConnection {
@@ -38,8 +38,8 @@ namespace OpenWifi::GWWebSocketNotifications {
 		std::uint64_t rx = 0;
 		std::uint64_t tx = 0;
 
-		inline void to_json(Poco::JSON::Object &Obj) const;
-		inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
 	void Register();
