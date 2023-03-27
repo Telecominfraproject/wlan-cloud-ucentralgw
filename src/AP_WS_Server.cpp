@@ -201,8 +201,7 @@ namespace OpenWifi {
 			}
 		}
 
-		AverageDeviceConnectionTime_ =
-			(NumberOfConnectedDevices_ != 0) ? total_connected_time / NumberOfConnectedDevices_ : 0;
+		AverageDeviceConnectionTime_ = NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_ : 0;
 		if ((now - last_log) > 120) {
 			last_log = now;
 			poco_information(

@@ -230,9 +230,9 @@ namespace OpenWifi {
 		std::atomic_bool AllowSerialNumberMismatch_ = true;
 		std::atomic_uint64_t MismatchDepth_ = 2;
 
-		std::atomic_uint64_t NumberOfConnectedDevices_ = 0;
-		std::atomic_uint64_t AverageDeviceConnectionTime_ = 0;
-		std::atomic_uint64_t NumberOfConnectingDevices_ = 0;
+		std::uint64_t 			NumberOfConnectedDevices_ = 0;
+		std::uint64_t 			AverageDeviceConnectionTime_ = 0;
+		std::uint64_t 			NumberOfConnectingDevices_ = 0;
 
 		mutable std::mutex		StatsMutex_;
 		std::atomic_uint64_t 	TX_=0,RX_=0;
