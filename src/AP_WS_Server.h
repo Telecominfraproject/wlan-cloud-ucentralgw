@@ -159,7 +159,7 @@ namespace OpenWifi {
 
 		void SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber);
 		bool EndSession(uint64_t connection_id, uint64_t serial_number);
-
+		bool EndSessionUnSafe(uint64_t session_id, uint64_t serial_number);
 		void SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber,
 											uint64_t Interval, uint64_t Lifetime,
 											const std::vector<std::string> &TelemetryTypes);

@@ -182,15 +182,22 @@ namespace OpenWifi {
 		uint64_t total_connected_time = 0;
 
 		auto now = Utils::Now();
-		for (const auto &connection : SerialNumbers_) {
-			if (connection.second.second == nullptr) {
-				continue;
-			}
-			if (connection.second.second->State_.Connected) {
+		auto hint = SerialNumbers_.begin();
+		while (hint != end(SerialNumbers_)) {
+			if (hint->second.second == nullptr) {
+				hint = SerialNumbers_.erase(hint);
+			} else if((now - hint->second.second->State_.LastContact)>(10*60)) {
+				hint->second.second->EndConnection(false);
+				Sessions_.erase(hint->second.second->State_.sessionId);
+				Garbage_.push_back(hint->second.second);
+				hint = SerialNumbers_.erase(hint);
+			} else if (hint->second.second->State_.Connected) {
 				NumberOfConnectedDevices_++;
-				total_connected_time += (now - connection.second.second->State_.started);
+				total_connected_time += (now - hint->second.second->State_.started);
+				hint++;
 			} else {
 				NumberOfConnectingDevices_++;
+				hint++;
 			}
 		}
 
@@ -309,6 +316,32 @@ namespace OpenWifi {
 		}
 
 		Sessions_.erase(Session);
+
+		return false;
+	}
+
+	bool AP_WS_Server::EndSessionUnSafe(uint64_t session_id, uint64_t serial_number) {
+
+		auto Session = Sessions_.find(session_id);
+		if (Session == end(Sessions_))
+			return false;
+
+		Garbage_.push_back(Session->second);
+
+		auto Device = SerialNumbers_.find(serial_number);
+		if (Device == end(SerialNumbers_)) {
+			Sessions_.erase(Session);
+			return false;
+		}
+
+		if (Device->second.first == session_id) {
+			Sessions_.erase(Session);
+			SerialNumbers_.erase(Device);
+			return true;
+		}
+
+		Sessions_.erase(Session);
+
 		return false;
 	}
 

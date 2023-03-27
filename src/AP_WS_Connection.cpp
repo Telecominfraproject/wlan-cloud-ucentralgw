@@ -237,7 +237,7 @@ namespace OpenWifi {
 		EndConnection();
 	}
 
-	void AP_WS_Connection::EndConnection() {
+	void AP_WS_Connection::EndConnection(bool DeleteSession) {
 		Valid_ = false;
 		if (!Dead_.test_and_set()) {
 
@@ -261,8 +261,11 @@ namespace OpenWifi {
 				t.detach();
 			}
 
-			auto SessionDeleted = AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
-			if (SessionDeleted) {
+			bool SessionDeleted = false;
+			if(DeleteSession)
+				SessionDeleted = AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
+
+			if (SessionDeleted || !DeleteSession) {
 				GWWebSocketNotifications::SingleDevice_t N;
 				N.content.serialNumber = SerialNumber_;
 				GWWebSocketNotifications::DeviceDisconnected(N);
