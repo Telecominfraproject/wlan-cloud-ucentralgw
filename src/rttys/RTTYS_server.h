@@ -13,6 +13,7 @@
 #include "Poco/Net/WebSocket.h"
 #include "Poco/NotificationQueue.h"
 #include "Poco/Timer.h"
+#include <Poco/FIFOBuffer.h>
 
 #include "framework/SubSystemServer.h"
 #include "framework/utils.h"
