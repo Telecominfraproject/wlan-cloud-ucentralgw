@@ -211,7 +211,7 @@ namespace OpenWifi {
 
 		bool do_msgTypeRegister(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
 		bool do_msgTypeLogin(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
-		bool do_msgTypeTermData(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
+		bool do_msgTypeTermData(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len, std::uint8_t *buf, std::size_t &pos);
 		bool do_msgTypeLogout(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
 		bool do_msgTypeWinsize(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
 		bool do_msgTypeCmd(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);

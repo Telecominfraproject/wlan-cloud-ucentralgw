@@ -420,12 +420,11 @@ namespace OpenWifi {
 	void RTTYS_server::onConnectedDeviceSocketReadable(
 		const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
-		std::shared_ptr<RTTYS_EndPoint> ConnectionPtr;
 		std::lock_guard	Lock(ServerMutex_);
+		int fd = pNf->socket().impl()->sockfd();
 
 		try {
 
-			int fd = pNf->socket().impl()->sockfd();
 			auto hint = Sockets_.find(fd);
 			if(hint==end(Sockets_)) {
 				poco_error(Logger(),fmt::format("{}: unknown socket",fd));
@@ -435,7 +434,9 @@ namespace OpenWifi {
 			Poco::FIFOBuffer &buffer = *hint->second->buffer;
 
 			int received_bytes=0;
-//			int line=0;
+			std::uint8_t 	agg_buffer[RTTY_RECEIVE_BUFFER];
+			std::size_t 	agg_buf_pos=0;
+
 			try {
 //				std::cout << "Available: " << buffer.available() << "  ";
 				received_bytes = hint->second->socket.receiveBytes(*hint->second->buffer);
@@ -444,10 +445,6 @@ namespace OpenWifi {
 					EndConnection( pNf->socket(), __func__, __LINE__ );
 					return;
 				}
-//				for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
-//					std::cout << (int) buffer[i] << " ";
-//				}
-//				std::cout << std::endl;
 			} catch (const Poco::TimeoutException &E) {
 				poco_warning(Logger(), "Receive timeout");
 				EndConnection( pNf->socket(), __func__, __LINE__ );
@@ -464,11 +461,6 @@ namespace OpenWifi {
 
 				if(buffer.used() < RTTY_HDR_SIZE) {
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for header",buffer.used()));
-//					std::cout << "Not enough in header: " << buffer.used() << std::endl;
-//					for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
-//						std::cout << (int) buffer[i] << " ";
-//					}
-//					std::cout << std::endl;
 					return;
 				}
 
@@ -480,11 +472,6 @@ namespace OpenWifi {
 
 				if(buffer.used()<(RTTY_HDR_SIZE+msg_len)) {
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for command data",buffer.used()));
-//					std::cout << "Not enough in header: " << buffer.used() << "  msg length: " << msg_len << std::endl;
-//					for(std::size_t i=0;i< std::min(buffer.used(),(std::size_t) 16) ;++i) {
-//						std::cout << (int) buffer[i] << " ";
-//					}
-//					std::cout << std::endl;
 					return;
 				}
 
@@ -492,10 +479,6 @@ namespace OpenWifi {
 //						  << "  MsgLen: " << msg_len << "  Data in buffer: " << buffer.used() << std::endl;
 
 				buffer.drain(RTTY_HDR_SIZE);
-
-//				if((line & 0x0000003f)==0) {
-//					do_msgTypeHeartbeat(pNf->socket(),buffer,msg_len);
-//				}
 
 				switch (LastCommand) {
 					case RTTYS_EndPoint::msgTypeRegister: {
@@ -508,7 +491,7 @@ namespace OpenWifi {
 						good = do_msgTypeLogout(pNf->socket(), buffer, msg_len);
 					} break;
 					case RTTYS_EndPoint::msgTypeTermData: {
-						good = do_msgTypeTermData(pNf->socket(), buffer, msg_len);
+						good = do_msgTypeTermData(pNf->socket(), buffer, msg_len, agg_buffer, agg_buf_pos);
 					} break;
 					case RTTYS_EndPoint::msgTypeWinsize: {
 						good = do_msgTypeWinsize(pNf->socket(), buffer, msg_len);
@@ -537,6 +520,14 @@ namespace OpenWifi {
 												 (int)LastCommand));
 						good = false;
 					}
+				}
+			}
+
+			if(agg_buf_pos>0) {
+				auto EndPoint = Connected_.find(fd);
+				if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
+					SendToClient(*EndPoint->second->WSSocket_, agg_buffer,
+								 agg_buf_pos);
 				}
 			}
 
@@ -1031,15 +1022,17 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool RTTYS_server::do_msgTypeTermData(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len) {
+	bool RTTYS_server::do_msgTypeTermData(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len, std::uint8_t *buf, std::size_t &pos) {
 		auto EndPoint = Connected_.find(Socket.impl()->sockfd());
 		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
 			try {
 				buffer.drain(1);
 				msg_len--;
-				auto good = SendToClient(*EndPoint->second->WSSocket_, (unsigned char*) buffer.begin(), (int) msg_len );
+				buffer.read((char*)&(buf[pos]),msg_len);
+				pos+=msg_len;
+				// auto good = SendToClient(*EndPoint->second->WSSocket_, (unsigned char*) buffer.begin(), (int) msg_len );
 				buffer.drain(msg_len);
-				return good;
+				return true;
 			} catch (const Poco::Exception &E) {
 				std::cout << "Failed to send WS stuff" << std::endl;
 				Logger().log(E);
