@@ -415,7 +415,7 @@ namespace OpenWifi {
 			SendToClient(*EndPoint->second->WSSocket_, buffer,
 						 len);
 			EndPoint->second->rx += len;
-			std::cout << "Total: " << EndPoint->second->rx << "   bytes now: " << len << std::endl;
+			// std::cout << "Total: " << EndPoint->second->rx << "   bytes now: " << len << std::endl;
 		}
 	}
 
