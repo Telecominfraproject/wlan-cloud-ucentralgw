@@ -13,6 +13,7 @@
 #include "Poco/Net/WebSocket.h"
 #include "Poco/NotificationQueue.h"
 #include "Poco/Timer.h"
+#include <Poco/FIFOBuffer.h>
 
 #include "framework/SubSystemServer.h"
 #include "framework/utils.h"
@@ -25,7 +26,7 @@ namespace OpenWifi {
 	constexpr uint RTTY_DEVICE_TOKEN_LENGTH = 32;
 	constexpr std::size_t RTTY_SESSION_ID_LENGTH = 32;
 	constexpr std::size_t RTTY_HDR_SIZE = 3;
-	constexpr std::size_t RTTY_RECEIVE_BUFFER = 64000;
+	constexpr std::size_t RTTY_RECEIVE_BUFFER = 1024 << 10;
 
 	class RTTYS_server;
 
@@ -114,6 +115,7 @@ namespace OpenWifi {
 		std::chrono::time_point<std::chrono::high_resolution_clock> Created_{0s},
 			DeviceDisconnected_{0s}, ClientDisconnected_{0s}, DeviceConnected_{0s},
 			ClientConnected_{0s};
+		std::uint64_t 	rx=0,tx=0;
 	};
 
 	class RTTYS_server : public SubSystemServer {
@@ -199,8 +201,8 @@ namespace OpenWifi {
 		void SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const u_char *Buf, size_t len);
 		void SendData(std::shared_ptr<RTTYS_EndPoint> &Connection, const std::string &s);
 
-		int SendBytes(int fd, const unsigned char *buffer, std::size_t len);
-		int SendBytes(const Poco::Net::Socket &Socket, const unsigned char *buffer, std::size_t len);
+		// int SendBytes(int fd, const unsigned char *buffer, std::size_t len);
+		int SendBytes(const std::shared_ptr<RTTYS_EndPoint> & Conn,const Poco::Net::Socket &Socket, const unsigned char *buffer, std::size_t len);
 
 		std::shared_ptr<RTTYS_EndPoint> FindRegisteredEndPoint(const std::string &Id,
 															  const std::string &Token);
@@ -211,7 +213,7 @@ namespace OpenWifi {
 
 		bool do_msgTypeRegister(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
 		bool do_msgTypeLogin(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
-		bool do_msgTypeTermData(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
+		bool do_msgTypeTermData(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len, std::uint8_t *buf, std::size_t &pos);
 		bool do_msgTypeLogout(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
 		bool do_msgTypeWinsize(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
 		bool do_msgTypeCmd(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
@@ -221,6 +223,7 @@ namespace OpenWifi {
 		bool do_msgTypeAck(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
 		bool do_msgTypeMax(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
 
+		void EmptyBuffer(int fd, const std::uint8_t *buffer, std::size_t len);
 		bool WindowSize(std::shared_ptr<RTTYS_EndPoint> Conn, int cols, int rows);
 		bool KeyStrokes(std::shared_ptr<RTTYS_EndPoint> Conn, const u_char *buf, size_t len);
 
