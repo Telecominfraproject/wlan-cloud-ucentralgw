@@ -222,7 +222,6 @@ namespace OpenWifi {
 			}
 			NewSocket.close();
 		} catch (const Poco::Exception &E) {
-			std::cout << "Exception onDeviceAccept: " << E.what() << std::endl;
 			Logger().log(E);
 		}
 	}
@@ -264,7 +263,6 @@ namespace OpenWifi {
 		int fd = Socket.impl()->sockfd();
 		Sockets_[fd] = std::make_unique<SecureSocketPair>(Socket, std::move(P), valid, cid, cn);
 	}
-
 
 	void RTTYS_server::RemoveSocket(const Poco::Net::Socket &Socket) {
 		auto hint = Sockets_.find(Socket.impl()->sockfd());
@@ -824,9 +822,8 @@ namespace OpenWifi {
 			} else {
 				EndPoints_.erase(hint->second->Id_);
 			}
-		} else {
-			std::cout << "Cannot find the associated WS..." << std::endl;
 		}
+
 		poco_debug(Logger(),fmt::format("Closing connection at {}:{}", func, Line));
 	}
 

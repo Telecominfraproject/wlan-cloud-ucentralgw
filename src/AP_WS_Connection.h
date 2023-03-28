@@ -27,7 +27,7 @@ namespace OpenWifi {
 								  Poco::Logger &L, Poco::Net::SocketReactor &R);
 		~AP_WS_Connection();
 
-		void EndConnection();
+		void EndConnection(bool DeleteSession=true);
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc);
 		void ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc);
 		void ProcessIncomingFrame();

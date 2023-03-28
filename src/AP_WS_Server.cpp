@@ -19,6 +19,7 @@
 #include "fmt/format.h"
 #include "framework/MicroServiceFuncs.h"
 #include "framework/utils.h"
+#include <framework/KafkaManager.h>
 
 namespace OpenWifi {
 
@@ -161,7 +162,7 @@ namespace OpenWifi {
 		GarbageCollectorCallback_ = std::make_unique<Poco::TimerCallback<AP_WS_Server>>(
 			*this, &AP_WS_Server::onGarbageCollecting);
 		Timer_.setStartInterval(10 * 1000);
-		Timer_.setPeriodicInterval(5 * 1000); // every minute
+		Timer_.setPeriodicInterval(10 * 1000); // every minute
 		Timer_.start(*GarbageCollectorCallback_, MicroServiceTimerPool());
 
 		Running_ = true;
@@ -169,41 +170,49 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::onGarbageCollecting([[maybe_unused]] Poco::Timer &timer) {
-		std::lock_guard Lock(WSServerMutex_);
-		if (!Garbage_.empty()) {
-			Garbage_.clear();
-		}
-
 		static uint64_t last_log = Utils::Now();
-
-		NumberOfConnectedDevices_ = 0;
-		NumberOfConnectingDevices_ = 0;
-		AverageDeviceConnectionTime_ = 0;
-		uint64_t total_connected_time = 0;
-
 		auto now = Utils::Now();
-		for (const auto &connection : SerialNumbers_) {
-			if (connection.second.second == nullptr) {
-				continue;
-			}
-			if (connection.second.second->State_.Connected) {
-				NumberOfConnectedDevices_++;
-				total_connected_time += (now - connection.second.second->State_.started);
-			} else {
-				NumberOfConnectingDevices_++;
-			}
-		}
 
-		AverageDeviceConnectionTime_ =
-			(NumberOfConnectedDevices_ != 0) ? total_connected_time / NumberOfConnectedDevices_ : 0;
-		if ((now - last_log) > 120) {
-			last_log = now;
-			poco_information(
-				Logger(),
-				fmt::format(
-					"Active AP connections: {} Connecting: {} Average connection time: {} seconds",
-					NumberOfConnectedDevices_, NumberOfConnectingDevices_,
-					AverageDeviceConnectionTime_));
+		{
+			std::lock_guard Lock(WSServerMutex_);
+			if (!Garbage_.empty()) {
+				Garbage_.clear();
+			}
+
+			NumberOfConnectedDevices_ = 0;
+			NumberOfConnectingDevices_ = 0;
+			AverageDeviceConnectionTime_ = 0;
+			uint64_t total_connected_time = 0;
+
+			auto hint = SerialNumbers_.begin();
+			while (hint != end(SerialNumbers_)) {
+				if (hint->second.second == nullptr) {
+					hint = SerialNumbers_.erase(hint);
+				} else if ((now - hint->second.second->State_.LastContact) > (10 * 60)) {
+					hint->second.second->EndConnection(false);
+					Sessions_.erase(hint->second.second->State_.sessionId);
+					Garbage_.push_back(hint->second.second);
+					hint = SerialNumbers_.erase(hint);
+				} else if (hint->second.second->State_.Connected) {
+					NumberOfConnectedDevices_++;
+					total_connected_time += (now - hint->second.second->State_.started);
+					hint++;
+				} else {
+					NumberOfConnectingDevices_++;
+					hint++;
+				}
+			}
+
+			AverageDeviceConnectionTime_ = NumberOfConnectedDevices_ > 0
+											   ? total_connected_time / NumberOfConnectedDevices_
+											   : 0;
+			if ((now - last_log) > 120) {
+				last_log = now;
+				poco_information(Logger(),
+								 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds",
+											 NumberOfConnectedDevices_, NumberOfConnectingDevices_,
+											 AverageDeviceConnectionTime_));
+			}
 		}
 
 		GWWebSocketNotifications::NumberOfConnection_t Notification;
@@ -212,6 +221,19 @@ namespace OpenWifi {
 		Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
 		GetTotalDataStatistics(Notification.content.tx,Notification.content.rx);
 		GWWebSocketNotifications::NumberOfConnections(Notification);
+
+		Poco::JSON::Object	KafkaNotification;
+		Notification.to_json(KafkaNotification);
+
+		Poco::JSON::Object FullEvent;
+		FullEvent.set("type", "load-update");
+		FullEvent.set("timestamp", now);
+		FullEvent.set("payload", KafkaNotification);
+
+		std::ostringstream OS;
+		FullEvent.stringify(OS);
+		KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system",
+									OS.str());
 	}
 
 	void AP_WS_Server::Stop() {
@@ -309,6 +331,32 @@ namespace OpenWifi {
 		}
 
 		Sessions_.erase(Session);
+
+		return false;
+	}
+
+	bool AP_WS_Server::EndSessionUnSafe(uint64_t session_id, uint64_t serial_number) {
+
+		auto Session = Sessions_.find(session_id);
+		if (Session == end(Sessions_))
+			return false;
+
+		Garbage_.push_back(Session->second);
+
+		auto Device = SerialNumbers_.find(serial_number);
+		if (Device == end(SerialNumbers_)) {
+			Sessions_.erase(Session);
+			return false;
+		}
+
+		if (Device->second.first == session_id) {
+			Sessions_.erase(Session);
+			SerialNumbers_.erase(Device);
+			return true;
+		}
+
+		Sessions_.erase(Session);
+
 		return false;
 	}
 

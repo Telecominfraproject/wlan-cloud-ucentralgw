@@ -238,15 +238,13 @@ namespace OpenWifi {
 		EndConnection();
 	}
 
-	void DeviceDisconnectionCleanup(const std::string &SerialNumber) {
+	void AP_WS_Connection::EndConnection(bool DeleteSession) {
 		if (KafkaManager()->Enabled()) {
 			NotifyKafkaDisconnect(SerialNumber);
 		}
 		RADIUSAccountingSessionKeeper()->DeviceDisconnect(SerialNumber);
-	}
 
-	void AP_WS_Connection::EndConnection() {
-		Valid_ = false;
+    Valid_ = false;
 		if (!Dead_.test_and_set()) {
 
 			if (Registered_) {
@@ -268,8 +266,11 @@ namespace OpenWifi {
 				Cleanup.detach();
 			}
 
-			auto SessionDeleted = AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
-			if (SessionDeleted) {
+			bool SessionDeleted = false;
+			if(DeleteSession)
+				SessionDeleted = AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
+
+			if (SessionDeleted || !DeleteSession) {
 				GWWebSocketNotifications::SingleDevice_t N;
 				N.content.serialNumber = SerialNumber_;
 				GWWebSocketNotifications::DeviceDisconnected(N);

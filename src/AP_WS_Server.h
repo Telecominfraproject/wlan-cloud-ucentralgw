@@ -159,7 +159,7 @@ namespace OpenWifi {
 
 		void SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber);
 		bool EndSession(uint64_t connection_id, uint64_t serial_number);
-
+		bool EndSessionUnSafe(uint64_t session_id, uint64_t serial_number);
 		void SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber,
 											uint64_t Interval, uint64_t Lifetime,
 											const std::vector<std::string> &TelemetryTypes);
@@ -230,9 +230,9 @@ namespace OpenWifi {
 		std::atomic_bool AllowSerialNumberMismatch_ = true;
 		std::atomic_uint64_t MismatchDepth_ = 2;
 
-		std::atomic_uint64_t NumberOfConnectedDevices_ = 0;
-		std::atomic_uint64_t AverageDeviceConnectionTime_ = 0;
-		std::atomic_uint64_t NumberOfConnectingDevices_ = 0;
+		std::uint64_t 			NumberOfConnectedDevices_ = 0;
+		std::uint64_t 			AverageDeviceConnectionTime_ = 0;
+		std::uint64_t 			NumberOfConnectingDevices_ = 0;
 
 		mutable std::mutex		StatsMutex_;
 		std::atomic_uint64_t 	TX_=0,RX_=0;
