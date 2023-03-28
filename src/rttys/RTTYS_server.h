@@ -221,6 +221,7 @@ namespace OpenWifi {
 		bool do_msgTypeAck(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
 		bool do_msgTypeMax(const Poco::Net::Socket &Socket, Poco::FIFOBuffer &buffer, std::size_t msg_len);
 
+		void EmptyBuffer(int fd, const std::uint8_t *buffer, std::size_t len);
 		bool WindowSize(std::shared_ptr<RTTYS_EndPoint> Conn, int cols, int rows);
 		bool KeyStrokes(std::shared_ptr<RTTYS_EndPoint> Conn, const u_char *buf, size_t len);
 

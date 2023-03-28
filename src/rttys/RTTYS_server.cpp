@@ -417,6 +417,14 @@ namespace OpenWifi {
 		}
 	}
 
+	void RTTYS_server::EmptyBuffer(int fd, const std::uint8_t *buffer, std::size_t len) {
+		auto EndPoint = Connected_.find(fd);
+		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
+			SendToClient(*EndPoint->second->WSSocket_, buffer,
+						 len);
+		}
+	}
+
 	void RTTYS_server::onConnectedDeviceSocketReadable(
 		const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
@@ -460,6 +468,9 @@ namespace OpenWifi {
 			while (!buffer.isEmpty() && good) {
 
 				if(buffer.used() < RTTY_HDR_SIZE) {
+					if(agg_buf_pos>0) {
+						EmptyBuffer(fd, agg_buffer, agg_buf_pos);
+					}
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for header",buffer.used()));
 					return;
 				}
@@ -471,6 +482,9 @@ namespace OpenWifi {
 				std::uint16_t msg_len = (header[1] << 8) + header[2];
 
 				if(buffer.used()<(RTTY_HDR_SIZE+msg_len)) {
+					if(agg_buf_pos>0) {
+						EmptyBuffer(fd, agg_buffer, agg_buf_pos);
+					}
 					poco_debug(Logger(),fmt::format("Not enough data in the pipe for command data",buffer.used()));
 					return;
 				}
@@ -524,11 +538,7 @@ namespace OpenWifi {
 			}
 
 			if(agg_buf_pos>0) {
-				auto EndPoint = Connected_.find(fd);
-				if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
-					SendToClient(*EndPoint->second->WSSocket_, agg_buffer,
-								 agg_buf_pos);
-				}
+				EmptyBuffer(fd, agg_buffer, agg_buf_pos);
 			}
 
 //			std::cout << "Empty: " << buffer.isEmpty() << std::endl;
