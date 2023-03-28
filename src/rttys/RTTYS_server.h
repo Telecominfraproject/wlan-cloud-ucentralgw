@@ -25,7 +25,7 @@ namespace OpenWifi {
 	constexpr uint RTTY_DEVICE_TOKEN_LENGTH = 32;
 	constexpr std::size_t RTTY_SESSION_ID_LENGTH = 32;
 	constexpr std::size_t RTTY_HDR_SIZE = 3;
-	constexpr std::size_t RTTY_RECEIVE_BUFFER = 1024 << 8;
+	constexpr std::size_t RTTY_RECEIVE_BUFFER = 1024 << 10;
 
 	class RTTYS_server;
 
