@@ -1041,7 +1041,7 @@ namespace OpenWifi {
 				buffer.read((char*)&(buf[pos]),msg_len);
 				pos+=msg_len;
 				// auto good = SendToClient(*EndPoint->second->WSSocket_, (unsigned char*) buffer.begin(), (int) msg_len );
-				buffer.drain(msg_len);
+				// buffer.drain(msg_len);
 				return true;
 			} catch (const Poco::Exception &E) {
 				std::cout << "Failed to send WS stuff" << std::endl;
