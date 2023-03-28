@@ -422,6 +422,8 @@ namespace OpenWifi {
 		if (EndPoint!=end(Connected_) && EndPoint->second->WSSocket_!= nullptr && EndPoint->second->WSSocket_->impl() != nullptr) {
 			SendToClient(*EndPoint->second->WSSocket_, buffer,
 						 len);
+			EndPoint->second->rx += len;
+			std::cout << "Total: " << EndPoint->second->rx << "   bytes now: " << len << std::endl;
 		}
 	}
 

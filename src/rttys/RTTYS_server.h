@@ -114,6 +114,7 @@ namespace OpenWifi {
 		std::chrono::time_point<std::chrono::high_resolution_clock> Created_{0s},
 			DeviceDisconnected_{0s}, ClientDisconnected_{0s}, DeviceConnected_{0s},
 			ClientConnected_{0s};
+		std::uint64_t 	rx=0,tx=0;
 	};
 
 	class RTTYS_server : public SubSystemServer {
