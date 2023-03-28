@@ -238,13 +238,14 @@ namespace OpenWifi {
 		EndConnection();
 	}
 
-	void AP_WS_Connection::EndConnection(bool DeleteSession) {
+	void DeviceDisconnectionCleanup(const std::string &SerialNumber) {
 		if (KafkaManager()->Enabled()) {
 			NotifyKafkaDisconnect(SerialNumber);
 		}
 		RADIUSAccountingSessionKeeper()->DeviceDisconnect(SerialNumber);
-
-    Valid_ = false;
+	}
+	void AP_WS_Connection::EndConnection(bool DeleteSession) {
+    	Valid_ = false;
 		if (!Dead_.test_and_set()) {
 
 			if (Registered_) {
