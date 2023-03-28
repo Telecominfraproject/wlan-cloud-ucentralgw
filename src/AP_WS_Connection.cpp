@@ -244,6 +244,7 @@ namespace OpenWifi {
 		}
 		RADIUSAccountingSessionKeeper()->DeviceDisconnect(SerialNumber);
 	}
+
 	void AP_WS_Connection::EndConnection(bool DeleteSession) {
     	Valid_ = false;
 		if (!Dead_.test_and_set()) {
