@@ -444,7 +444,7 @@ namespace OpenWifi {
 				Poco::Timespan	TS(5,0);
 				received_bytes = hint->second->socket.receiveBytes(buffer);
 				if(received_bytes==0) {
-					std::cout << hint->second->socket.lastError() << std::endl;
+					// std::cout << hint->second->socket.lastError() << std::endl;
 					poco_warning(Logger(), "Device Closing connection - 0 bytes received.");
 					EndConnection( pNf->socket(), __func__, __LINE__ );
 					return;
