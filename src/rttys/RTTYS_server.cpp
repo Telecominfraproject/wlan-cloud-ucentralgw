@@ -467,7 +467,7 @@ namespace OpenWifi {
 					if(agg_buf_pos>0) {
 						EmptyBuffer(fd, agg_buffer, agg_buf_pos);
 					}
-					poco_debug(Logger(),fmt::format("Not enough data in the pipe for header",buffer.used()));
+					// poco_debug(Logger(),fmt::format("Not enough data in the pipe for header",buffer.used()));
 					return;
 				}
 
@@ -481,7 +481,7 @@ namespace OpenWifi {
 					if(agg_buf_pos>0) {
 						EmptyBuffer(fd, agg_buffer, agg_buf_pos);
 					}
-					poco_debug(Logger(),fmt::format("Not enough data in the pipe for command data",buffer.used()));
+					// poco_debug(Logger(),fmt::format("Not enough data in the pipe for command data",buffer.used()));
 					return;
 				}
 
