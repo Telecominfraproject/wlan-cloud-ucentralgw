@@ -16,14 +16,14 @@ namespace OpenWifi {
 					  std::uint64_t timestamp)
 			: serialNumber_(serialNumber), type_(type), timestamp_(timestamp) {}
 
-		inline void SetPayload(Poco::JSON::Object::Ptr payload) { payload_ = std::move(payload); }
+		inline void SetPayload(Poco::JSON::Object payload) { payload_ = payload; }
 		void Send();
 
 	  private:
 		std::string serialNumber_;
 		std::string type_;
 		std::uint64_t timestamp_ = 0;
-		Poco::JSON::Object::Ptr payload_;
+		Poco::JSON::Object payload_;
 	};
 
 	class DeviceFirmwareChangeKafkaEvent : public GWKafkaEvents {
@@ -35,9 +35,9 @@ namespace OpenWifi {
 			  oldFirmware_(oldFirmware), newFirmware_(newFirmware) {}
 
 		~DeviceFirmwareChangeKafkaEvent() {
-			Poco::JSON::Object::Ptr payload = new Poco::JSON::Object;
-			payload->set("oldFirmware", oldFirmware_);
-			payload->set("newFirmware", newFirmware_);
+			Poco::JSON::Object payload;
+			payload.set("oldFirmware", oldFirmware_);
+			payload.set("newFirmware", newFirmware_);
 			SetPayload(payload);
 			Send();
 		}
@@ -54,8 +54,8 @@ namespace OpenWifi {
 		}
 
 		~DeviceConfigurationChangeKafkaEvent() {
-			Poco::JSON::Object::Ptr payload = new Poco::JSON::Object;
-			payload->set("configuration", config_);
+			Poco::JSON::Object payload;
+			payload.set("configuration", config_);
 			SetPayload(payload);
 			Send();
 		}
@@ -74,11 +74,11 @@ namespace OpenWifi {
 			  author_(author), created_(created), IP_(IP) {}
 
 		~DeviceBlacklistedKafkaEvent() {
-			Poco::JSON::Object::Ptr payload = new Poco::JSON::Object;
-			payload->set("reason", reason_);
-			payload->set("author", author_);
-			payload->set("created", created_);
-			payload->set("ipaddress", IP_);
+			Poco::JSON::Object payload;
+			payload.set("reason", reason_);
+			payload.set("author", author_);
+			payload.set("created", created_);
+			payload.set("ipaddress", IP_);
 			SetPayload(payload);
 			Send();
 		}
