@@ -361,6 +361,8 @@ namespace OpenWifi {
 			auto CalledStationID = P.ExtractCalledStationID();
 			Poco::Net::SocketAddress Dst(Destination);
 
+			P.Log(std::cout);
+
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
 			std::string Secret;
