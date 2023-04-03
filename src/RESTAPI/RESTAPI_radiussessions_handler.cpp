@@ -32,7 +32,25 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
+		GWObjects::RadiusCoADMParameters	Parameters;
+		if(!Parameters.from_json(ParsedBody_)) {
+			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
+		}
 
+		if(Parameters.callingStationId.empty() || Parameters.accountingSessionId.empty() || Parameters.accountingMultiSessionId.empty()) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		auto Command = GetParameter("operation","");
+
+		if(Command=="coadm") {
+			if(RADIUSSessionTracker()->SendCoADM(SerialNumber, Parameters.accountingSessionId)) {
+				return OK();
+			}
+			return BadRequest(RESTAPI::Errors::CouldNotPerformCommand);
+		}
+
+		return BadRequest(RESTAPI::Errors::InvalidCommand);
 	}
 
 } // namespace OpenWifi

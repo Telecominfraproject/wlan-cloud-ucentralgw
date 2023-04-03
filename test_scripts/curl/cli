@@ -842,6 +842,32 @@ regulatory_reload() {
 		jq < ${result_file}
 }
 
+radiussessions() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusSessions/$1" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+radiusaps() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusSessions/0?serialNumberOnly=true" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+radiuscoadm() {
+	payload="$(printf '{ "accountingSessionId": "%s", "accountingMultiSessionId": "%s" , "callingStationId": "%s" }' "$2" "$3" "$4" )"
+	curl  ${FLAGS} -X PUT "https://${OWGW}/api/v1/radiusSessions/$1" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" \
+			-d "$payload"  > ${result_file}
+		jq < ${result_file}
+}
+
 check_response() {
 
 	if [ -s "$1" ]; then
@@ -1118,6 +1144,9 @@ case "$1" in
 	"regulatory") login; regulatory "$2"; logout;;
 	"regulatory_reload") login; regulatory_reload; logout;;
 	"gethealthrange") login; gethealthrange "$2" "$3"; logout;;
+	"radiussessions") login; radiussessions $2; logout;;
+	"radiusaps") login; radiusaps ; logout;;
+	"radiuscoadm") login; radiuscoadm "$2" "$3" "$4" "$5"; logout;;
 	"testtoken") testtoken;;
   *) help ;;
 esac
