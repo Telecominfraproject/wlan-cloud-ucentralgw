@@ -487,9 +487,9 @@ namespace OpenWifi::RADIUS {
 			return *this;
 		}
 
-		explicit RadiusPacket() {
-			memset(&P_,0,sizeof(P_));
-			Size_ = AttributeOffset;
+		explicit RadiusPacket() :
+ 			P_{0}, Size_(AttributeOffset)
+		{
 		};
 
 		unsigned char *Buffer() { return (unsigned char *)&P_; }
