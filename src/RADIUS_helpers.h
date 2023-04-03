@@ -487,7 +487,10 @@ namespace OpenWifi::RADIUS {
 			return *this;
 		}
 
-		explicit RadiusPacket() = default;
+		explicit RadiusPacket() {
+			memset(&P_,0,sizeof(P_));
+			Size_ = AttributeOffset;
+		};
 
 		unsigned char *Buffer() { return (unsigned char *)&P_; }
 		[[nodiscard]] uint16_t BufferLen() const { return sizeof(P_); }

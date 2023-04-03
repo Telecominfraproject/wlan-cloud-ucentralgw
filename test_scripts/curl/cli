@@ -860,7 +860,7 @@ radiusaps() {
 
 radiuscoadm() {
 	payload="$(printf '{ "accountingSessionId": "%s", "accountingMultiSessionId": "%s" , "callingStationId": "%s" }' "$2" "$3" "$4" )"
-	curl  ${FLAGS} -X PUT "https://${OWGW}/api/v1/radiusSessions/$1" \
+	curl  ${FLAGS} -X PUT "https://${OWGW}/api/v1/radiusSessions/$1?operation=coadm" \
 			-H "Content-Type: application/json" \
 			-H "Accept: application/json" \
 			-H "Authorization: Bearer ${token}" \
