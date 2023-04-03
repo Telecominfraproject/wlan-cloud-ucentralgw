@@ -1669,6 +1669,13 @@ ul.nav-tabs {
     }
   }
 };
+    defs["getAPRadiusSessions_200_response"] = {
+  "oneOf" : [ {
+    "$ref" : "#/components/schemas/RadiusSessionList"
+  }, {
+    "$ref" : "#/components/schemas/SerialNumberList"
+  } ]
+};
     defs["getDeviceList_200_response"] = {
   "oneOf" : [ {
     "$ref" : "#/components/schemas/DeviceList"
@@ -1938,6 +1945,73 @@ ul.nav-tabs {
     "ignore" : {
       "type" : "boolean",
       "default" : false
+    }
+  }
+};
+    defs["RadiusSession"] = {
+  "type" : "object",
+  "properties" : {
+    "started" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "lastTransaction" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "inputPackets" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "outputPackets" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "inputOctets" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "outputOctets" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "inputGigaWords" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "outputGigaWords" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "sessionTime" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "destination" : {
+      "type" : "string"
+    },
+    "userName" : {
+      "type" : "string"
+    },
+    "accountingSessionId" : {
+      "type" : "string"
+    },
+    "accountingMultiSessionId" : {
+      "type" : "string"
+    },
+    "callingStationId" : {
+      "type" : "string"
+    }
+  }
+};
+    defs["RadiusSessionList"] = {
+  "type" : "object",
+  "properties" : {
+    "sessions" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/components/schemas/RadiusSession"
+      }
     }
   }
 };
@@ -2735,6 +2809,10 @@ ul.nav-tabs {
                     <li data-group="RADIUSProxy" data-name="modifyRadiusProxyConfig" class="">
                       <a href="#api-RADIUSProxy-modifyRadiusProxyConfig">modifyRadiusProxyConfig</a>
                     </li>
+                  <li class="nav-header" data-group="RadiusSessions"><a href="#api-RadiusSessions">API Methods - RadiusSessions</a></li>
+                    <li data-group="RadiusSessions" data-name="getAPRadiusSessions" class="">
+                      <a href="#api-RadiusSessions-getAPRadiusSessions">getAPRadiusSessions</a>
+                    </li>
                   <li class="nav-header" data-group="Scripting"><a href="#api-Scripting">API Methods - Scripting</a></li>
                     <li data-group="Scripting" data-name="createScript" class="">
                       <a href="#api-Scripting-createScript">createScript</a>
@@ -2785,7 +2863,7 @@ ul.nav-tabs {
         <div id="header">
           <div id="api-_">
             <h2 id="welcome-to-apidoc">API and SDK Documentation</h2>
-              <div class="app-desc">Version: 2.5.0</div>
+              <div class="app-desc">Version: 2.10.0</div>
             <hr>
             <div id="app-description" class="app-desc">
                 A process to manage configuration for devices.
@@ -26553,6 +26631,485 @@ $(document).ready(function() {
 
 
                             <div class="tab-content" id="responses-RADIUSProxy-modifyRadiusProxyConfig-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                  </section>
+                <section id="api-RadiusSessions">
+                  <h1>RadiusSessions</h1>
+                    <div id="api-RadiusSessions-getAPRadiusSessions">
+                      <article id="api-RadiusSessions-getAPRadiusSessions-0" data-group="User" data-name="getAPRadiusSessions" data-version="0">
+                        <div class="pull-left">
+                          <h1>getAPRadiusSessions</h1>
+                          <p>Retrieve the RADIUS sessions for a given AP</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/radiusSessions/{serialNumber}</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-RadiusSessions-getAPRadiusSessions-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-java">Java</a></li>
+                          <li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-python">Python</a></li>
+                          <li class=""><a href="#examples-RadiusSessions-getAPRadiusSessions-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-RadiusSessions-getAPRadiusSessions-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X GET \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Accept: application/json" \
+ "https://localhost:16001/api/v1/radiusSessions/{serialNumber}?serialNumberOnly=true"
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.RadiusSessionsApi;
+
+import java.io.File;
+import java.util.*;
+
+public class RadiusSessionsApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        RadiusSessionsApi apiInstance = new RadiusSessionsApi();
+        String serialNumber = serialNumber_example; // String | 
+        Boolean serialNumberOnly = true; // Boolean | 
+
+        try {
+            getAPRadiusSessions_200_response result = apiInstance.getAPRadiusSessions(serialNumber, serialNumberOnly);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling RadiusSessionsApi#getAPRadiusSessions");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.RadiusSessionsApi;
+
+public class RadiusSessionsApiExample {
+    public static void main(String[] args) {
+        RadiusSessionsApi apiInstance = new RadiusSessionsApi();
+        String serialNumber = serialNumber_example; // String | 
+        Boolean serialNumberOnly = true; // Boolean | 
+
+        try {
+            getAPRadiusSessions_200_response result = apiInstance.getAPRadiusSessions(serialNumber, serialNumberOnly);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling RadiusSessionsApi#getAPRadiusSessions");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+RadiusSessionsApi *apiInstance = [[RadiusSessionsApi alloc] init];
+String *serialNumber = serialNumber_example; //  (default to null)
+Boolean *serialNumberOnly = true; //  (optional) (default to null)
+
+// Retrieve the RADIUS sessions for a given AP
+[apiInstance getAPRadiusSessionsWith:serialNumber
+    serialNumberOnly:serialNumberOnly
+              completionHandler: ^(getAPRadiusSessions_200_response output, NSError* error) {
+    if (output) {
+        NSLog(@"%@", output);
+    }
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.RadiusSessionsApi()
+var serialNumber = serialNumber_example; // {String} 
+var opts = {
+  'serialNumberOnly': true // {Boolean} 
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.getAPRadiusSessions(serialNumber, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class getAPRadiusSessionsExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new RadiusSessionsApi();
+            var serialNumber = serialNumber_example;  // String |  (default to null)
+            var serialNumberOnly = true;  // Boolean |  (optional)  (default to null)
+
+            try {
+                // Retrieve the RADIUS sessions for a given AP
+                getAPRadiusSessions_200_response result = apiInstance.getAPRadiusSessions(serialNumber, serialNumberOnly);
+                Debug.WriteLine(result);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling RadiusSessionsApi.getAPRadiusSessions: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\RadiusSessionsApi();
+$serialNumber = serialNumber_example; // String | 
+$serialNumberOnly = true; // Boolean | 
+
+try {
+    $result = $api_instance->getAPRadiusSessions($serialNumber, $serialNumberOnly);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling RadiusSessionsApi->getAPRadiusSessions: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::RadiusSessionsApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::RadiusSessionsApi->new();
+my $serialNumber = serialNumber_example; # String | 
+my $serialNumberOnly = true; # Boolean | 
+
+eval {
+    my $result = $api_instance->getAPRadiusSessions(serialNumber => $serialNumber, serialNumberOnly => $serialNumberOnly);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling RadiusSessionsApi->getAPRadiusSessions: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.RadiusSessionsApi()
+serialNumber = serialNumber_example # String |  (default to null)
+serialNumberOnly = true # Boolean |  (optional) (default to null)
+
+try:
+    # Retrieve the RADIUS sessions for a given AP
+    api_response = api_instance.get_ap_radius_sessions(serialNumber, serialNumberOnly=serialNumberOnly)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling RadiusSessionsApi->getAPRadiusSessions: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate RadiusSessionsApi;
+
+pub fn main() {
+    let serialNumber = serialNumber_example; // String
+    let serialNumberOnly = true; // Boolean
+
+    let mut context = RadiusSessionsApi::Context::default();
+    let result = client.getAPRadiusSessions(serialNumber, serialNumberOnly, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">serialNumber*</td>
+<td>
+
+
+    <div id="d2e199_getAPRadiusSessions_serialNumber">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+
+                            <div class="methodsubtabletitle">Query parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">serialNumberOnly</td>
+<td>
+
+
+    <div id="d2e199_getAPRadiusSessions_serialNumberOnly">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    Boolean
+                </span>
+
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-RadiusSessions-getAPRadiusSessions-title-200"></h3>
+                            <p id="examples-RadiusSessions-getAPRadiusSessions-description-200" class="marked"></p>
+                            <script>
+                              var responseRadiusSessions200_description = `AP List`;
+                              var responseRadiusSessions200_description_break = responseRadiusSessions200_description.indexOf('\n');
+                              if (responseRadiusSessions200_description_break == -1) {
+                                $("#examples-RadiusSessions-getAPRadiusSessions-title-200").text("Status: 200 - " + responseRadiusSessions200_description);
+                              } else {
+                                $("#examples-RadiusSessions-getAPRadiusSessions-title-200").text("Status: 200 - " + responseRadiusSessions200_description.substring(0, responseRadiusSessions200_description_break));
+                                $("#examples-RadiusSessions-getAPRadiusSessions-description-200").html(responseRadiusSessions200_description.substring(responseRadiusSessions200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-RadiusSessions-getAPRadiusSessions-200" class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-RadiusSessions-getAPRadiusSessions-200-schema">Schema</a>
+                                </li>
+
+
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-RadiusSessions-getAPRadiusSessions-200-wrapper" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-RadiusSessions-getAPRadiusSessions-200-schema">
+                                  <div id="responses-RadiusSessions-getAPRadiusSessions-schema-200" class="exampleStyle">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = ;
+                                        var schema = findNode('schema',schemaWrapper).schema;
+                                        if (!schema) {
+                                          schema = schemaWrapper.schema;
+                                        }
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                          Object.keys(schema.properties).forEach( (item) => {
+                                            if (schema.properties[item].$ref != null) {
+                                              schema.properties[item] = defsParser.$refs.get(schema.properties[item].$ref);
+                                            }
+                                          });
+                                        } else if (schema.items != null && schema.items.$ref != null) {
+                                            schema.items = defsParser.$refs.get(schema.items.$ref);
+                                        } else {
+                                          schemaWrapper.definitions = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-RadiusSessions-getAPRadiusSessions-200-schema-data').val(JSON.stringify(schema));
+                                        var result = $('#responses-RadiusSessions-getAPRadiusSessions-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-RadiusSessions-getAPRadiusSessions-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+                            <h3 id="examples-RadiusSessions-getAPRadiusSessions-title-403"></h3>
+                            <p id="examples-RadiusSessions-getAPRadiusSessions-description-403" class="marked"></p>
+                            <script>
+                              var responseRadiusSessions403_description = ``;
+                              var responseRadiusSessions403_description_break = responseRadiusSessions403_description.indexOf('\n');
+                              if (responseRadiusSessions403_description_break == -1) {
+                                $("#examples-RadiusSessions-getAPRadiusSessions-title-403").text("Status: 403 - " + responseRadiusSessions403_description);
+                              } else {
+                                $("#examples-RadiusSessions-getAPRadiusSessions-title-403").text("Status: 403 - " + responseRadiusSessions403_description.substring(0, responseRadiusSessions403_description_break));
+                                $("#examples-RadiusSessions-getAPRadiusSessions-description-403").html(responseRadiusSessions403_description.substring(responseRadiusSessions403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-RadiusSessions-getAPRadiusSessions-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-RadiusSessions-getAPRadiusSessions-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-RadiusSessions-getAPRadiusSessions-title-404"></h3>
+                            <p id="examples-RadiusSessions-getAPRadiusSessions-description-404" class="marked"></p>
+                            <script>
+                              var responseRadiusSessions404_description = ``;
+                              var responseRadiusSessions404_description_break = responseRadiusSessions404_description.indexOf('\n');
+                              if (responseRadiusSessions404_description_break == -1) {
+                                $("#examples-RadiusSessions-getAPRadiusSessions-title-404").text("Status: 404 - " + responseRadiusSessions404_description);
+                              } else {
+                                $("#examples-RadiusSessions-getAPRadiusSessions-title-404").text("Status: 404 - " + responseRadiusSessions404_description.substring(0, responseRadiusSessions404_description_break));
+                                $("#examples-RadiusSessions-getAPRadiusSessions-description-404").html(responseRadiusSessions404_description.substring(responseRadiusSessions404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-RadiusSessions-getAPRadiusSessions-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-RadiusSessions-getAPRadiusSessions-404-wrapper" style='margin-bottom: 10px;'>
                             </div>
                         </article>
                       </div>
