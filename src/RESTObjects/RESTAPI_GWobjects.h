@@ -11,6 +11,10 @@
 #include "Poco/JSON/Object.h"
 #include "RESTAPI_SecurityObjects.h"
 
+#ifdef TIP_GATEWAY_SERVICE
+#include <RADIUS_helpers.h>
+#endif
+
 namespace OpenWifi::GWObjects {
 
 	enum CertificateValidation { NO_CERTIFICATE, VALID_CERTIFICATE, MISMATCH_SERIAL, VERIFIED };
@@ -370,5 +374,31 @@ namespace OpenWifi::GWObjects {
 
 	using RegulatoryInfoCountryMap = std::map<std::string,RegulatoryCountryInfo>;
 
+	struct RADIUSSession {
+		std::uint64_t 			Started_=0,
+								LastTransaction_=0;
+		std::string 			Destination_;
+		std::string 			UserName_;
+		std::string 			AccountingSessionId_,
+								AccountingMultiSessionId_;
+		std::uint64_t 			InputPackets_ = 0,
+								OutputPackets_ = 0,
+								InputOctets_ = 0,
+								OutputOctets_ = 0,
+								InputGigaWords_ = 0,
+								OutputGigaWords_ = 0;
+		std::uint32_t 			SessionTime_ = 0;
+		std::string 			CallingStationId_;
+#ifdef TIP_GATEWAY_SERVICE
+		RADIUS::RadiusPacket	AccountingPacket_;
+#endif
+
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
+
+	struct RADIUSSessionList {
+		std::vector<RADIUSSession>	Sessions;
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
 
 } // namespace OpenWifi::GWObjects

@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: uCentral gateway API
   description: A process to manage configuration for devices.
-  version: 2.5.0
+  version: 2.10.0
   license:
     name: BSD3
     url: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
@@ -1268,6 +1268,55 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RadiusProxyPool'
+
+    RadiusSession:
+      type: object
+      properties:
+        started:
+          type: integer
+          format: int64
+        lastTransaction:
+          type: integer
+          format: int64
+        inputPackets:
+          type: integer
+          format: int64
+        outputPackets:
+          type: integer
+          format: int64
+        inputOctets:
+          type: integer
+          format: int64
+        outputOctets:
+          type: integer
+          format: int64
+        inputGigaWords:
+          type: integer
+          format: int64
+        outputGigaWords:
+          type: integer
+          format: int64
+        sessionTime:
+          type: integer
+          format: int64
+        destination:
+          type: string
+        userName:
+          type: string
+        accountingSessionId:
+          type: string
+        accountingMultiSessionId:
+          type: string
+        callingStationId:
+          type: string
+
+    RadiusSessionList:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RadiusSession'
 
 paths:
   /devices:
@@ -2723,9 +2772,6 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-
-
-
   /blacklist:
     get:
       tags:
@@ -2917,6 +2963,39 @@ paths:
           $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
+
+  /radiusSessions/{serialNumber}:
+    get:
+      tags:
+        - Radius Sessions
+      summary: Retrieve the RADIUS sessions for a given AP
+      operationId: getAPRadiusSessions
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: serialNumberOnly
+          schema:
+            type: boolean
+          required: false
+      responses:
+        200:
+          description: AP List
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/RadiusSessionList'
+                  - $ref: '#/components/schemas/SerialNumberList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+
 
   /deviceDashboard:
     get:

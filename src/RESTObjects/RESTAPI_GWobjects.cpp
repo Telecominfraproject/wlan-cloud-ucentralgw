@@ -580,4 +580,26 @@ namespace OpenWifi::GWObjects {
 				(T.commands != commands) || (T.developer != developer) || (T.ssh != ssh) ||
 				(T.key_info != key_info) || (T.country != country));
 	}
+
+	void RADIUSSession::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "started", Started_);
+		field_to_json(Obj, "lastTransaction", LastTransaction_);
+		field_to_json(Obj, "destination", Destination_);
+		field_to_json(Obj, "userName", UserName_);
+		field_to_json(Obj, "accountingSessionId", AccountingSessionId_);
+		field_to_json(Obj, "accountingMultiSessionId", AccountingMultiSessionId_);
+		field_to_json(Obj, "inputPackets", InputPackets_);
+		field_to_json(Obj, "outputPackets", OutputPackets_);
+		field_to_json(Obj, "inputOctets", InputOctets_);
+		field_to_json(Obj, "outputOctets", OutputOctets_);
+		field_to_json(Obj, "inputGigaWords", InputGigaWords_);
+		field_to_json(Obj, "outputGigaWords", OutputGigaWords_);
+		field_to_json(Obj, "sessionTime", SessionTime_);
+		field_to_json(Obj, "callingStationId", CallingStationId_);
+	}
+
+	void RADIUSSessionList::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "sessions", Sessions);
+	}
+
 } // namespace OpenWifi::GWObjects

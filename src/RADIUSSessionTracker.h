@@ -8,8 +8,13 @@
 #include <Poco/Runnable.h>
 #include <Poco/Notification.h>
 #include <Poco/NotificationQueue.h>
+#include <Poco/JSON/Object.h>
 
 #include "RADIUS_helpers.h"
+
+#include <RESTObjects/RESTAPI_GWobjects.h>
+
+// RADIUS::RadiusPacket	AccountingPacket_;
 
 namespace OpenWifi {
 
@@ -37,17 +42,6 @@ namespace OpenWifi {
 		RADIUS::RadiusPacket		Packet_;
 	};
 
-
-	struct RADIUSSession {
-		std::uint64_t 			Started_=0,
-								LastTransaction_=0;
-		std::string 			Destination_;
-		std::string 			UserName_;
-		RADIUS::RadiusPacket	AccountingPacket_;
-		std::string 			SessionId_;
-		std::string 			MultiSessionId_;
-	};
-
 	class RADIUSSessionTracker : public SubSystemServer, Poco::Runnable {
 	  public:
 
@@ -72,13 +66,32 @@ namespace OpenWifi {
 			SessionMessageQueue_.enqueueNotification(new SessionNotification(serialNumber));
 		}
 
+		inline void GetAPList(std::vector<std::string> &SerialNumbers) {
+			std::lock_guard	G(Mutex_);
+
+			for(const auto &[serialNumber,_]:AccountingSessions_) {
+				SerialNumbers.emplace_back(serialNumber);
+			}
+		}
+
+		inline void GetAPSessions(const std::string &SerialNumber, GWObjects::RADIUSSessionList & list) {
+			std::lock_guard	G(Mutex_);
+
+			auto ap_hint = AccountingSessions_.find(SerialNumber);
+			if(ap_hint!=end(AccountingSessions_)) {
+				for(const auto &[index,session]:ap_hint->second) {
+					list.Sessions.emplace_back(*session);
+				}
+			}
+		}
+
 	  private:
 		std::atomic_bool 			Running_=false;
 		Poco::NotificationQueue 	SessionMessageQueue_;
 		Poco::Thread				QueueManager_;
 
-		using SessionMap = std::map<std::string,std::shared_ptr<RADIUSSession>>;
-		std::map<std::string,SessionMap>		AuthenticationSessions_;			//	serial-number -> session< username -> session >
+		using SessionMap = std::map<std::string,std::shared_ptr<GWObjects::RADIUSSession>>;	//	calling-station-id + accounting-session-id
+		// std::map<std::string,SessionMap>		AuthenticationSessions_;			//	serial-number -> session< username -> session >
 		std::map<std::string,SessionMap>		AccountingSessions_;				//	serial-number -> session< accounting-session -> session>
 
 		void ProcessAccountingSession(SessionNotification &Notification);

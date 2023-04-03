@@ -7,6 +7,10 @@
 #include <framework/utils.h>
 
 #include "RADIUS_proxy_server.h"
+#include "framework/RESTAPI_utils.h"
+
+using OpenWifi::RESTAPI_utils::field_from_json;
+using OpenWifi::RESTAPI_utils::field_to_json;
 
 namespace OpenWifi {
 
@@ -58,69 +62,176 @@ namespace OpenWifi {
 
 	void RADIUSSessionTracker::ProcessAuthenticationSession([[maybe_unused]] OpenWifi::SessionNotification &Notification) {
 		std::lock_guard Guard(Mutex_);
-	}
 
-	void
-	RADIUSSessionTracker::ProcessAccountingSession(OpenWifi::SessionNotification &Notification) {
-		std::lock_guard     Guard(Mutex_);
-
-		std::string CallingStationId;
-		std::uint8_t AccountingPacketType = 0;
+		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName;
 		for (const auto &attribute : Notification.Packet_.Attrs_) {
 			switch (attribute.type) {
+			case RADIUS::AUTH_USERNAME: {
+				UserName.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
 			case RADIUS::CALLING_STATION_ID: {
 				CallingStationId.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::ACCT_STATUS_TYPE: {
-				AccountingPacketType = Notification.Packet_.P_.attributes[attribute.pos + 3];
+			case RADIUS::ACCT_SESSION_ID: {
+				AccountingSessionId.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
+			case RADIUS::ACCT_MULTI_SESSION_ID: {
+				AccountingMultiSessionId.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
 			default: {
 			} break;
 			}
 		}
 
-		auto hint = AccountingSessions_.find(Notification.SerialNumber_);
-		if(hint==end(AccountingSessions_)) {
+		auto ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
+		if(ap_hint==end(AccountingSessions_)) {
+			SessionMap M;
+			AccountingSessions_[Notification.SerialNumber_ ] = M;
+			ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
+		}
+
+		auto Index = CallingStationId+AccountingSessionId+AccountingMultiSessionId;
+		auto session_hint = ap_hint->second.find(Index);
+		if(session_hint==end(ap_hint->second)) {
+			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
+			NewSession->Started_ = NewSession->LastTransaction_ = Utils::Now();
+			NewSession->UserName_ = UserName;
+			NewSession->CallingStationId_ = CallingStationId;
+			NewSession->AccountingSessionId_ = AccountingSessionId;
+			NewSession->AccountingMultiSessionId_ = AccountingMultiSessionId;
+			ap_hint->second[Index] = NewSession;
+		} else {
+			session_hint->second->LastTransaction_ = Utils::Now();
+		}
+
+	}
+
+	std::uint32_t GetUiInt32(const std::uint8_t *buf) {
+		return (buf[0] << 24) + (buf[1] << 16) + (buf[2] << 8) + (buf[3] << 0);
+	}
+
+	void
+	RADIUSSessionTracker::ProcessAccountingSession(OpenWifi::SessionNotification &Notification) {
+		std::lock_guard     Guard(Mutex_);
+
+		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName;
+		std::uint8_t AccountingPacketType = 0;
+		std::uint32_t InputOctets=0, OutputOctets=0, InputPackets=0, OutputPackets=0, InputGigaWords=0, OutputGigaWords=0,
+					  SessionTime = 0;
+		for (const auto &attribute : Notification.Packet_.Attrs_) {
+			switch (attribute.type) {
+			case RADIUS::AUTH_USERNAME: {
+				UserName.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
+			case RADIUS::CALLING_STATION_ID: {
+				CallingStationId.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
+			case RADIUS::ACCT_SESSION_ID: {
+				AccountingSessionId.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
+			case RADIUS::ACCT_MULTI_SESSION_ID: {
+				AccountingMultiSessionId.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
+			case RADIUS::ACCT_STATUS_TYPE: {
+				AccountingPacketType = Notification.Packet_.P_.attributes[attribute.pos + 3];
+			} break;
+			case RADIUS::ACCT_INPUT_OCTETS: {
+				InputOctets = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
+			} break;
+			case RADIUS::ACCT_INPUT_PACKETS: {
+				InputPackets = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
+			} break;
+			case RADIUS::ACCT_INPUT_GIGAWORDS: {
+				InputGigaWords = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
+			} break;
+			case RADIUS::ACCT_OUTPUT_OCTETS: {
+				OutputOctets = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
+			} break;
+			case RADIUS::ACCT_OUTPUT_PACKETS: {
+				OutputPackets= GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
+			} break;
+			case RADIUS::ACCT_OUTPUT_GIGAWORDS: {
+				OutputGigaWords = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
+			} break;
+			case RADIUS::ACCT_SESSION_TIME: {
+				SessionTime = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
+			} break;
+			default: {
+			} break;
+			}
+		}
+
+		auto Index = CallingStationId+AccountingSessionId+AccountingMultiSessionId;
+		auto ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
+		if(ap_hint==end(AccountingSessions_)) {
+			SessionMap M;
+			AccountingSessions_[Notification.SerialNumber_ ] = M;
+			ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
+		}
+
+		auto session_hint = ap_hint->second.find(Notification.SerialNumber_);
+		if(session_hint==end(ap_hint->second)) {
 			//  find the calling_station_id
 			//  if we are getting a stop for something we do not know, nothing to do...
 			if( AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_START &&
-				AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_INTERIM_UPDATE)
+				AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_INTERIM_UPDATE) {
 				return;
+			}
 
-			auto S = std::make_shared<RADIUSSession>();
-			S->Started_ = Utils::Now();
-			S->Destination_ = Notification.Destination_;
-			S->AccountingPacket_ = Notification.Packet_;
+			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
+			NewSession->Destination_ = Notification.Destination_;
+			NewSession->Started_ = NewSession->LastTransaction_ = Utils::Now();
+			NewSession->UserName_ = UserName;
+			NewSession->CallingStationId_ = CallingStationId;
+			NewSession->AccountingSessionId_ = AccountingSessionId;
+			NewSession->AccountingMultiSessionId_ = AccountingMultiSessionId;
+			NewSession->AccountingPacket_ = Notification.Packet_;
+			NewSession->Destination_ = Notification.Destination_;
+			NewSession->InputOctets_ = InputOctets;
+			NewSession->InputPackets_ = InputPackets;
+			NewSession->InputGigaWords_ = InputGigaWords;
+			NewSession->OutputOctets_ = OutputOctets;
+			NewSession->OutputOctets_ = OutputPackets;
+			NewSession->OutputGigaWords_ = OutputGigaWords;
+			NewSession->SessionTime_ = SessionTime;
 
-			SessionMap Sessions;
-			Sessions[CallingStationId] = S;
-			AccountingSessions_[Notification.SerialNumber_] = Sessions;
 			poco_debug(Logger(),fmt::format("{}: Creating session", CallingStationId));
+			ap_hint->second[Index] = NewSession;
+
 		} else {
 
 			//  If we receive a stop, just remove that session
 			if(AccountingPacketType==OpenWifi::RADIUS::ACCT_STATUS_TYPE_STOP) {
 				poco_debug(Logger(),fmt::format("{}: Deleting session", CallingStationId));
-				hint->second.erase(CallingStationId);
+				ap_hint->second.erase(Index);
 			} else {
-				//  we are either starting or interim, which means ths same.
-				auto device_session = hint->second.find(CallingStationId);
-				if(device_session == end(hint->second)) {
-					poco_debug(Logger(),fmt::format("{}: Creating session", CallingStationId));
-					auto S = std::make_shared<RADIUSSession>();
-					S->Started_ = Utils::Now();
-					S->Destination_ = Notification.Destination_;
-					S->AccountingPacket_ = Notification.Packet_;
-					S->LastTransaction_ = Utils::Now();
-					hint->second[CallingStationId] = S;
-				} else {
-					poco_debug(Logger(),fmt::format("{}: Updating session", CallingStationId));
-					device_session->second->AccountingPacket_ = Notification.Packet_;
-					device_session->second->Destination_ = Notification.Destination_;
-					device_session->second->LastTransaction_ = Utils::Now();
-				}
+				poco_debug(Logger(),fmt::format("{}: Updating session", CallingStationId));
+				session_hint->second->AccountingPacket_ = Notification.Packet_;
+				session_hint->second->Destination_ = Notification.Destination_;
+				session_hint->second->LastTransaction_ = Utils::Now();
+				session_hint->second->InputOctets_ = InputOctets;
+				session_hint->second->InputPackets_ = InputPackets;
+				session_hint->second->InputGigaWords_ = InputGigaWords;
+				session_hint->second->OutputOctets_ = OutputOctets;
+				session_hint->second->OutputOctets_ = OutputPackets;
+				session_hint->second->OutputGigaWords_ = OutputGigaWords;
+				session_hint->second->SessionTime_ = SessionTime;
 			}
 		}
 	}
@@ -160,7 +271,7 @@ namespace OpenWifi {
 		}
 
 		AccountingSessions_.erase(hint);
-		AuthenticationSessions_.erase(SerialNumber);
 	}
+
 
 } // namespace OpenWifi

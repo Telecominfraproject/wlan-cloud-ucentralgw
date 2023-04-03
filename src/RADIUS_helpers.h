@@ -179,7 +179,19 @@ namespace OpenWifi::RADIUS {
 	constexpr std::uint8_t CALLING_STATION_ID = 31;
 	constexpr std::uint8_t ACCT_TERMINATE_CAUSE = 49;
 
-	static const struct tok radius_attribute_names[] = {{1, "User-Name"},
+	constexpr std::uint8_t AUTH_USERNAME = 1;
+	constexpr std::uint8_t ACCT_SESSION_ID = 44;
+	constexpr std::uint8_t ACCT_MULTI_SESSION_ID = 50;
+
+	constexpr std::uint8_t ACCT_INPUT_PACKETS = 47;
+	constexpr std::uint8_t ACCT_OUTPUT_PACKETS = 48;
+	constexpr std::uint8_t ACCT_INPUT_OCTETS = 42;
+	constexpr std::uint8_t ACCT_OUTPUT_OCTETS = 43;
+	constexpr std::uint8_t ACCT_INPUT_GIGAWORDS = 52;
+	constexpr std::uint8_t ACCT_OUTPUT_GIGAWORDS = 53;
+	constexpr std::uint8_t ACCT_SESSION_TIME = 46;
+
+	static const struct tok radius_attribute_names[] = {{AUTH_USERNAME, "User-Name"},
 														{2, "User-Password"},
 														{3, "CHAP-Password"},
 														{4, "NAS-IP Address"},
@@ -218,18 +230,18 @@ namespace OpenWifi::RADIUS {
 														{39, "Framed-AppleTalk-Zone"},
 														{ACCT_STATUS_TYPE, "Acct-Status-Type"},
 														{41, "Acct-Delay-Time"},
-														{42, "Acct-Input-Octets"},
-														{43, "Acct-Output-Octets"},
-														{44, "Acct-Session-Id"},
+														{ACCT_INPUT_OCTETS, "Acct-Input-Octets"},
+														{ACCT_OUTPUT_OCTETS, "Acct-Output-Octets"},
+														{ACCT_SESSION_ID, "Acct-Session-Id"},
 														{ACCT_AUTHENTIC, "Acct-Authentic"},
-														{46, "Acct-Session-Time"},
-														{47, "Acct-Input-Packets"},
-														{48, "Acct-Output-Packets"},
+														{ACCT_SESSION_TIME, "Acct-Session-Time"},
+														{ACCT_INPUT_PACKETS, "Acct-Input-Packets"},
+														{ACCT_OUTPUT_PACKETS, "Acct-Output-Packets"},
 														{ACCT_TERMINATE_CAUSE, "Acct-Terminate-Cause"},
-														{50, "Acct-Multi-Session-Id"},
+														{ACCT_MULTI_SESSION_ID, "Acct-Multi-Session-Id"},
 														{51, "Acct-Link-Count"},
-														{52, "Acct-Input-Gigawords"},
-														{53, "Acct-Output-Gigawords"},
+														{ACCT_INPUT_GIGAWORDS, "Acct-Input-Gigawords"},
+														{ACCT_OUTPUT_GIGAWORDS, "Acct-Output-Gigawords"},
 														{55, "Event-Timestamp"},
 														{60, "CHAP-Challenge"},
 														{61, "NAS-Port-Type"},
