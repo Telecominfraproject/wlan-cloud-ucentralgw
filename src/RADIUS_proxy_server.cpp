@@ -186,6 +186,7 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
+		P.Log(std::cout);
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if (SerialNumber.empty()) {
 			poco_warning(Logger(), "Accounting: missing serial number.");
@@ -213,6 +214,7 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
+		P.Log(std::cout);
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if (SerialNumber.empty()) {
 			poco_warning(Logger(), "Authentication: missing serial number.");
