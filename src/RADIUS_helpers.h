@@ -867,6 +867,7 @@ namespace OpenWifi::RADIUS {
 		}
 
 		void AppendAttribute(std::uint8_t attribute, std::uint8_t value) {
+			if(Size_<AttributeOffset) Size_ = AttributeOffset;
 			auto Pos = Size_ - AttributeOffset;
 			P_.attributes[Pos+0] = attribute;
 			P_.attributes[Pos+1] = 1+2;
@@ -876,6 +877,7 @@ namespace OpenWifi::RADIUS {
 		}
 
 		void AppendAttribute(std::uint8_t attribute, std::uint16_t value) {
+			if(Size_<AttributeOffset) Size_ = AttributeOffset;
 			auto Pos = Size_ - AttributeOffset;
 			P_.attributes[Pos+0] = attribute;
 			P_.attributes[Pos+1] = 2+2;
@@ -886,6 +888,7 @@ namespace OpenWifi::RADIUS {
 		}
 
 		void AppendAttribute(std::uint8_t attribute, std::uint32_t value) {
+			if(Size_<AttributeOffset) Size_ = AttributeOffset;
 			auto Pos = Size_ - AttributeOffset;
 			P_.attributes[Pos+0] = attribute;
 			P_.attributes[Pos+1] = 4+2;
@@ -898,6 +901,7 @@ namespace OpenWifi::RADIUS {
 		}
 
 		void AppendAttribute(std::uint8_t attribute, const char *attribute_value, std::uint8_t attribute_len) {
+			if(Size_<AttributeOffset) Size_ = AttributeOffset;
 			auto Pos = Size_ - AttributeOffset;
 			P_.attributes[Pos+0] = attribute;
 			P_.attributes[Pos+1] = attribute_len+2;

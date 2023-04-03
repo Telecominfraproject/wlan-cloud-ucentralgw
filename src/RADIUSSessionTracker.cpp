@@ -265,7 +265,6 @@ namespace OpenWifi {
 
 		P.PacketType(RADCMD_DISCON_REQ);
 		P.Identifier(std::rand() & 0x00ff);
-		P.Size_=0;
 		P.AppendAttribute(RADIUS::AUTH_USERNAME, session->userName);
 		P.AppendAttribute(RADIUS::NAS_IP, (std::uint32_t)(0x7f000001));
 		P.AppendAttribute(RADIUS::CALLING_STATION_ID, session->callingStationId);
