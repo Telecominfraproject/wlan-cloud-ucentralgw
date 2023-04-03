@@ -212,6 +212,17 @@ namespace OpenWifi {
 			}
 			return true;
 		}
+
+		inline bool hasGPS(const std::string &serialNumber) {
+			std::lock_guard	G(WSServerMutex_);
+
+			auto session_hint = Sessions_.find(Utils::SerialNumberToInt(serialNumber));
+			if(session_hint==end(Sessions_)) {
+				return false;
+			}
+			return session_hint->second->hasGPS;
+		}
+
 	  private:
 		mutable std::recursive_mutex WSServerMutex_;
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;

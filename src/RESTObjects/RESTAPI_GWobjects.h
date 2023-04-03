@@ -43,6 +43,7 @@ namespace OpenWifi::GWObjects {
 		double connectionCompletionTime = 0.0;
 		std::uint64_t certificateExpiryDate = 0;
 		bool hasRADIUSSessions = false;
+		bool hasGPS = false;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 	};

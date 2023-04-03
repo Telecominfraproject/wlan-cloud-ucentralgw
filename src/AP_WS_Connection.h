@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Poco/JSON/Object.h"
+#include <Poco/JSON/Parser.h>
 #include "Poco/Logger.h"
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/Net/SocketReactor.h"
@@ -57,9 +58,17 @@ namespace OpenWifi {
 		bool StopWebSocketTelemetry(uint64_t RPCID);
 		bool StopKafkaTelemetry(uint64_t RPCID);
 
-		inline void GetLastStats(std::string &LastStats) const {
+		inline void GetLastStats(std::string &LastStats) {
 			std::shared_lock G(ConnectionMutex_);
 			LastStats = RawLastStats_;
+
+			try {
+				Poco::JSON::Parser P;
+				auto Stats = P.parse(LastStats).extract<Poco::JSON::Object::Ptr>();
+				hasGPS = Stats->has("gps");
+			} catch (...) {
+
+			}
 		}
 
 		inline void SetLastStats(const std::string &LastStats) {
@@ -81,6 +90,8 @@ namespace OpenWifi {
 			std::shared_lock G(ConnectionMutex_);
 			State = State_;
 		}
+
+		inline bool HasGPS() { return hasGPS; }
 
 		inline void GetRestrictions(GWObjects::DeviceRestrictions &R) const {
 			std::shared_lock G(ConnectionMutex_);
@@ -168,6 +179,7 @@ namespace OpenWifi {
 		bool StartTelemetry(uint64_t RPCID, const std::vector<std::string> &TelemetryTypes);
 		bool StopTelemetry(uint64_t RPCID);
 		void UpdateCounts();
+		bool hasGPS=false;
 	};
 
 } // namespace OpenWifi
