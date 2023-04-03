@@ -375,30 +375,43 @@ namespace OpenWifi::GWObjects {
 	using RegulatoryInfoCountryMap = std::map<std::string,RegulatoryCountryInfo>;
 
 	struct RADIUSSession {
-		std::uint64_t 			Started_=0,
-								LastTransaction_=0;
-		std::string 			Destination_;
-		std::string 			UserName_;
-		std::string 			AccountingSessionId_,
-								AccountingMultiSessionId_;
-		std::uint64_t 			InputPackets_ = 0,
-								OutputPackets_ = 0,
-								InputOctets_ = 0,
-								OutputOctets_ = 0,
-								InputGigaWords_ = 0,
-								OutputGigaWords_ = 0;
-		std::uint32_t 			SessionTime_ = 0;
-		std::string 			CallingStationId_;
+		std::uint64_t 			started=0,
+								lastTransaction=0;
+		std::string 			serialNumber,
+								destination,
+								userName,
+					 			accountingSessionId,
+								accountingMultiSessionId,
+					 			callingStationId,
+								chargeableUserIdentity,
+								secret;
+		std::uint64_t 			inputPackets = 0,
+								outputPackets = 0,
+								inputOctets = 0,
+								outputOctets = 0,
+								inputGigaWords = 0,
+								outputGigaWords = 0;
+		std::uint32_t 			sessionTime = 0;
+
 #ifdef TIP_GATEWAY_SERVICE
-		RADIUS::RadiusPacket	AccountingPacket_;
+		RADIUS::RadiusPacket	accountingPacket;
 #endif
 
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
 	struct RADIUSSessionList {
-		std::vector<RADIUSSession>	Sessions;
+		std::vector<RADIUSSession>	sessions;
 		void to_json(Poco::JSON::Object &Obj) const;
+	};
+
+	struct RadiusCoADMParameters {
+		std::string 			accountingSessionId,
+								accountingMultiSessionId,
+								callingStationId,
+								chargeableUserIdentity;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
 } // namespace OpenWifi::GWObjects

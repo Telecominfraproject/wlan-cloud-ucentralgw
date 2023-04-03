@@ -14,8 +14,6 @@
 
 #include <RESTObjects/RESTAPI_GWobjects.h>
 
-// RADIUS::RadiusPacket	AccountingPacket_;
-
 namespace OpenWifi {
 
 	class SessionNotification : public Poco::Notification {
@@ -41,6 +39,8 @@ namespace OpenWifi {
 		std::string 				SerialNumber_;
 		RADIUS::RadiusPacket		Packet_;
 	};
+
+	using RADIUSSessionPtr = std::shared_ptr<GWObjects::RADIUSSession>;
 
 	class RADIUSSessionTracker : public SubSystemServer, Poco::Runnable {
 	  public:
@@ -80,18 +80,20 @@ namespace OpenWifi {
 			auto ap_hint = AccountingSessions_.find(SerialNumber);
 			if(ap_hint!=end(AccountingSessions_)) {
 				for(const auto &[index,session]:ap_hint->second) {
-					list.Sessions.emplace_back(*session);
+					list.sessions.emplace_back(*session);
 				}
 			}
 		}
+
+		bool SendCoADM(const std::string &serialNumber, const std::string &sessionId);
+		bool SendCoADM(const RADIUSSessionPtr &session);
 
 	  private:
 		std::atomic_bool 			Running_=false;
 		Poco::NotificationQueue 	SessionMessageQueue_;
 		Poco::Thread				QueueManager_;
 
-		using SessionMap = std::map<std::string,std::shared_ptr<GWObjects::RADIUSSession>>;	//	calling-station-id + accounting-session-id
-		// std::map<std::string,SessionMap>		AuthenticationSessions_;			//	serial-number -> session< username -> session >
+		using SessionMap = std::map<std::string,RADIUSSessionPtr>;	//	calling-station-id + accounting-session-id
 		std::map<std::string,SessionMap>		AccountingSessions_;				//	serial-number -> session< accounting-session -> session>
 
 		void ProcessAccountingSession(SessionNotification &Notification);

@@ -63,7 +63,7 @@ namespace OpenWifi {
 	void RADIUSSessionTracker::ProcessAuthenticationSession([[maybe_unused]] OpenWifi::SessionNotification &Notification) {
 		std::lock_guard Guard(Mutex_);
 
-		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName;
+		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName, ChargeableUserIdentity;
 		for (const auto &attribute : Notification.Packet_.Attrs_) {
 			switch (attribute.type) {
 			case RADIUS::AUTH_USERNAME: {
@@ -86,6 +86,11 @@ namespace OpenWifi {
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
+			case RADIUS::CHARGEABLE_USER_IDENTITY:{
+				ChargeableUserIdentity.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
 			default: {
 			} break;
 			}
@@ -102,14 +107,15 @@ namespace OpenWifi {
 		auto session_hint = ap_hint->second.find(Index);
 		if(session_hint==end(ap_hint->second)) {
 			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
-			NewSession->Started_ = NewSession->LastTransaction_ = Utils::Now();
-			NewSession->UserName_ = UserName;
-			NewSession->CallingStationId_ = CallingStationId;
-			NewSession->AccountingSessionId_ = AccountingSessionId;
-			NewSession->AccountingMultiSessionId_ = AccountingMultiSessionId;
+			NewSession->started = NewSession->lastTransaction = Utils::Now();
+			NewSession->userName = UserName;
+			NewSession->callingStationId = CallingStationId;
+			NewSession->accountingSessionId = AccountingSessionId;
+			NewSession->accountingMultiSessionId = AccountingMultiSessionId;
+			NewSession->chargeableUserIdentity = ChargeableUserIdentity;
 			ap_hint->second[Index] = NewSession;
 		} else {
-			session_hint->second->LastTransaction_ = Utils::Now();
+			session_hint->second->lastTransaction = Utils::Now();
 		}
 
 	}
@@ -122,7 +128,7 @@ namespace OpenWifi {
 	RADIUSSessionTracker::ProcessAccountingSession(OpenWifi::SessionNotification &Notification) {
 		std::lock_guard     Guard(Mutex_);
 
-		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName;
+		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName, ChargeableUserIdentity;
 		std::uint8_t AccountingPacketType = 0;
 		std::uint32_t InputOctets=0, OutputOctets=0, InputPackets=0, OutputPackets=0, InputGigaWords=0, OutputGigaWords=0,
 					  SessionTime = 0;
@@ -145,6 +151,11 @@ namespace OpenWifi {
 			} break;
 			case RADIUS::ACCT_MULTI_SESSION_ID: {
 				AccountingMultiSessionId.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
+			case RADIUS::CHARGEABLE_USER_IDENTITY:{
+				ChargeableUserIdentity.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
@@ -195,21 +206,22 @@ namespace OpenWifi {
 			}
 
 			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
-			NewSession->Destination_ = Notification.Destination_;
-			NewSession->Started_ = NewSession->LastTransaction_ = Utils::Now();
-			NewSession->UserName_ = UserName;
-			NewSession->CallingStationId_ = CallingStationId;
-			NewSession->AccountingSessionId_ = AccountingSessionId;
-			NewSession->AccountingMultiSessionId_ = AccountingMultiSessionId;
-			NewSession->AccountingPacket_ = Notification.Packet_;
-			NewSession->Destination_ = Notification.Destination_;
-			NewSession->InputOctets_ = InputOctets;
-			NewSession->InputPackets_ = InputPackets;
-			NewSession->InputGigaWords_ = InputGigaWords;
-			NewSession->OutputOctets_ = OutputOctets;
-			NewSession->OutputOctets_ = OutputPackets;
-			NewSession->OutputGigaWords_ = OutputGigaWords;
-			NewSession->SessionTime_ = SessionTime;
+			NewSession->destination = Notification.Destination_;
+			NewSession->started = NewSession->lastTransaction = Utils::Now();
+			NewSession->userName = UserName;
+			NewSession->callingStationId = CallingStationId;
+			NewSession->accountingSessionId = AccountingSessionId;
+			NewSession->accountingMultiSessionId = AccountingMultiSessionId;
+			NewSession->accountingPacket = Notification.Packet_;
+			NewSession->destination = Notification.Destination_;
+			NewSession->inputOctets = InputOctets;
+			NewSession->inputPackets = InputPackets;
+			NewSession->inputGigaWords = InputGigaWords;
+			NewSession->outputOctets = OutputOctets;
+			NewSession->outputOctets = OutputPackets;
+			NewSession->outputGigaWords = OutputGigaWords;
+			NewSession->sessionTime = SessionTime;
+			NewSession->chargeableUserIdentity = ChargeableUserIdentity;
 
 			poco_debug(Logger(),fmt::format("{}: Creating session", CallingStationId));
 			ap_hint->second[Index] = NewSession;
@@ -222,16 +234,16 @@ namespace OpenWifi {
 				ap_hint->second.erase(Index);
 			} else {
 				poco_debug(Logger(),fmt::format("{}: Updating session", CallingStationId));
-				session_hint->second->AccountingPacket_ = Notification.Packet_;
-				session_hint->second->Destination_ = Notification.Destination_;
-				session_hint->second->LastTransaction_ = Utils::Now();
-				session_hint->second->InputOctets_ = InputOctets;
-				session_hint->second->InputPackets_ = InputPackets;
-				session_hint->second->InputGigaWords_ = InputGigaWords;
-				session_hint->second->OutputOctets_ = OutputOctets;
-				session_hint->second->OutputOctets_ = OutputPackets;
-				session_hint->second->OutputGigaWords_ = OutputGigaWords;
-				session_hint->second->SessionTime_ = SessionTime;
+				session_hint->second->accountingPacket = Notification.Packet_;
+				session_hint->second->destination = Notification.Destination_;
+				session_hint->second->lastTransaction = Utils::Now();
+				session_hint->second->inputOctets = InputOctets;
+				session_hint->second->inputPackets = InputPackets;
+				session_hint->second->inputGigaWords = InputGigaWords;
+				session_hint->second->outputOctets = OutputOctets;
+				session_hint->second->outputOctets = OutputPackets;
+				session_hint->second->outputGigaWords = OutputGigaWords;
+				session_hint->second->sessionTime = SessionTime;
 			}
 		}
 	}
@@ -245,6 +257,47 @@ namespace OpenWifi {
 		std::ofstream ofs(filename,std::ios_base::binary | std::ios_base::trunc | std::ios_base::out);
 		ofs.write(buffer,size);
 		ofs.close();
+	}
+
+	bool RADIUSSessionTracker::SendCoADM(const RADIUSSessionPtr &session) {
+
+		RADIUS::RadiusPacket	P;
+
+		P.PacketType(RADCMD_DISCON_REQ);
+		P.Identifier(std::rand() & 0x00ff);
+		P.AppendAttribute(RADIUS::AUTH_USERNAME, session->userName);
+		P.AppendAttribute(RADIUS::NAS_IP, (std::uint32_t)(0x7f000001));
+		P.AppendAttribute(RADIUS::CALLING_STATION_ID, session->callingStationId);
+		if(!session->accountingSessionId.empty())
+			P.AppendAttribute(RADIUS::ACCT_SESSION_ID, session->accountingSessionId);
+		if(!session->accountingMultiSessionId.empty())
+			P.AppendAttribute(RADIUS::ACCT_MULTI_SESSION_ID, session->accountingMultiSessionId);
+		if(!session->chargeableUserIdentity.empty())
+			P.AppendAttribute(RADIUS::CHARGEABLE_USER_IDENTITY, session->chargeableUserIdentity);
+		P.RecomputeAuthenticator(session->secret);
+		AP_WS_Server()->SendRadiusCoAData(session->serialNumber, P.Buffer(), P.Size_);
+
+		P.Log(std::cout);
+
+		return false;
+	}
+
+	bool RADIUSSessionTracker::SendCoADM(const std::string &serialNumber, const std::string &sessionId) {
+		poco_information(Logger(),fmt::format("{}: SendCoADM for {}.", serialNumber, sessionId));
+		std::lock_guard		Guard(Mutex_);
+
+		auto ap_hint = AccountingSessions_.find(serialNumber);
+		if(ap_hint==end(AccountingSessions_)) {
+			return false;
+		}
+
+		for(const auto &[_,session]:ap_hint->second) {
+			if(session->accountingSessionId==sessionId) {
+				SendCoADM(session);
+			}
+		}
+
+		return true;
 	}
 
 	void RADIUSSessionTracker::DisconnectSession(const std::string &SerialNumber) {
@@ -261,13 +314,13 @@ namespace OpenWifi {
 		for(const auto &session:hint->second) {
 			poco_debug(Logger(), fmt::format("Stopping accounting for {}:{}", SerialNumber, session.first ));
 
-			RADIUS::RadiusPacket	P(session.second->AccountingPacket_);
+			RADIUS::RadiusPacket	P(session.second->accountingPacket);
 
 			P.P_.identifier++;
 			P.ReplaceAttribute(RADIUS::ACCT_STATUS_TYPE, (std::uint32_t) RADIUS::ACCT_STATUS_TYPE_STOP);
 			P.ReplaceOrAdd(RADIUS::EVENT_TIMESTAMP, (std::uint32_t) std::time(nullptr));
 			P.AppendAttribute(RADIUS::ACCT_TERMINATE_CAUSE, (std::uint32_t) RADIUS::ACCT_TERMINATE_LOST_CARRIER);
-			RADIUS_proxy_server()->RouteAndSendAccountingPacket(session.second->Destination_, SerialNumber, P, true);
+			RADIUS_proxy_server()->RouteAndSendAccountingPacket(session.second->destination, SerialNumber, P, true, session.second->secret);
 		}
 
 		AccountingSessions_.erase(hint);

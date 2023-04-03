@@ -34,12 +34,12 @@ namespace OpenWifi {
 		void OnCoASocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 
 		void SendAccountingData(const std::string &serialNumber, const char *buffer,
-								std::size_t size);
+								std::size_t size, std::string & secret);
 		void SendAuthenticationData(const std::string &serialNumber, const char *buffer,
-									std::size_t size);
-		void SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size);
+									std::size_t size, std::string & secret);
+		void SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size, std::string & secret);
 
-		void RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P, bool reComputeAuthenticator);
+		void RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P, bool reComputeAuthenticator, std::string & secret);
 
 		void SetConfig(const GWObjects::RadiusProxyPoolList &C);
 		void DeleteConfig();

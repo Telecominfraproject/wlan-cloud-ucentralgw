@@ -15,13 +15,14 @@ namespace OpenWifi {
 						   bool Internal)
 			: RESTAPIHandler(bindings, L,
 							 std::vector<std::string>{Poco::Net::HTTPRequest::HTTP_GET,
+													  Poco::Net::HTTPRequest::HTTP_PUT,
 													  Poco::Net::HTTPRequest::HTTP_OPTIONS},
 							 Server, TransactionId, Internal){};
 		static auto PathName() { return std::list<std::string>{"/api/v1/radiusSessions/{serialNumber}"}; };
 		void DoGet() final;
 		void DoDelete() final{};
 		void DoPost() final{};
-		void DoPut() final{};
+		void DoPut();
 	};
 
 } // namespace OpenWifi

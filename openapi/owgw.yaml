@@ -1318,6 +1318,18 @@ components:
           items:
             $ref: '#/components/schemas/RadiusSession'
 
+    RadiusCoADMParameters:
+      type: object
+      properties:
+        accountingSessionId:
+          type: string
+        accountingMultiSessionId:
+          type: string
+        callingStationId:
+          type: string
+        chargeableUserIdentity:
+          type: string
+
 paths:
   /devices:
     get:
@@ -2990,6 +3002,37 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/RadiusSessionList'
                   - $ref: '#/components/schemas/SerialNumberList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Radius Sessions
+      summary: Retrieve the RADIUS sessions for a given AP
+      operationId: putAPRadiusSessions
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: operation
+          schema:
+            type: string
+            enum:
+              - coadm
+      requestBody:
+        description: operationParameters
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/RadiusCoADMParameters'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

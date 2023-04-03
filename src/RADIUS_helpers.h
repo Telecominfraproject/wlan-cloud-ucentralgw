@@ -190,11 +190,12 @@ namespace OpenWifi::RADIUS {
 	constexpr std::uint8_t ACCT_INPUT_GIGAWORDS = 52;
 	constexpr std::uint8_t ACCT_OUTPUT_GIGAWORDS = 53;
 	constexpr std::uint8_t ACCT_SESSION_TIME = 46;
-
+	constexpr std::uint8_t CHARGEABLE_USER_IDENTITY = 89;
+	constexpr std::uint8_t NAS_IP = 4;
 	static const struct tok radius_attribute_names[] = {{AUTH_USERNAME, "User-Name"},
 														{2, "User-Password"},
 														{3, "CHAP-Password"},
-														{4, "NAS-IP Address"},
+														{NAS_IP, "NAS-IP Address"},
 														{5, "NAS-Port"},
 														{6, "Service-Type"},
 														{7, "Framed-Protocol"},
@@ -272,6 +273,7 @@ namespace OpenWifi::RADIUS {
 														{86, "Acct-Tunnel-Packets-Lost"},
 														{87, "NAS-Port-ID"},
 														{88, "Framed-Pool"},
+														{CHARGEABLE_USER_IDENTITY, "Chargeable-User-Identity"},
 														{90, "Tunnel-Client-Auth-ID"},
 														{91, "Tunnel-Server-Auth-ID"},
 														{0, nullptr}};
@@ -541,6 +543,7 @@ namespace OpenWifi::RADIUS {
 		inline const char *PacketType() { return CommandName(P_.code); }
 
 		inline std::uint8_t PacketTypeInt() { return P_.code; }
+		inline void PacketType(std::uint8_t T) { P_.code = T; }
 
 		void ComputeMessageAuthenticator(const std::string &secret) {
 			RawRadiusPacket P = P_;
@@ -575,9 +578,13 @@ namespace OpenWifi::RADIUS {
 			}
 		}
 
+		inline std::uint8_t Identifier(std::uint8_t id) { P_.identifier = id; return id; }
+		inline std::uint8_t Identifier() const { return P_.identifier; }
+
 		void RecomputeAuthenticator(const std::string &secret) {
 			memset(P_.authenticator,0,sizeof(P_.authenticator));
 			Poco::MD5Engine md5;
+			P_.rawlen = htons(Size_);
 			md5.update((const unsigned char *)&P_, Size_);
 			md5.update(secret.c_str(), secret.size());
 			auto digest = md5.digest();

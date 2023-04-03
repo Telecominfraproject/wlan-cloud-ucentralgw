@@ -241,6 +241,8 @@ namespace OpenWifi {
 			poco_warning(Logger(), "CoA/DM: bad packet received.");
 			return;
 		}
+		P.Log(std::cout);
+
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberTIP();
 		if (SerialNumber.empty()) {
@@ -257,7 +259,7 @@ namespace OpenWifi {
 		AP_WS_Server()->SendRadiusCoAData(SerialNumber, P.Buffer(), P.Size());
 	}
 
-	void RADIUS_proxy_server::RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P, bool RecomputeAuthenticator) {
+	void RADIUS_proxy_server::RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P, bool RecomputeAuthenticator, std::string & secret) {
 		try{
 			auto CallingStationID = P.ExtractCallingStationID();
 			auto CalledStationID = P.ExtractCalledStationID();
@@ -265,8 +267,7 @@ namespace OpenWifi {
 
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
-			std::string Secret;
-			auto FinalDestination = Route(radius_type::acct, Dst, P, UseRADSEC, Secret);
+			auto FinalDestination = Route(radius_type::acct, Dst, P, UseRADSEC, secret);
 			if (UseRADSEC) {
 				Poco::Net::SocketAddress RSP(FinalDestination.host(), 0);
 				auto DestinationServer = RADSECservers_.find(RSP);
@@ -290,7 +291,7 @@ namespace OpenWifi {
 				}
 
 				if(RecomputeAuthenticator) {
-					P.RecomputeAuthenticator(Secret);
+					P.RecomputeAuthenticator(secret);
 				}
 
 				auto AllSent =
@@ -326,7 +327,7 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber,
-												 const char *buffer, std::size_t size) {
+												 const char *buffer, std::size_t size, std::string & secret) {
 
 		if (!Continue())
 			return;
@@ -339,7 +340,7 @@ namespace OpenWifi {
 			auto Destination = P.ExtractProxyStateDestination();
 			// store_packet(serialNumber, buffer, size);
 			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P);
-			RouteAndSendAccountingPacket(Destination, serialNumber, P, false);
+			RouteAndSendAccountingPacket(Destination, serialNumber, P, false, secret);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {
@@ -354,7 +355,7 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber,
-													 const char *buffer, std::size_t size) {
+													 const char *buffer, std::size_t size, std::string & secret) {
 
 		if (!Continue())
 			return;
@@ -370,8 +371,7 @@ namespace OpenWifi {
 
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
-			std::string Secret;
-			auto FinalDestination = Route(radius_type::auth, Dst, P, UseRADSEC, Secret);
+			auto FinalDestination = Route(radius_type::auth, Dst, P, UseRADSEC, secret);
 			if (UseRADSEC) {
 				Poco::Net::SocketAddress RSP(FinalDestination.host(), 0);
 				auto DestinationServer = RADSECservers_.find(RSP);
@@ -414,7 +414,7 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer,
-										  std::size_t size) {
+										  std::size_t size, std::string & secret) {
 
 		if (!Continue())
 			return;
@@ -427,11 +427,12 @@ namespace OpenWifi {
 				Destination = "0.0.0.0:0";
 			}
 
+			P.Log(std::cout);
+
 			Poco::Net::SocketAddress Dst(Destination);
 			std::lock_guard G(Mutex_);
-			std::string Secret;
 			bool UseRADSEC = false;
-			auto FinalDestination = Route(radius_type::coa, Dst, P, UseRADSEC, Secret);
+			auto FinalDestination = Route(radius_type::coa, Dst, P, UseRADSEC, secret);
 			if (UseRADSEC) {
 				Poco::Net::SocketAddress RSP(FinalDestination.host(), 0);
 				auto DestinationServer = RADSECservers_.find(RSP);

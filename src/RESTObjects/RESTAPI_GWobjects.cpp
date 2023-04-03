@@ -582,24 +582,38 @@ namespace OpenWifi::GWObjects {
 	}
 
 	void RADIUSSession::to_json(Poco::JSON::Object &Obj) const {
-		field_to_json(Obj, "started", Started_);
-		field_to_json(Obj, "lastTransaction", LastTransaction_);
-		field_to_json(Obj, "destination", Destination_);
-		field_to_json(Obj, "userName", UserName_);
-		field_to_json(Obj, "accountingSessionId", AccountingSessionId_);
-		field_to_json(Obj, "accountingMultiSessionId", AccountingMultiSessionId_);
-		field_to_json(Obj, "inputPackets", InputPackets_);
-		field_to_json(Obj, "outputPackets", OutputPackets_);
-		field_to_json(Obj, "inputOctets", InputOctets_);
-		field_to_json(Obj, "outputOctets", OutputOctets_);
-		field_to_json(Obj, "inputGigaWords", InputGigaWords_);
-		field_to_json(Obj, "outputGigaWords", OutputGigaWords_);
-		field_to_json(Obj, "sessionTime", SessionTime_);
-		field_to_json(Obj, "callingStationId", CallingStationId_);
+		field_to_json(Obj, "started", started);
+		field_to_json(Obj, "lastTransaction", lastTransaction);
+		field_to_json(Obj, "destination", destination);
+		field_to_json(Obj, "serialNumber", serialNumber);
+		field_to_json(Obj, "userName", userName);
+		field_to_json(Obj, "accountingSessionId", accountingSessionId);
+		field_to_json(Obj, "accountingMultiSessionId", accountingMultiSessionId);
+		field_to_json(Obj, "inputPackets", inputPackets);
+		field_to_json(Obj, "outputPackets", outputPackets);
+		field_to_json(Obj, "inputOctets", inputOctets);
+		field_to_json(Obj, "outputOctets", outputOctets);
+		field_to_json(Obj, "inputGigaWords", inputGigaWords);
+		field_to_json(Obj, "outputGigaWords", outputGigaWords);
+		field_to_json(Obj, "sessionTime", sessionTime);
+		field_to_json(Obj, "callingStationId", callingStationId);
+		field_to_json(Obj, "chargeableUserIdentity", chargeableUserIdentity);
 	}
 
 	void RADIUSSessionList::to_json(Poco::JSON::Object &Obj) const {
-		field_to_json(Obj, "sessions", Sessions);
+		field_to_json(Obj, "sessions", sessions);
+	}
+
+	bool RadiusCoADMParameters::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "accountingSessionId", accountingSessionId);
+			field_from_json(Obj, "accountingMultiSessionId", accountingMultiSessionId);
+			field_from_json(Obj, "callingStationId", callingStationId);
+			field_from_json(Obj, "chargeableUserIdentity", chargeableUserIdentity);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
 	}
 
 } // namespace OpenWifi::GWObjects

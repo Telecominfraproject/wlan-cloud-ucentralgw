@@ -17,10 +17,22 @@ namespace OpenWifi {
 		}
 
 		auto SerialNumber = GetBinding("serialNumber","");
+		if(SerialNumber.empty() || Utils::ValidSerialNumber(SerialNumber)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
 
 		GWObjects::RADIUSSessionList	L;
 		RADIUSSessionTracker()->GetAPSessions(SerialNumber,L);
-		return ReturnObject("sessions",L.Sessions);
+		return ReturnObject("sessions",L.sessions);
+	}
+
+	void RESTAPI_radiussessions_handler::DoPut() {
+		auto SerialNumber = GetBinding("serialNumber","");
+		if(SerialNumber.empty() || Utils::ValidSerialNumber(SerialNumber)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+
 	}
 
 } // namespace OpenWifi
