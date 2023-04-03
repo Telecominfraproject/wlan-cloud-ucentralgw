@@ -269,7 +269,7 @@ namespace OpenWifi {
 		P.Identifier(std::rand() & 0x00ff);
 		P.AppendAttribute(RADIUS::AUTH_USERNAME, session->userName);
 		P.AppendAttribute(RADIUS::NAS_IP, (std::uint32_t)(0x7f000001));
-		P.AppendAttribute(RADIUS::CALLING_STATION_ID, session->callingStationId);
+		// P.AppendAttribute(RADIUS::CALLING_STATION_ID, session->callingStationId);
 		if(!session->accountingSessionId.empty())
 			P.AppendAttribute(RADIUS::ACCT_SESSION_ID, session->accountingSessionId);
 		if(!session->accountingMultiSessionId.empty())
