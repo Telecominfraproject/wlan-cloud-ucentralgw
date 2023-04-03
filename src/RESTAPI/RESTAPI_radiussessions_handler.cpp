@@ -28,7 +28,7 @@ namespace OpenWifi {
 
 	void RESTAPI_radiussessions_handler::DoPut() {
 		auto SerialNumber = GetBinding("serialNumber","");
-		if(SerialNumber.empty() || Utils::ValidSerialNumber(SerialNumber)) {
+		if(SerialNumber.empty() || !Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
