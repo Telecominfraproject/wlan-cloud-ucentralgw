@@ -31,8 +31,8 @@
 
 #include "framework/ow_constants.h"
 
+#include "RADIUSSessionTracker.h"
 #include "RADIUS_proxy_server.h"
-#include "RADIUSAccountingSessionKeeper.h"
 
 namespace OpenWifi {
 
@@ -242,7 +242,7 @@ namespace OpenWifi {
 		if (KafkaManager()->Enabled()) {
 			NotifyKafkaDisconnect(SerialNumber);
 		}
-		RADIUSAccountingSessionKeeper()->DeviceDisconnect(SerialNumber);
+		RADIUSSessionTracker()->DeviceDisconnect(SerialNumber);
 	}
 
 	void AP_WS_Connection::EndConnection(bool DeleteSession) {

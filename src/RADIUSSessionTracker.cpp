@@ -2,21 +2,21 @@
 // Created by stephane bourque on 2023-03-19.
 //
 
-#include "RADIUSAccountingSessionKeeper.h"
-#include <framework/utils.h>
+#include "RADIUSSessionTracker.h"
 #include <fmt/format.h>
+#include <framework/utils.h>
 
 #include "RADIUS_proxy_server.h"
 
 namespace OpenWifi {
 
-	int RADIUSAccountingSessionKeeper::Start() {
+	int RADIUSSessionTracker::Start() {
 		poco_information(Logger(),"Starting...");
 		QueueManager_.start(*this);
 		return 0;
 	}
 
-	void RADIUSAccountingSessionKeeper::Stop() {
+	void RADIUSSessionTracker::Stop() {
 		poco_information(Logger(),"Stopping...");
 		Running_ = false;
 		SessionMessageQueue_.wakeUpAll();
@@ -24,7 +24,7 @@ namespace OpenWifi {
 		poco_information(Logger(),"Stopped...");
 	}
 
-	void RADIUSAccountingSessionKeeper::run() {
+	void RADIUSSessionTracker::run() {
 		Utils::SetThreadName("rad:sessmgr");
 		Running_ = true;
 
@@ -35,8 +35,11 @@ namespace OpenWifi {
 			try {
 				if (Session != nullptr) {
 					switch(Session->Type_) {
-						case SessionNotification::NotificationType::session_message: {
-							ProcessSession(*Session);
+						case SessionNotification::NotificationType::accounting_session_message: {
+							ProcessAccountingSession(*Session);
+						} break;
+						case SessionNotification::NotificationType::authentication_session_message: {
+							ProcessAuthenticationSession(*Session);
 						} break;
 						case SessionNotification::NotificationType::ap_disconnect: {
 							DisconnectSession(Session->SerialNumber_);
@@ -53,7 +56,12 @@ namespace OpenWifi {
 		poco_information(Logger(), "RADIUS session manager stopping.");
 	}
 
-	void RADIUSAccountingSessionKeeper::ProcessSession(OpenWifi::SessionNotification &Notification) {
+	void RADIUSSessionTracker::ProcessAuthenticationSession([[maybe_unused]] OpenWifi::SessionNotification &Notification) {
+		std::lock_guard Guard(Mutex_);
+	}
+
+	void
+	RADIUSSessionTracker::ProcessAccountingSession(OpenWifi::SessionNotification &Notification) {
 		std::lock_guard     Guard(Mutex_);
 
 		std::string CallingStationId;
@@ -73,22 +81,22 @@ namespace OpenWifi {
 			}
 		}
 
-		auto hint = Sessions_.find(Notification.SerialNumber_);
-		if(hint==end(Sessions_)) {
+		auto hint = AccountingSessions_.find(Notification.SerialNumber_);
+		if(hint==end(AccountingSessions_)) {
 			//  find the calling_station_id
 			//  if we are getting a stop for something we do not know, nothing to do...
 			if( AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_START &&
 				AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_INTERIM_UPDATE)
 				return;
 
-			RADIUSAccountingSession S;
-			S.Started_ = Utils::Now();
-			S.Destination = Notification.Destination_;
-			S.Packet_ = Notification.Packet_;
+			auto S = std::make_shared<RADIUSSession>();
+			S->Started_ = Utils::Now();
+			S->Destination_ = Notification.Destination_;
+			S->AccountingPacket_ = Notification.Packet_;
 
-			std::map<std::string,RADIUSAccountingSession>  Sessions;
+			SessionMap Sessions;
 			Sessions[CallingStationId] = S;
-			Sessions_[Notification.SerialNumber_] = Sessions;
+			AccountingSessions_[Notification.SerialNumber_] = Sessions;
 			poco_debug(Logger(),fmt::format("{}: Creating session", CallingStationId));
 		} else {
 
@@ -101,15 +109,17 @@ namespace OpenWifi {
 				auto device_session = hint->second.find(CallingStationId);
 				if(device_session == end(hint->second)) {
 					poco_debug(Logger(),fmt::format("{}: Creating session", CallingStationId));
-					RADIUSAccountingSession S;
-					S.Started_ = Utils::Now();
-					S.Destination = Notification.Destination_;
-					S.Packet_ = Notification.Packet_;
+					auto S = std::make_shared<RADIUSSession>();
+					S->Started_ = Utils::Now();
+					S->Destination_ = Notification.Destination_;
+					S->AccountingPacket_ = Notification.Packet_;
+					S->LastTransaction_ = Utils::Now();
 					hint->second[CallingStationId] = S;
 				} else {
 					poco_debug(Logger(),fmt::format("{}: Updating session", CallingStationId));
-					device_session->second.Packet_ = Notification.Packet_;
-					device_session->second.Destination = Notification.Destination_;
+					device_session->second->AccountingPacket_ = Notification.Packet_;
+					device_session->second->Destination_ = Notification.Destination_;
+					device_session->second->LastTransaction_ = Utils::Now();
 				}
 			}
 		}
@@ -126,13 +136,13 @@ namespace OpenWifi {
 		ofs.close();
 	}
 
-	void RADIUSAccountingSessionKeeper::DisconnectSession(const std::string &SerialNumber) {
+	void RADIUSSessionTracker::DisconnectSession(const std::string &SerialNumber) {
 		poco_information(Logger(),fmt::format("{}: Disconnecting.", SerialNumber));
 
 		std::lock_guard		Guard(Mutex_);
 
-		auto hint = Sessions_.find(SerialNumber);
-		if(hint==end(Sessions_)) {
+		auto hint = AccountingSessions_.find(SerialNumber);
+		if(hint==end(AccountingSessions_)) {
 			return;
 		}
 
@@ -140,19 +150,17 @@ namespace OpenWifi {
 		for(const auto &session:hint->second) {
 			poco_debug(Logger(), fmt::format("Stopping accounting for {}:{}", SerialNumber, session.first ));
 
-			RADIUS::RadiusPacket	P(session.second.Packet_);
-
-			// store_packet(SerialNumber, (const char *)P.Buffer(), P.Size(), 0);
+			RADIUS::RadiusPacket	P(session.second->AccountingPacket_);
 
 			P.P_.identifier++;
 			P.ReplaceAttribute(RADIUS::ACCT_STATUS_TYPE, (std::uint32_t) RADIUS::ACCT_STATUS_TYPE_STOP);
 			P.ReplaceOrAdd(RADIUS::EVENT_TIMESTAMP, (std::uint32_t) std::time(nullptr));
 			P.AppendAttribute(RADIUS::ACCT_TERMINATE_CAUSE, (std::uint32_t) RADIUS::ACCT_TERMINATE_LOST_CARRIER);
-			RADIUS_proxy_server()->RouteAndSendAccountingPacket(session.second.Destination, SerialNumber, P, true);
-			// store_packet(SerialNumber, (const char *)P.Buffer(), P.Size(), 1);
+			RADIUS_proxy_server()->RouteAndSendAccountingPacket(session.second->Destination_, SerialNumber, P, true);
 		}
 
-		Sessions_.erase(hint);
+		AccountingSessions_.erase(hint);
+		AuthenticationSessions_.erase(SerialNumber);
 	}
 
 } // namespace OpenWifi

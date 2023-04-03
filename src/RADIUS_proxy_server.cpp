@@ -8,8 +8,8 @@
 #include "RADIUS_helpers.h"
 #include "RADIUS_proxy_server.h"
 
+#include "RADIUSSessionTracker.h"
 #include "framework/MicroServiceFuncs.h"
-#include "RADIUSAccountingSessionKeeper.h"
 
 namespace OpenWifi {
 
@@ -331,9 +331,12 @@ namespace OpenWifi {
 
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
+
+			P.Log(std::cout);
+
 			auto Destination = P.ExtractProxyStateDestination();
 			// store_packet(serialNumber, buffer, size);
-			RADIUSAccountingSessionKeeper()->AddSession(Destination, serialNumber, P);
+			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P);
 			RouteAndSendAccountingPacket(Destination, serialNumber, P, false);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
