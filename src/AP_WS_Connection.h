@@ -61,19 +61,19 @@ namespace OpenWifi {
 		inline void GetLastStats(std::string &LastStats) {
 			std::shared_lock G(ConnectionMutex_);
 			LastStats = RawLastStats_;
-
-			try {
-				Poco::JSON::Parser P;
-				auto Stats = P.parse(LastStats).extract<Poco::JSON::Object::Ptr>();
-				hasGPS = Stats->has("gps");
-			} catch (...) {
-
-			}
 		}
 
 		inline void SetLastStats(const std::string &LastStats) {
 			std::unique_lock G(ConnectionMutex_);
 			RawLastStats_ = LastStats;
+
+			try {
+				Poco::JSON::Parser P;
+				auto Stats = P.parse(LastStats).extract<Poco::JSON::Object::Ptr>();
+				hasGPS = Stats->isObject("gps");
+			} catch (...) {
+
+			}
 		}
 
 		inline void SetLastHealthCheck(const GWObjects::HealthCheck &H) {
