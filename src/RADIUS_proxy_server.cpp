@@ -186,7 +186,7 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
-		P.Log(std::cout);
+		// P.Log(std::cout);
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if (SerialNumber.empty()) {
 			poco_warning(Logger(), "Accounting: missing serial number.");
@@ -214,7 +214,7 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
-		P.Log(std::cout);
+		// P.Log(std::cout);
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if (SerialNumber.empty()) {
 			poco_warning(Logger(), "Authentication: missing serial number.");
@@ -241,7 +241,7 @@ namespace OpenWifi {
 			poco_warning(Logger(), "CoA/DM: bad packet received.");
 			return;
 		}
-		P.Log(std::cout);
+		// P.Log(std::cout);
 
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberTIP();
@@ -335,7 +335,7 @@ namespace OpenWifi {
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
 
-			P.Log(std::cout);
+			// P.Log(std::cout);
 
 			auto Destination = P.ExtractProxyStateDestination();
 			// store_packet(serialNumber, buffer, size);
@@ -367,7 +367,7 @@ namespace OpenWifi {
 			auto CalledStationID = P.ExtractCalledStationID();
 			Poco::Net::SocketAddress Dst(Destination);
 
-			P.Log(std::cout);
+			// P.Log(std::cout);
 
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
@@ -427,7 +427,7 @@ namespace OpenWifi {
 				Destination = "0.0.0.0:0";
 			}
 
-			P.Log(std::cout);
+			// P.Log(std::cout);
 
 			Poco::Net::SocketAddress Dst(Destination);
 			std::lock_guard G(Mutex_);
@@ -591,7 +591,7 @@ namespace OpenWifi {
 					if (!server.realms.empty()) {
 						for (const auto &realm : server.realms) {
 							if (RealmMatch(UserRealm, realm)) {
-								std::cout << "Realm match..." << std::endl;
+								// std::cout << "Realm match..." << std::endl;
 								UseRADSEC = true;
 								return server.Addr;
 							}

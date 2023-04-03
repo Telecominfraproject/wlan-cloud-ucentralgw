@@ -88,6 +88,11 @@ namespace OpenWifi {
 		bool SendCoADM(const std::string &serialNumber, const std::string &sessionId);
 		bool SendCoADM(const RADIUSSessionPtr &session);
 
+		inline bool HasSessions(const std::string & serialNumber) {
+			std::lock_guard	G(Mutex_);
+			return AccountingSessions_.find(serialNumber)!=end(AccountingSessions_);
+		}
+
 	  private:
 		std::atomic_bool 			Running_=false;
 		Poco::NotificationQueue 	SessionMessageQueue_;

@@ -13,6 +13,7 @@
 #ifdef TIP_GATEWAY_SERVICE
 #include "AP_WS_Server.h"
 #include "CapabilitiesCache.h"
+#include "RADIUSSessionTracker.h"
 #endif
 
 #include "RESTAPI_GWobjects.h"
@@ -29,6 +30,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "serialNumber", SerialNumber);
 #ifdef TIP_GATEWAY_SERVICE
 		field_to_json(Obj, "deviceType", CapabilitiesCache::instance()->GetPlatform(Compatible));
+		field_to_json(Obj, "hasRADIUSSessions", RADIUSSessionTracker()->HasSessions(SerialNumber));
 #endif
 		field_to_json(Obj, "macAddress", MACAddress);
 		field_to_json(Obj, "manufacturer", Manufacturer);
@@ -76,6 +78,7 @@ namespace OpenWifi::GWObjects {
 			field_to_json(Obj, "associations_2G", (uint64_t)0);
 			field_to_json(Obj, "associations_5G", (uint64_t)0);
 			field_to_json(Obj, "associations_6G", (uint64_t)0);
+			field_to_json(Obj, "hasRADIUSSessions", false);
 		}
 #endif
 	}
