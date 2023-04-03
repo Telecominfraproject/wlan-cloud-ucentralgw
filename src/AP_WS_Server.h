@@ -216,11 +216,11 @@ namespace OpenWifi {
 		inline bool hasGPS(const std::string &serialNumber) {
 			std::lock_guard	G(WSServerMutex_);
 
-			auto session_hint = Sessions_.find(Utils::SerialNumberToInt(serialNumber));
-			if(session_hint==end(Sessions_)) {
+			auto session_hint = SerialNumbers_.find(Utils::SerialNumberToInt(serialNumber));
+			if(session_hint==end(SerialNumbers_)) {
 				return false;
 			}
-			return session_hint->second->hasGPS;
+			return session_hint->second.second->hasGPS;
 		}
 
 	  private:
