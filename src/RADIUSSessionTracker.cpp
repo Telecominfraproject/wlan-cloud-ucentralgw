@@ -275,11 +275,11 @@ namespace OpenWifi {
 		if(!session->chargeableUserIdentity.empty())
 			P.AppendAttribute(RADIUS::CHARGEABLE_USER_IDENTITY, session->chargeableUserIdentity);
 		P.RecomputeAuthenticator(session->secret);
-		AP_WS_Server()->SendRadiusCoAData(session->serialNumber, P.Buffer(), P.Size_);
-
 		P.Log(std::cout);
 
-		return false;
+		AP_WS_Server()->SendRadiusCoAData(session->serialNumber, P.Buffer(), P.Size_);
+
+		return true;
 	}
 
 	bool RADIUSSessionTracker::SendCoADM(const std::string &serialNumber, const std::string &sessionId) {
@@ -293,7 +293,9 @@ namespace OpenWifi {
 
 		for(const auto &[_,session]:ap_hint->second) {
 			if(session->accountingSessionId==sessionId) {
+				std::cout << "Sending CoA/DM" << std::endl;
 				SendCoADM(session);
+				std::cout << "Sent CoA/DM" << std::endl;
 			}
 		}
 
