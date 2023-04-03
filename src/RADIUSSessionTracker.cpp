@@ -107,6 +107,7 @@ namespace OpenWifi {
 		auto session_hint = ap_hint->second.find(Index);
 		if(session_hint==end(ap_hint->second)) {
 			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
+			NewSession->serialNumber = Notification.SerialNumber_;
 			NewSession->started = NewSession->lastTransaction = Utils::Now();
 			NewSession->userName = UserName;
 			NewSession->callingStationId = CallingStationId;
@@ -206,6 +207,7 @@ namespace OpenWifi {
 			}
 
 			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
+			NewSession->serialNumber = Notification.SerialNumber_;
 			NewSession->destination = Notification.Destination_;
 			NewSession->started = NewSession->lastTransaction = Utils::Now();
 			NewSession->userName = UserName;
