@@ -299,9 +299,10 @@ namespace OpenWifi {
 		if(!session->chargeableUserIdentity.empty())
 			P.AppendAttribute(RADIUS::CHARGEABLE_USER_IDENTITY, session->chargeableUserIdentity);
 		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + session->interface;
-		P.AppendAttribute(RADIUS::PROXY_STATE,ProxyState);
+		std::cout << "Proxy state: " << ProxyState << "   Secret: " << session->secret << std::endl;
+		P.AppendAttribute(RADIUS::PROXY_STATE, ProxyState);
 		P.RecomputeAuthenticator(session->secret);
-		// P.Log(std::cout);
+		P.Log(std::cout);
 		AP_WS_Server()->SendRadiusCoAData(session->serialNumber, P.Buffer(), P.Size_);
 
 		return true;
