@@ -718,7 +718,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractSerialNumberFromProxyState() {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == 33) {
+				if (attribute.type == RADIUS::PROXY_STATE) {
 					std::string Attr33;
 					// format is serial:IP:port:interface
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],
@@ -740,7 +740,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractProxyStateDestination() {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == 33 && attribute.len > 2) {
+				if (attribute.type == RADIUS::PROXY_STATE && attribute.len > 2) {
 					std::string Attr33;
 					// format is
 
@@ -765,7 +765,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractCallingStationID() {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == 31 && attribute.len > 2) {
+				if (attribute.type == RADIUS::CALLING_STATION_ID && attribute.len > 2) {
 					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len - 2);
 					return Result;
