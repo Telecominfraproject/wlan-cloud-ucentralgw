@@ -16,6 +16,14 @@ namespace OpenWifi {
 			return ReturnObject("serialNumbers",L);
 		}
 
+		auto userName = GetParameter("userName","");
+		if(!userName.empty()) {
+			GWObjects::RADIUSSessionList	L;
+			Poco::toLowerInPlace(userName);
+			RADIUSSessionTracker()->GetUserNameAPSessions(userName,L);
+			return ReturnObject("sessions",L.sessions);
+		}
+
 		auto SerialNumber = GetBinding("serialNumber","");
 		if(SerialNumber.empty() || !Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);

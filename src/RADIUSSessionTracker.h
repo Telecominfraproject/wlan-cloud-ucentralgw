@@ -85,6 +85,18 @@ namespace OpenWifi {
 			}
 		}
 
+		inline void GetUserNameAPSessions(const std::string &userName, GWObjects::RADIUSSessionList & list) {
+			std::lock_guard	G(Mutex_);
+
+			for(const auto &[_,sessions]:AccountingSessions_) {
+				for(const auto &[_,session]:sessions) {
+					if(session->userName==userName) {
+						list.sessions.emplace_back(*session);
+					}
+				}
+			}
+		}
+
 		bool SendCoADM(const std::string &serialNumber, const std::string &sessionId);
 		bool SendCoADM(const RADIUSSessionPtr &session);
 

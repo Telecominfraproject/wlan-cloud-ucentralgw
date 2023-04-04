@@ -2987,11 +2987,17 @@ paths:
           name: serialNumber
           schema:
             type: string
+            example: for searches or listing only serial number, set the serialNumber to 0
           required: true
         - in: query
           name: serialNumberOnly
           schema:
             type: boolean
+          required: false
+        - in: query
+          name: userName
+          schema:
+            type: string
           required: false
       responses:
         200:
