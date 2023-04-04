@@ -715,7 +715,7 @@ namespace OpenWifi::RADIUS {
 			return R;
 		}
 
-		std::string ExtractSerialNumberFromProxyState() {
+		std::string ExtractSerialNumberFromProxyState() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == RADIUS::PROXY_STATE) {
@@ -737,7 +737,7 @@ namespace OpenWifi::RADIUS {
 			return Result;
 		}
 
-		std::string ExtractProxyStateDestination() {
+		std::string ExtractProxyStateDestination() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == RADIUS::PROXY_STATE && attribute.len > 2) {
@@ -762,7 +762,7 @@ namespace OpenWifi::RADIUS {
 			return Result;
 		}
 
-		std::string ExtractCallingStationID() {
+		std::string ExtractCallingStationID() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == RADIUS::CALLING_STATION_ID && attribute.len > 2) {
@@ -774,7 +774,19 @@ namespace OpenWifi::RADIUS {
 			return Result;
 		}
 
-		std::string ExtractCalledStationID() {
+		std::string ExtractAccountingSessionID() const {
+			std::string Result;
+			for (const auto &attribute : Attrs_) {
+				if (attribute.type == RADIUS::ACCT_SESSION_ID && attribute.len > 2) {
+					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
+								  attribute.len - 2);
+					return Result;
+				}
+			}
+			return Result;
+		}
+
+		std::string ExtractCalledStationID() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == 30 && attribute.len > 2) {
@@ -788,7 +800,7 @@ namespace OpenWifi::RADIUS {
 
 		[[nodiscard]] std::string UserName() const {
 			for (const auto &attr : Attrs_) {
-				if (attr.type == 1) {
+				if (attr.type == RADIUS::AUTH_USERNAME) {
 					std::string user_name{(const char *)&P_.attributes[attr.pos], attr.len};
 					return user_name;
 				}
@@ -987,7 +999,7 @@ namespace OpenWifi::RADIUS {
 			AddAttribute(location, attribute, attribute_value.c_str(), attribute_value.size());
 		}
 
-		bool HasAttribute(std::uint8_t attribute) {
+		bool HasAttribute(std::uint8_t attribute) const {
 			return std::any_of(Attrs_.begin(),Attrs_.end(),[attribute](const RadiusAttribute &Attr) { return Attr.type ==attribute; });
 		}
 

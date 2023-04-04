@@ -113,7 +113,7 @@ namespace OpenWifi {
 			ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
 		}
 
-		auto Index = CallingStationId+AccountingSessionId+AccountingMultiSessionId;
+		auto Index = CallingStationId + AccountingSessionId; // +AccountingMultiSessionId;
 		auto session_hint = ap_hint->second.find(Index);
 		if(session_hint==end(ap_hint->second)) {
 			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
@@ -211,7 +211,7 @@ namespace OpenWifi {
 			}
 		}
 
-		auto Index = CallingStationId+AccountingSessionId+AccountingMultiSessionId;
+		auto Index = CallingStationId + AccountingSessionId; // +AccountingMultiSessionId;
 		auto ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
 		if(ap_hint==end(AccountingSessions_)) {
 			SessionMap M;

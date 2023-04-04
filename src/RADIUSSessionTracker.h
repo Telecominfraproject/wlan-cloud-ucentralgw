@@ -25,7 +25,7 @@ namespace OpenWifi {
 			ap_disconnect
 		};
 
-		explicit  SessionNotification(NotificationType T, const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P, const std::string &secret)
+		explicit SessionNotification(NotificationType T, const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P, const std::string &secret)
 			: Type_(T), Destination_(Destination), SerialNumber_(SerialNumber), Packet_(P), Secret_(secret) {
 		}
 
@@ -39,6 +39,46 @@ namespace OpenWifi {
 		std::string 				SerialNumber_;
 		RADIUS::RadiusPacket		Packet_;
 		std::string					Secret_;
+	};
+
+	class TrackerFutureCompletion {
+	  public:
+		virtual bool Completed(const RADIUS::RadiusPacket &P) = 0;
+		virtual bool StillValid() = 0;
+	  private:
+	};
+
+	class CoADisconnectResponse : public TrackerFutureCompletion {
+	  public:
+		CoADisconnectResponse(const std::string &serialNumber, std::uint8_t id, const std::vector<std::uint8_t> &types, const std::string &callingStationId):
+ 			SerialNumber_(serialNumber),
+			Id_(id),
+			PacketTypes_(types),
+			CallingStationId_(callingStationId) {
+			Created_ = Utils::Now();
+		}
+
+		bool Completed(const RADIUS::RadiusPacket &P) final {
+			if(P.Identifier()==Id_) {
+				if(P.P_.code == RADIUS::Disconnect_ACK) {
+
+				} else if (P.P_.code == RADIUS::Disconnect_NAK) {
+
+				}
+			}
+			return true;
+		}
+
+		bool StillValid() final {
+			return (Utils::Now()-Created_) < 20;
+		}
+
+	  private:
+		std::string 	SerialNumber_;
+		std::uint8_t 	Id_;
+		std::vector<std::uint8_t>	PacketTypes_;
+		std::uint64_t 	Created_;
+		std::string 	CallingStationId_;
 	};
 
 	using RADIUSSessionPtr = std::shared_ptr<GWObjects::RADIUSSession>;
@@ -55,11 +95,23 @@ namespace OpenWifi {
 		void Stop() override;
 		void run() final;
 
-		inline void AddAccountingSession(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P, const std::string &secret) {
+		inline void AddAccountingSession(const std::string &Destination, const std::string &SerialNumber,
+										 const RADIUS::RadiusPacket &P, const std::string &secret) {
 			SessionMessageQueue_.enqueueNotification(new SessionNotification(SessionNotification::NotificationType::accounting_session_message, Destination, SerialNumber, P, secret));
 		}
 
-		inline void AddAuthenticationSession(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P, const std::string &secret) {
+		inline void AddAuthenticationSession(const std::string &Destination, const std::string &SerialNumber,
+											 const RADIUS::RadiusPacket &P, const std::string &secret) {
+			std::lock_guard	G(Mutex_);
+			auto ap_hint = AccountingSessions_.find(SerialNumber);
+			if(AccountingSessions_.find(SerialNumber)!=end(AccountingSessions_)) {
+				//	if we have already added the info, do not need to add it again
+				auto CallingStationId = P.ExtractCallingStationID();
+				auto AccountingSessionId = P.ExtractAccountingSessionID();
+				if(ap_hint->second.find(CallingStationId+AccountingSessionId)!=end(ap_hint->second)) {
+					return;
+				}
+			}
 			SessionMessageQueue_.enqueueNotification(new SessionNotification(SessionNotification::NotificationType::authentication_session_message, Destination, SerialNumber, P, secret));
 		}
 
