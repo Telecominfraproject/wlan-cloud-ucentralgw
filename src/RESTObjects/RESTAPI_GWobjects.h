@@ -386,7 +386,8 @@ namespace OpenWifi::GWObjects {
 								accountingMultiSessionId,
 					 			callingStationId,
 								chargeableUserIdentity,
-								secret;
+								secret,
+								interface;
 		std::uint64_t 			inputPackets = 0,
 								outputPackets = 0,
 								inputOctets = 0,

@@ -192,6 +192,7 @@ namespace OpenWifi::RADIUS {
 	constexpr std::uint8_t ACCT_SESSION_TIME = 46;
 	constexpr std::uint8_t CHARGEABLE_USER_IDENTITY = 89;
 	constexpr std::uint8_t NAS_IP = 4;
+	constexpr std::uint8_t PROXY_STATE = 33;
 	static const struct tok radius_attribute_names[] = {{AUTH_USERNAME, "User-Name"},
 														{2, "User-Password"},
 														{3, "CHAP-Password"},
@@ -222,7 +223,7 @@ namespace OpenWifi::RADIUS {
 														{30, "Called-Station-Id"},
 														{CALLING_STATION_ID, "Calling-Station-Id"},
 														{32, "NAS-Identifier"},
-														{33, "Proxy-State"},
+														{PROXY_STATE, "Proxy-State"},
 														{34, "Login-LAT-Service"},
 														{35, "Login-LAT-Node"},
 														{36, "Login-LAT-Group"},
@@ -741,7 +742,8 @@ namespace OpenWifi::RADIUS {
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == 33 && attribute.len > 2) {
 					std::string Attr33;
-					// format is serial:IP:port:interface
+					// format is
+
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len - 2);
 					auto Parts = Poco::StringTokenizer(Attr33, "|");

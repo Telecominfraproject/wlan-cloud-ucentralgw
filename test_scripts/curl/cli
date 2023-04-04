@@ -851,7 +851,7 @@ radiussessions() {
 }
 
 radiussearch() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusSessions/0&userName=$1" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusSessions/0?userName=$1" \
 			-H "Content-Type: application/json" \
 			-H "Accept: application/json" \
 			-H "Authorization: Bearer ${token}" > ${result_file}
