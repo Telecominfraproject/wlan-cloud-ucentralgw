@@ -25,8 +25,8 @@ namespace OpenWifi {
 			ap_disconnect
 		};
 
-		explicit  SessionNotification(NotificationType T, const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P)
-			: Type_(T), Destination_(Destination), SerialNumber_(SerialNumber), Packet_(P) {
+		explicit  SessionNotification(NotificationType T, const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P, const std::string &secret)
+			: Type_(T), Destination_(Destination), SerialNumber_(SerialNumber), Packet_(P), Secret_(secret) {
 		}
 
 		explicit SessionNotification(const std::string &SerialNumber)
@@ -38,6 +38,7 @@ namespace OpenWifi {
 		std::string 				Destination_;
 		std::string 				SerialNumber_;
 		RADIUS::RadiusPacket		Packet_;
+		std::string					Secret_;
 	};
 
 	using RADIUSSessionPtr = std::shared_ptr<GWObjects::RADIUSSession>;
@@ -54,12 +55,12 @@ namespace OpenWifi {
 		void Stop() override;
 		void run() final;
 
-		inline void AddAccountingSession(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P) {
-			SessionMessageQueue_.enqueueNotification(new SessionNotification(SessionNotification::NotificationType::accounting_session_message, Destination, SerialNumber, P));
+		inline void AddAccountingSession(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P, const std::string &secret) {
+			SessionMessageQueue_.enqueueNotification(new SessionNotification(SessionNotification::NotificationType::accounting_session_message, Destination, SerialNumber, P, secret));
 		}
 
-		inline void AddAuthenticationSession(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P) {
-			SessionMessageQueue_.enqueueNotification(new SessionNotification(SessionNotification::NotificationType::authentication_session_message, Destination, SerialNumber, P));
+		inline void AddAuthenticationSession(const std::string &Destination, const std::string &SerialNumber, const RADIUS::RadiusPacket &P, const std::string &secret) {
+			SessionMessageQueue_.enqueueNotification(new SessionNotification(SessionNotification::NotificationType::authentication_session_message, Destination, SerialNumber, P, secret));
 		}
 
 		inline void DeviceDisconnect(const std::string &serialNumber) {

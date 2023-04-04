@@ -125,6 +125,7 @@ namespace OpenWifi {
 			NewSession->accountingMultiSessionId = AccountingMultiSessionId;
 			NewSession->chargeableUserIdentity = ChargeableUserIdentity;
 			NewSession->interface = Interface;
+			NewSession->secret = Notification.Secret_;
 			ap_hint->second[Index] = NewSession;
 		} else {
 			session_hint->second->lastTransaction = Utils::Now();
@@ -246,6 +247,7 @@ namespace OpenWifi {
 			NewSession->sessionTime = SessionTime;
 			NewSession->chargeableUserIdentity = ChargeableUserIdentity;
 			NewSession->interface = Interface;
+			NewSession->secret = Notification.Secret_;
 
 			poco_debug(Logger(),fmt::format("{}: Creating session", CallingStationId));
 			ap_hint->second[Index] = NewSession;

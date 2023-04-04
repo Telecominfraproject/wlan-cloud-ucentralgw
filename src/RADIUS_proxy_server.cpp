@@ -340,8 +340,8 @@ namespace OpenWifi {
 
 			auto Destination = P.ExtractProxyStateDestination();
 			// store_packet(serialNumber, buffer, size);
-			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P);
 			RouteAndSendAccountingPacket(Destination, serialNumber, P, false, secret);
+			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P, secret);
 			std::cout << "Accounting2 secret: " << secret << std::endl;
 
 		} catch (const Poco::Exception &E) {
@@ -375,6 +375,8 @@ namespace OpenWifi {
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
 			auto FinalDestination = Route(radius_type::auth, Dst, P, UseRADSEC, secret);
+			RADIUSSessionTracker()->AddAuthenticationSession(Destination, serialNumber, P, secret);
+
 			std::cout << "Authentication secret: " << secret << std::endl;
 			if (UseRADSEC) {
 				Poco::Net::SocketAddress RSP(FinalDestination.host(), 0);
