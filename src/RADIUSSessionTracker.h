@@ -91,7 +91,7 @@ namespace OpenWifi {
 
 			for(const auto &[_,sessions]:AccountingSessions_) {
 				for(const auto &[_,session]:sessions) {
-					if(session->userName==userName) {
+					if(Utils::match(session->userName.c_str(),userName.c_str())) {
 						list.sessions.emplace_back(*session);
 					}
 				}
@@ -103,7 +103,7 @@ namespace OpenWifi {
 
 			for(const auto &[_,sessions]:AccountingSessions_) {
 				for(const auto &[_,session]:sessions) {
-					if(session->callingStationId==mac) {
+					if(Utils::match(session->callingStationId.c_str(),mac.c_str())) {
 						list.sessions.emplace_back(*session);
 					}
 				}
