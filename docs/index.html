@@ -26700,7 +26700,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/radiusSessions/{serialNumber}?serialNumberOnly=true"
+ "https://localhost:16001/api/v1/radiusSessions/{serialNumber}?serialNumberOnly=true&userName=userName_example"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-java">
@@ -26728,11 +26728,12 @@ public class RadiusSessionsApiExample {
 
         // Create an instance of the API class
         RadiusSessionsApi apiInstance = new RadiusSessionsApi();
-        String serialNumber = serialNumber_example; // String | 
+        String serialNumber = for searches or listing only serial number, set the serialNumber to 0; // String | 
         Boolean serialNumberOnly = true; // Boolean | 
+        String userName = userName_example; // String | 
 
         try {
-            getAPRadiusSessions_200_response result = apiInstance.getAPRadiusSessions(serialNumber, serialNumberOnly);
+            getAPRadiusSessions_200_response result = apiInstance.getAPRadiusSessions(serialNumber, serialNumberOnly, userName);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling RadiusSessionsApi#getAPRadiusSessions");
@@ -26749,11 +26750,12 @@ public class RadiusSessionsApiExample {
 public class RadiusSessionsApiExample {
     public static void main(String[] args) {
         RadiusSessionsApi apiInstance = new RadiusSessionsApi();
-        String serialNumber = serialNumber_example; // String | 
+        String serialNumber = for searches or listing only serial number, set the serialNumber to 0; // String | 
         Boolean serialNumberOnly = true; // Boolean | 
+        String userName = userName_example; // String | 
 
         try {
-            getAPRadiusSessions_200_response result = apiInstance.getAPRadiusSessions(serialNumber, serialNumberOnly);
+            getAPRadiusSessions_200_response result = apiInstance.getAPRadiusSessions(serialNumber, serialNumberOnly, userName);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling RadiusSessionsApi#getAPRadiusSessions");
@@ -26779,12 +26781,14 @@ public class RadiusSessionsApiExample {
 
 // Create an instance of the API class
 RadiusSessionsApi *apiInstance = [[RadiusSessionsApi alloc] init];
-String *serialNumber = serialNumber_example; //  (default to null)
+String *serialNumber = for searches or listing only serial number, set the serialNumber to 0; //  (default to null)
 Boolean *serialNumberOnly = true; //  (optional) (default to null)
+String *userName = userName_example; //  (optional) (default to null)
 
 // Retrieve the RADIUS sessions for a given AP
 [apiInstance getAPRadiusSessionsWith:serialNumber
     serialNumberOnly:serialNumberOnly
+    userName:userName
               completionHandler: ^(getAPRadiusSessions_200_response output, NSError* error) {
     if (output) {
         NSLog(@"%@", output);
@@ -26812,9 +26816,10 @@ bearerAuth.accessToken = "YOUR ACCESS TOKEN";
 
 // Create an instance of the API class
 var api = new UCentralGatewayApi.RadiusSessionsApi()
-var serialNumber = serialNumber_example; // {String} 
+var serialNumber = for searches or listing only serial number, set the serialNumber to 0; // {String} 
 var opts = {
-  'serialNumberOnly': true // {Boolean} 
+  'serialNumberOnly': true, // {Boolean} 
+  'userName': userName_example // {String} 
 };
 
 var callback = function(error, data, response) {
@@ -26853,12 +26858,13 @@ namespace Example
 
             // Create an instance of the API class
             var apiInstance = new RadiusSessionsApi();
-            var serialNumber = serialNumber_example;  // String |  (default to null)
+            var serialNumber = for searches or listing only serial number, set the serialNumber to 0;  // String |  (default to null)
             var serialNumberOnly = true;  // Boolean |  (optional)  (default to null)
+            var userName = userName_example;  // String |  (optional)  (default to null)
 
             try {
                 // Retrieve the RADIUS sessions for a given AP
-                getAPRadiusSessions_200_response result = apiInstance.getAPRadiusSessions(serialNumber, serialNumberOnly);
+                getAPRadiusSessions_200_response result = apiInstance.getAPRadiusSessions(serialNumber, serialNumberOnly, userName);
                 Debug.WriteLine(result);
             } catch (Exception e) {
                 Debug.Print("Exception when calling RadiusSessionsApi.getAPRadiusSessions: " + e.Message );
@@ -26883,11 +26889,12 @@ OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('',
 
 // Create an instance of the API class
 $api_instance = new OpenAPITools\Client\Api\RadiusSessionsApi();
-$serialNumber = serialNumber_example; // String | 
+$serialNumber = for searches or listing only serial number, set the serialNumber to 0; // String | 
 $serialNumberOnly = true; // Boolean | 
+$userName = userName_example; // String | 
 
 try {
-    $result = $api_instance->getAPRadiusSessions($serialNumber, $serialNumberOnly);
+    $result = $api_instance->getAPRadiusSessions($serialNumber, $serialNumberOnly, $userName);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling RadiusSessionsApi->getAPRadiusSessions: ', $e->getMessage(), PHP_EOL;
@@ -26910,11 +26917,12 @@ $WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
 
 # Create an instance of the API class
 my $api_instance = WWW::OPenAPIClient::RadiusSessionsApi->new();
-my $serialNumber = serialNumber_example; # String | 
+my $serialNumber = for searches or listing only serial number, set the serialNumber to 0; # String | 
 my $serialNumberOnly = true; # Boolean | 
+my $userName = userName_example; # String | 
 
 eval {
-    my $result = $api_instance->getAPRadiusSessions(serialNumber => $serialNumber, serialNumberOnly => $serialNumberOnly);
+    my $result = $api_instance->getAPRadiusSessions(serialNumber => $serialNumber, serialNumberOnly => $serialNumberOnly, userName => $userName);
     print Dumper($result);
 };
 if ($@) {
@@ -26939,12 +26947,13 @@ openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
 
 # Create an instance of the API class
 api_instance = openapi_client.RadiusSessionsApi()
-serialNumber = serialNumber_example # String |  (default to null)
+serialNumber = for searches or listing only serial number, set the serialNumber to 0 # String |  (default to null)
 serialNumberOnly = true # Boolean |  (optional) (default to null)
+userName = userName_example # String |  (optional) (default to null)
 
 try:
     # Retrieve the RADIUS sessions for a given AP
-    api_response = api_instance.get_ap_radius_sessions(serialNumber, serialNumberOnly=serialNumberOnly)
+    api_response = api_instance.get_ap_radius_sessions(serialNumber, serialNumberOnly=serialNumberOnly, userName=userName)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling RadiusSessionsApi->getAPRadiusSessions: %s\n" % e)</code></pre>
@@ -26954,11 +26963,12 @@ except ApiException as e:
                               <pre class="prettyprint"><code class="language-rust">extern crate RadiusSessionsApi;
 
 pub fn main() {
-    let serialNumber = serialNumber_example; // String
+    let serialNumber = for searches or listing only serial number, set the serialNumber to 0; // String
     let serialNumberOnly = true; // Boolean
+    let userName = userName_example; // String
 
     let mut context = RadiusSessionsApi::Context::default();
-    let result = client.getAPRadiusSessions(serialNumber, serialNumberOnly, &context).wait();
+    let result = client.getAPRadiusSessions(serialNumber, serialNumberOnly, userName, &context).wait();
 
     println!("{:?}", result);
 }
@@ -27019,6 +27029,23 @@ pub fn main() {
             <div class="primitive">
                 <span class="type">
                     Boolean
+                </span>
+
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">userName</td>
+<td>
+
+
+    <div id="d2e199_getAPRadiusSessions_userName">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
                 </span>
 
             </div>
