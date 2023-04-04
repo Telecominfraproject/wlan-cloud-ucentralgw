@@ -25,11 +25,10 @@ namespace OpenWifi {
 		}
 
 		auto mac = GetParameter("mac","");
-		Poco::toUpperInPlace(mac);
-		Poco::replaceInPlace(mac,":","-");
-		if(!userName.empty()) {
+		if(!mac.empty()) {
+			Poco::toUpperInPlace(mac);
+			Poco::replaceInPlace(mac,":","-");
 			GWObjects::RADIUSSessionList	L;
-			Poco::toLowerInPlace(userName);
 			RADIUSSessionTracker()->GetMACAPSessions(mac,L);
 			return ReturnObject("sessions",L.sessions);
 		}
