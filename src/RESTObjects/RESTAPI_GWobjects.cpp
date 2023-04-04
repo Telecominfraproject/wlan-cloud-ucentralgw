@@ -604,6 +604,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "callingStationId", callingStationId);
 		field_to_json(Obj, "chargeableUserIdentity", chargeableUserIdentity);
 		field_to_json(Obj, "interface", interface);
+		field_to_json(Obj, "secret", secret);
 	}
 
 	void RADIUSSessionList::to_json(Poco::JSON::Object &Obj) const {
