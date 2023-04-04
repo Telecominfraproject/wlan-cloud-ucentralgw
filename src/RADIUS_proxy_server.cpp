@@ -433,7 +433,7 @@ namespace OpenWifi {
 				Destination = "0.0.0.0:0";
 			}
 
-			// P.Log(std::cout);
+			P.Log(std::cout);
 
 			Poco::Net::SocketAddress Dst(Destination);
 			std::lock_guard G(Mutex_);
