@@ -2999,6 +2999,12 @@ paths:
           schema:
             type: string
           required: false
+        - in: query
+          name: mac
+          schema:
+            type: string
+          required: false
+          example: aa:bb:cc:dd:ee:ff
       responses:
         200:
           description: AP List

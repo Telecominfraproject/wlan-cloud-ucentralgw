@@ -31,7 +31,7 @@ namespace OpenWifi::GWObjects {
 #ifdef TIP_GATEWAY_SERVICE
 		field_to_json(Obj, "deviceType", CapabilitiesCache::instance()->GetPlatform(Compatible));
 		field_to_json(Obj, "hasRADIUSSessions", RADIUSSessionTracker()->HasSessions(SerialNumber));
-		field_to_json(Obj, "hasGPS", AP_WS_Server()->hasGPS(SerialNumber));
+		field_to_json(Obj, "hasGPS", AP_WS_Server()->HasGPS(SerialNumber));
 #endif
 		field_to_json(Obj, "macAddress", MACAddress);
 		field_to_json(Obj, "manufacturer", Manufacturer);

@@ -213,7 +213,7 @@ namespace OpenWifi {
 			return true;
 		}
 
-		inline bool hasGPS(const std::string &serialNumber) {
+		inline bool HasGPS(const std::string &serialNumber) {
 			std::lock_guard	G(WSServerMutex_);
 
 			auto session_hint = SerialNumbers_.find(Utils::SerialNumberToInt(serialNumber));

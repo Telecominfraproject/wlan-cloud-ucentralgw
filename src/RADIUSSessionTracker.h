@@ -98,12 +98,28 @@ namespace OpenWifi {
 			}
 		}
 
+		inline void GetMACAPSessions(const std::string &mac, GWObjects::RADIUSSessionList & list) {
+			std::lock_guard	G(Mutex_);
+
+			for(const auto &[_,sessions]:AccountingSessions_) {
+				for(const auto &[_,session]:sessions) {
+					if(session->callingStationId==mac) {
+						list.sessions.emplace_back(*session);
+					}
+				}
+			}
+		}
+
 		bool SendCoADM(const std::string &serialNumber, const std::string &sessionId);
 		bool SendCoADM(const RADIUSSessionPtr &session);
 
-		inline bool HasSessions(const std::string & serialNumber) {
+		inline std::uint32_t HasSessions(const std::string & serialNumber) {
 			std::lock_guard	G(Mutex_);
-			return AccountingSessions_.find(serialNumber)!=end(AccountingSessions_);
+			auto ap_hint = AccountingSessions_.find(serialNumber);
+			if(ap_hint==end(AccountingSessions_)) {
+				return 0;
+			}
+			return ap_hint->second.size();
 		}
 
 	  private:

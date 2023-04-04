@@ -858,6 +858,14 @@ radiussearch() {
 		jq < ${result_file}
 }
 
+radiussearchmac() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusSessions/0?mac=$1" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
 radiusaps() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusSessions/0?serialNumberOnly=true" \
 			-H "Content-Type: application/json" \
@@ -1156,6 +1164,7 @@ case "$1" in
 	"radiusaps") login; radiusaps ; logout;;
 	"radiuscoadm") login; radiuscoadm "$2" "$3" "$4" "$5"; logout;;
 	"radiussearch") login; radiussearch "$2"; logout;;
+	"radiussearchmac") login; radiussearchmac "$2"; logout;;
 	"testtoken") testtoken;;
   *) help ;;
 esac
