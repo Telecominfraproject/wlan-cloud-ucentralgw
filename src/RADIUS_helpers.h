@@ -106,6 +106,11 @@ namespace OpenWifi::RADIUS {
 		constexpr std::uint8_t ACCT_AUTHENTIC_REMOTE = 3;
 	};
 
+	constexpr std::uint32_t 	TIP_vendor_id = 58888;
+	constexpr std::uint8_t 		TIP_serial = 1;
+	constexpr std::uint8_t 		TIP_AAAipaddr = 2;
+	constexpr std::uint8_t 		TIP_AAAipv6addr = 3;
+
 	struct tok {
 		uint cmd;
 		const char *name;
@@ -287,10 +292,6 @@ namespace OpenWifi::RADIUS {
 	//
 	// From: https://github.com/Telecominfraproject/wlan-dictionary/blob/main/dictionary.tip
 	//
-	static const uint32_t TIP_vendor_id = 58888;
-	static const unsigned char TIP_serial = 1;
-	static const unsigned char TIP_AAAipaddr = 2;
-	static const unsigned char TIP_AAAipv6addr = 3;
 
 	using AttributeList = std::list<RadiusAttribute>;
 
