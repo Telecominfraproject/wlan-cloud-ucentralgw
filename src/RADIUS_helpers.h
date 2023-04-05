@@ -16,173 +16,72 @@
 
 namespace OpenWifi::RADIUS {
 
-#define RADCMD_ACCESS_REQ 1		  /* Access-Request      */
-#define RADCMD_ACCESS_ACC 2		  /* Access-Accept       */
-#define RADCMD_ACCESS_REJ 3		  /* Access-Reject       */
-#define RADCMD_ACCOUN_REQ 4		  /* Accounting-Request  */
-#define RADCMD_ACCOUN_RES 5		  /* Accounting-Response */
-#define RADCMD_ACCOUN_STATUS 6	  /* Accounting-Status */
-#define RADCMD_PASSWORD_REQUEST 7 /* Password-Request	[RFC3575] */
-#define RADCMD_PASSWORD_ACK 8	  /* Password-Ack	[RFC3575] */
-#define RADCMD_PASSWORD_REJECT 9  /* Password-Reject	[RFC3575] */
-#define RADCMD_ACCOUN_MESSAGE 10  /* Accounting-Message	[RFC3575] */
+	//	Packet types
+	constexpr std::uint8_t Access_Request = 1;
+	constexpr std::uint8_t Access_Accept = 2;
+	constexpr std::uint8_t Access_Reject = 3;
+	constexpr std::uint8_t Accounting_Request = 4;
+	constexpr std::uint8_t Accounting_Response = 5;
+	constexpr std::uint8_t Accounting_Status = 6;
+	constexpr std::uint8_t Password_Request = 7;
+	constexpr std::uint8_t Accounting_Message = 10;
+	constexpr std::uint8_t Access_Challenge = 11;
+	constexpr std::uint8_t Status_Server = 12; /* Status-Server       */
+	constexpr std::uint8_t Status_Client = 13; /* Status-Client       */
+	constexpr std::uint8_t Disconnect_Request = 40;
+	constexpr std::uint8_t Disconnect_ACK = 41;
+	constexpr std::uint8_t Disconnect_NAK = 42;
+	constexpr std::uint8_t CoA_Request = 43;
+	constexpr std::uint8_t CoA_ACK = 44;
+	constexpr std::uint8_t CoA_NAK = 45;
 
-#define RADCMD_RES_FREE_REQ 21		  /* Resource-Free-Request	[RFC3575] */
-#define RADCMD_RES_FREE_RES 22		  /* Resource-Free-Response	[RFC3575] */
-#define RADCMD_RES_QUERY_REQ 23		  /* Resource-Query-Request	[RFC3575] */
-#define RADCMD_RES_QUERY_RES 24		  /* Resource-Query-Response	[RFC3575] */
-#define RADCMD_RES_ALT_RECLAIM_REQ 25 /* Alternate-Resource-Reclaim-Request	[RFC3575] */
+	constexpr std::uint8_t Password_Ack = 8;
 
-#define RADCMD_ACCESS_CHA 11 /* Access-Challenge    */
-#define RADCMD_STATUS_SER 12 /* Status-Server       */
-#define RADCMD_STATUS_CLI 13 /* Status-Client       */
-#define RADCMD_DISCON_REQ 40 /* Disconnect-Request  */
-#define RADCMD_DISCON_ACK 41 /* Disconnect-ACK      */
-#define RADCMD_DISCON_NAK 42 /* Disconnect-NAK      */
-#define RADCMD_COA_REQ 43	 /* CoA-Request         */
-#define RADCMD_COA_ACK 44	 /* CoA-ACK             */
-#define RADCMD_COA_NAK 45	 /* CoA-NAK             */
-#define RADCMD_RESERVED 255	 /* Reserved            */
+	constexpr std::uint8_t Password_Reject = 9;
+	constexpr std::uint8_t Resource_Free_Request = 21;
+	constexpr std::uint8_t Resource_Free_Response = 22;
+	constexpr std::uint8_t Resource_Query_Request = 23;
+	constexpr std::uint8_t Resource_Query_Response = 24;
+	constexpr std::uint8_t Alternate_Resource_Reclaim_Request = 25 ;
 
-	/*
-		21	Resource-Free-Request	[RFC3575]
-		22	Resource-Free-Response	[RFC3575]
-		23	Resource-Query-Request	[RFC3575]
-		24	Resource-Query-Response	[RFC3575]
-		25	Alternate-Resource-Reclaim-Request	[RFC3575]
+	constexpr std::uint8_t Reserved_Cmd = 255;	 /* Reserved            */
 
-		26	NAS-Reboot-Request	[RFC3575]
-		27	NAS-Reboot-Response	[RFC3575]
-		28	Reserved
-		29	Next-Passcode	[RFC3575]
-		30	New-Pin	[RFC3575]
-		31	Terminate-Session	[RFC3575]
-		32	Password-Expired	[RFC3575]
-		33	Event-Request	[RFC3575]
-		34	Event-Response	[RFC3575]
-		35-39	Unassigned
-		40	Disconnect-Request	[RFC3575][RFC5176]
-		41	Disconnect-ACK	[RFC3575][RFC5176]
-		42	Disconnect-NAK	[RFC3575][RFC5176]
-		43	CoA-Request	[RFC3575][RFC5176]
-		44	CoA-ACK	[RFC3575][RFC5176]
-		45	CoA-NAK	[RFC3575][RFC5176]
-		46-49	Unassigned
-		50	IP-Address-Allocate	[RFC3575]
-		51	IP-Address-Release	[RFC3575]
-		52	Protocol-Error	[RFC7930]
-		53-249	Unassigned
-		250-253	Experimental Use	[RFC3575]
-		254	Reserved	[RFC3575]
-		255	Reserved	[RFC3575]
-	*/
-
-	struct tok {
-		uint cmd;
-		const char *name;
-	};
-
-	/*
-
-	Radius commands
-
-	 char const *fr_packet_codes[FR_MAX_PACKET_CODE] = {
-	 "",					//!< 0
-	 "Access-Request",
-	 "Access-Accept",
-	 "Access-Reject",
-	 "Accounting-Request",
-	 "Accounting-Response",
-	 "Accounting-Status",
-	 "Password-Request",
-	 "Password-Accept",
-	 "Password-Reject",
-	 "Accounting-Message",			//!< 10
-	 "Access-Challenge",
-	 "Status-Server",
-	 "Status-Client",
-	 "14",
-	 "15",
-	 "16",
-	 "17",
-	 "18",
-	 "19",
-	 "20",					//!< 20
-	 "Resource-Free-Request",
-	 "Resource-Free-Response",
-	 "Resource-Query-Request",
-	 "Resource-Query-Response",
-	 "Alternate-Resource-Reclaim-Request",
-	 "NAS-Reboot-Request",
-	 "NAS-Reboot-Response",
-	 "28",
-	 "Next-Passcode",
-	 "New-Pin",				//!< 30
-	 "Terminate-Session",
-	 "Password-Expired",
-	 "Event-Request",
-	 "Event-Response",
-	 "35",
-	 "36",
-	 "37",
-	 "38",
-	 "39",
-	 "Disconnect-Request",			//!< 40
-	 "Disconnect-ACK",
-	 "Disconnect-NAK",
-	 "CoA-Request",
-	 "CoA-ACK",
-	 "CoA-NAK",
-	 "46",
-	 "47",
-	 "48",
-	 "49",
-	 "IP-Address-Allocate",
-	 "IP-Address-Release",			//!< 50
-	};
-
-
-	 */
-
-	static const struct tok radius_command_values[] = {
-		{RADCMD_ACCESS_REQ, "Access-Request"},
-		{RADCMD_ACCESS_ACC, "Access-Accept"},
-		{RADCMD_ACCESS_REJ, "Access-Reject"},
-		{RADCMD_ACCOUN_REQ, "Accounting-Request"},
-		{RADCMD_ACCOUN_RES, "Accounting-Response"},
-		{RADCMD_ACCESS_CHA, "Access-Challenge"},
-		{RADCMD_STATUS_SER, "Status-Server"},
-		{RADCMD_STATUS_CLI, "Status-Client"},
-		{RADCMD_DISCON_REQ, "Disconnect-Request"},
-		{RADCMD_DISCON_ACK, "Disconnect-ACK"},
-		{RADCMD_DISCON_NAK, "Disconnect-NAK"},
-		{RADCMD_COA_REQ, "CoA-Request"},
-		{RADCMD_COA_ACK, "CoA-ACK"},
-		{RADCMD_COA_NAK, "CoA-NAK"},
-		{RADCMD_RESERVED, "Reserved"},
-		{RADCMD_ACCOUN_STATUS, "Accounting-Status"},
-		{RADCMD_PASSWORD_REQUEST, "Password-Request"},
-		{RADCMD_PASSWORD_ACK, "Password-Ack"},
-		{RADCMD_PASSWORD_REJECT, "Password-Reject"},
-		{RADCMD_ACCOUN_MESSAGE, "Accounting-Message"},
-		{RADCMD_RES_FREE_REQ, "Resource-Free-Request"},
-		{RADCMD_RES_FREE_RES, "Resource-Free-Response"},
-		{RADCMD_RES_QUERY_REQ, "Resource-Query-Request"},
-		{RADCMD_RES_QUERY_RES, "Resource-Query-Response"},
-		{RADCMD_RES_ALT_RECLAIM_REQ, "Alternate-Resource-Reclaim-Request"},
-		{0, nullptr}};
+//	constexpr std::uint8_t  RADCMD_ACCESS_REQ = 1;			/* Access-Request      */
+//	constexpr std::uint8_t  RADCMD_ACCESS_ACC = 2;			/* Access-Accept       */
+//	constexpr std::uint8_t  RADCMD_ACCESS_REJ = 3;		  	/* Access-Reject       */
+//	constexpr std::uint8_t  RADCMD_ACCOUN_REQ = 4;		  	/* Accounting-Request  */
+//	constexpr std::uint8_t  RADCMD_ACCOUN_RES = 5;		  	/* Accounting-Response */
+//	constexpr std::uint8_t  RADCMD_ACCOUN_STATUS = 6;	  	/* Accounting-Status */
+//	constexpr std::uint8_t  RADCMD_PASSWORD_REQUEST = 7; 	/* Password-Request	[RFC3575] */
+//	constexpr std::uint8_t  RADCMD_PASSWORD_ACK = 8;	  	/* Password-Ack	[RFC3575] */
+//	constexpr std::uint8_t  RADCMD_PASSWORD_REJECT = 9;  	/* Password-Reject	[RFC3575] */
+//	constexpr std::uint8_t  RADCMD_ACCOUN_MESSAGE = 10;  	/* Accounting-Message	[RFC3575] */
+//	constexpr std::uint8_t  RADCMD_RES_FREE_REQ = 21;		  /* Resource-Free-Request	[RFC3575] */
+//	constexpr std::uint8_t  RADCMD_RES_FREE_RES = 22;		  /* Resource-Free-Response	[RFC3575] */
+//	constexpr std::uint8_t  RADCMD_RES_QUERY_REQ = 23;		  /* Resource-Query-Request	[RFC3575] */
+//	constexpr std::uint8_t  RADCMD_RES_QUERY_RES = 24;		  /* Resource-Query-Response	[RFC3575] */
+//	constexpr std::uint8_t  RADCMD_RES_ALT_RECLAIM_REQ = 25; /* Alternate-Resource-Reclaim-Request	[RFC3575] */
+//	constexpr std::uint8_t  RADCMD_ACCESS_CHA = 11;				 /* Access-Challenge    */
+//	constexpr std::uint8_t  RADCMD_STATUS_SER = 12; /* Status-Server       */
+//	constexpr std::uint8_t  RADCMD_STATUS_CLI = 13; /* Status-Client       */
+//	constexpr std::uint8_t  RADCMD_DISCON_REQ = 40; /* Disconnect-Request  */
+//	constexpr std::uint8_t  RADCMD_DISCON_ACK = 41; /* Disconnect-ACK      */
+//	constexpr std::uint8_t  RADCMD_DISCON_NAK = 42; /* Disconnect-NAK      */
+//	constexpr std::uint8_t  RADCMD_COA_REQ = 43;	 /* CoA-Request         */
+//	constexpr std::uint8_t  RADCMD_COA_ACK = 44;	 /* CoA-ACK             */
+//	constexpr std::uint8_t  RADCMD_COA_NAK = 45;	 /* CoA-NAK             */
+//	constexpr std::uint8_t  RADCMD_RESERVED = 255;	 /* Reserved            */
 
 	constexpr std::uint32_t AttributeOffset = 20;
 
+	//	Some attribute values
 	constexpr std::uint8_t ACCT_STATUS_TYPE = 40;
 	constexpr std::uint8_t ACCT_AUTHENTIC = 45;
 	constexpr std::uint8_t CALLING_STATION_ID = 31;
 	constexpr std::uint8_t ACCT_TERMINATE_CAUSE = 49;
-
 	constexpr std::uint8_t AUTH_USERNAME = 1;
 	constexpr std::uint8_t ACCT_SESSION_ID = 44;
 	constexpr std::uint8_t ACCT_MULTI_SESSION_ID = 50;
-
 	constexpr std::uint8_t ACCT_INPUT_PACKETS = 47;
 	constexpr std::uint8_t ACCT_OUTPUT_PACKETS = 48;
 	constexpr std::uint8_t ACCT_INPUT_OCTETS = 42;
@@ -193,91 +92,128 @@ namespace OpenWifi::RADIUS {
 	constexpr std::uint8_t CHARGEABLE_USER_IDENTITY = 89;
 	constexpr std::uint8_t NAS_IP = 4;
 	constexpr std::uint8_t PROXY_STATE = 33;
-	static const struct tok radius_attribute_names[] = {{AUTH_USERNAME, "User-Name"},
-														{2, "User-Password"},
-														{3, "CHAP-Password"},
-														{NAS_IP, "NAS-IP Address"},
-														{5, "NAS-Port"},
-														{6, "Service-Type"},
-														{7, "Framed-Protocol"},
-														{8, "Framed-IP-Address"},
-														{9, "Framed-IP-Netmask"},
-														{10, "Framed-Routing"},
-														{11, "Filter-Id"},
-														{12, "Framed-MTU"},
-														{13, "Framed-Compression"},
-														{14, "Login-IP-Host"},
-														{15, "Login-Service"},
-														{16, "Login-TCP-Port"},
-														{18, "Reply-Message"},
-														{19, "Callback-Number"},
-														{20, "Callback-ID"},
-														{22, "Framed-Route"},
-														{23, "Framed-IPX-Network"},
-														{24, "State"},
-														{25, "Class"},
-														{26, "Vendor-Specific"},
-														{27, "Session-Timeout"},
-														{28, "Idle-Timeout"},
-														{29, "Termination-Action"},
-														{30, "Called-Station-Id"},
-														{CALLING_STATION_ID, "Calling-Station-Id"},
-														{32, "NAS-Identifier"},
-														{PROXY_STATE, "Proxy-State"},
-														{34, "Login-LAT-Service"},
-														{35, "Login-LAT-Node"},
-														{36, "Login-LAT-Group"},
-														{37, "Framed-AppleTalk-Link"},
-														{38, "Framed-AppleTalk-Network"},
-														{39, "Framed-AppleTalk-Zone"},
-														{ACCT_STATUS_TYPE, "Acct-Status-Type"},
-														{41, "Acct-Delay-Time"},
-														{ACCT_INPUT_OCTETS, "Acct-Input-Octets"},
-														{ACCT_OUTPUT_OCTETS, "Acct-Output-Octets"},
-														{ACCT_SESSION_ID, "Acct-Session-Id"},
-														{ACCT_AUTHENTIC, "Acct-Authentic"},
-														{ACCT_SESSION_TIME, "Acct-Session-Time"},
-														{ACCT_INPUT_PACKETS, "Acct-Input-Packets"},
-														{ACCT_OUTPUT_PACKETS, "Acct-Output-Packets"},
-														{ACCT_TERMINATE_CAUSE, "Acct-Terminate-Cause"},
-														{ACCT_MULTI_SESSION_ID, "Acct-Multi-Session-Id"},
-														{51, "Acct-Link-Count"},
-														{ACCT_INPUT_GIGAWORDS, "Acct-Input-Gigawords"},
-														{ACCT_OUTPUT_GIGAWORDS, "Acct-Output-Gigawords"},
-														{55, "Event-Timestamp"},
-														{60, "CHAP-Challenge"},
-														{61, "NAS-Port-Type"},
-														{62, "Port-Limit"},
-														{63, "Login-LAT-Port"},
-														{64, "Tunnel-Type3"},
-														{65, "Tunnel-Medium-Type1"},
-														{66, "Tunnel-Client-Endpoint"},
-														{67, "Tunnel-Server-Endpoint1"},
-														{68, "Acct-Tunnel-Connection-ID"},
-														{69, "Tunnel-Password1"},
-														{70, "ARAP-Password"},
-														{71, "ARAP-Features"},
-														{72, "ARAP-Zone-Access"},
-														{73, "ARAP-Security"},
-														{74, "ARAP-Security-Data"},
-														{75, "Password-Retry"},
-														{76, "Prompt"},
-														{77, "Connect-Info"},
-														{78, "Configuration-Token"},
-														{79, "EAP-Message"},
-														{80, "Message-Authenticator"},
-														{81, "Tunnel-Private-Group-ID"},
-														{82, "Tunnel-Assignment-ID1"},
-														{83, "Tunnel-Preference"},
-														{84, "ARAP-Challenge-Response"},
-														{85, "Acct-Interim-Interval"},
-														{86, "Acct-Tunnel-Packets-Lost"},
-														{87, "NAS-Port-ID"},
-														{88, "Framed-Pool"},
-														{CHARGEABLE_USER_IDENTITY, "Chargeable-User-Identity"},
-														{90, "Tunnel-Client-Auth-ID"},
-														{91, "Tunnel-Server-Auth-ID"},
-														{0, nullptr}};
+
+	struct tok {
+		uint cmd;
+		const char *name;
+	};
+
+	static const struct tok radius_command_values[] = {
+		{Access_Request, "Access-Request"},
+		{Access_Accept, "Access-Accept"},
+		{Access_Reject, "Access-Reject"},
+		{Accounting_Request, "Accounting-Request"},
+		{Accounting_Response, "Accounting-Response"},
+		{Access_Challenge, "Access-Challenge"},
+		{Status_Server, "Status-Server"},
+		{Status_Client, "Status-Client"},
+		{Disconnect_Request, "Disconnect-Request"},
+		{Disconnect_ACK, "Disconnect-ACK"},
+		{Disconnect_NAK, "Disconnect-NAK"},
+		{CoA_Request, "CoA-Request"},
+		{CoA_ACK, "CoA-ACK"},
+		{CoA_NAK, "CoA-NAK"},
+		{Reserved_Cmd, "Reserved"},
+		{Accounting_Status, "Accounting-Status"},
+		{Password_Request, "Password-Request"},
+		{Password_Ack, "Password-Ack"},
+		{Password_Reject, "Password-Reject"},
+		{Accounting_Message, "Accounting-Message"},
+		{Resource_Free_Request, "Resource-Free-Request"},
+		{Resource_Free_Response, "Resource-Free-Response"},
+		{Resource_Query_Request, "Resource-Query-Request"},
+		{Resource_Query_Response, "Resource-Query-Response"},
+		{Alternate_Resource_Reclaim_Request, "Alternate-Resource-Reclaim-Request"},
+		{0, nullptr}
+	};
+
+	static const struct tok radius_attribute_names[] = {
+		{AUTH_USERNAME, "User-Name"},
+		{2, "User-Password"},
+		{3, "CHAP-Password"},
+		{NAS_IP, "NAS-IP Address"},
+		{5, "NAS-Port"},
+		{6, "Service-Type"},
+		{7, "Framed-Protocol"},
+		{8, "Framed-IP-Address"},
+		{9, "Framed-IP-Netmask"},
+		{10, "Framed-Routing"},
+		{11, "Filter-Id"},
+		{12, "Framed-MTU"},
+		{13, "Framed-Compression"},
+		{14, "Login-IP-Host"},
+		{15, "Login-Service"},
+		{16, "Login-TCP-Port"},
+		{18, "Reply-Message"},
+		{19, "Callback-Number"},
+		{20, "Callback-ID"},
+		{22, "Framed-Route"},
+		{23, "Framed-IPX-Network"},
+		{24, "State"},
+		{25, "Class"},
+		{26, "Vendor-Specific"},
+		{27, "Session-Timeout"},
+		{28, "Idle-Timeout"},
+		{29, "Termination-Action"},
+		{30, "Called-Station-Id"},
+		{CALLING_STATION_ID, "Calling-Station-Id"},
+		{32, "NAS-Identifier"},
+		{PROXY_STATE, "Proxy-State"},
+		{34, "Login-LAT-Service"},
+		{35, "Login-LAT-Node"},
+		{36, "Login-LAT-Group"},
+		{37, "Framed-AppleTalk-Link"},
+		{38, "Framed-AppleTalk-Network"},
+		{39, "Framed-AppleTalk-Zone"},
+		{ACCT_STATUS_TYPE, "Acct-Status-Type"},
+		{41, "Acct-Delay-Time"},
+		{ACCT_INPUT_OCTETS, "Acct-Input-Octets"},
+		{ACCT_OUTPUT_OCTETS, "Acct-Output-Octets"},
+		{ACCT_SESSION_ID, "Acct-Session-Id"},
+		{ACCT_AUTHENTIC, "Acct-Authentic"},
+		{ACCT_SESSION_TIME, "Acct-Session-Time"},
+		{ACCT_INPUT_PACKETS, "Acct-Input-Packets"},
+		{ACCT_OUTPUT_PACKETS, "Acct-Output-Packets"},
+		{ACCT_TERMINATE_CAUSE, "Acct-Terminate-Cause"},
+		{ACCT_MULTI_SESSION_ID, "Acct-Multi-Session-Id"},
+		{51, "Acct-Link-Count"},
+		{ACCT_INPUT_GIGAWORDS, "Acct-Input-Gigawords"},
+		{ACCT_OUTPUT_GIGAWORDS, "Acct-Output-Gigawords"},
+		{55, "Event-Timestamp"},
+		{60, "CHAP-Challenge"},
+		{61, "NAS-Port-Type"},
+		{62, "Port-Limit"},
+		{63, "Login-LAT-Port"},
+		{64, "Tunnel-Type3"},
+		{65, "Tunnel-Medium-Type1"},
+		{66, "Tunnel-Client-Endpoint"},
+		{67, "Tunnel-Server-Endpoint1"},
+		{68, "Acct-Tunnel-Connection-ID"},
+		{69, "Tunnel-Password1"},
+		{70, "ARAP-Password"},
+		{71, "ARAP-Features"},
+		{72, "ARAP-Zone-Access"},
+		{73, "ARAP-Security"},
+		{74, "ARAP-Security-Data"},
+		{75, "Password-Retry"},
+		{76, "Prompt"},
+		{77, "Connect-Info"},
+		{78, "Configuration-Token"},
+		{79, "EAP-Message"},
+		{80, "Message-Authenticator"},
+		{81, "Tunnel-Private-Group-ID"},
+		{82, "Tunnel-Assignment-ID1"},
+		{83, "Tunnel-Preference"},
+		{84, "ARAP-Challenge-Response"},
+		{85, "Acct-Interim-Interval"},
+		{86, "Acct-Tunnel-Packets-Lost"},
+		{87, "NAS-Port-ID"},
+		{88, "Framed-Pool"},
+		{CHARGEABLE_USER_IDENTITY, "Chargeable-User-Identity"},
+		{90, "Tunnel-Client-Auth-ID"},
+		{91, "Tunnel-Server-Auth-ID"},
+		{0, nullptr}
+	};
 
 #pragma pack(push, 1)
 	struct RadiusAttribute {
@@ -294,24 +230,8 @@ namespace OpenWifi::RADIUS {
 	};
 #pragma pack(pop)
 
-	constexpr unsigned char Access_Request = 1;
-	constexpr unsigned char Access_Accept = 2;
-	constexpr unsigned char Access_Reject = 3;
-	constexpr unsigned char Access_Challenge = 11;
 
-	constexpr unsigned char Accounting_Request = 4;
-	constexpr unsigned char Accounting_Response = 5;
-	constexpr unsigned char Accounting_Status = 6;
-	constexpr unsigned char Accounting_Message = 10;
-
-	constexpr unsigned char Disconnect_Request = 40;
-	constexpr unsigned char Disconnect_ACK = 41;
-	constexpr unsigned char Disconnect_NAK = 42;
-	constexpr unsigned char CoA_Request = 43;
-	constexpr unsigned char CoA_ACK = 44;
-	constexpr unsigned char CoA_NAK = 45;
-
-	constexpr unsigned char ATTR_MessageAuthenticator = 80;
+	constexpr std::uint8_t ATTR_MessageAuthenticator = 80;
 
 	constexpr std::uint8_t ACCT_STATUS_TYPE_START = 1;
 	constexpr std::uint8_t ACCT_STATUS_TYPE_STOP = 2;
@@ -509,9 +429,9 @@ namespace OpenWifi::RADIUS {
 		inline bool IsAuthentication() {
 			return (P_.code == RADIUS::Access_Request || P_.code == RADIUS::Access_Accept ||
 					P_.code == RADIUS::Access_Challenge || P_.code == RADIUS::Access_Reject ||
-					P_.code == RADCMD_RES_FREE_REQ || P_.code == RADCMD_RES_FREE_RES ||
-					P_.code == RADCMD_RES_QUERY_REQ || P_.code == RADCMD_RES_QUERY_RES ||
-					P_.code == RADCMD_RES_ALT_RECLAIM_REQ);
+					P_.code == RADIUS::Resource_Free_Request || P_.code == RADIUS::Resource_Free_Response ||
+					P_.code == RADIUS::Resource_Query_Request || P_.code == RADIUS::Resource_Query_Response ||
+					P_.code == RADIUS::Alternate_Resource_Reclaim_Request);
 		}
 
 		inline bool IsAccounting() {
@@ -1050,7 +970,7 @@ namespace OpenWifi::RADIUS {
 		explicit RadiusOutputPacket(const std::string &Secret) : Secret_(Secret) {}
 
 		inline void MakeStatusMessage() {
-			P_.code = RADCMD_STATUS_SER;
+			P_.code = RADIUS::Status_Server;
 			P_.identifier = std::rand() & 0x00ff;
 			MakeRadiusAuthenticator(P_.authenticator);
 			unsigned char MessageAuthenticator[16]{0};

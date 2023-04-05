@@ -289,7 +289,7 @@ namespace OpenWifi {
 
 		RADIUS::RadiusPacket	P;
 
-		P.PacketType(RADCMD_DISCON_REQ);
+		P.PacketType(RADIUS::Disconnect_Request);
 		P.Identifier(std::rand() & 0x00ff);
 		P.AppendAttribute(RADIUS::AUTH_USERNAME, session->userName);
 		P.AppendAttribute(RADIUS::NAS_IP, (std::uint32_t)(0x7f000001));
