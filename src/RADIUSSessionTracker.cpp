@@ -66,32 +66,32 @@ namespace OpenWifi {
 		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName, ChargeableUserIdentity, Interface;
 		for (const auto &attribute : Notification.Packet_.Attrs_) {
 			switch (attribute.type) {
-			case RADIUS::AUTH_USERNAME: {
+			case RADIUS::Attributes::AUTH_USERNAME: {
 				UserName.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::CALLING_STATION_ID: {
+			case RADIUS::Attributes::CALLING_STATION_ID: {
 				CallingStationId.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::ACCT_SESSION_ID: {
+			case RADIUS::Attributes::ACCT_SESSION_ID: {
 				AccountingSessionId.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::ACCT_MULTI_SESSION_ID: {
+			case RADIUS::Attributes::ACCT_MULTI_SESSION_ID: {
 				AccountingMultiSessionId.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::CHARGEABLE_USER_IDENTITY:{
+			case RADIUS::Attributes::CHARGEABLE_USER_IDENTITY:{
 				ChargeableUserIdentity.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::PROXY_STATE: {
+			case RADIUS::Attributes::PROXY_STATE: {
 				std::string Tmp;
 				Tmp.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
@@ -147,56 +147,56 @@ namespace OpenWifi {
 					  SessionTime = 0;
 		for (const auto &attribute : Notification.Packet_.Attrs_) {
 			switch (attribute.type) {
-			case RADIUS::AUTH_USERNAME: {
+			case RADIUS::Attributes::AUTH_USERNAME: {
 				UserName.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::CALLING_STATION_ID: {
+			case RADIUS::Attributes::CALLING_STATION_ID: {
 				CallingStationId.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::ACCT_SESSION_ID: {
+			case RADIUS::Attributes::ACCT_SESSION_ID: {
 				AccountingSessionId.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::ACCT_MULTI_SESSION_ID: {
+			case RADIUS::Attributes::ACCT_MULTI_SESSION_ID: {
 				AccountingMultiSessionId.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::CHARGEABLE_USER_IDENTITY:{
+			case RADIUS::Attributes::CHARGEABLE_USER_IDENTITY:{
 				ChargeableUserIdentity.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
-			case RADIUS::ACCT_STATUS_TYPE: {
+			case RADIUS::Attributes::ACCT_STATUS_TYPE: {
 				AccountingPacketType = Notification.Packet_.P_.attributes[attribute.pos + 3];
 			} break;
-			case RADIUS::ACCT_INPUT_OCTETS: {
+			case RADIUS::Attributes::ACCT_INPUT_OCTETS: {
 				InputOctets = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
 			} break;
-			case RADIUS::ACCT_INPUT_PACKETS: {
+			case RADIUS::Attributes::ACCT_INPUT_PACKETS: {
 				InputPackets = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
 			} break;
-			case RADIUS::ACCT_INPUT_GIGAWORDS: {
+			case RADIUS::Attributes::ACCT_INPUT_GIGAWORDS: {
 				InputGigaWords = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
 			} break;
-			case RADIUS::ACCT_OUTPUT_OCTETS: {
+			case RADIUS::Attributes::ACCT_OUTPUT_OCTETS: {
 				OutputOctets = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
 			} break;
-			case RADIUS::ACCT_OUTPUT_PACKETS: {
+			case RADIUS::Attributes::ACCT_OUTPUT_PACKETS: {
 				OutputPackets= GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
 			} break;
-			case RADIUS::ACCT_OUTPUT_GIGAWORDS: {
+			case RADIUS::Attributes::ACCT_OUTPUT_GIGAWORDS: {
 				OutputGigaWords = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
 			} break;
-			case RADIUS::ACCT_SESSION_TIME: {
+			case RADIUS::Attributes::ACCT_SESSION_TIME: {
 				SessionTime = GetUiInt32(&Notification.Packet_.P_.attributes[attribute.pos]);
 			} break;
-			case RADIUS::PROXY_STATE: {
+			case RADIUS::Attributes::PROXY_STATE: {
 				std::string Tmp;
 				Tmp.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
@@ -223,8 +223,8 @@ namespace OpenWifi {
 		if(session_hint==end(ap_hint->second)) {
 			//  find the calling_station_id
 			//  if we are getting a stop for something we do not know, nothing to do...
-			if( AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_START &&
-				AccountingPacketType!=OpenWifi::RADIUS::ACCT_STATUS_TYPE_INTERIM_UPDATE) {
+			if( AccountingPacketType!=OpenWifi::RADIUS::AccountingPacketTypes::ACCT_STATUS_TYPE_START &&
+				AccountingPacketType!=OpenWifi::RADIUS::AccountingPacketTypes::ACCT_STATUS_TYPE_INTERIM_UPDATE) {
 				return;
 			}
 
@@ -255,7 +255,7 @@ namespace OpenWifi {
 		} else {
 
 			//  If we receive a stop, just remove that session
-			if(AccountingPacketType==OpenWifi::RADIUS::ACCT_STATUS_TYPE_STOP) {
+			if(AccountingPacketType==OpenWifi::RADIUS::AccountingPacketTypes::ACCT_STATUS_TYPE_STOP) {
 				poco_debug(Logger(),fmt::format("{}: Deleting session", CallingStationId));
 				ap_hint->second.erase(Index);
 			} else {
@@ -291,15 +291,15 @@ namespace OpenWifi {
 
 		P.PacketType(RADIUS::Disconnect_Request);
 		P.Identifier(std::rand() & 0x00ff);
-		P.AppendAttribute(RADIUS::AUTH_USERNAME, session->userName);
-		P.AppendAttribute(RADIUS::NAS_IP, (std::uint32_t)(0x7f000001));
-		P.AppendAttribute(RADIUS::CALLING_STATION_ID, session->callingStationId);
+		P.AppendAttribute(RADIUS::Attributes::AUTH_USERNAME, session->userName);
+		P.AppendAttribute(RADIUS::Attributes::NAS_IP, (std::uint32_t)(0x7f000001));
+		P.AppendAttribute(RADIUS::Attributes::CALLING_STATION_ID, session->callingStationId);
 		if(!session->accountingSessionId.empty())
-			P.AppendAttribute(RADIUS::ACCT_SESSION_ID, session->accountingSessionId);
+			P.AppendAttribute(RADIUS::Attributes::ACCT_SESSION_ID, session->accountingSessionId);
 		if(!session->accountingMultiSessionId.empty())
-			P.AppendAttribute(RADIUS::ACCT_MULTI_SESSION_ID, session->accountingMultiSessionId);
+			P.AppendAttribute(RADIUS::Attributes::ACCT_MULTI_SESSION_ID, session->accountingMultiSessionId);
 		if(!session->chargeableUserIdentity.empty())
-			P.AppendAttribute(RADIUS::CHARGEABLE_USER_IDENTITY, session->chargeableUserIdentity);
+			P.AppendAttribute(RADIUS::Attributes::CHARGEABLE_USER_IDENTITY, session->chargeableUserIdentity);
 		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + session->interface;
 		std::cout << "Proxy state: " << ProxyState << "   Secret: " << session->secret << std::endl;
 		// P.AppendAttribute(RADIUS::PROXY_STATE, ProxyState);
@@ -345,9 +345,9 @@ namespace OpenWifi {
 			RADIUS::RadiusPacket	P(session.second->accountingPacket);
 
 			P.P_.identifier++;
-			P.ReplaceAttribute(RADIUS::ACCT_STATUS_TYPE, (std::uint32_t) RADIUS::ACCT_STATUS_TYPE_STOP);
-			P.ReplaceOrAdd(RADIUS::EVENT_TIMESTAMP, (std::uint32_t) std::time(nullptr));
-			P.AppendAttribute(RADIUS::ACCT_TERMINATE_CAUSE, (std::uint32_t) RADIUS::ACCT_TERMINATE_LOST_CARRIER);
+			P.ReplaceAttribute(RADIUS::Attributes::ACCT_STATUS_TYPE, (std::uint32_t) RADIUS::AccountingPacketTypes::ACCT_STATUS_TYPE_STOP);
+			P.ReplaceOrAdd(RADIUS::Attributes::EVENT_TIMESTAMP, (std::uint32_t) std::time(nullptr));
+			P.AppendAttribute(RADIUS::Attributes::ACCT_TERMINATE_CAUSE, (std::uint32_t) RADIUS::AccountingTerminationReasons::ACCT_TERMINATE_LOST_CARRIER);
 			RADIUS_proxy_server()->RouteAndSendAccountingPacket(session.second->destination, SerialNumber, P, true, session.second->secret);
 		}
 

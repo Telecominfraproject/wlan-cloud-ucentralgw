@@ -24,6 +24,8 @@ namespace OpenWifi::RADIUS {
 	constexpr std::uint8_t Accounting_Response = 5;
 	constexpr std::uint8_t Accounting_Status = 6;
 	constexpr std::uint8_t Password_Request = 7;
+	constexpr std::uint8_t Password_Ack = 8;
+	constexpr std::uint8_t Password_Reject = 9;
 	constexpr std::uint8_t Accounting_Message = 10;
 	constexpr std::uint8_t Access_Challenge = 11;
 	constexpr std::uint8_t Status_Server = 12; /* Status-Server       */
@@ -34,64 +36,75 @@ namespace OpenWifi::RADIUS {
 	constexpr std::uint8_t CoA_Request = 43;
 	constexpr std::uint8_t CoA_ACK = 44;
 	constexpr std::uint8_t CoA_NAK = 45;
-
-	constexpr std::uint8_t Password_Ack = 8;
-
-	constexpr std::uint8_t Password_Reject = 9;
 	constexpr std::uint8_t Resource_Free_Request = 21;
 	constexpr std::uint8_t Resource_Free_Response = 22;
 	constexpr std::uint8_t Resource_Query_Request = 23;
 	constexpr std::uint8_t Resource_Query_Response = 24;
 	constexpr std::uint8_t Alternate_Resource_Reclaim_Request = 25 ;
-
 	constexpr std::uint8_t Reserved_Cmd = 255;	 /* Reserved            */
 
-//	constexpr std::uint8_t  RADCMD_ACCESS_REQ = 1;			/* Access-Request      */
-//	constexpr std::uint8_t  RADCMD_ACCESS_ACC = 2;			/* Access-Accept       */
-//	constexpr std::uint8_t  RADCMD_ACCESS_REJ = 3;		  	/* Access-Reject       */
-//	constexpr std::uint8_t  RADCMD_ACCOUN_REQ = 4;		  	/* Accounting-Request  */
-//	constexpr std::uint8_t  RADCMD_ACCOUN_RES = 5;		  	/* Accounting-Response */
-//	constexpr std::uint8_t  RADCMD_ACCOUN_STATUS = 6;	  	/* Accounting-Status */
-//	constexpr std::uint8_t  RADCMD_PASSWORD_REQUEST = 7; 	/* Password-Request	[RFC3575] */
-//	constexpr std::uint8_t  RADCMD_PASSWORD_ACK = 8;	  	/* Password-Ack	[RFC3575] */
-//	constexpr std::uint8_t  RADCMD_PASSWORD_REJECT = 9;  	/* Password-Reject	[RFC3575] */
-//	constexpr std::uint8_t  RADCMD_ACCOUN_MESSAGE = 10;  	/* Accounting-Message	[RFC3575] */
-//	constexpr std::uint8_t  RADCMD_RES_FREE_REQ = 21;		  /* Resource-Free-Request	[RFC3575] */
-//	constexpr std::uint8_t  RADCMD_RES_FREE_RES = 22;		  /* Resource-Free-Response	[RFC3575] */
-//	constexpr std::uint8_t  RADCMD_RES_QUERY_REQ = 23;		  /* Resource-Query-Request	[RFC3575] */
-//	constexpr std::uint8_t  RADCMD_RES_QUERY_RES = 24;		  /* Resource-Query-Response	[RFC3575] */
-//	constexpr std::uint8_t  RADCMD_RES_ALT_RECLAIM_REQ = 25; /* Alternate-Resource-Reclaim-Request	[RFC3575] */
-//	constexpr std::uint8_t  RADCMD_ACCESS_CHA = 11;				 /* Access-Challenge    */
-//	constexpr std::uint8_t  RADCMD_STATUS_SER = 12; /* Status-Server       */
-//	constexpr std::uint8_t  RADCMD_STATUS_CLI = 13; /* Status-Client       */
-//	constexpr std::uint8_t  RADCMD_DISCON_REQ = 40; /* Disconnect-Request  */
-//	constexpr std::uint8_t  RADCMD_DISCON_ACK = 41; /* Disconnect-ACK      */
-//	constexpr std::uint8_t  RADCMD_DISCON_NAK = 42; /* Disconnect-NAK      */
-//	constexpr std::uint8_t  RADCMD_COA_REQ = 43;	 /* CoA-Request         */
-//	constexpr std::uint8_t  RADCMD_COA_ACK = 44;	 /* CoA-ACK             */
-//	constexpr std::uint8_t  RADCMD_COA_NAK = 45;	 /* CoA-NAK             */
-//	constexpr std::uint8_t  RADCMD_RESERVED = 255;	 /* Reserved            */
-
-	constexpr std::uint32_t AttributeOffset = 20;
-
 	//	Some attribute values
-	constexpr std::uint8_t ACCT_STATUS_TYPE = 40;
-	constexpr std::uint8_t ACCT_AUTHENTIC = 45;
-	constexpr std::uint8_t CALLING_STATION_ID = 31;
-	constexpr std::uint8_t ACCT_TERMINATE_CAUSE = 49;
-	constexpr std::uint8_t AUTH_USERNAME = 1;
-	constexpr std::uint8_t ACCT_SESSION_ID = 44;
-	constexpr std::uint8_t ACCT_MULTI_SESSION_ID = 50;
-	constexpr std::uint8_t ACCT_INPUT_PACKETS = 47;
-	constexpr std::uint8_t ACCT_OUTPUT_PACKETS = 48;
-	constexpr std::uint8_t ACCT_INPUT_OCTETS = 42;
-	constexpr std::uint8_t ACCT_OUTPUT_OCTETS = 43;
-	constexpr std::uint8_t ACCT_INPUT_GIGAWORDS = 52;
-	constexpr std::uint8_t ACCT_OUTPUT_GIGAWORDS = 53;
-	constexpr std::uint8_t ACCT_SESSION_TIME = 46;
-	constexpr std::uint8_t CHARGEABLE_USER_IDENTITY = 89;
-	constexpr std::uint8_t NAS_IP = 4;
-	constexpr std::uint8_t PROXY_STATE = 33;
+	namespace Attributes {
+		constexpr std::uint8_t AUTH_USERNAME = 1;
+		constexpr std::uint8_t USER_PASSWORD = 2;
+		constexpr std::uint8_t CHAP_PASSWORD = 3;
+		constexpr std::uint8_t NAS_IP = 4;
+		constexpr std::uint8_t CALLED_STATION_ID = 30;
+		constexpr std::uint8_t CALLING_STATION_ID = 31;
+		constexpr std::uint8_t NAS_IDENTIFIER = 32;
+		constexpr std::uint8_t PROXY_STATE = 33;
+		constexpr std::uint8_t ACCT_STATUS_TYPE = 40;
+		constexpr std::uint8_t ACCT_INPUT_OCTETS = 42;
+		constexpr std::uint8_t ACCT_OUTPUT_OCTETS = 43;
+		constexpr std::uint8_t ACCT_SESSION_ID = 44;
+		constexpr std::uint8_t ACCT_AUTHENTIC = 45;
+		constexpr std::uint8_t ACCT_SESSION_TIME = 46;
+		constexpr std::uint8_t ACCT_INPUT_PACKETS = 47;
+		constexpr std::uint8_t ACCT_OUTPUT_PACKETS = 48;
+		constexpr std::uint8_t ACCT_TERMINATE_CAUSE = 49;
+		constexpr std::uint8_t ACCT_MULTI_SESSION_ID = 50;
+		constexpr std::uint8_t ACCT_INPUT_GIGAWORDS = 52;
+		constexpr std::uint8_t ACCT_OUTPUT_GIGAWORDS = 53;
+		constexpr std::uint8_t EVENT_TIMESTAMP = 55;
+		constexpr std::uint8_t MESSAGE_AUTHENTICATOR = 80;
+		constexpr std::uint8_t CHARGEABLE_USER_IDENTITY = 89;
+	};
+
+	namespace AccountingPacketTypes {
+		constexpr std::uint8_t ACCT_STATUS_TYPE_START = 1;
+		constexpr std::uint8_t ACCT_STATUS_TYPE_STOP = 2;
+		constexpr std::uint8_t ACCT_STATUS_TYPE_INTERIM_UPDATE = 3;
+		constexpr std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_ON = 7;
+		constexpr std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_OFF = 8;
+		constexpr std::uint8_t ACCT_STATUS_TYPE_FAILED = 15;
+	}
+
+	namespace AccountingTerminationReasons {
+		constexpr std::uint8_t ACCT_TERMINATE_USER_REQUEST = 1;
+		constexpr std::uint8_t ACCT_TERMINATE_LOST_CARRIER = 2;
+		constexpr std::uint8_t ACCT_TERMINATE_LOST_SERVICE = 3;
+		constexpr std::uint8_t ACCT_TERMINATE_IDLE_TIMEOUT = 4;
+		constexpr std::uint8_t ACCT_TERMINATE_SESSION_TIMEOUT = 5;
+		constexpr std::uint8_t ACCT_TERMINATE_ADMIN_RESET = 6;
+		constexpr std::uint8_t ACCT_TERMINATE_ADMIN_REBOOT = 7;
+		constexpr std::uint8_t ACCT_TERMINATE_PORT_ERROR = 8;
+		constexpr std::uint8_t ACCT_TERMINATE_NAS_ERROR = 9;
+		constexpr std::uint8_t ACCT_TERMINATE_NAS_REQUEST = 10;
+		constexpr std::uint8_t ACCT_TERMINATE_PORT_REBOOT = 11;
+		constexpr std::uint8_t ACCT_TERMINATE_PORT_UNNEEDED = 12;
+		constexpr std::uint8_t ACCT_TERMINATE_PORT_PREEMPTED = 13;
+		constexpr std::uint8_t ACCT_TERMINATE_PORT_SUSPEND = 14;
+		constexpr std::uint8_t ACCT_TERMINATE_SERVICE_UNAVAILABLE = 15;
+		constexpr std::uint8_t ACCT_TERMINATE_CALLBACK = 16;
+		constexpr std::uint8_t ACCT_TERMINATE_USER_ERROR = 17;
+		constexpr std::uint8_t ACCT_TERMINATE_HOST_REQUEST = 18;
+	};
+
+	namespace AuthenticationTypes {
+		constexpr std::uint8_t ACCT_AUTHENTIC_RADIUS = 1;
+		constexpr std::uint8_t ACCT_AUTHENTIC_LOCAL = 2;
+		constexpr std::uint8_t ACCT_AUTHENTIC_REMOTE = 3;
+	};
 
 	struct tok {
 		uint cmd;
@@ -128,10 +141,10 @@ namespace OpenWifi::RADIUS {
 	};
 
 	static const struct tok radius_attribute_names[] = {
-		{AUTH_USERNAME, "User-Name"},
-		{2, "User-Password"},
-		{3, "CHAP-Password"},
-		{NAS_IP, "NAS-IP Address"},
+		{ Attributes::AUTH_USERNAME, "User-Name"},
+		{ Attributes::USER_PASSWORD, "User-Password"},
+		{ Attributes::CHAP_PASSWORD, "CHAP-Password"},
+		{ Attributes::NAS_IP, "NAS-IP Address"},
 		{5, "NAS-Port"},
 		{6, "Service-Type"},
 		{7, "Framed-Protocol"},
@@ -155,31 +168,31 @@ namespace OpenWifi::RADIUS {
 		{27, "Session-Timeout"},
 		{28, "Idle-Timeout"},
 		{29, "Termination-Action"},
-		{30, "Called-Station-Id"},
-		{CALLING_STATION_ID, "Calling-Station-Id"},
-		{32, "NAS-Identifier"},
-		{PROXY_STATE, "Proxy-State"},
+		{ Attributes::CALLED_STATION_ID, "Called-Station-Id"},
+		{ Attributes::CALLING_STATION_ID, "Calling-Station-Id"},
+		{ Attributes::NAS_IDENTIFIER, "NAS-Identifier"},
+		{ Attributes::PROXY_STATE, "Proxy-State"},
 		{34, "Login-LAT-Service"},
 		{35, "Login-LAT-Node"},
 		{36, "Login-LAT-Group"},
 		{37, "Framed-AppleTalk-Link"},
 		{38, "Framed-AppleTalk-Network"},
 		{39, "Framed-AppleTalk-Zone"},
-		{ACCT_STATUS_TYPE, "Acct-Status-Type"},
+		{ Attributes::ACCT_STATUS_TYPE, "Acct-Status-Type"},
 		{41, "Acct-Delay-Time"},
-		{ACCT_INPUT_OCTETS, "Acct-Input-Octets"},
-		{ACCT_OUTPUT_OCTETS, "Acct-Output-Octets"},
-		{ACCT_SESSION_ID, "Acct-Session-Id"},
-		{ACCT_AUTHENTIC, "Acct-Authentic"},
-		{ACCT_SESSION_TIME, "Acct-Session-Time"},
-		{ACCT_INPUT_PACKETS, "Acct-Input-Packets"},
-		{ACCT_OUTPUT_PACKETS, "Acct-Output-Packets"},
-		{ACCT_TERMINATE_CAUSE, "Acct-Terminate-Cause"},
-		{ACCT_MULTI_SESSION_ID, "Acct-Multi-Session-Id"},
+		{ Attributes::ACCT_INPUT_OCTETS, "Acct-Input-Octets"},
+		{ Attributes::ACCT_OUTPUT_OCTETS, "Acct-Output-Octets"},
+		{ Attributes::ACCT_SESSION_ID, "Acct-Session-Id"},
+		{ Attributes::ACCT_AUTHENTIC, "Acct-Authentic"},
+		{ Attributes::ACCT_SESSION_TIME, "Acct-Session-Time"},
+		{ Attributes::ACCT_INPUT_PACKETS, "Acct-Input-Packets"},
+		{ Attributes::ACCT_OUTPUT_PACKETS, "Acct-Output-Packets"},
+		{ Attributes::ACCT_TERMINATE_CAUSE, "Acct-Terminate-Cause"},
+		{ Attributes::ACCT_MULTI_SESSION_ID, "Acct-Multi-Session-Id"},
 		{51, "Acct-Link-Count"},
-		{ACCT_INPUT_GIGAWORDS, "Acct-Input-Gigawords"},
-		{ACCT_OUTPUT_GIGAWORDS, "Acct-Output-Gigawords"},
-		{55, "Event-Timestamp"},
+		{ Attributes::ACCT_INPUT_GIGAWORDS, "Acct-Input-Gigawords"},
+		{ Attributes::ACCT_OUTPUT_GIGAWORDS, "Acct-Output-Gigawords"},
+		{ Attributes::EVENT_TIMESTAMP, "Event-Timestamp"},
 		{60, "CHAP-Challenge"},
 		{61, "NAS-Port-Type"},
 		{62, "Port-Limit"},
@@ -200,7 +213,7 @@ namespace OpenWifi::RADIUS {
 		{77, "Connect-Info"},
 		{78, "Configuration-Token"},
 		{79, "EAP-Message"},
-		{80, "Message-Authenticator"},
+		{ Attributes::MESSAGE_AUTHENTICATOR, "Message-Authenticator"},
 		{81, "Tunnel-Private-Group-ID"},
 		{82, "Tunnel-Assignment-ID1"},
 		{83, "Tunnel-Preference"},
@@ -209,11 +222,13 @@ namespace OpenWifi::RADIUS {
 		{86, "Acct-Tunnel-Packets-Lost"},
 		{87, "NAS-Port-ID"},
 		{88, "Framed-Pool"},
-		{CHARGEABLE_USER_IDENTITY, "Chargeable-User-Identity"},
+		{ Attributes::CHARGEABLE_USER_IDENTITY, "Chargeable-User-Identity"},
 		{90, "Tunnel-Client-Auth-ID"},
 		{91, "Tunnel-Server-Auth-ID"},
 		{0, nullptr}
 	};
+
+	constexpr std::uint32_t AttributeOffset = 20;
 
 #pragma pack(push, 1)
 	struct RadiusAttribute {
@@ -229,42 +244,6 @@ namespace OpenWifi::RADIUS {
 		unsigned char attributes[4096]{0};
 	};
 #pragma pack(pop)
-
-
-	constexpr std::uint8_t ATTR_MessageAuthenticator = 80;
-
-	constexpr std::uint8_t ACCT_STATUS_TYPE_START = 1;
-	constexpr std::uint8_t ACCT_STATUS_TYPE_STOP = 2;
-	constexpr std::uint8_t ACCT_STATUS_TYPE_INTERIM_UPDATE = 3;
-	constexpr std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_ON = 7;
-	constexpr std::uint8_t ACCT_STATUS_TYPE_ACCOUNTING_OFF = 8;
-	constexpr std::uint8_t ACCT_STATUS_TYPE_FAILED = 15;
-
-	constexpr std::uint8_t ACCT_AUTHENTIC_RADIUS = 1;
-	constexpr std::uint8_t ACCT_AUTHENTIC_LOCAL = 2;
-	constexpr std::uint8_t ACCT_AUTHENTIC_REMOTE = 3;
-
-	constexpr std::uint8_t ACCT_TERMINATE_USER_REQUEST = 1;
-	constexpr std::uint8_t ACCT_TERMINATE_LOST_CARRIER = 2;
-	constexpr std::uint8_t ACCT_TERMINATE_LOST_SERVICE = 3;
-	constexpr std::uint8_t ACCT_TERMINATE_IDLE_TIMEOUT = 4;
-	constexpr std::uint8_t ACCT_TERMINATE_SESSION_TIMEOUT = 5;
-	constexpr std::uint8_t ACCT_TERMINATE_ADMIN_RESET = 6;
-	constexpr std::uint8_t ACCT_TERMINATE_ADMIN_REBOOT = 7;
-	constexpr std::uint8_t ACCT_TERMINATE_PORT_ERROR = 8;
-	constexpr std::uint8_t ACCT_TERMINATE_NAS_ERROR = 9;
-	constexpr std::uint8_t ACCT_TERMINATE_NAS_REQUEST = 10;
-	constexpr std::uint8_t ACCT_TERMINATE_PORT_REBOOT = 11;
-	constexpr std::uint8_t ACCT_TERMINATE_PORT_UNNEEDED = 12;
-	constexpr std::uint8_t ACCT_TERMINATE_PORT_PREEMPTED = 13;
-	constexpr std::uint8_t ACCT_TERMINATE_PORT_SUSPEND = 14;
-	constexpr std::uint8_t ACCT_TERMINATE_SERVICE_UNAVAILABLE = 15;
-	constexpr std::uint8_t ACCT_TERMINATE_CALLBACK = 16;
-	constexpr std::uint8_t ACCT_TERMINATE_USER_ERROR = 17;
-	constexpr std::uint8_t ACCT_TERMINATE_HOST_REQUEST = 18;
-
-	constexpr std::uint8_t EVENT_TIMESTAMP = 55;
-
 
 	inline bool IsAuthentication(unsigned char t) {
 		return (t == RADIUS::Access_Request || t == RADIUS::Access_Accept ||
@@ -557,17 +536,17 @@ namespace OpenWifi::RADIUS {
 
 		void PrintAccount_StatusType(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
 			os << spaces ;
-			if (buf[3]==ACCT_STATUS_TYPE_START)
+			if (buf[3]==AccountingPacketTypes::ACCT_STATUS_TYPE_START)
 				os << "Start" << std::endl;
-			else if (buf[3]==ACCT_STATUS_TYPE_STOP)
+			else if (buf[3]==AccountingPacketTypes::ACCT_STATUS_TYPE_STOP)
 				os << "Stop" << std::endl;
-			else if (buf[3]==ACCT_STATUS_TYPE_INTERIM_UPDATE)
+			else if (buf[3]==AccountingPacketTypes::ACCT_STATUS_TYPE_INTERIM_UPDATE)
 				os << "Interim-Update" << std::endl;
-			else if (buf[3]==ACCT_STATUS_TYPE_ACCOUNTING_ON)
+			else if (buf[3]==AccountingPacketTypes::ACCT_STATUS_TYPE_ACCOUNTING_ON)
 				os << "Accounting-On" << std::endl;
-			else if (buf[3]==ACCT_STATUS_TYPE_ACCOUNTING_OFF)
+			else if (buf[3]==AccountingPacketTypes::ACCT_STATUS_TYPE_ACCOUNTING_OFF)
 				os << "Accounting-Off" << std::endl;
-			else if (buf[3]==ACCT_STATUS_TYPE_FAILED)
+			else if (buf[3]==AccountingPacketTypes::ACCT_STATUS_TYPE_FAILED)
 				os << "Failed" << std::endl;
 			else
 				BufLog(os,"",buf,len);
@@ -575,11 +554,11 @@ namespace OpenWifi::RADIUS {
 
 		void PrintAccount_AcctAuthentic(std::ostream &os, const std::string &spaces, const unsigned char *buf, std::uint8_t len) {
 			os << spaces ;
-			if (buf[3]==ACCT_AUTHENTIC_RADIUS)
+			if (buf[3]==AuthenticationTypes::ACCT_AUTHENTIC_RADIUS)
 				os << "RADIUS" << std::endl;
-			else if (buf[3]==ACCT_AUTHENTIC_LOCAL)
+			else if (buf[3]==AuthenticationTypes::ACCT_AUTHENTIC_LOCAL)
 				os << "Local" << std::endl;
-			else if (buf[3]==ACCT_AUTHENTIC_REMOTE)
+			else if (buf[3]==AuthenticationTypes::ACCT_AUTHENTIC_REMOTE)
 				os << "Remote" << std::endl;
 			else
 				BufLog(os,"",buf,len);
@@ -597,8 +576,8 @@ namespace OpenWifi::RADIUS {
 				   << AttributeName(attr.type) << "   Len:" << attr.len << std::endl;
 				std::string attr_offset = "           ";
 				switch(attr.type) {
-				case ACCT_STATUS_TYPE: PrintAccount_StatusType(os, attr_offset, &P_.attributes[attr.pos], attr.len); break;
-				case ACCT_AUTHENTIC: PrintAccount_AcctAuthentic(os, attr_offset, &P_.attributes[attr.pos], attr.len); break;
+				case Attributes::ACCT_STATUS_TYPE: PrintAccount_StatusType(os, attr_offset, &P_.attributes[attr.pos], attr.len); break;
+				case Attributes::ACCT_AUTHENTIC: PrintAccount_AcctAuthentic(os, attr_offset, &P_.attributes[attr.pos], attr.len); break;
 				default:
 					BufLog(os, attr_offset.c_str(), &P_.attributes[attr.pos], attr.len);
 				}
@@ -638,7 +617,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractSerialNumberFromProxyState() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == RADIUS::PROXY_STATE) {
+				if (attribute.type == RADIUS::Attributes::PROXY_STATE) {
 					std::string Attr33;
 					// format is serial:IP:port:interface
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],
@@ -660,7 +639,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractProxyStateDestination() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == RADIUS::PROXY_STATE && attribute.len > 2) {
+				if (attribute.type == RADIUS::Attributes::PROXY_STATE && attribute.len > 2) {
 					std::string Attr33;
 					// format is
 
@@ -685,7 +664,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractCallingStationID() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == RADIUS::CALLING_STATION_ID && attribute.len > 2) {
+				if (attribute.type == RADIUS::Attributes::CALLING_STATION_ID && attribute.len > 2) {
 					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len - 2);
 					return Result;
@@ -697,7 +676,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractAccountingSessionID() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == RADIUS::ACCT_SESSION_ID && attribute.len > 2) {
+				if (attribute.type == RADIUS::Attributes::ACCT_SESSION_ID && attribute.len > 2) {
 					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len - 2);
 					return Result;
@@ -709,7 +688,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractCalledStationID() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == 30 && attribute.len > 2) {
+				if (attribute.type == RADIUS::Attributes::CALLED_STATION_ID && attribute.len > 2) {
 					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len - 2);
 					return Result;
@@ -720,7 +699,7 @@ namespace OpenWifi::RADIUS {
 
 		[[nodiscard]] std::string UserName() const {
 			for (const auto &attr : Attrs_) {
-				if (attr.type == RADIUS::AUTH_USERNAME) {
+				if (attr.type == RADIUS::Attributes::AUTH_USERNAME) {
 					std::string user_name{(const char *)&P_.attributes[attr.pos], attr.len};
 					return user_name;
 				}
@@ -974,7 +953,7 @@ namespace OpenWifi::RADIUS {
 			P_.identifier = std::rand() & 0x00ff;
 			MakeRadiusAuthenticator(P_.authenticator);
 			unsigned char MessageAuthenticator[16]{0};
-			AddAttribute(ATTR_MessageAuthenticator, sizeof(MessageAuthenticator),
+			AddAttribute(RADIUS::Attributes::MESSAGE_AUTHENTICATOR, sizeof(MessageAuthenticator),
 						 MessageAuthenticator);
             int PktLen = 1 + 1 + 2 + 16 + 1 + 1 + 16;
 			P_.rawlen = htons(PktLen);
