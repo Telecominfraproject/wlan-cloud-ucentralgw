@@ -8,6 +8,17 @@
 
 namespace OpenWifi {
 
+	bool MayBeAMAC(const std::string &mac) {
+		return std::all_of(mac.begin(),mac.end(),[](char c)->bool {
+			if ((c>='0' && c<='9') 	||
+				(c>='a' && c<='f') 	||
+				(c>='A' && c<='F')	||
+				(c==':') ||
+				(c=='-')) return true;
+			return false;
+			});
+	}
+
 	void RESTAPI_radiussessions_handler::DoGet() {
 
 		if(GetBoolParameter("serialNumberOnly")) {
@@ -16,15 +27,19 @@ namespace OpenWifi {
 			return ReturnObject("serialNumbers",L);
 		}
 
+		auto mac = GetParameter("mac","");
 		auto userName = GetParameter("userName","");
 		if(!userName.empty()) {
 			GWObjects::RADIUSSessionList	L;
 			Poco::toLowerInPlace(userName);
 			RADIUSSessionTracker()->GetUserNameAPSessions(userName,L);
-			return ReturnObject("sessions",L.sessions);
+			if(L.sessions.empty() && MayBeAMAC(userName)) {
+				mac = userName;
+			} else {
+				return ReturnObject("sessions", L.sessions);
+			}
 		}
 
-		auto mac = GetParameter("mac","");
 		if(!mac.empty()) {
 			Poco::toUpperInPlace(mac);
 			Poco::replaceInPlace(mac,":","-");
