@@ -14,7 +14,8 @@ namespace OpenWifi {
 				(c>='a' && c<='f') 	||
 				(c>='A' && c<='F')	||
 				(c==':') ||
-				(c=='-')) return true;
+				(c=='-') ||
+				(c=='*')) return true;
 			return false;
 			});
 	}
