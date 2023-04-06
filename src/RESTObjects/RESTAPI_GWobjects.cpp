@@ -78,7 +78,7 @@ namespace OpenWifi::GWObjects {
 			field_to_json(Obj, "associations_5G", (uint64_t)0);
 			field_to_json(Obj, "associations_6G", (uint64_t)0);
 			field_to_json(Obj, "hasRADIUSSessions", false);
-			field_to_json(Obj, "hasGPS", false);
+			field_to_json(Obj, "hasGPS", ConState.hasGPS);
 			field_to_json(Obj, "sanity", ConState.sanity);
 			field_to_json(Obj, "memoryUsed", ConState.memoryUsed);
 			field_to_json(Obj, "sanity", ConState.sanity);
@@ -246,6 +246,12 @@ namespace OpenWifi::GWObjects {
 										   memoryUsed,
 										   load,
 										   temperature);
+		field_to_json(Obj, "hasGPS", hasGPS);
+		field_to_json(Obj, "sanity", sanity);
+		field_to_json(Obj, "memoryUsed", memoryUsed);
+		field_to_json(Obj, "sanity", sanity);
+		field_to_json(Obj, "load", load);
+		field_to_json(Obj, "temperature", temperature);
 
 		switch (VerifiedCertificate) {
 		case NO_CERTIFICATE:
