@@ -1455,6 +1455,10 @@ ul.nav-tabs {
       "type" : "integer",
       "format" : "int64"
     },
+    "associations_6G" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
     "verifiedCertificate" : {
       "type" : "string",
       "enum" : [ "NO_CERTIFICATE,", "VALID_CERTIFICATE,", "MISMATCH_SERIAL,", "VERIFIED" ]
@@ -1609,6 +1613,25 @@ ul.nav-tabs {
     },
     "restrictionDetails" : {
       "$ref" : "#/components/schemas/DeviceRestrictions"
+    },
+    "hasGPS" : {
+      "type" : "boolean"
+    },
+    "sanity" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "memoryUsed" : {
+      "type" : "number",
+      "format" : "float"
+    },
+    "load" : {
+      "type" : "number",
+      "format" : "float"
+    },
+    "temperature" : {
+      "type" : "number",
+      "format" : "float"
     }
   },
   "description" : "Definition of uCentral device"
