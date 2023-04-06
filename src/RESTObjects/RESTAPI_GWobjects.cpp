@@ -30,8 +30,6 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "serialNumber", SerialNumber);
 #ifdef TIP_GATEWAY_SERVICE
 		field_to_json(Obj, "deviceType", CapabilitiesCache::instance()->GetPlatform(Compatible));
-		field_to_json(Obj, "hasRADIUSSessions", RADIUSSessionTracker()->HasSessions(SerialNumber));
-		field_to_json(Obj, "hasGPS", AP_WS_Server()->HasGPS(SerialNumber));
 #endif
 		field_to_json(Obj, "macAddress", MACAddress);
 		field_to_json(Obj, "manufacturer", Manufacturer);
@@ -67,7 +65,7 @@ namespace OpenWifi::GWObjects {
 		ConnectionState ConState;
 
 		if (AP_WS_Server()->GetState(SerialNumber, ConState)) {
-			ConState.to_json(Obj);
+			ConState.to_json(SerialNumber,Obj);
 		} else {
 			field_to_json(Obj, "ipAddress", "");
 			field_to_json(Obj, "txBytes", (uint64_t)0);
@@ -81,6 +79,11 @@ namespace OpenWifi::GWObjects {
 			field_to_json(Obj, "associations_6G", (uint64_t)0);
 			field_to_json(Obj, "hasRADIUSSessions", false);
 			field_to_json(Obj, "hasGPS", false);
+			field_to_json(Obj, "sanity", ConState.sanity);
+			field_to_json(Obj, "memoryUsed", ConState.memoryUsed);
+			field_to_json(Obj, "sanity", ConState.sanity);
+			field_to_json(Obj, "load", ConState.load);
+			field_to_json(Obj, "temperature", ConState.temperature);
 		}
 #endif
 	}
@@ -216,7 +219,7 @@ namespace OpenWifi::GWObjects {
 		return false;
 	}
 
-	void ConnectionState::to_json(Poco::JSON::Object &Obj) const {
+	void ConnectionState::to_json(const std::string &SerialNumber, Poco::JSON::Object &Obj)  {
 		field_to_json(Obj, "ipAddress", Address);
 		field_to_json(Obj, "txBytes", TX);
 		field_to_json(Obj, "rxBytes", RX);
@@ -238,6 +241,11 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "connectionCompletionTime", connectionCompletionTime);
 		field_to_json(Obj, "totalConnectionTime", Utils::Now() - started);
 		field_to_json(Obj, "certificateExpiryDate", certificateExpiryDate);
+
+		AP_WS_Server()->ExtendedAttributes(SerialNumber, hasGPS, sanity,
+										   memoryUsed,
+										   load,
+										   temperature);
 
 		switch (VerifiedCertificate) {
 		case NO_CERTIFICATE:

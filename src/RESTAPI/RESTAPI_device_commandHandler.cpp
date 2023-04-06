@@ -309,7 +309,7 @@ namespace OpenWifi {
 
 		if (AP_WS_Server()->GetState(SerialNumber_, State)) {
 			Poco::JSON::Object RetObject;
-			State.to_json(RetObject);
+			State.to_json(SerialNumber_, RetObject);
 			return ReturnObject(RetObject);
 		} else {
 			Poco::JSON::Object RetObject;

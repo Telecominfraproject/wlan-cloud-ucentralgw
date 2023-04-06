@@ -44,8 +44,12 @@ namespace OpenWifi::GWObjects {
 		std::uint64_t certificateExpiryDate = 0;
 		bool hasRADIUSSessions = false;
 		bool hasGPS = false;
+		std::uint64_t sanity=0;
+		std::double_t memoryUsed=0.0;
+		std::double_t load=0.0;
+		std::double_t temperature=0.0;
 
-		void to_json(Poco::JSON::Object &Obj) const;
+		void to_json(const std::string &SerialNumber, Poco::JSON::Object &Obj) ;
 	};
 
 	struct DeviceRestrictionsKeyInfo {

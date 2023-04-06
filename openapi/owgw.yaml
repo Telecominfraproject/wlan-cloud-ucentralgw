@@ -260,6 +260,20 @@ components:
           format: uuid
         restrictionDetails:
           $ref: '#/components/schemas/DeviceRestrictions'
+        hasGPS:
+          type: boolean
+        sanity:
+          type: integer
+          format: int64
+        memoryUsed:
+          type: number
+          format: float
+        load:
+          type: number
+          format: float
+        temperature:
+          type: number
+          format: float
 
     DeviceList:
       type: object
@@ -327,6 +341,9 @@ components:
           type: integer
           format: int64
         associations_5G:
+          type: integer
+          format: int64
+        associations_6G:
           type: integer
           format: int64
         verifiedCertificate:

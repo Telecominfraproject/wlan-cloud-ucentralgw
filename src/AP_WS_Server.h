@@ -213,14 +213,24 @@ namespace OpenWifi {
 			return true;
 		}
 
-		inline bool HasGPS(const std::string &serialNumber) {
+		inline bool ExtendedAttributes(const std::string &serialNumber,
+			bool & hasGPS,
+			std::uint64_t &Sanity,
+			std::double_t &MemoryUsed,
+			std::double_t &Load,
+			std::double_t &Temperature
+			) {
 			std::lock_guard	G(WSServerMutex_);
-
 			auto session_hint = SerialNumbers_.find(Utils::SerialNumberToInt(serialNumber));
 			if(session_hint==end(SerialNumbers_)) {
 				return false;
 			}
-			return session_hint->second.second->hasGPS;
+			hasGPS = session_hint->second.second->hasGPS;
+			Sanity = session_hint->second.second->RawLastHealthcheck_.Sanity;
+			MemoryUsed = session_hint->second.second->memory_used_;
+			Load = session_hint->second.second->cpu_load_;
+			Temperature = session_hint->second.second->temperature_;
+			return true;
 		}
 
 	  private:

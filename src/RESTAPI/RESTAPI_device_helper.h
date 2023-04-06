@@ -23,7 +23,7 @@ namespace OpenWifi {
 		Device.to_json(DeviceInfo);
 		Answer.set("deviceInfo", DeviceInfo);
 		Poco::JSON::Object CSInfo;
-		CS.to_json(CSInfo);
+		CS.to_json(Device.SerialNumber, CSInfo);
 		Answer.set("connectionInfo", CSInfo);
 		Poco::JSON::Object HCInfo;
 		HC.to_json(HCInfo);

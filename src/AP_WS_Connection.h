@@ -66,11 +66,30 @@ namespace OpenWifi {
 		inline void SetLastStats(const std::string &LastStats) {
 			std::unique_lock G(ConnectionMutex_);
 			RawLastStats_ = LastStats;
-
 			try {
 				Poco::JSON::Parser P;
 				auto Stats = P.parse(LastStats).extract<Poco::JSON::Object::Ptr>();
 				hasGPS = Stats->isObject("gps");
+				auto Unit = Stats->getObject("unit");
+				auto Memory = Unit->getObject("memory");
+				std::uint64_t TotalMemory = Memory->get("total");
+				std::uint64_t FreeMemory = Memory->get("free");
+				if(TotalMemory>0) {
+					memory_used_ =
+						(100.0 * ((double)TotalMemory - (double)FreeMemory)) / (double)TotalMemory;
+				}
+				if(Unit->isArray("load")) {
+					Poco::JSON::Array::Ptr Load = Unit->getArray("load");
+					if(Load->size()>1) {
+						cpu_load_ = Load->get(1);
+					}
+				}
+				if(Unit->isArray("temperature")) {
+					Poco::JSON::Array::Ptr Temperature = Unit->getArray("temperature");
+					if(Temperature->size()>1) {
+						temperature_ = Temperature->get(0);
+					}
+				}
 			} catch (...) {
 
 			}
@@ -180,6 +199,7 @@ namespace OpenWifi {
 		bool StopTelemetry(uint64_t RPCID);
 		void UpdateCounts();
 		bool hasGPS=false;
+		std::double_t 	memory_used_=0.0, cpu_load_ = 0.0, temperature_ = 0.0;
 	};
 
 } // namespace OpenWifi
