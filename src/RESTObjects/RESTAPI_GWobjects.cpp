@@ -30,6 +30,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "serialNumber", SerialNumber);
 #ifdef TIP_GATEWAY_SERVICE
 		field_to_json(Obj, "deviceType", CapabilitiesCache::instance()->GetPlatform(Compatible));
+		field_to_json(Obj, "hasRADIUSSessions", RADIUSSessionTracker()->HasSessions(SerialNumber));
 #endif
 		field_to_json(Obj, "macAddress", MACAddress);
 		field_to_json(Obj, "manufacturer", Manufacturer);
@@ -241,7 +242,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "connectionCompletionTime", connectionCompletionTime);
 		field_to_json(Obj, "totalConnectionTime", Utils::Now() - started);
 		field_to_json(Obj, "certificateExpiryDate", certificateExpiryDate);
-
+		field_to_json(Obj, "hasRADIUSSessions", RADIUSSessionTracker()->HasSessions(SerialNumber));
 		AP_WS_Server()->ExtendedAttributes(SerialNumber, hasGPS, sanity,
 										   memoryUsed,
 										   load,
