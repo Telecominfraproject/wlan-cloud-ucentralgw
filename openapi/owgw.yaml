@@ -353,6 +353,7 @@ components:
             - VALID_CERTIFICATE,
             - MISMATCH_SERIAL,
             - VERIFIED
+            - SIMULATED
 
     DeviceCapabilities:
       type: object
