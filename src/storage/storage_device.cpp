@@ -746,6 +746,8 @@ namespace OpenWifi {
 			return "serial mismatch";
 		case GWObjects::VERIFIED:
 			return "verified";
+		case GWObjects::SIMULATED:
+			return "simulated";
 		}
 		return "unknown";
 	}

@@ -17,7 +17,7 @@
 
 namespace OpenWifi::GWObjects {
 
-	enum CertificateValidation { NO_CERTIFICATE, VALID_CERTIFICATE, MISMATCH_SERIAL, VERIFIED };
+	enum CertificateValidation { NO_CERTIFICATE, VALID_CERTIFICATE, MISMATCH_SERIAL, VERIFIED, SIMULATED };
 
 	struct ConnectionState {
 		uint64_t MessageCount = 0;

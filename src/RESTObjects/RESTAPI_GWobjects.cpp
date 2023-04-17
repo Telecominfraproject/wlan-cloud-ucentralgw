@@ -267,6 +267,9 @@ namespace OpenWifi::GWObjects {
 		case VERIFIED:
 			field_to_json(Obj, "verifiedCertificate", "VERIFIED");
 			break;
+		case SIMULATED:
+			field_to_json(Obj, "verifiedCertificate", "SIMULATED");
+			break;
 		default:
 			field_to_json(Obj, "verifiedCertificate", "NO_CERTIFICATE");
 			break;

@@ -139,6 +139,10 @@ namespace OpenWifi {
 				return false;
 			}
 
+			if(AP_WS_Server::IsSim(CN_)) {
+				State_.VerifiedCertificate = GWObjects::SIMULATED;
+			}
+
 			std::string reason, author;
 			std::uint64_t created;
 			if (!CN_.empty() && StorageService()->IsBlackListed(CN_, reason, author, created)) {

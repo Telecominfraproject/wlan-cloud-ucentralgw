@@ -20,6 +20,18 @@ namespace OpenWifi {
 			});
 	}
 
+	std::string PadMAC(const std::string &mac) {
+		std::string res;
+		int first=1;
+		for(auto c:mac) {
+			res += c;
+			if(!first)
+				res += '-';
+			first = 1-first;
+		}
+		return res;
+	}
+
 	void RESTAPI_radiussessions_handler::DoGet() {
 
 		if(GetBoolParameter("serialNumberOnly")) {
@@ -35,7 +47,7 @@ namespace OpenWifi {
 			Poco::toLowerInPlace(userName);
 			RADIUSSessionTracker()->GetUserNameAPSessions(userName,L);
 			if(L.sessions.empty() && MayBeAMAC(userName)) {
-				mac = userName;
+				mac = PadMAC(userName);
 			} else {
 				return ReturnObject("sessions", L.sessions);
 			}

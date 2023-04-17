@@ -193,6 +193,12 @@ namespace OpenWifi {
 						return EndConnection();
 					}
 				}
+			} else {
+				poco_information(Logger_,
+								 fmt::format("CONNECT({}): Simulator device. "
+											 "Session={} ConnectionCompletion Time={}",
+											 CId_, State_.sessionId,
+											 State_.connectionCompletionTime));
 			}
 
 			GWWebSocketNotifications::SingleDevice_t Notification;
