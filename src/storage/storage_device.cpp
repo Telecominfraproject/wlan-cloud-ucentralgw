@@ -51,7 +51,7 @@ namespace OpenWifi {
 												   "pendingConfiguration, "
 												   "pendingConfigurationCmd, "
 												   "restrictionDetails, "
-												   "pendingUUID, ",
+												   "pendingUUID, "
 												   "simulated"
 	};
 
@@ -82,7 +82,7 @@ namespace OpenWifi {
 												   "pendingConfigurationCmd=?, "
 												   "restrictionDetails=?, "
 												   "pendingUUID=?, "
-												   "simulated=?"};
+												   "simulated=?" };
 
 	const static std::string DB_DeviceInsertValues{
 		" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
