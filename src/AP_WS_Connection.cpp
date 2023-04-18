@@ -253,6 +253,10 @@ namespace OpenWifi {
     	Valid_ = false;
 		if (!Dead_.test_and_set()) {
 
+			if(!SerialNumber_.empty() && State_.LastContact!=0) {
+				StorageService()->SetDeviceLastRecordedContact(SerialNumber_, State_.LastContact);
+			}
+
 			if (Registered_) {
 				Registered_ = false;
 				Reactor_.removeEventHandler(

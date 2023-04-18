@@ -226,6 +226,8 @@ namespace OpenWifi {
 		bool RemoveCommandListRecordsOlderThan(uint64_t Date);
 		bool RemoveUploadedFilesRecordsOlderThan(uint64_t Date);
 
+		bool SetDeviceLastRecordedContact(std::string & SeialNumber, std::uint64_t lastRecordedContact);
+
 		int Create_Tables();
 		int Create_Statistics();
 		int Create_Devices();

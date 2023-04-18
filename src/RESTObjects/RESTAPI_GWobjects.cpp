@@ -58,6 +58,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "restrictionDetails", restrictionDetails);
 		field_to_json(Obj, "pendingUUID", pendingUUID);
 		field_to_json(Obj, "simulated", simulated);
+		field_to_json(Obj, "lastRecordedContact", lastRecordedContact);
 	}
 
 	void Device::to_json_with_status(Poco::JSON::Object &Obj) const {
@@ -120,6 +121,7 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj, "restrictionDetails", restrictionDetails);
 			field_from_json(Obj, "pendingUUID", pendingUUID);
 			field_from_json(Obj, "simulated", simulated);
+			field_from_json(Obj, "lastRecordedContact", lastRecordedContact);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}

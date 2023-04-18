@@ -154,6 +154,9 @@ components:
           $ref: '#/components/schemas/DeviceRestrictions'
         simulated:
           type: boolean
+        lastRecordedContact:
+          type: integer
+          format: int64
 
     DeviceWithStatus:
       type: object

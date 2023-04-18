@@ -52,7 +52,8 @@ namespace OpenWifi {
 												   "pendingConfigurationCmd, "
 												   "restrictionDetails, "
 												   "pendingUUID, "
-												   "simulated"
+												   "simulated,"
+												   "lastRecordedContact"
 	};
 
 	const static std::string DB_DeviceUpdateFields{"SerialNumber=?,"
@@ -82,16 +83,17 @@ namespace OpenWifi {
 												   "pendingConfigurationCmd=?, "
 												   "restrictionDetails=?, "
 												   "pendingUUID=?, "
-												   "simulated=?" };
+												   "simulated=?,"
+												   "lastRecordedContact=? "};
 
 	const static std::string DB_DeviceInsertValues{
-		" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
+		" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
 
 	typedef Poco::Tuple<std::string, std::string, std::string, std::string, std::string,
 						std::string, std::string, std::string, std::string, std::string,
 						std::string, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, std::string,
 						std::string, std::string, std::string, uint64_t, std::string, bool,
-						std::string, std::string, std::string, std::uint64_t, bool>
+						std::string, std::string, std::string, std::uint64_t, bool, std::uint64_t>
 		DeviceRecordTuple;
 	typedef std::vector<DeviceRecordTuple> DeviceRecordList;
 
@@ -125,6 +127,7 @@ namespace OpenWifi {
 			RESTAPI_utils::to_object<OpenWifi::GWObjects::DeviceRestrictions>(R.get<25>());
 		D.pendingUUID = R.get<26>();
 		D.simulated = R.get<27>();
+		D.lastRecordedContact = R.get<28>();
 	}
 
 	void ConvertDeviceRecord(const GWObjects::Device &D, DeviceRecordTuple &R) {
@@ -156,6 +159,7 @@ namespace OpenWifi {
 		R.set<25>(RESTAPI_utils::to_string(D.restrictionDetails));
 		R.set<26>(D.pendingUUID);
 		R.set<27>(D.simulated);
+		R.set<28>(D.lastRecordedContact);
 	}
 
 	bool Storage::GetDeviceCount(uint64_t &Count) {
@@ -346,6 +350,23 @@ namespace OpenWifi {
 				return true;
 			}
 			return false;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
+	bool Storage::SetDeviceLastRecordedContact(std::string &SerialNumber, std::uint64_t lastRecordedContact) {
+		try {
+			Poco::Data::Session 	Sess = Pool_->get();
+			Poco::Data::Statement 	Update(Sess);
+			std::string St{"UPDATE Devices SET lastRecordedContact=?  WHERE SerialNumber=?"};
+
+			Update << ConvertParams(St), Poco::Data::Keywords::use(lastRecordedContact),
+				Poco::Data::Keywords::use(SerialNumber);
+			Update.execute();
+			return true;
+
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
