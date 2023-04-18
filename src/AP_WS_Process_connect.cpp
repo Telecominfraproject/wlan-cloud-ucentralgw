@@ -131,6 +131,11 @@ namespace OpenWifi {
 					}
 				}
 
+				if (DeviceInfo.lastRecordedContact==0) {
+					DeviceInfo.lastRecordedContact = Utils::Now();
+					++Updated;
+				}
+
 				if (DeviceInfo.simulated && (State_.VerifiedCertificate!=GWObjects::SIMULATED)) {
 					DeviceInfo.simulated = false;
 					++Updated;
