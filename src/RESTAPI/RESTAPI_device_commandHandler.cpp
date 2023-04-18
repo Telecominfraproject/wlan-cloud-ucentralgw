@@ -406,6 +406,7 @@ namespace OpenWifi {
 		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
 		poco_debug(Logger_, fmt::format("PING({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC,
 										TransactionId_, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
@@ -459,6 +460,14 @@ namespace OpenWifi {
 		return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 	}
 
+	bool RESTAPI_device_commandHandler::IsDeviceSimulated(std::string &Serial) {
+		GWObjects::Device	Device;
+		if(StorageService()->GetDevice(Serial,Device)) {
+			return Device.simulated;
+		}
+		return false;
+	}
+
 	void RESTAPI_device_commandHandler::CallCanceled(const char *Cmd, const std::string &UUID,
 													 uint64_t RPC,
 													 const OpenWifi::RESTAPI::Errors::msg &Err) {
@@ -473,6 +482,10 @@ namespace OpenWifi {
 		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
 		poco_debug(Logger_, fmt::format("SCRIPT({},{}): TID={} user={} serial={}", CMD_UUID,
 										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+		if(IsDeviceSimulated(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
 
 		const auto &Obj = ParsedBody_;
 		GWObjects::ScriptRequest SCR;
@@ -899,6 +912,10 @@ namespace OpenWifi {
 		poco_debug(Logger_, fmt::format("TRACE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC,
 										TransactionId_, Requester(), SerialNumber_));
 
+		if(IsDeviceSimulated(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
 		const auto &Obj = ParsedBody_;
 
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -956,6 +973,12 @@ namespace OpenWifi {
 		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
 		poco_debug(Logger_, fmt::format("WIFISCAN({},{}): TID={} user={} serial={}", CMD_UUID,
 										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+
+		if(IsDeviceSimulated(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
 		const auto &Obj = ParsedBody_;
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
@@ -1011,6 +1034,10 @@ namespace OpenWifi {
 		poco_debug(Logger_, fmt::format("EVENT-QUEUE({},{}): TID={} user={} serial={}", CMD_UUID,
 										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
+		if(IsDeviceSimulated(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) && Obj->isArray(RESTAPI::Protocol::TYPES)) {
 
@@ -1054,6 +1081,10 @@ namespace OpenWifi {
 		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
 		poco_debug(Logger_, fmt::format("FORCE-REQUEST({},{}): TID={} user={} serial={}", CMD_UUID,
 										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+		if(IsDeviceSimulated(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
 
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) && Obj->has(uCentralProtocol::MESSAGE)) {
@@ -1104,6 +1135,10 @@ namespace OpenWifi {
 		poco_debug(Logger_, fmt::format("RTTY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC,
 										TransactionId_, Requester(), SerialNumber_));
 
+		if(IsDeviceSimulated(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
 		if (!Restrictions.developer && Restrictions.rtty) {
 			return BadRequest(RESTAPI::Errors::DeviceIsRestricted);
 		}
@@ -1112,6 +1147,11 @@ namespace OpenWifi {
 			GWObjects::Device Device;
 
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
+
+				if(Device.simulated) {
+					return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+				}
+
 				static std::uint64_t rtty_sid = 0;
 				rtty_sid += std::rand();
 				GWObjects::RttySessionDetails Rtty{
@@ -1184,6 +1224,10 @@ namespace OpenWifi {
 		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
 		poco_debug(Logger_, fmt::format("TELEMETRY({},{}): TID={} user={} serial={}", CMD_UUID,
 										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+		if(IsDeviceSimulated(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
 
 		const auto &Obj = ParsedBody_;
 

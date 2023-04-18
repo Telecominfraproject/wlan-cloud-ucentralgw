@@ -51,7 +51,9 @@ namespace OpenWifi {
 												   "pendingConfiguration, "
 												   "pendingConfigurationCmd, "
 												   "restrictionDetails, "
-												   "pendingUUID"};
+												   "pendingUUID, ",
+												   "simulated"
+	};
 
 	const static std::string DB_DeviceUpdateFields{"SerialNumber=?,"
 												   "DeviceType=?, "
@@ -79,16 +81,17 @@ namespace OpenWifi {
 												   "pendingConfiguration=?, "
 												   "pendingConfigurationCmd=?, "
 												   "restrictionDetails=?, "
-												   "pendingUUID=?"};
+												   "pendingUUID=?, "
+												   "simulated=?"};
 
 	const static std::string DB_DeviceInsertValues{
-		" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
+		" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
 
 	typedef Poco::Tuple<std::string, std::string, std::string, std::string, std::string,
 						std::string, std::string, std::string, std::string, std::string,
 						std::string, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, std::string,
 						std::string, std::string, std::string, uint64_t, std::string, bool,
-						std::string, std::string, std::string, std::uint64_t>
+						std::string, std::string, std::string, std::uint64_t, bool>
 		DeviceRecordTuple;
 	typedef std::vector<DeviceRecordTuple> DeviceRecordList;
 
@@ -121,6 +124,7 @@ namespace OpenWifi {
 		D.restrictionDetails =
 			RESTAPI_utils::to_object<OpenWifi::GWObjects::DeviceRestrictions>(R.get<25>());
 		D.pendingUUID = R.get<26>();
+		D.simulated = R.get<27>();
 	}
 
 	void ConvertDeviceRecord(const GWObjects::Device &D, DeviceRecordTuple &R) {
@@ -151,6 +155,7 @@ namespace OpenWifi {
 		R.set<24>(D.pendingConfigurationCmd);
 		R.set<25>(RESTAPI_utils::to_string(D.restrictionDetails));
 		R.set<26>(D.pendingUUID);
+		R.set<27>(D.simulated);
 	}
 
 	bool Storage::GetDeviceCount(uint64_t &Count) {

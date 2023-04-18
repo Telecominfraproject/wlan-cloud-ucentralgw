@@ -397,6 +397,10 @@ namespace OpenWifi::RESTAPI::Errors {
 	static const struct msg FirmwareBDInProgress {
 		1170, "Firmware DB update already in progress."
 	};
+	static const struct msg SimulatedDeviceNotSupported {
+		1171, "Command not supported on simulated device."
+	};
+
 
 } // namespace OpenWifi::RESTAPI::Errors
 

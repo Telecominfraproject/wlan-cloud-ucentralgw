@@ -131,6 +131,16 @@ namespace OpenWifi {
 					}
 				}
 
+				if (DeviceInfo.simulated && (State_.VerifiedCertificate!=GWObjects::SIMULATED)) {
+					DeviceInfo.simulated = false;
+					++Updated;
+				}
+
+				if (!DeviceInfo.simulated && (State_.VerifiedCertificate==GWObjects::SIMULATED)) {
+					DeviceInfo.simulated = true;
+					++Updated;
+				}
+
 				if (DeviceInfo.locale != State_.locale) {
 					DeviceInfo.locale = State_.locale;
 					++Updated;

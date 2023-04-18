@@ -87,7 +87,8 @@ namespace OpenWifi {
 						"pendingConfiguration TEXT, "
 						"pendingConfigurationCmd VARCHAR(64), "
 						"restrictionDetails TEXT, "
-						"pendingUUID	BIGINT "
+						"pendingUUID	BIGINT, "
+						"simulated 		BOOLEAN"
 						",INDEX DeviceOwner (Owner ASC),"
 						"INDEX LocationIndex (Location ASC))",
 					Poco::Data::Keywords::now;
@@ -119,7 +120,8 @@ namespace OpenWifi {
 						"pendingConfiguration TEXT,"
 						"pendingConfigurationCmd VARCHAR(64), "
 						"restrictionDetails TEXT,"
-						"pendingUUID 	BIGINT "
+						"pendingUUID 	BIGINT, "
+						"simulated 		BOOLEAN"
 						")",
 					Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)",
@@ -138,7 +140,9 @@ namespace OpenWifi {
 				"alter table devices add column pendingConfiguration TEXT",
 				"alter table devices add column pendingConfigurationCmd VARCHAR(64)",
 				"alter table devices add column restrictionDetails TEXT",
-				"alter table devices add column pendingUUID bigint"};
+				"alter table devices add column pendingUUID bigint",
+				"alter table devices add column simulated boolean"
+			};
 
 			for (const auto &i : Script) {
 				try {
