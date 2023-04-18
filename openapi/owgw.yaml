@@ -152,6 +152,8 @@ components:
           format: uuid
         restrictionDetails:
           $ref: '#/components/schemas/DeviceRestrictions'
+        simulated:
+          type: boolean
 
     DeviceWithStatus:
       type: object
