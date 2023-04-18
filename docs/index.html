@@ -1179,6 +1179,9 @@ ul.nav-tabs {
     },
     "restrictionDetails" : {
       "$ref" : "#/components/schemas/DeviceRestrictions"
+    },
+    "simulated" : {
+      "type" : "boolean"
     }
   },
   "description" : "Definition of uCentral device"
@@ -20972,9 +20975,7 @@ pub fn main() {
  -H "Content-Type: application/json" \
  "https://localhost:16001/api/v1/device/{serialNumber}?validateOnly=true" \
  -d '{
-  &quot;owner&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
   &quot;venue&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
-  &quot;serialNumber&quot; : &quot;serialNumber&quot;,
   &quot;notes&quot; : [ {
     &quot;note&quot; : &quot;note&quot;,
     &quot;createdBy&quot; : &quot;createdBy&quot;,
@@ -20984,13 +20985,21 @@ pub fn main() {
     &quot;createdBy&quot; : &quot;createdBy&quot;,
     &quot;created&quot; : 6
   } ],
-  &quot;subscriber&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
   &quot;configuration&quot; : &quot;configuration&quot;,
-  &quot;pendingConfiguration&quot; : &quot;pendingConfiguration&quot;,
-  &quot;createdTimestamp&quot; : 1,
   &quot;lastConfigurationChange&quot; : 5,
   &quot;locale&quot; : &quot;locale&quot;,
   &quot;manufacturer&quot; : &quot;manufacturer&quot;,
+  &quot;lastConfigurationDownload&quot; : 5,
+  &quot;modified&quot; : 2,
+  &quot;UUID&quot; : 0,
+  &quot;firmware&quot; : &quot;firmware&quot;,
+  &quot;devicePassword&quot; : &quot;devicePassword&quot;,
+  &quot;owner&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
+  &quot;serialNumber&quot; : &quot;serialNumber&quot;,
+  &quot;subscriber&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
+  &quot;pendingConfiguration&quot; : &quot;pendingConfiguration&quot;,
+  &quot;createdTimestamp&quot; : 1,
+  &quot;simulated&quot; : true,
   &quot;macAddress&quot; : &quot;macAddress&quot;,
   &quot;certificateExpiryDate&quot; : 7,
   &quot;pendingConfigurationCmd&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
@@ -21008,13 +21017,8 @@ pub fn main() {
     &quot;developer&quot; : true,
     &quot;commands&quot; : true
   },
-  &quot;lastConfigurationDownload&quot; : 5,
-  &quot;modified&quot; : 2,
   &quot;location&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
-  &quot;UUID&quot; : 0,
-  &quot;firmware&quot; : &quot;firmware&quot;,
   &quot;entity&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
-  &quot;devicePassword&quot; : &quot;devicePassword&quot;,
   &quot;restrictedDevice&quot; : false
 }'
 </code></pre>
@@ -23586,9 +23590,7 @@ highLimit for the health selection criteria
  -H "Content-Type: application/json" \
  "https://localhost:16001/api/v1/device/{serialNumber}" \
  -d '{
-  &quot;owner&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
   &quot;venue&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
-  &quot;serialNumber&quot; : &quot;serialNumber&quot;,
   &quot;notes&quot; : [ {
     &quot;note&quot; : &quot;note&quot;,
     &quot;createdBy&quot; : &quot;createdBy&quot;,
@@ -23598,13 +23600,21 @@ highLimit for the health selection criteria
     &quot;createdBy&quot; : &quot;createdBy&quot;,
     &quot;created&quot; : 6
   } ],
-  &quot;subscriber&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
   &quot;configuration&quot; : &quot;configuration&quot;,
-  &quot;pendingConfiguration&quot; : &quot;pendingConfiguration&quot;,
-  &quot;createdTimestamp&quot; : 1,
   &quot;lastConfigurationChange&quot; : 5,
   &quot;locale&quot; : &quot;locale&quot;,
   &quot;manufacturer&quot; : &quot;manufacturer&quot;,
+  &quot;lastConfigurationDownload&quot; : 5,
+  &quot;modified&quot; : 2,
+  &quot;UUID&quot; : 0,
+  &quot;firmware&quot; : &quot;firmware&quot;,
+  &quot;devicePassword&quot; : &quot;devicePassword&quot;,
+  &quot;owner&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
+  &quot;serialNumber&quot; : &quot;serialNumber&quot;,
+  &quot;subscriber&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
+  &quot;pendingConfiguration&quot; : &quot;pendingConfiguration&quot;,
+  &quot;createdTimestamp&quot; : 1,
+  &quot;simulated&quot; : true,
   &quot;macAddress&quot; : &quot;macAddress&quot;,
   &quot;certificateExpiryDate&quot; : 7,
   &quot;pendingConfigurationCmd&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
@@ -23622,13 +23632,8 @@ highLimit for the health selection criteria
     &quot;developer&quot; : true,
     &quot;commands&quot; : true
   },
-  &quot;lastConfigurationDownload&quot; : 5,
-  &quot;modified&quot; : 2,
   &quot;location&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
-  &quot;UUID&quot; : 0,
-  &quot;firmware&quot; : &quot;firmware&quot;,
   &quot;entity&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
-  &quot;devicePassword&quot; : &quot;devicePassword&quot;,
   &quot;restrictedDevice&quot; : false
 }'
 </code></pre>
