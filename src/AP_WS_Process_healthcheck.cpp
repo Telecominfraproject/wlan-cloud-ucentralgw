@@ -19,8 +19,10 @@ namespace OpenWifi {
 			Errors_++;
 			return;
 		}
-		if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::SANITY) &&
+		if (ParamsObj->has(uCentralProtocol::UUID) &&
+			ParamsObj->has(uCentralProtocol::SANITY) &&
 			ParamsObj->has(uCentralProtocol::DATA)) {
+
 			uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 			auto Sanity = ParamsObj->get(uCentralProtocol::SANITY);
 			auto CheckData = ParamsObj->get(uCentralProtocol::DATA).toString();

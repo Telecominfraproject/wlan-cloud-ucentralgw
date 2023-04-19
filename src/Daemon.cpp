@@ -26,18 +26,20 @@
 #include "StorageArchiver.h"
 #include "StorageService.h"
 #include "TelemetryStream.h"
+#include "GenericScheduler.h"
 #include "UI_GW_WebSocketNotifications.h"
 #include "VenueBroadcaster.h"
 #include "framework/ConfigurationValidator.h"
 #include "framework/UI_WebSocketClientServer.h"
 #include "rttys/RTTYS_server.h"
+#include <framework/default_device_types.h>
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
 		static Daemon instance(
 			vDAEMON_PROPERTIES_FILENAME, vDAEMON_ROOT_ENV_VAR, vDAEMON_CONFIG_ENV_VAR,
 			vDAEMON_APP_NAME, vDAEMON_BUS_TIMER,
-			SubSystemVec{StorageService(), SerialNumberCache(), ConfigurationValidator(),
+			SubSystemVec{GenericScheduler(), StorageService(), SerialNumberCache(), ConfigurationValidator(),
 						 UI_WebSocketClientServer(), OUIServer(), FindCountryFromIP(),
 						 CommandManager(), FileUploader(), StorageArchiver(), TelemetryStream(),
 						 RTTYS_server(), RADIUS_proxy_server(), VenueBroadcaster(), ScriptManager(),
@@ -48,42 +50,9 @@ namespace OpenWifi {
 		return &instance;
 	}
 
-	static const std::vector<std::pair<std::string, std::string>> DefaultDeviceTypes{
-		{"cig_wf160d", "AP"},
-		{"cig_wf188", "AP"},
-		{"cig_wf188n", "AP"},
-		{"cig_wf194c", "AP"},
-		{"cig_wf194c4", "AP"},
-		{"edgecore_eap101", "AP"},
-		{"edgecore_eap102", "AP"},
-		{"edgecore_ecs4100-12ph", "AP"},
-		{"edgecore_ecw5211", "AP"},
-		{"edgecore_ecw5410", "AP"},
-		{"edgecore_oap100", "AP"},
-		{"edgecore_spw2ac1200", "SWITCH"},
-		{"edgecore_spw2ac1200-lan-poe", "SWITCH"},
-		{"edgecore_ssw2ac2600", "SWITCH"},
-		{"hfcl_ion4", "AP"},
-		{"indio_um-305ac", "AP"},
-		{"linksys_e8450-ubi", "AP"},
-		{"linksys_ea6350", "AP"},
-		{"linksys_ea6350-v4", "AP"},
-		{"linksys_ea8300", "AP"},
-		{"mikrotik_nand", "AP"},
-		{"tp-link_ec420-g1", "AP"},
-		{"tplink_cpe210_v3", "AP"},
-		{"tplink_cpe510_v3", "AP"},
-		{"tplink_eap225_outdoor_v1", "AP"},
-		{"tplink_ec420", "AP"},
-		{"tplink_ex227", "AP"},
-		{"tplink_ex228", "AP"},
-		{"tplink_ex447", "AP"},
-		{"wallys_dr40x9", "AP"}};
-
 	void Daemon::PostInitialization([[maybe_unused]] Poco::Util::Application &self) {
 		AutoProvisioning_ = config().getBool("openwifi.autoprovisioning", false);
-		DeviceTypes_ = DefaultDeviceTypes;
-
+		DeviceTypes_ = DefaultDeviceTypeList;
 		WebSocketProcessor_ = std::make_unique<GwWebSocketClient>(logger());
 	}
 

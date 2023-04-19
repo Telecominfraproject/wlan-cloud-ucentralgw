@@ -144,9 +144,14 @@ add_executable( owgw
         src/RESTAPI/RESTAPI_RPC.cpp src/RESTAPI/RESTAPI_RPC.h
         src/RESTAPI/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI/RESTAPI_deviceDashboardHandler.h
         src/RESTAPI/RESTAPI_telemetryWebSocket.cpp src/RESTAPI/RESTAPI_telemetryWebSocket.h
+        src/RESTAPI/RESTAPI_scripts_handler.cpp src/RESTAPI/RESTAPI_scripts_handler.h
+        src/RESTAPI/RESTAPI_script_handler.cpp src/RESTAPI/RESTAPI_script_handler.h
+        src/RESTAPI/RESTAPI_regulatory.cpp src/RESTAPI/RESTAPI_regulatory.h
+        src/RESTAPI/RESTAPI_radiussessions_handler.cpp src/RESTAPI/RESTAPI_radiussessions_handler.h
         src/storage/storage_blacklist.cpp src/storage/storage_tables.cpp src/storage/storage_logs.cpp
         src/storage/storage_command.cpp src/storage/storage_healthcheck.cpp src/storage/storage_statistics.cpp
         src/storage/storage_device.cpp src/storage/storage_capabilities.cpp src/storage/storage_defconfig.cpp
+        src/storage/storage_scripts.cpp src/storage/storage_scripts.h
         src/storage/storage_tables.cpp
         src/RESTAPI/RESTAPI_routers.cpp
         src/Daemon.cpp src/Daemon.h
@@ -195,7 +200,18 @@ add_executable( owgw
         src/AP_WS_Process_telemetry.cpp
         src/AP_WS_Process_venuebroadcast.cpp
         src/RADSEC_server.h
-        src/UI_GW_WebSocketNotifications.cpp src/UI_GW_WebSocketNotifications.h src/framework/RESTAPI_SystemConfiguration.h src/ScriptManager.cpp src/ScriptManager.h src/RESTAPI/RESTAPI_scripts_handler.cpp src/RESTAPI/RESTAPI_scripts_handler.h src/RESTAPI/RESTAPI_script_handler.cpp src/RESTAPI/RESTAPI_script_handler.h src/storage/storage_scripts.cpp src/storage/storage_scripts.h src/SignatureMgr.h src/AP_WS_Process_event.cpp src/AP_WS_Process_wifiscan.cpp src/AP_WS_Process_alarm.cpp src/GWKafkaEvents.cpp src/GWKafkaEvents.h src/RegulatoryInfo.cpp src/RegulatoryInfo.h src/RESTAPI/RESTAPI_regulatory.cpp src/RESTAPI/RESTAPI_regulatory.h src/RADIUSSessionTracker.cpp src/RADIUSSessionTracker.h src/RESTAPI/RESTAPI_radiussessions_handler.cpp src/RESTAPI/RESTAPI_radiussessions_handler.h)
+        src/UI_GW_WebSocketNotifications.cpp src/UI_GW_WebSocketNotifications.h
+        src/framework/RESTAPI_SystemConfiguration.h
+        src/ScriptManager.cpp src/ScriptManager.h
+        src/SignatureMgr.h
+        src/AP_WS_Process_event.cpp
+        src/AP_WS_Process_wifiscan.cpp
+        src/AP_WS_Process_alarm.cpp
+        src/GWKafkaEvents.cpp src/GWKafkaEvents.h
+        src/RegulatoryInfo.cpp src/RegulatoryInfo.h
+        src/RADIUSSessionTracker.cpp src/RADIUSSessionTracker.h
+        src/libs/Scheduler.h src/libs/InterruptableSleep.h src/libs/ctpl_stl.h src/libs/Cron.h
+        src/GenericScheduler.cpp src/GenericScheduler.h src/framework/default_device_types.h)
 
 if(NOT SMALL_BUILD)
 
