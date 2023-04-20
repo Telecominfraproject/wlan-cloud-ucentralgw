@@ -38,6 +38,7 @@ namespace OpenWifi {
 		std::lock_guard		G(Mutex_);
 
 		auto Now = Utils::Now();
+		std::uint64_t active_sessions=0, active_devices=0;
 		for(auto device_it = AccountingSessions_.begin(); device_it != end(AccountingSessions_); ) {
 			auto & serialNumber = device_it->first;
 			auto & session_list = device_it->second;
@@ -48,15 +49,18 @@ namespace OpenWifi {
 					poco_debug(Logger(),fmt::format("{}: Session {} timeout for {}", serialNumber, session_name, session->userName));
 					session_it = session_list.erase(session_it);
 				} else {
+					++active_sessions;
 					++session_it;
 				}
 			}
 			if(session_list.empty()) {
 				device_it = AccountingSessions_.erase(device_it);
 			} else {
+				++active_devices;
 				++device_it;
 			}
 		}
+		poco_information(Logger(),fmt::format("{}} active sessions on {} devices",active_sessions, active_devices));
 	}
 
 	void RADIUSSessionTracker::run() {
