@@ -9,6 +9,7 @@
 #include <Poco/Notification.h>
 #include <Poco/NotificationQueue.h>
 #include <Poco/JSON/Object.h>
+#include <Poco/Timer.h>
 
 #include "RADIUS_helpers.h"
 
@@ -174,6 +175,8 @@ namespace OpenWifi {
 			return ap_hint->second.size();
 		}
 
+		void GarbageCollection(Poco::Timer &timer);
+
 	  private:
 		std::atomic_bool 			Running_=false;
 		Poco::NotificationQueue 	SessionMessageQueue_;
@@ -181,6 +184,12 @@ namespace OpenWifi {
 
 		using SessionMap = std::map<std::string,RADIUSSessionPtr>;	//	calling-station-id + accounting-session-id
 		std::map<std::string,SessionMap>		AccountingSessions_;				//	serial-number -> session< accounting-session -> session>
+
+		Poco::Timer 												GarbageCollectionTimer_;
+		std::unique_ptr<Poco::TimerCallback<RADIUSSessionTracker>> 	GarbageCollectionCallback_;
+
+		std::uint64_t 				SessionTimeout_=10*60;
+
 
 		void ProcessAccountingSession(SessionNotification &Notification);
 		void ProcessAuthenticationSession(SessionNotification &Notification);

@@ -17,15 +17,46 @@ namespace OpenWifi {
 	int RADIUSSessionTracker::Start() {
 		poco_information(Logger(),"Starting...");
 		QueueManager_.start(*this);
+		GarbageCollectionCallback_ = std::make_unique<Poco::TimerCallback<RADIUSSessionTracker>>(
+			*this, &RADIUSSessionTracker::GarbageCollection);
+		GarbageCollectionTimer_.setStartInterval(10000);
+		GarbageCollectionTimer_.setPeriodicInterval(2*60*1000); // every 2 minutes
+		GarbageCollectionTimer_.start(*GarbageCollectionCallback_, MicroServiceTimerPool());
 		return 0;
 	}
 
 	void RADIUSSessionTracker::Stop() {
 		poco_information(Logger(),"Stopping...");
 		Running_ = false;
+		GarbageCollectionTimer_.stop();
 		SessionMessageQueue_.wakeUpAll();
 		QueueManager_.join();
 		poco_information(Logger(),"Stopped...");
+	}
+
+	void RADIUSSessionTracker::GarbageCollection([[maybe_unused]] Poco::Timer &timer) {
+		std::lock_guard		G(Mutex_);
+
+		auto Now = Utils::Now();
+		for(auto device_it = AccountingSessions_.begin(); device_it != end(AccountingSessions_); ) {
+			auto & serialNumber = device_it->first;
+			auto & session_list = device_it->second;
+			for(auto session_it=session_list.begin();session_it!=end(session_list);) {
+				auto & session_name = session_it->first;
+				auto & session = session_it->second;
+				if((Now-session->lastTransaction)>SessionTimeout_) {
+					poco_debug(Logger(),fmt::format("{}: Session {} timeout for {}", serialNumber, session_name, session->userName));
+					session_it = session_list.erase(session_it);
+				} else {
+					++session_it;
+				}
+			}
+			if(session_list.empty()) {
+				device_it = AccountingSessions_.erase(device_it);
+			} else {
+				++device_it;
+			}
+		}
 	}
 
 	void RADIUSSessionTracker::run() {
