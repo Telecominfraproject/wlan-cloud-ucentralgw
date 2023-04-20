@@ -60,7 +60,7 @@ namespace OpenWifi {
 				++device_it;
 			}
 		}
-		poco_information(Logger(),fmt::format("{}} active sessions on {} devices",active_sessions, active_devices));
+		poco_information(Logger(),fmt::format("{} active sessions on {} devices",active_sessions, active_devices));
 	}
 
 	void RADIUSSessionTracker::run() {
