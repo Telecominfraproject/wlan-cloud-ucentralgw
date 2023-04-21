@@ -20,14 +20,35 @@ namespace OpenWifi {
 			});
 	}
 
-	std::string PadMAC(const std::string &mac) {
+	std::string InsertDelimiters(const std::string &mac, int first=1) {
 		std::string res;
-		int first=1;
+		int index=0;
 		for(auto c:mac) {
 			res += c;
-			if(!first)
-				res += '-';
+			index++;
+			if(index<mac.size()) {
+				if (!first)
+					res += '-';
+			}
 			first = 1-first;
+		}
+		return res;
+	}
+
+	static std::string ConvertToMac(const std::string & V) {
+		auto res = V;
+		Poco::toUpperInPlace(res);
+		if(res.size()==12) {
+			res = InsertDelimiters(res);
+		} else {
+			if(res.find_first_of('*')==std::string::npos) {
+				return "";
+			}
+			if(res[0]=='*') {
+				res = InsertDelimiters(res, 1 - (res.size() % 2) );
+			} else {
+				res = InsertDelimiters(res);
+			}
 		}
 		return res;
 	}
@@ -47,7 +68,7 @@ namespace OpenWifi {
 			Poco::toLowerInPlace(userName);
 			RADIUSSessionTracker()->GetUserNameAPSessions(userName,L);
 			if(L.sessions.empty() && MayBeAMAC(userName)) {
-				mac = PadMAC(userName);
+				mac = ConvertToMac(userName);
 			} else {
 				return ReturnObject("sessions", L.sessions);
 			}
