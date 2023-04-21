@@ -20,7 +20,7 @@ namespace OpenWifi {
 			});
 	}
 
-	std::string InsertDelimiters(const std::string &mac, int first=1) {
+	std::string InsertDelimiters(const std::string &mac, int first=1, char delimiter=':') {
 		std::string res;
 		std::size_t index=0;
 		for(auto c:mac) {
@@ -28,7 +28,7 @@ namespace OpenWifi {
 			index++;
 			if(index<mac.size()) {
 				if (!first)
-					res += '-';
+					res += delimiter;
 			}
 			first = 1-first;
 		}
