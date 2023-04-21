@@ -35,9 +35,16 @@ namespace OpenWifi {
 		return res;
 	}
 
+	std::string StripDelimiters(const std::string &V) {
+		std::string Res;
+		std::for_each(V.begin(),V.end(),[&](char c){ if(c!=':' && c!='-') { Res += c; }});
+		return Res;
+	}
+
 	static std::string ConvertToMac(const std::string & V) {
 		auto res = V;
 		Poco::toUpperInPlace(res);
+		res = StripDelimiters(res);
 		if(res.size()==12) {
 			res = InsertDelimiters(res);
 		} else {
