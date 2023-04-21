@@ -22,7 +22,7 @@ namespace OpenWifi {
 
 	std::string InsertDelimiters(const std::string &mac, int first=1) {
 		std::string res;
-		int index=0;
+		std::size_t index=0;
 		for(auto c:mac) {
 			res += c;
 			index++;
