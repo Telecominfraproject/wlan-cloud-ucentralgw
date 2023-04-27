@@ -393,7 +393,8 @@ namespace OpenWifi::GWObjects {
 					 			callingStationId,
 								chargeableUserIdentity,
 								secret,
-								interface;
+								interface,
+								nasId;
 		std::uint64_t 			inputPackets = 0,
 								outputPackets = 0,
 								inputOctets = 0,

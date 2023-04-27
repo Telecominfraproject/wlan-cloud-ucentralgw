@@ -98,7 +98,7 @@ namespace OpenWifi {
 	void RADIUSSessionTracker::ProcessAuthenticationSession([[maybe_unused]] OpenWifi::SessionNotification &Notification) {
 		std::lock_guard Guard(Mutex_);
 
-		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName, ChargeableUserIdentity, Interface;
+		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName, ChargeableUserIdentity, Interface, nasId;
 		for (const auto &attribute : Notification.Packet_.Attrs_) {
 			switch (attribute.type) {
 			case RADIUS::Attributes::AUTH_USERNAME: {
@@ -126,6 +126,11 @@ namespace OpenWifi {
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
+			case RADIUS::Attributes::NAS_IDENTIFIER:{
+				nasId.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
 			case RADIUS::Attributes::PROXY_STATE: {
 				std::string Tmp;
 				Tmp.assign(
@@ -148,7 +153,7 @@ namespace OpenWifi {
 			ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
 		}
 
-		auto Index = CallingStationId + AccountingSessionId; // +AccountingMultiSessionId;
+		auto Index = CallingStationId; // + AccountingSessionId; // +AccountingMultiSessionId;
 		auto session_hint = ap_hint->second.find(Index);
 		if(session_hint==end(ap_hint->second)) {
 			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
@@ -160,6 +165,7 @@ namespace OpenWifi {
 			NewSession->accountingMultiSessionId = AccountingMultiSessionId;
 			NewSession->chargeableUserIdentity = ChargeableUserIdentity;
 			NewSession->interface = Interface;
+			NewSession->nasId = nasId;
 			NewSession->secret = Notification.Secret_;
 			ap_hint->second[Index] = NewSession;
 		} else {
@@ -171,6 +177,12 @@ namespace OpenWifi {
 	std::uint32_t GetUiInt32(const std::uint8_t *buf) {
 		return (buf[0] << 24) + (buf[1] << 16) + (buf[2] << 8) + (buf[3] << 0);
 	}
+
+/*
+	std::string RADIUSSessionTracker::ComputeSessionIndex(OpenWifi::RADIUSSessionPtr S) {
+		return "";
+	}
+*/
 
 	void
 	RADIUSSessionTracker::ProcessAccountingSession(OpenWifi::SessionNotification &Notification) {
@@ -246,7 +258,7 @@ namespace OpenWifi {
 			}
 		}
 
-		auto Index = CallingStationId + AccountingSessionId; // +AccountingMultiSessionId;
+		auto Index = CallingStationId; // + AccountingSessionId; // +AccountingMultiSessionId;
 		auto ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
 		if(ap_hint==end(AccountingSessions_)) {
 			SessionMap M;
@@ -254,7 +266,7 @@ namespace OpenWifi {
 			ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
 		}
 
-		auto session_hint = ap_hint->second.find(Notification.SerialNumber_);
+		auto session_hint = ap_hint->second.find(Index);
 		if(session_hint==end(ap_hint->second)) {
 			//  find the calling_station_id
 			//  if we are getting a stop for something we do not know, nothing to do...
@@ -335,6 +347,8 @@ namespace OpenWifi {
 			P.AppendAttribute(RADIUS::Attributes::ACCT_MULTI_SESSION_ID, session->accountingMultiSessionId);
 		if(!session->chargeableUserIdentity.empty())
 			P.AppendAttribute(RADIUS::Attributes::CHARGEABLE_USER_IDENTITY, session->chargeableUserIdentity);
+		if(!session->nasId.empty())
+			P.AppendAttribute(RADIUS::Attributes::NAS_IDENTIFIER, session->nasId);
 		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + session->interface;
 		std::cout << "Proxy state: " << ProxyState << "   Secret: " << session->secret << std::endl;
 		// P.AppendAttribute(RADIUS::PROXY_STATE, ProxyState);

@@ -197,6 +197,8 @@ namespace OpenWifi {
 
 		RADIUSSessionTracker() noexcept
 			: SubSystemServer("RADIUSSessionTracker", "RADIUS-SESSION", "radius.session") {}
+
+		std::string ComputeSessionIndex(RADIUSSessionPtr S);
 	};
 
 	inline auto RADIUSSessionTracker() { return RADIUSSessionTracker::instance(); }
