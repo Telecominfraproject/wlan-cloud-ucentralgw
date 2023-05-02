@@ -254,7 +254,7 @@ namespace OpenWifi {
 		std::uint64_t 			NumberOfConnectedDevices_ = 0;
 		std::uint64_t 			AverageDeviceConnectionTime_ = 0;
 		std::uint64_t 			NumberOfConnectingDevices_ = 0;
-
+		std::uint64_t 			SessionTimeOut_ = 10*60;
 		mutable std::mutex		StatsMutex_;
 		std::atomic_uint64_t 	TX_=0,RX_=0;
 

@@ -55,6 +55,8 @@ namespace OpenWifi {
 			MicroServiceConfigGetBool("openwifi.certificates.allowmismatch", true);
 		MismatchDepth_ = MicroServiceConfigGetInt("openwifi.certificates.mismatchdepth", 2);
 
+		SessionTimeOut_ = MicroServiceConfigGetInt("openwifi.session.timeout", 10*60);
+
 		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
 		Reactor_pool_->Start();
 
@@ -188,8 +190,9 @@ namespace OpenWifi {
 			while (hint != end(SerialNumbers_)) {
 				if (hint->second.second == nullptr) {
 					hint = SerialNumbers_.erase(hint);
-				} else if ((now - hint->second.second->State_.LastContact) > (10 * 60)) {
+				} else if ((now - hint->second.second->State_.LastContact) > SessionTimeOut_) {
 					hint->second.second->EndConnection(false);
+					poco_information(Logger(),fmt::format("{}: Session seems idle. Controller disconnecting device.", hint->second.second->SerialNumber_));
 					Sessions_.erase(hint->second.second->State_.sessionId);
 					Garbage_.push_back(hint->second.second);
 					hint = SerialNumbers_.erase(hint);
