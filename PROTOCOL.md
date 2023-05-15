@@ -176,8 +176,7 @@ The device may send a `reboot log event` after a reboot. This maybe a scheduled 
 }
 ```
 
-Here is a possible list of reboot reasons
-
+Here is a possible list of reboot reasons:
 
 #### Config change pending event
 Device sends this message to tell the controller that the device 
