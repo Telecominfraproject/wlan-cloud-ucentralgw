@@ -149,7 +149,7 @@ The `severity` matches the `syslog` levels. Here are the details:
 - 7 : LOG_DEBUG       7       /* debug-level messages */
 
 #### Crash Log event
-Device may send a crash log event after rebooting after a crash. The event cannot be sent until a connection event has been sent.
+Device may send a `crash log event` during rebooting after a crash. The event cannot be sent until a connection event has been established.
 ```json
 {   "jsonrpc" : "2.0" , 
     "method" : "crashlog" , 
@@ -160,6 +160,24 @@ Device may send a crash log event after rebooting after a crash. The event canno
       }
 }
 ```
+
+#### Reboot Log event
+The device may send a `reboot log event` after a reboot. This maybe a scheduled reboot or caused in some other way.
+```json
+{   "jsonrpc" : "2.0" , 
+    "method" : "rebootLog" , 
+    "params" : {
+        "serial" : <serial number> ,
+        "uuid"   : <the UUID of the configuration that generated the reboot log>,
+        "date"   : <Unix time when this reboot occurred>
+        "reason" : <string>,
+        "info" : [ "info 1", "info 2"]
+      }
+}
+```
+
+Here is a possible list of reboot reasons
+
 
 #### Config change pending event
 Device sends this message to tell the controller that the device 
