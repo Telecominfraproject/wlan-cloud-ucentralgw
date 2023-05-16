@@ -13114,7 +13114,7 @@ public class CommandsApiExample {
         Long endDate = 789; // Long | 
         Long offset = 789; // Long | 
         Long limit = 789; // Long | 
-        Long logType = 789; // Long | 0=any kind of logs (default) 0=normal logs only 1=crash logs only
+        Long logType = 789; // Long | 0=any kind of logs (default) 0=normal logs, 1=crash logs, 2=reboot logs only
         Boolean newest = true; // Boolean | Selecting this option means the newest record will be returned. Use limit to select how many.
 
         try {
@@ -13140,7 +13140,7 @@ public class CommandsApiExample {
         Long endDate = 789; // Long | 
         Long offset = 789; // Long | 
         Long limit = 789; // Long | 
-        Long logType = 789; // Long | 0=any kind of logs (default) 0=normal logs only 1=crash logs only
+        Long logType = 789; // Long | 0=any kind of logs (default) 0=normal logs, 1=crash logs, 2=reboot logs only
         Boolean newest = true; // Boolean | Selecting this option means the newest record will be returned. Use limit to select how many.
 
         try {
@@ -13175,7 +13175,7 @@ Long *startDate = 789; //  (optional) (default to null)
 Long *endDate = 789; //  (optional) (default to null)
 Long *offset = 789; //  (optional) (default to null)
 Long *limit = 789; //  (optional) (default to null)
-Long *logType = 789; // 0=any kind of logs (default) 0=normal logs only 1=crash logs only (optional) (default to null)
+Long *logType = 789; // 0=any kind of logs (default) 0=normal logs, 1=crash logs, 2=reboot logs only (optional) (default to null)
 Boolean *newest = true; // Selecting this option means the newest record will be returned. Use limit to select how many. (optional) (default to null)
 
 // Get the latest logs for a given device
@@ -13219,7 +13219,7 @@ var opts = {
   'endDate': 789, // {Long} 
   'offset': 789, // {Long} 
   'limit': 789, // {Long} 
-  'logType': 789, // {Long} 0=any kind of logs (default) 0=normal logs only 1=crash logs only
+  'logType': 789, // {Long} 0=any kind of logs (default) 0=normal logs, 1=crash logs, 2=reboot logs only
   'newest': true // {Boolean} Selecting this option means the newest record will be returned. Use limit to select how many.
 };
 
@@ -13264,7 +13264,7 @@ namespace Example
             var endDate = 789;  // Long |  (optional)  (default to null)
             var offset = 789;  // Long |  (optional)  (default to null)
             var limit = 789;  // Long |  (optional)  (default to null)
-            var logType = 789;  // Long | 0=any kind of logs (default) 0=normal logs only 1=crash logs only (optional)  (default to null)
+            var logType = 789;  // Long | 0=any kind of logs (default) 0=normal logs, 1=crash logs, 2=reboot logs only (optional)  (default to null)
             var newest = true;  // Boolean | Selecting this option means the newest record will be returned. Use limit to select how many. (optional)  (default to null)
 
             try {
@@ -13299,7 +13299,7 @@ $startDate = 789; // Long |
 $endDate = 789; // Long | 
 $offset = 789; // Long | 
 $limit = 789; // Long | 
-$logType = 789; // Long | 0=any kind of logs (default) 0=normal logs only 1=crash logs only
+$logType = 789; // Long | 0=any kind of logs (default) 0=normal logs, 1=crash logs, 2=reboot logs only
 $newest = true; // Boolean | Selecting this option means the newest record will be returned. Use limit to select how many.
 
 try {
@@ -13331,7 +13331,7 @@ my $startDate = 789; # Long |
 my $endDate = 789; # Long | 
 my $offset = 789; # Long | 
 my $limit = 789; # Long | 
-my $logType = 789; # Long | 0=any kind of logs (default) 0=normal logs only 1=crash logs only
+my $logType = 789; # Long | 0=any kind of logs (default) 0=normal logs, 1=crash logs, 2=reboot logs only
 my $newest = true; # Boolean | Selecting this option means the newest record will be returned. Use limit to select how many.
 
 eval {
@@ -13365,7 +13365,7 @@ startDate = 789 # Long |  (optional) (default to null)
 endDate = 789 # Long |  (optional) (default to null)
 offset = 789 # Long |  (optional) (default to null)
 limit = 789 # Long |  (optional) (default to null)
-logType = 789 # Long | 0=any kind of logs (default) 0=normal logs only 1=crash logs only (optional) (default to null)
+logType = 789 # Long | 0=any kind of logs (default) 0=normal logs, 1=crash logs, 2=reboot logs only (optional) (default to null)
 newest = true # Boolean | Selecting this option means the newest record will be returned. Use limit to select how many. (optional) (default to null)
 
 try:
@@ -13536,7 +13536,7 @@ pub fn main() {
                     </span>
 
                     <div class="inner description marked">
-0&#x3D;any kind of logs (default) 0&#x3D;normal logs only 1&#x3D;crash logs only
+0&#x3D;any kind of logs (default) 0&#x3D;normal logs, 1&#x3D;crash logs, 2&#x3D;reboot logs only
                     </div>
             </div>
         </div>
