@@ -279,6 +279,8 @@ components:
         temperature:
           type: number
           format: float
+        connectReason:
+          type: string
 
     DeviceList:
       type: object

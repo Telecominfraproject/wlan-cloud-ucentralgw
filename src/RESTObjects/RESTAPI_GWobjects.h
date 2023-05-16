@@ -48,6 +48,7 @@ namespace OpenWifi::GWObjects {
 		std::double_t memoryUsed=0.0;
 		std::double_t load=0.0;
 		std::double_t temperature=0.0;
+		std::string 	connectReason;
 
 		void to_json(const std::string &SerialNumber, Poco::JSON::Object &Obj) ;
 	};

@@ -81,6 +81,10 @@ namespace OpenWifi {
 			State_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 			CId_ = SerialNumber_ + "@" + CId_;
 
+			if(ParamsObj->has("reason")) {
+				State_.connectReason = ParamsObj->get("reason").toString();
+			}
+
 			auto IP = PeerAddress_.toString();
 			if (IP.substr(0, 7) == "::ffff:") {
 				IP = IP.substr(7);

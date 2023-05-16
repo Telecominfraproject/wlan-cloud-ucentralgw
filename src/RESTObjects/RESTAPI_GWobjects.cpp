@@ -246,6 +246,8 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "connectionCompletionTime", connectionCompletionTime);
 		field_to_json(Obj, "totalConnectionTime", Utils::Now() - started);
 		field_to_json(Obj, "certificateExpiryDate", certificateExpiryDate);
+		field_to_json(Obj, "connectReason", connectReason);
+
 #ifdef TIP_GATEWAY_SERVICE
 		hasRADIUSSessions = RADIUSSessionTracker()->HasSessions(SerialNumber);
 		AP_WS_Server()->ExtendedAttributes(SerialNumber, hasGPS, sanity,
