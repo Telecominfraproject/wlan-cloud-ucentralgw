@@ -513,6 +513,10 @@ namespace OpenWifi {
 			Process_wifiscan(ParamsObj);
 		} break;
 
+		case uCentralProtocol::Events::ET_REBOOTLOG: {
+			Process_rebootLog(ParamsObj);
+		} break;
+
 		// 	this will never be called but some compilers will complain if we do not have a case for
 		//	every single values of an enum
 		case uCentralProtocol::Events::ET_UNKNOWN: {

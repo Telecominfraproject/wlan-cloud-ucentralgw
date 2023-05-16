@@ -154,9 +154,9 @@ Device may send a `crash log event` during rebooting after a crash. The event ca
 {   "jsonrpc" : "2.0" , 
     "method" : "crashlog" , 
     "params" : {
-        "serial" : <serial number> ,
-        "uuid"   : <the UUID of the configuration that generated the crash log>,
-        "loglines" : [ an array of strings representing the logs from the log file ]
+        "serial"    : <serial number> ,
+        "uuid"      : <the UUID of the configuration that generated the crash log>,
+        "loglines"  : [ an array of strings representing the logs from the log file ]
       }
 }
 ```
@@ -167,11 +167,11 @@ The device may send a `reboot log event` after a reboot. This maybe a scheduled 
 {   "jsonrpc" : "2.0" , 
     "method" : "rebootLog" , 
     "params" : {
-        "serial" : <serial number> ,
-        "uuid"   : <the UUID of the configuration that generated the reboot log>,
-        "date"   : <Unix time when this reboot occurred>
-        "reason" : <string>,
-        "info" : [ "info 1", "info 2"]
+        "serial"  : <serial number> ,
+        "uuid"    : <the UUID of the configuration that generated the reboot log>,
+        "date"    : <Unix time when this reboot occurred>,
+        "type"    : <string>,
+        "info"    : [ "info 1", "info 2"]
       }
 }
 ```

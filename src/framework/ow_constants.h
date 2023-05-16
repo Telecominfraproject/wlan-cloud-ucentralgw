@@ -566,6 +566,7 @@ namespace OpenWifi::uCentralProtocol {
 	static const char *HEALTHCHECK = "healthcheck";
 	static const char *LOG = "log";
 	static const char *CRASHLOG = "crashlog";
+	static const char *REBOOTLOG = "rebootLog";
 	static const char *PING = "ping";
 	static const char *CFGPENDING = "cfgpending";
 	static const char *RECOVERY = "recovery";
@@ -624,6 +625,8 @@ namespace OpenWifi::uCentralProtocol {
 	static const char *DEVICEUPDATE = "deviceupdate";
 	static const char *FWSIGNATURE = "FWsignature";
 	static const char *SIGNATURE = "signature";
+	static const char *INFO = "info";
+	static const char *DATE = "date";
 
 	static const char *SERIALNUMBER = "serialNumber";
 	static const char *COMPATIBLE = "compatible";
@@ -654,6 +657,7 @@ namespace OpenWifi::uCentralProtocol::Events {
 	static const char *HEALTHCHECK = "healthcheck";
 	static const char *LOG = "log";
 	static const char *CRASHLOG = "crashlog";
+	static const char *REBOOTLOG = "rebootLog";
 	static const char *PING = "ping";
 	static const char *CFGPENDING = "cfgpending";
 	static const char *RECOVERY = "recovery";
@@ -677,7 +681,8 @@ namespace OpenWifi::uCentralProtocol::Events {
 		ET_VENUEBROADCAST,
 		ET_EVENT,
 		ET_WIFISCAN,
-		ET_ALARM
+		ET_ALARM,
+		ET_REBOOTLOG
 	};
 
 	inline EVENT_MSG EventFromString(const std::string &Method) {
@@ -708,8 +713,10 @@ namespace OpenWifi::uCentralProtocol::Events {
 		else if (strcmp(WIFISCAN, Method.c_str()) == 0)
 			return ET_WIFISCAN;
 		else if (strcmp(ALARM, Method.c_str()) == 0)
-			return ET_WIFISCAN;
-		return ET_ALARM;
+			return ET_ALARM;
+		else if (strcmp(REBOOTLOG, Method.c_str()) == 0)
+			return ET_REBOOTLOG;
+		return ET_UNKNOWN;
 	};
 } // namespace OpenWifi::uCentralProtocol::Events
 

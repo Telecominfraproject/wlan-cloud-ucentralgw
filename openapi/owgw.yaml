@@ -483,6 +483,10 @@ components:
         logType:
           type: integer
           format: int64
+          example:
+            - 0  normal logs
+            - 1  crash logs
+            - 2  reboot logs
         UUID:
           type: integer
           format: int64
@@ -1861,7 +1865,7 @@ paths:
             format: int64
         - in: query
           name: logType
-          description: 0=any kind of logs (default) 0=normal logs only 1=crash logs only
+          description: 0=any kind of logs (default) 0=normal logs, 1=crash logs, 2=reboot logs only
           schema:
             type: integer
             format: int64
