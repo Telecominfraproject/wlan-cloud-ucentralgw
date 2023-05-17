@@ -6,6 +6,7 @@
 
 #include "fmt/format.h"
 #include "framework/ow_constants.h"
+#include <GWKafkaEvents.h>
 
 namespace OpenWifi {
 
@@ -35,7 +36,7 @@ namespace OpenWifi {
 										   .LogType = 2,
 										   .UUID = ParamsObj->get(uCentralProtocol::UUID)};
 			StorageService()->AddLog(DeviceLog);
-
+			DeviceLogKafkaEvent	E(DeviceLog);
 		} else {
 			poco_warning(Logger_, fmt::format("REBOOT-LOG({}): Missing parameters.", CId_));
 		}

@@ -7,6 +7,7 @@
 
 #include "fmt/format.h"
 #include "framework/ow_constants.h"
+#include <GWKafkaEvents.h>
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_crashlog(Poco::JSON::Object::Ptr ParamsObj) {
@@ -29,7 +30,7 @@ namespace OpenWifi {
 										   .LogType = 1,
 										   .UUID = ParamsObj->get(uCentralProtocol::UUID)};
 			StorageService()->AddLog(DeviceLog);
-
+			DeviceLogKafkaEvent	E(DeviceLog);
 		} else {
 			poco_warning(Logger_, fmt::format("LOG({}): Missing parameters.", CId_));
 			return;

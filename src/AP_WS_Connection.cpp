@@ -146,7 +146,7 @@ namespace OpenWifi {
 			std::string reason, author;
 			std::uint64_t created;
 			if (!CN_.empty() && StorageService()->IsBlackListed(CN_, reason, author, created)) {
-				DeviceBlacklistedKafkaEvent KE(CN_, Utils::Now(), reason, author, created, CId_);
+				DeviceBlacklistedKafkaEvent KE(Utils::SerialNumberToInt(CN_), Utils::Now(), reason, author, created, CId_);
 				poco_warning(
 					Logger_,
 					fmt::format(
@@ -448,7 +448,7 @@ namespace OpenWifi {
 		std::string reason, author;
 		std::uint64_t created;
 		if (StorageService()->IsBlackListed(Serial, reason, author, created)) {
-			DeviceBlacklistedKafkaEvent KE(CN_, Utils::Now(), reason, author, created, CId_);
+			DeviceBlacklistedKafkaEvent KE(Utils::SerialNumberToInt(CN_), Utils::Now(), reason, author, created, CId_);
 			Poco::Exception E(
 				fmt::format("BLACKLIST({}): device is blacklisted and not allowed to connect.",
 							Serial),

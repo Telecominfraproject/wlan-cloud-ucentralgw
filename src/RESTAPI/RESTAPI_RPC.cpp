@@ -171,7 +171,7 @@ namespace OpenWifi::RESTAPI_RPC {
 				//	we need to post a kafka event for this.
 				if (Params.has(uCentralProtocol::CONFIG)) {
 					DeviceConfigurationChangeKafkaEvent KEvent(
-						Cmd.SerialNumber, Utils::Now(),
+						Utils::SerialNumberToInt(Cmd.SerialNumber), Utils::Now(),
 						Params.get(uCentralProtocol::CONFIG).toString());
 				}
 			}

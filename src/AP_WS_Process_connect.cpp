@@ -119,7 +119,7 @@ namespace OpenWifi {
 				int Updated{0};
 				if (!Firmware.empty()) {
 					if (Firmware != DeviceInfo.Firmware) {
-						DeviceFirmwareChangeKafkaEvent KEvent(SerialNumber_, Utils::Now(),
+						DeviceFirmwareChangeKafkaEvent KEvent(SerialNumberInt_, Utils::Now(),
 															  DeviceInfo.Firmware, Firmware);
 						DeviceInfo.Firmware = Firmware;
 						DeviceInfo.LastFWUpdate = Utils::Now();
