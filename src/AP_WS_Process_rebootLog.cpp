@@ -13,13 +13,11 @@ namespace OpenWifi {
 			&& ParamsObj->isArray(uCentralProtocol::INFO)
 			&& ParamsObj->has(uCentralProtocol::TYPE)
 			&& ParamsObj->has(uCentralProtocol::DATE) ) {
-			poco_trace(Logger_, fmt::format("REBOOT-LOG({}): new entry.", CId_));
-			auto LogLines = ParamsObj->get(uCentralProtocol::INFO);
+			poco_warning(Logger_, fmt::format("REBOOT-LOG({}): new entry.", CId_));
 			std::string LogText;
-			if (LogLines.isArray()) {
-				auto LogLinesArray = LogLines.extract<Poco::JSON::Array::Ptr>();
-				for (const auto &i : *LogLinesArray)
-					LogText += i.toString() + "\r\n";
+			auto InfoLines = ParamsObj->getArray(uCentralProtocol::INFO);
+			for (const auto &InfoLine : *InfoLines) {
+				LogText += InfoLine.toString() + "\r\n";
 			}
 
 			GWObjects::DeviceLog DeviceLog{.SerialNumber = SerialNumber_,
@@ -32,8 +30,7 @@ namespace OpenWifi {
 			StorageService()->AddLog(DeviceLog);
 
 		} else {
-			poco_warning(Logger_, fmt::format("LOG({}): Missing parameters.", CId_));
-			return;
+			poco_warning(Logger_, fmt::format("REBOOT-LOG({}): Missing parameters.", CId_));
 		}
 	}
 } // namespace OpenWifi
