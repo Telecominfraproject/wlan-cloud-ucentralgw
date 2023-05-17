@@ -29,7 +29,7 @@ namespace OpenWifi {
 
 			GWObjects::DeviceLog DeviceLog{.SerialNumber = SerialNumber_,
 										   .Log = ParamsObj->get(uCentralProtocol::TYPE).toString(),
-										   .Data = "{" + os.str() + "}",
+										   .Data = "{ \"info\" : " + os.str() + "}",
 										   .Severity = GWObjects::DeviceLog::LOG_INFO,
 										   .Recorded = ParamsObj->get(uCentralProtocol::DATE),
 										   .LogType = 2,
