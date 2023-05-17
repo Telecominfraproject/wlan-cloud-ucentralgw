@@ -17,7 +17,7 @@ namespace OpenWifi {
 		GWKafkaEvents(std::uint64_t serialNumber, const std::string &type,
 					  std::uint64_t timestamp)
 			: serialNumber_(serialNumber), type_(type), timestamp_(timestamp) {
-			payload_ = Poco::SharedPtr<Poco::JSON::Object>();
+			payload_ = Poco::SharedPtr<Poco::JSON::Object>(new Poco::JSON::Object);
 		}
 		void Send();
 		[[nodiscard]] inline std::uint64_t Serial() const { return serialNumber_;};
