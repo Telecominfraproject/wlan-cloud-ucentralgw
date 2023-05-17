@@ -23,16 +23,13 @@ namespace OpenWifi {
 			&& ParamsObj->has(uCentralProtocol::DATE) ) {
 			poco_warning(Logger_, fmt::format("REBOOT-LOG({}): new entry.", CId_));
 
-			std::string LogText;
 			auto InfoLines = ParamsObj->getArray(uCentralProtocol::INFO);
-			for (const auto &InfoLine : *InfoLines) {
-				LogText += InfoLine.toString() + "\r\n";
-			}
-			StripNulls(LogText);
+			std::ostringstream os;
+			InfoLines->stringify(os);
 
 			GWObjects::DeviceLog DeviceLog{.SerialNumber = SerialNumber_,
 										   .Log = ParamsObj->get(uCentralProtocol::TYPE).toString(),
-										   .Data = LogText,
+										   .Data = os.str(),
 										   .Severity = GWObjects::DeviceLog::LOG_INFO,
 										   .Recorded = ParamsObj->get(uCentralProtocol::DATE),
 										   .LogType = 2,
