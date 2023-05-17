@@ -8,18 +8,27 @@
 #include "framework/ow_constants.h"
 
 namespace OpenWifi {
+
+	void StripNulls(std::string &S) {
+		for(std::size_t i=0;i<S.size();++i) {
+			if(S[i]==0)
+				S[i]=' ';
+		}
+	}
+
 	void AP_WS_Connection::Process_rebootLog(Poco::JSON::Object::Ptr ParamsObj) {
 		if (ParamsObj->has(uCentralProtocol::UUID)
 			&& ParamsObj->isArray(uCentralProtocol::INFO)
 			&& ParamsObj->has(uCentralProtocol::TYPE)
 			&& ParamsObj->has(uCentralProtocol::DATE) ) {
 			poco_warning(Logger_, fmt::format("REBOOT-LOG({}): new entry.", CId_));
-			std::string LogText;
-			auto InfoLines = ParamsObj->getArray(uCentralProtocol::INFO);
+			std::string LogText = ParamsObj->get("info").toString();
+/*			auto InfoLines = ParamsObj->getArray(uCentralProtocol::INFO);
 			for (const auto &InfoLine : *InfoLines) {
 				LogText += InfoLine.toString() + "\r\n";
 			}
-
+			StripNulls(LogText);
+*/
 			GWObjects::DeviceLog DeviceLog{.SerialNumber = SerialNumber_,
 										   .Log = ParamsObj->get(uCentralProtocol::TYPE).toString(),
 										   .Data = LogText,
