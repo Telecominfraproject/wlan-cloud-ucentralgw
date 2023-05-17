@@ -324,23 +324,35 @@ namespace OpenWifi {
 				   fmt::format("GET-LOGS: TID={} user={} serial={}. thr_id={}", TransactionId_,
 							   Requester(), SerialNumber_, Poco::Thread::current()->id()));
 		std::vector<GWObjects::DeviceLog> Logs;
+		std::cout << __LINE__ << std::endl;
 		if (QB_.Newest) {
+			std::cout << __LINE__ << std::endl;
 			StorageService()->GetNewestLogData(SerialNumber_, QB_.Limit, Logs, QB_.LogType);
+			std::cout << __LINE__ << std::endl;
 		} else {
+			std::cout << __LINE__ << std::endl;
 			StorageService()->GetLogData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset,
 										 QB_.Limit, Logs, QB_.LogType);
+			std::cout << __LINE__ << std::endl;
 		}
 
+		std::cout << __LINE__ << std::endl;
 		Poco::JSON::Array ArrayObj;
+		std::cout << __LINE__ << std::endl;
 		for (const auto &i : Logs) {
+			std::cout << __LINE__ << std::endl;
 			Poco::JSON::Object Obj;
 			i.to_json(Obj);
+			std::cout << __LINE__ << std::endl;
 			ArrayObj.add(Obj);
+			std::cout << __LINE__ << std::endl;
 		}
+		std::cout << __LINE__ << std::endl;
 		Poco::JSON::Object RetObj;
 		RetObj.set(RESTAPI::Protocol::VALUES, ArrayObj);
 		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
 		ReturnObject(RetObj);
+		std::cout << __LINE__ << std::endl;
 	}
 
 	void RESTAPI_device_commandHandler::DeleteLogs() {
