@@ -22,13 +22,14 @@ namespace OpenWifi {
 			&& ParamsObj->has(uCentralProtocol::TYPE)
 			&& ParamsObj->has(uCentralProtocol::DATE) ) {
 			poco_warning(Logger_, fmt::format("REBOOT-LOG({}): new entry.", CId_));
-			std::string LogText = ParamsObj->get("info").toString();
-/*			auto InfoLines = ParamsObj->getArray(uCentralProtocol::INFO);
+
+			std::string LogText;
+			auto InfoLines = ParamsObj->getArray(uCentralProtocol::INFO);
 			for (const auto &InfoLine : *InfoLines) {
 				LogText += InfoLine.toString() + "\r\n";
 			}
 			StripNulls(LogText);
-*/
+
 			GWObjects::DeviceLog DeviceLog{.SerialNumber = SerialNumber_,
 										   .Log = ParamsObj->get(uCentralProtocol::TYPE).toString(),
 										   .Data = LogText,
