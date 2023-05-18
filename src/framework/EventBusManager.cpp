@@ -14,18 +14,18 @@ namespace OpenWifi {
 	void EventBusManager::run() {
 		Running_ = true;
 		Utils::SetThreadName("fmwk:EventMgr");
-		auto Msg = MicroServiceMakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_JOIN);
+		auto Msg = std::make_shared<std::string>(MicroServiceMakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_JOIN));
 		KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS, MicroServicePrivateEndPoint(), Msg,
 									false);
 		while (Running_) {
 			Poco::Thread::trySleep((unsigned long)MicroServiceDaemonBusTimer());
 			if (!Running_)
 				break;
-			Msg = MicroServiceMakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE);
+			Msg = std::make_shared<std::string>(MicroServiceMakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE));
 			KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS, MicroServicePrivateEndPoint(),
 										Msg, false);
 		}
-		Msg = MicroServiceMakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_LEAVE);
+		Msg = std::make_shared<std::string>(MicroServiceMakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_LEAVE));
 		KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS, MicroServicePrivateEndPoint(), Msg,
 									false);
 	};

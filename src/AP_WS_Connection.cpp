@@ -232,7 +232,7 @@ namespace OpenWifi {
 			Poco::JSON::Stringifier Stringify;
 			std::ostringstream OS;
 			Stringify.condense(Disconnect, OS);
-			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber, OS.str());
+			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber, std::make_shared<std::string>(OS.str()));
 		} catch (...) {
 		}
 	}
@@ -725,7 +725,7 @@ namespace OpenWifi {
 					Poco::JSON::Stringifier Stringify;
 					std::ostringstream OS;
 					Stringify.condense(PingObject, OS);
-					KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+					KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, std::make_shared<std::string>(OS.str()));
 				}
 				return;
 			} break;

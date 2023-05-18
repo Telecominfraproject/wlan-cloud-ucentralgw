@@ -1024,7 +1024,7 @@ namespace OpenWifi {
 		RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::wifiscan, false, Cmd, Params,
 									*Request, *Response, timeout, nullptr, this, Logger_);
 		if (Cmd.ErrorCode == 0) {
-			KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, Cmd.Results);
+			KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, std::make_shared<std::string>(Cmd.Results));
 		}
 	}
 
@@ -1069,7 +1069,7 @@ namespace OpenWifi {
 										Logger_);
 			if (Cmd.ErrorCode == 0) {
 				KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
-											Cmd.Results);
+											std::make_shared<std::string>(Cmd.Results));
 			}
 			return;
 		}

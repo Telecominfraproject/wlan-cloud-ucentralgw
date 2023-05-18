@@ -38,7 +38,7 @@ namespace OpenWifi {
 					std::ostringstream OS;
 					FullEvent.stringify(OS);
 					KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
-												OS.str());
+												std::make_shared<std::string>(OS.str()));
 				}
 			}
 		} catch (const Poco::Exception &E) {

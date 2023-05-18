@@ -32,7 +32,7 @@ namespace OpenWifi {
 			Event.set("payload", EventDetails);
 			std::ostringstream OS;
 			Event.stringify(OS);
-			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber, OS.str());
+			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber, std::make_shared<std::string>(OS.str()));
 		}
 	}
 
@@ -51,7 +51,7 @@ namespace OpenWifi {
 			Event.set("payload", EventDetails);
 			std::ostringstream OS;
 			Event.stringify(OS);
-			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber, OS.str());
+			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber, std::make_shared<std::string>(OS.str()));
 		}
 	}
 
@@ -232,7 +232,7 @@ namespace OpenWifi {
 				ParamsObj->set(uCentralProtocol::TIMESTAMP, Utils::Now());
 				std::ostringstream OS;
 				Stringify.condense(ParamsObj, OS);
-				KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+				KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, std::make_shared<std::string>(OS.str()));
 			}
 		} else {
 			poco_warning(

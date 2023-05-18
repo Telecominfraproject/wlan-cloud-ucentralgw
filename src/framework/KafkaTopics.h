@@ -10,32 +10,32 @@
 
 #include <string>
 namespace OpenWifi::KafkaTopics {
-	static const std::string HEALTHCHECK{"healthcheck"};
-	static const std::string STATE{"state"};
-	static const std::string CONNECTION{"connection"};
-	static const std::string WIFISCAN{"wifiscan"};
-	static const std::string ALERTS{"alerts"};
-	static const std::string COMMAND{"command"};
-	static const std::string SERVICE_EVENTS{"service_events"};
-	static const std::string DEVICE_EVENT_QUEUE{"device_event_queue"};
-	static const std::string DEVICE_TELEMETRY{"device_telemetry"};
-	static const std::string PROVISIONING_CHANGE{"provisioning_change"};
+	static const char * HEALTHCHECK = "healthcheck";
+	static const char * STATE = "state";
+	static const char * CONNECTION = "connection";
+	static const char * WIFISCAN = "wifiscan";
+	static const char * ALERTS = "alerts";
+	static const char * COMMAND = "command";
+	static const char * SERVICE_EVENTS = "service_events";
+	static const char * DEVICE_EVENT_QUEUE = "device_event_queue";
+	static const char * DEVICE_TELEMETRY = "device_telemetry";
+	static const char * PROVISIONING_CHANGE = "provisioning_change";
 
 	namespace ServiceEvents {
-		static const std::string EVENT_JOIN{"join"};
-		static const std::string EVENT_LEAVE{"leave"};
-		static const std::string EVENT_KEEP_ALIVE{"keep-alive"};
-		static const std::string EVENT_REMOVE_TOKEN{"remove-token"};
+		static const char * EVENT_JOIN = "join";
+		static const char * EVENT_LEAVE = "leave";
+		static const char * EVENT_KEEP_ALIVE = "keep-alive";
+		static const char * EVENT_REMOVE_TOKEN = "remove-token";
 
 		namespace Fields {
-			static const std::string EVENT{"event"};
-			static const std::string ID{"id"};
-			static const std::string TYPE{"type"};
-			static const std::string PUBLIC{"publicEndPoint"};
-			static const std::string PRIVATE{"privateEndPoint"};
-			static const std::string KEY{"key"};
-			static const std::string VRSN{"version"};
-			static const std::string TOKEN{"token"};
+			static const char * EVENT = "event";
+			static const char * ID = "id";
+			static const char * TYPE = "type";
+			static const char * PUBLIC = "publicEndPoint";
+			static const char * PRIVATE = "privateEndPoint";
+			static const char * KEY = "key";
+			static const char * VRSN = "version";
+			static const char * TOKEN = "token";
 		} // namespace Fields
 	}	  // namespace ServiceEvents
 } // namespace OpenWifi::KafkaTopics

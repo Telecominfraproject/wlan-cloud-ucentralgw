@@ -590,7 +590,7 @@ namespace OpenWifi {
 				Message.set("timestamp", Utils::Now());
 				std::ostringstream StrPayload;
 				Message.stringify(StrPayload);
-				KafkaManager()->PostMessage(KafkaTopics::COMMAND, SerialNumber, StrPayload.str());
+				KafkaManager()->PostMessage(KafkaTopics::COMMAND, SerialNumber, std::make_shared<std::string>(StrPayload.str()));
 			}
 
 			return true;

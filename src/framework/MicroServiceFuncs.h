@@ -31,8 +31,8 @@ namespace OpenWifi {
 	void MicroServiceLoadConfigurationFile();
 	void MicroServiceReload();
 	void MicroServiceReload(const std::string &Type);
-	const Types::StringVec MicroServiceGetLogLevelNames();
-	const Types::StringVec MicroServiceGetSubSystems();
+	Types::StringVec MicroServiceGetLogLevelNames();
+	Types::StringVec MicroServiceGetSubSystems();
 	Types::StringPairVec MicroServiceGetLogLevels();
 	bool MicroServiceSetSubsystemLogLevel(const std::string &SubSystem, const std::string &Level);
 	void MicroServiceGetExtraConfiguration(Poco::JSON::Object &Answer);
@@ -40,10 +40,10 @@ namespace OpenWifi {
 	std::uint64_t MicroServiceUptimeTotalSeconds();
 	std::uint64_t MicroServiceStartTimeEpochTime();
 	std::string MicroServiceGetUIURI();
-	const SubSystemVec MicroServiceGetFullSubSystems();
+	SubSystemVec MicroServiceGetFullSubSystems();
 	std::string MicroServiceCreateUUID();
 	std::uint64_t MicroServiceDaemonBusTimer();
-	std::string MicroServiceMakeSystemEventMessage(const std::string &Type);
+	std::string MicroServiceMakeSystemEventMessage(const char *Type);
 	Poco::ThreadPool &MicroServiceTimerPool();
 	std::string MicroServiceConfigPath(const std::string &Key, const std::string &DefaultValue);
 	std::string MicroServiceWWWAssetsDir();

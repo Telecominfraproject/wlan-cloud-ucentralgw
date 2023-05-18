@@ -14,7 +14,8 @@ namespace OpenWifi {
 			Event.set("payload", payload_);
 			std::ostringstream OS;
 			Event.stringify(OS);
-			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, Utils::IntToSerialNumber(serialNumber_), OS.str());
+			auto payload = std::make_shared<std::string>(OS.str());
+			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, Utils::IntToSerialNumber(serialNumber_), payload);
 		}
 	}
 

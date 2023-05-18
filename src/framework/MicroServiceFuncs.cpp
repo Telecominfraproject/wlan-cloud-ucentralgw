@@ -47,11 +47,11 @@ namespace OpenWifi {
 
 	void MicroServiceReload(const std::string &Type) { MicroService::instance().Reload(Type); }
 
-	const Types::StringVec MicroServiceGetLogLevelNames() {
+	Types::StringVec MicroServiceGetLogLevelNames() {
 		return MicroService::instance().GetLogLevelNames();
 	}
 
-	const Types::StringVec MicroServiceGetSubSystems() {
+	Types::StringVec MicroServiceGetSubSystems() {
 		return MicroService::instance().GetSubSystems();
 	}
 
@@ -79,7 +79,7 @@ namespace OpenWifi {
 
 	std::string MicroServiceGetUIURI() { return MicroService::instance().GetUIURI(); }
 
-	const SubSystemVec MicroServiceGetFullSubSystems() {
+	SubSystemVec MicroServiceGetFullSubSystems() {
 		return MicroService::instance().GetFullSubSystems();
 	}
 
@@ -87,7 +87,7 @@ namespace OpenWifi {
 
 	std::uint64_t MicroServiceDaemonBusTimer() { return MicroService::instance().DaemonBusTimer(); }
 
-	std::string MicroServiceMakeSystemEventMessage(const std::string &Type) {
+	std::string MicroServiceMakeSystemEventMessage(const char *Type) {
 		return MicroService::instance().MakeSystemEventMessage(Type);
 	}
 

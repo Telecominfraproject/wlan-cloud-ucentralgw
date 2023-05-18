@@ -64,7 +64,7 @@ namespace OpenWifi {
 				std::ostringstream OS;
 				ParamsObj->set("timestamp", Utils::Now());
 				Stringify.condense(ParamsObj, OS);
-				KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
+				KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, std::make_shared<std::string>(OS.str()));
 			}
 		} else {
 			poco_warning(Logger_, fmt::format("HEALTHCHECK({}): Missing parameter", CId_));
