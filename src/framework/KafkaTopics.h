@@ -10,16 +10,16 @@
 
 #include <string>
 namespace OpenWifi::KafkaTopics {
-	static const char * HEALTHCHECK = "healthcheck";
-	static const char * STATE = "state";
-	static const char * CONNECTION = "connection";
-	static const char * WIFISCAN = "wifiscan";
-	static const char * ALERTS = "alerts";
-	static const char * COMMAND = "command";
-	static const char * SERVICE_EVENTS = "service_events";
-	static const char * DEVICE_EVENT_QUEUE = "device_event_queue";
-	static const char * DEVICE_TELEMETRY = "device_telemetry";
-	static const char * PROVISIONING_CHANGE = "provisioning_change";
+	inline const char * HEALTHCHECK = "healthcheck";
+	inline const char * STATE = "state";
+	inline const char * CONNECTION = "connection";
+	inline const char * WIFISCAN = "wifiscan";
+	inline const char * ALERTS = "alerts";
+	inline const char * COMMAND = "command";
+	inline const char * SERVICE_EVENTS = "service_events";
+	inline const char * DEVICE_EVENT_QUEUE = "device_event_queue";
+	inline const char * DEVICE_TELEMETRY = "device_telemetry";
+	inline const char * PROVISIONING_CHANGE = "provisioning_change";
 
 	namespace ServiceEvents {
 		static const char * EVENT_JOIN = "join";
