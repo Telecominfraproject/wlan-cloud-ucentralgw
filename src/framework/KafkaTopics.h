@@ -22,20 +22,20 @@ namespace OpenWifi::KafkaTopics {
 	inline const char * PROVISIONING_CHANGE = "provisioning_change";
 
 	namespace ServiceEvents {
-		static const char * EVENT_JOIN = "join";
-		static const char * EVENT_LEAVE = "leave";
-		static const char * EVENT_KEEP_ALIVE = "keep-alive";
-		static const char * EVENT_REMOVE_TOKEN = "remove-token";
+		inline const char * EVENT_JOIN = "join";
+		inline const char * EVENT_LEAVE = "leave";
+		inline const char * EVENT_KEEP_ALIVE = "keep-alive";
+		inline const char * EVENT_REMOVE_TOKEN = "remove-token";
 
 		namespace Fields {
-			static const char * EVENT = "event";
-			static const char * ID = "id";
-			static const char * TYPE = "type";
-			static const char * PUBLIC = "publicEndPoint";
-			static const char * PRIVATE = "privateEndPoint";
-			static const char * KEY = "key";
-			static const char * VRSN = "version";
-			static const char * TOKEN = "token";
+			inline const char * EVENT = "event";
+			inline const char * ID = "id";
+			inline const char * TYPE = "type";
+			inline const char * PUBLIC = "publicEndPoint";
+			inline const char * PRIVATE = "privateEndPoint";
+			inline const char * KEY = "key";
+			inline const char * VRSN = "version";
+			inline const char * TOKEN = "token";
 		} // namespace Fields
 	}	  // namespace ServiceEvents
 } // namespace OpenWifi::KafkaTopics
