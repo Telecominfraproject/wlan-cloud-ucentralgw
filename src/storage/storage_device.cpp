@@ -617,7 +617,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::into(SerialNumbers);
 			GetSerialNumbers.execute();
 
-			std::cout << "Found " << SerialPattern.size() << " devices" << std::endl;
+			std::cout << "Found " << SerialNumbers.size() << " devices" << std::endl;
 
 			for (auto &serialNumber:SerialNumbers) {
 				std::cout << "Deleting device: " << serialNumber << std::endl;
