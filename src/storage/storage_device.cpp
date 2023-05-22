@@ -600,6 +600,62 @@ namespace OpenWifi {
 		return false;
 	}
 
+	bool Storage::DeleteDevices(std::string &SerialPattern, bool SimulatedOnly) {
+		try {
+			std::vector<std::string> DBList{"Devices",		"Statistics",	"CommandList",
+											"HealthChecks", "Capabilities", "DeviceLogs"};
+
+			std::vector<std::string>	SerialNumbers;
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement GetSerialNumbers(Sess);
+
+			std::string SelectStatement = SimulatedOnly ?
+					"SELECT SerialNumber FROM Devices WHERE SerialNumber LIKE '=?' and simulated" :
+					"SELECT SerialNumber FROM Devices WHERE SerialNumber LIKE '=?'";
+
+			GetSerialNumbers << SelectStatement,
+				Poco::Data::Keywords::use(SerialPattern),
+				Poco::Data::Keywords::into(SerialNumbers);
+			GetSerialNumbers.execute();
+
+			for (auto &serialNumber:SerialNumbers) {
+				std::cout << "Deleting device: " << serialNumber << std::endl;
+				/*
+				for (const auto &i : DBList) {
+
+					Poco::Data::Session DeleteSess = Pool_->get();
+					Poco::Data::Statement Delete(Sess);
+
+					std::string St =
+						SimulatedOnly
+							? "DELETE FROM " + i + " WHERE SerialNumber LIKE '=?' and simulated"
+							: "DELETE FROM " + i + " WHERE SerialNumber LIKE '=?' ";
+					try {
+						Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialPattern);
+						Delete.execute();
+					} catch (...) {
+					}
+				}
+				SerialNumberCache()->DeleteSerialNumber(serialNumber);
+
+				if (KafkaManager()->Enabled()) {
+					Poco::JSON::Object Message;
+					Message.set("command", "device_deleted");
+					Message.set("timestamp", Utils::Now());
+					std::ostringstream StrPayload;
+					Message.stringify(StrPayload);
+					KafkaManager()->PostMessage(KafkaTopics::COMMAND, serialNumber, std::make_shared<std::string>(StrPayload.str()));
+				}
+				 */
+			}
+
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
 	bool Storage::GetDevice(std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();

@@ -1467,6 +1467,45 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+    delete:
+      tags:
+        - Devices
+      summary: Delete a list of devices matching a criteria
+      description: Delete a list of devices matching a criteria
+      operationId: deleteDeviceList
+      parameters:
+        - in: query
+          description: Supply a list of devices comma separated
+          name: select
+          schema:
+            type: string
+            example: serial1,serial2,serial3
+          required: false
+        - in: query
+          description: Only simulated devices
+          name: simulatedOnly
+          schema:
+            type: boolean
+            default: false
+          required: false
+        - in: query
+          description: MAC address must match this pattern
+          name: macPattern
+          schema:
+            type: string
+            example:
+              - "aabbcc*"
+              - "*aabbcc*"
+              - "*cccddee"
+          required: true
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
   /commands:
     get:
       tags:

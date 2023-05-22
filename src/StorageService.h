@@ -127,6 +127,8 @@ namespace OpenWifi {
 		//		bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select,
 		// std::vector<GWObjects::Device> &Devices, const std::string & orderBy="");
 		bool DeleteDevice(std::string &SerialNumber);
+		bool DeleteDevices(std::string &SerialPattern, bool SimulatedOnly);
+
 		bool UpdateDevice(GWObjects::Device &);
 		bool DeviceExists(std::string &SerialNumber);
 		bool SetConnectInfo(std::string &SerialNumber, std::string &Firmware);

@@ -14,7 +14,14 @@
 #include "framework/OpenWifiTypes.h"
 #include "framework/utils.h"
 
+#include <RESTObjects/RESTAPI_SecurityObjects.h>
+
 namespace OpenWifi::RESTAPI_utils {
+
+	inline bool IsRootOrAdmin(const SecurityObjects::UserInfo &UI) {
+		return 	UI.userRole==SecurityObjects::ROOT ||
+				UI.userRole==SecurityObjects::ADMIN;
+	}
 
 	inline void EmbedDocument(const std::string &ObjName, Poco::JSON::Object &Obj,
 							  const std::string &ObjStr) {

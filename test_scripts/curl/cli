@@ -175,6 +175,14 @@ listdevices() {
 		jq < ${result_file}
 }
 
+deletesimdevices() {
+	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/devices?simulatedOnly=true&macPattern=$1" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
 listdevicesk() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices" \
 			-H "Content-Type: application/json" \
@@ -1165,6 +1173,7 @@ case "$1" in
 	"radiuscoadm") login; radiuscoadm "$2" "$3" "$4" "$5"; logout;;
 	"radiussearch") login; radiussearch "$2"; logout;;
 	"radiussearchmac") login; radiussearchmac "$2"; logout;;
+	"deletesimdevices") login; deletesimdevices "$2"; logout;;
 	"testtoken") testtoken;;
   *) help ;;
 esac

@@ -158,4 +158,37 @@ namespace OpenWifi {
 		}
 		ReturnObject(RetObj);
 	}
+
+	static bool ValidMacPatternOnlyChars(const std::string &s) {
+		return std::for_each(s.begin(),s.end(),[](const char c) {
+			if(c=='%') return true;
+			if(c>='0' && c<='9') return true;
+			if(c>='a' && c<='f') return true;
+			return false;
+ 		});
+	}
+
+	void RESTAPI_devices_handler::DoDelete() {
+
+		if(!RESTAPI_utils::IsRootOrAdmin(UserInfo_.userinfo)) {
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
+		auto macPattern = GetParameter("macPattern","");
+		if(macPattern.empty()) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		//	rules out wrong values.
+		Poco::toLowerInPlace(macPattern);
+		Poco::replaceInPlace(macPattern,"*","%");
+		if(!ValidMacPatternOnlyChars(macPattern)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		auto SimulatedOnly = GetBoolParameter("simulatedOnly",false);
+		StorageService()->DeleteDevices(macPattern, SimulatedOnly);
+		return OK();
+	}
+
 } // namespace OpenWifi

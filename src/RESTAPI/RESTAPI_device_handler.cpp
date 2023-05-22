@@ -41,6 +41,10 @@ namespace OpenWifi {
 	void RESTAPI_device_handler::DoDelete() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
+		if(!RESTAPI_utils::IsRootOrAdmin(UserInfo_.userinfo)) {
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
 		if (!Utils::NormalizeMac(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
