@@ -185,6 +185,13 @@ namespace OpenWifi {
 			return OK();
 		}
 
+		auto SimulatedOnly = GetBoolParameter("simulatedOnly",false);
+		auto oldestContact = GetParameter("oldestContact",0);
+		if(oldestContact!=0) {
+			StorageService()->DeleteDevices(oldestContact,SimulatedOnly);
+			return OK();
+		}
+
 		auto macPattern = GetParameter("macPattern","");
 		if(macPattern.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
@@ -197,7 +204,6 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
-		auto SimulatedOnly = GetBoolParameter("simulatedOnly",false);
 		StorageService()->DeleteDevices(macPattern, SimulatedOnly);
 		return OK();
 	}

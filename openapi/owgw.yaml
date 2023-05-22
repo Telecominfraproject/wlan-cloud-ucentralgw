@@ -1489,7 +1489,7 @@ paths:
             default: false
           required: false
         - in: query
-          description: MAC address must match this pattern
+          description: MAC address must match this pattern.  Mutually exclusive with oldestContact
           name: macPattern
           schema:
             type: string
@@ -1497,7 +1497,16 @@ paths:
               - "aabbcc*"
               - "*aabbcc*"
               - "*cccddee"
-          required: true
+          required: false
+        - in: query
+          description: lastRecordedContact older than this value. Mutually exclusive with macPattern
+          name: oldestContact
+          schema:
+            type: integer
+            format: int64
+          required: false
+
+
       responses:
         200:
           $ref: '#/components/responses/Success'

@@ -566,17 +566,17 @@ namespace OpenWifi {
 
 	bool Storage::DeleteDevice(std::string &SerialNumber) {
 		try {
-			std::vector<std::string> DBList{"Devices",		"Statistics",	"CommandList",
+			std::vector<std::string> TableNames{"Devices",		"Statistics",	"CommandList",
 											"HealthChecks", "Capabilities", "DeviceLogs"};
 
-			for (const auto &i : DBList) {
+			for (const auto &tableName : TableNames) {
 
 				Poco::Data::Session Sess = Pool_->get();
 				Poco::Data::Statement Delete(Sess);
 
-				std::string St{"DELETE FROM " + i + " WHERE SerialNumber=?"};
+				std::string St = fmt::format("DELETE FROM {} WHERE SerialNumber='{}'", tableName, SerialNumber);
 				try {
-					Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber);
+					Delete << St;
 					Delete.execute();
 				} catch (...) {
 				}
@@ -600,11 +600,15 @@ namespace OpenWifi {
 		return false;
 	}
 
+	static void DeleteDeviceList(std::vector<std::string> &SerialNumbers, Poco::Logger &Logger) {
+		for (auto &serialNumber:SerialNumbers) {
+			poco_information(Logger,fmt::format("BATCH-DEVICE_DELETE: deleting {}", serialNumber));
+			StorageService()->DeleteDevice(serialNumber);
+		}
+	}
+
 	bool Storage::DeleteDevices(std::string &SerialPattern, bool SimulatedOnly) {
 		try {
-			std::vector<std::string> TableNames{"Devices",		"Statistics",	"CommandList",
-											"HealthChecks", "Capabilities", "DeviceLogs"};
-
 			std::vector<std::string>	SerialNumbers;
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement GetSerialNumbers(Sess);
@@ -617,38 +621,30 @@ namespace OpenWifi {
 				Poco::Data::Keywords::into(SerialNumbers);
 			GetSerialNumbers.execute();
 
-			poco_information(Logger(),fmt::format("Found {} devices that match the criteria {} to delete.", SerialNumbers.size(), SerialPattern));
+			poco_information(Logger(),fmt::format("BATCH-DEVICE_DELETE: Found {} devices that match the criteria {} to delete.", SerialNumbers.size(), SerialPattern));
+			DeleteDeviceList(SerialNumbers, Logger());
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
 
-			for (auto &serialNumber:SerialNumbers) {
-				poco_information(Logger(),fmt::format("BATCH-DEVICE_DELETE: deleting {}", serialNumber));
-				for (const auto &tableName : TableNames) {
+	bool Storage::DeleteDevices(std::uint64_t OlderContact, bool SimulatedOnly) {
+		try {
+			std::vector<std::string>	SerialNumbers;
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement GetSerialNumbers(Sess);
 
-					Poco::Data::Session DeleteSess = Pool_->get();
-					Poco::Data::Statement Delete(Sess);
+			std::string SelectStatement = SimulatedOnly ?
+														fmt::format("SELECT SerialNumber FROM Devices WHERE simulated and lastRecordedContact!=0 and lastRecordedContact<{} limit 10000",OlderContact) :
+														fmt::format("SELECT SerialNumber FROM Devices lastRecordedContact>0 and lastRecordedContact<{} limit 10000",OlderContact);
+			GetSerialNumbers << SelectStatement,
+				Poco::Data::Keywords::into(SerialNumbers);
+			GetSerialNumbers.execute();
 
-					std::string St = fmt::format("DELETE FROM {} WHERE SerialNumber='{}'", tableName, serialNumber);
-				 	Delete << St;
-				 	Delete.execute();
-
-					try {
-						Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialPattern);
-						Delete.execute();
-					} catch (...) {
-					}
-				}
-				SerialNumberCache()->DeleteSerialNumber(serialNumber);
-
-				if (KafkaManager()->Enabled()) {
-					Poco::JSON::Object Message;
-					Message.set("command", "device_deleted");
-					Message.set("timestamp", Utils::Now());
-					std::ostringstream StrPayload;
-					Message.stringify(StrPayload);
-					KafkaManager()->PostMessage(KafkaTopics::COMMAND, serialNumber, std::make_shared<std::string>(StrPayload.str()));
-				}
-
-			}
-
+			poco_information(Logger(),fmt::format("BATCH-DEVICE_DELETE: Found {} devices that match with lastRecordedContact older than {} to delete.", SerialNumbers.size(), OlderContact));
+			DeleteDeviceList(SerialNumbers, Logger());
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
