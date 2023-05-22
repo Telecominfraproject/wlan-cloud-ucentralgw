@@ -626,7 +626,7 @@ namespace OpenWifi {
 					Poco::Data::Session DeleteSess = Pool_->get();
 					Poco::Data::Statement Delete(Sess);
 
-					std::string St{"DELETE FROM " + tableName + " WHERE SerialNumber=?"};
+					std::string St = fmt::format("DELETE FROM {} WHERE SerialNumber='{}'", tableName, serialNumber);
 				 	Delete << St;
 				 	Delete.execute();
 
