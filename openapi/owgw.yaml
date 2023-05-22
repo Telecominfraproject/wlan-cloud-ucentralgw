@@ -445,7 +445,7 @@ components:
           type: string
 
     CommandSubmitSuccess:
-      description: The command was submitted succesfully.
+      description: The command was submitted successfully.
       properties:
         serialNumber:
           type: string
@@ -2198,32 +2198,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceStatus'
-        403:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
-
-  /device/{serialNumber}/command:
-    post:
-      tags:
-        - Commands
-      summary: Post a command to a device
-      operationId: executeCommand
-      parameters:
-        - in: path
-          name: serialNumber
-          schema:
-            type: string
-          required: true
-      requestBody:
-        description: Command details
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CommandDetails'
-      responses:
-        200:
-          $ref: '#/components/schemas/CommandInfo'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
