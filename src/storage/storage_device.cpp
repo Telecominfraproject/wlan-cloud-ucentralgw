@@ -610,8 +610,8 @@ namespace OpenWifi {
 			Poco::Data::Statement GetSerialNumbers(Sess);
 
 			std::string SelectStatement = SimulatedOnly ?
-					fmt::format("SELECT SerialNumber FROM Devices WHERE simulated and SerialNumber LIKE '{}'",SerialPattern) :
-					fmt::format("SELECT SerialNumber FROM Devices WHERE SerialNumber LIKE '{}'", SerialPattern);
+					fmt::format("SELECT SerialNumber FROM Devices WHERE simulated and SerialNumber LIKE '{}' limit 10000",SerialPattern) :
+					fmt::format("SELECT SerialNumber FROM Devices WHERE SerialNumber LIKE '{}' limit 10000", SerialPattern);
 
 			GetSerialNumbers << SelectStatement,
 				Poco::Data::Keywords::into(SerialNumbers);
