@@ -2828,6 +2828,9 @@ ul.nav-tabs {
                     <li data-group="Devices" data-name="deleteDevice" class="">
                       <a href="#api-Devices-deleteDevice">deleteDevice</a>
                     </li>
+                    <li data-group="Devices" data-name="deleteDeviceList" class="">
+                      <a href="#api-Devices-deleteDeviceList">deleteDeviceList</a>
+                    </li>
                     <li data-group="Devices" data-name="getCapabilitiesList" class="">
                       <a href="#api-Devices-getCapabilitiesList">getCapabilitiesList</a>
                     </li>
@@ -21451,6 +21454,461 @@ pub fn main() {
 
 
                             <div class="tab-content" id="responses-Devices-deleteDevice-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Devices-deleteDeviceList">
+                      <article id="api-Devices-deleteDeviceList-0" data-group="User" data-name="deleteDeviceList" data-version="0">
+                        <div class="pull-left">
+                          <h1>deleteDeviceList</h1>
+                          <p>Delete a list of devices matching a criteria</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Delete a list of devices matching a criteria</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="delete"><code><span class="pln">/devices</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Devices-deleteDeviceList-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Devices-deleteDeviceList-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Devices-deleteDeviceList-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Devices-deleteDeviceList-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Devices-deleteDeviceList-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Devices-deleteDeviceList-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Devices-deleteDeviceList-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Devices-deleteDeviceList-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Devices-deleteDeviceList-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Devices-deleteDeviceList-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Devices-deleteDeviceList-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Devices-deleteDeviceList-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Devices-deleteDeviceList-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ "https://localhost:16001/api/v1/devices?select=serial1,serial2,serial3&simulatedOnly=true&macPattern=["aabbcc*","*aabbcc*","*cccddee"]"
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.DevicesApi;
+
+import java.io.File;
+import java.util.*;
+
+public class DevicesApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        DevicesApi apiInstance = new DevicesApi();
+        String macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String | MAC address must match this pattern
+        String select = serial1,serial2,serial3; // String | Supply a list of devices comma separated
+        Boolean simulatedOnly = true; // Boolean | Only simulated devices
+
+        try {
+            apiInstance.deleteDeviceList(macPattern, select, simulatedOnly);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling DevicesApi#deleteDeviceList");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.DevicesApi;
+
+public class DevicesApiExample {
+    public static void main(String[] args) {
+        DevicesApi apiInstance = new DevicesApi();
+        String macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String | MAC address must match this pattern
+        String select = serial1,serial2,serial3; // String | Supply a list of devices comma separated
+        Boolean simulatedOnly = true; // Boolean | Only simulated devices
+
+        try {
+            apiInstance.deleteDeviceList(macPattern, select, simulatedOnly);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling DevicesApi#deleteDeviceList");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+DevicesApi *apiInstance = [[DevicesApi alloc] init];
+String *macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // MAC address must match this pattern (default to null)
+String *select = serial1,serial2,serial3; // Supply a list of devices comma separated (optional) (default to null)
+Boolean *simulatedOnly = true; // Only simulated devices (optional) (default to false)
+
+// Delete a list of devices matching a criteria
+[apiInstance deleteDeviceListWith:macPattern
+    select:select
+    simulatedOnly:simulatedOnly
+              completionHandler: ^(NSError* error) {
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.DevicesApi()
+var macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // {String} MAC address must match this pattern
+var opts = {
+  'select': serial1,serial2,serial3, // {String} Supply a list of devices comma separated
+  'simulatedOnly': true // {Boolean} Only simulated devices
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.deleteDeviceList(macPattern, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Devices-deleteDeviceList-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class deleteDeviceListExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new DevicesApi();
+            var macPattern = ["aabbcc*","*aabbcc*","*cccddee"];  // String | MAC address must match this pattern (default to null)
+            var select = serial1,serial2,serial3;  // String | Supply a list of devices comma separated (optional)  (default to null)
+            var simulatedOnly = true;  // Boolean | Only simulated devices (optional)  (default to false)
+
+            try {
+                // Delete a list of devices matching a criteria
+                apiInstance.deleteDeviceList(macPattern, select, simulatedOnly);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling DevicesApi.deleteDeviceList: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\DevicesApi();
+$macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String | MAC address must match this pattern
+$select = serial1,serial2,serial3; // String | Supply a list of devices comma separated
+$simulatedOnly = true; // Boolean | Only simulated devices
+
+try {
+    $api_instance->deleteDeviceList($macPattern, $select, $simulatedOnly);
+} catch (Exception $e) {
+    echo 'Exception when calling DevicesApi->deleteDeviceList: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::DevicesApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::DevicesApi->new();
+my $macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; # String | MAC address must match this pattern
+my $select = serial1,serial2,serial3; # String | Supply a list of devices comma separated
+my $simulatedOnly = true; # Boolean | Only simulated devices
+
+eval {
+    $api_instance->deleteDeviceList(macPattern => $macPattern, select => $select, simulatedOnly => $simulatedOnly);
+};
+if ($@) {
+    warn "Exception when calling DevicesApi->deleteDeviceList: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.DevicesApi()
+macPattern = ["aabbcc*","*aabbcc*","*cccddee"] # String | MAC address must match this pattern (default to null)
+select = serial1,serial2,serial3 # String | Supply a list of devices comma separated (optional) (default to null)
+simulatedOnly = true # Boolean | Only simulated devices (optional) (default to false)
+
+try:
+    # Delete a list of devices matching a criteria
+    api_instance.delete_device_list(macPattern, select=select, simulatedOnly=simulatedOnly)
+except ApiException as e:
+    print("Exception when calling DevicesApi->deleteDeviceList: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate DevicesApi;
+
+pub fn main() {
+    let macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String
+    let select = serial1,serial2,serial3; // String
+    let simulatedOnly = true; // Boolean
+
+    let mut context = DevicesApi::Context::default();
+    let result = client.deleteDeviceList(macPattern, select, simulatedOnly, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+
+
+
+
+                            <div class="methodsubtabletitle">Query parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">select</td>
+<td>
+
+
+    <div id="d2e199_deleteDeviceList_select">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+                    <div class="inner description marked">
+Supply a list of devices comma separated
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">simulatedOnly</td>
+<td>
+
+
+    <div id="d2e199_deleteDeviceList_simulatedOnly">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    Boolean
+                </span>
+
+                    <div class="inner description marked">
+Only simulated devices
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">macPattern*</td>
+<td>
+
+
+    <div id="d2e199_deleteDeviceList_macPattern">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+                    <div class="inner description marked">
+MAC address must match this pattern
+                    </div>
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Devices-deleteDeviceList-title-200"></h3>
+                            <p id="examples-Devices-deleteDeviceList-description-200" class="marked"></p>
+                            <script>
+                              var responseDevices200_description = ``;
+                              var responseDevices200_description_break = responseDevices200_description.indexOf('\n');
+                              if (responseDevices200_description_break == -1) {
+                                $("#examples-Devices-deleteDeviceList-title-200").text("Status: 200 - " + responseDevices200_description);
+                              } else {
+                                $("#examples-Devices-deleteDeviceList-title-200").text("Status: 200 - " + responseDevices200_description.substring(0, responseDevices200_description_break));
+                                $("#examples-Devices-deleteDeviceList-description-200").html(responseDevices200_description.substring(responseDevices200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Devices-deleteDeviceList-200" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Devices-deleteDeviceList-200-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Devices-deleteDeviceList-title-403"></h3>
+                            <p id="examples-Devices-deleteDeviceList-description-403" class="marked"></p>
+                            <script>
+                              var responseDevices403_description = ``;
+                              var responseDevices403_description_break = responseDevices403_description.indexOf('\n');
+                              if (responseDevices403_description_break == -1) {
+                                $("#examples-Devices-deleteDeviceList-title-403").text("Status: 403 - " + responseDevices403_description);
+                              } else {
+                                $("#examples-Devices-deleteDeviceList-title-403").text("Status: 403 - " + responseDevices403_description.substring(0, responseDevices403_description_break));
+                                $("#examples-Devices-deleteDeviceList-description-403").html(responseDevices403_description.substring(responseDevices403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Devices-deleteDeviceList-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Devices-deleteDeviceList-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Devices-deleteDeviceList-title-404"></h3>
+                            <p id="examples-Devices-deleteDeviceList-description-404" class="marked"></p>
+                            <script>
+                              var responseDevices404_description = ``;
+                              var responseDevices404_description_break = responseDevices404_description.indexOf('\n');
+                              if (responseDevices404_description_break == -1) {
+                                $("#examples-Devices-deleteDeviceList-title-404").text("Status: 404 - " + responseDevices404_description);
+                              } else {
+                                $("#examples-Devices-deleteDeviceList-title-404").text("Status: 404 - " + responseDevices404_description.substring(0, responseDevices404_description_break));
+                                $("#examples-Devices-deleteDeviceList-description-404").html(responseDevices404_description.substring(responseDevices404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Devices-deleteDeviceList-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Devices-deleteDeviceList-404-wrapper" style='margin-bottom: 10px;'>
                             </div>
                         </article>
                       </div>
