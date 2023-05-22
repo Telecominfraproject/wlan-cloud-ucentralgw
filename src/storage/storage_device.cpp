@@ -614,8 +614,8 @@ namespace OpenWifi {
 					"SELECT SerialNumber FROM Devices WHERE SerialNumber LIKE '=?'";
 
 			GetSerialNumbers << SelectStatement,
-				Poco::Data::Keywords::use(SerialPattern),
-				Poco::Data::Keywords::into(SerialNumbers);
+				Poco::Data::Keywords::into(SerialNumbers),
+				Poco::Data::Keywords::use(SerialPattern);
 			GetSerialNumbers.execute();
 
 			for (auto &serialNumber:SerialNumbers) {
