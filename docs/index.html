@@ -21494,7 +21494,7 @@ pub fn main() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/devices?select=serial1,serial2,serial3&simulatedOnly=true&macPattern=["aabbcc*","*aabbcc*","*cccddee"]"
+ "https://localhost:16001/api/v1/devices?select=serial1,serial2,serial3&simulatedOnly=true&macPattern=["aabbcc*","*aabbcc*","*cccddee"]&oldestContact=789"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-java">
@@ -21522,12 +21522,13 @@ public class DevicesApiExample {
 
         // Create an instance of the API class
         DevicesApi apiInstance = new DevicesApi();
-        String macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String | MAC address must match this pattern
         String select = serial1,serial2,serial3; // String | Supply a list of devices comma separated
         Boolean simulatedOnly = true; // Boolean | Only simulated devices
+        String macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String | MAC address must match this pattern.  Mutually exclusive with oldestContact
+        Long oldestContact = 789; // Long | lastRecordedContact older than this value. Mutually exclusive with macPattern
 
         try {
-            apiInstance.deleteDeviceList(macPattern, select, simulatedOnly);
+            apiInstance.deleteDeviceList(select, simulatedOnly, macPattern, oldestContact);
         } catch (ApiException e) {
             System.err.println("Exception when calling DevicesApi#deleteDeviceList");
             e.printStackTrace();
@@ -21543,12 +21544,13 @@ public class DevicesApiExample {
 public class DevicesApiExample {
     public static void main(String[] args) {
         DevicesApi apiInstance = new DevicesApi();
-        String macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String | MAC address must match this pattern
         String select = serial1,serial2,serial3; // String | Supply a list of devices comma separated
         Boolean simulatedOnly = true; // Boolean | Only simulated devices
+        String macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String | MAC address must match this pattern.  Mutually exclusive with oldestContact
+        Long oldestContact = 789; // Long | lastRecordedContact older than this value. Mutually exclusive with macPattern
 
         try {
-            apiInstance.deleteDeviceList(macPattern, select, simulatedOnly);
+            apiInstance.deleteDeviceList(select, simulatedOnly, macPattern, oldestContact);
         } catch (ApiException e) {
             System.err.println("Exception when calling DevicesApi#deleteDeviceList");
             e.printStackTrace();
@@ -21573,14 +21575,16 @@ public class DevicesApiExample {
 
 // Create an instance of the API class
 DevicesApi *apiInstance = [[DevicesApi alloc] init];
-String *macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // MAC address must match this pattern (default to null)
 String *select = serial1,serial2,serial3; // Supply a list of devices comma separated (optional) (default to null)
 Boolean *simulatedOnly = true; // Only simulated devices (optional) (default to false)
+String *macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // MAC address must match this pattern.  Mutually exclusive with oldestContact (optional) (default to null)
+Long *oldestContact = 789; // lastRecordedContact older than this value. Mutually exclusive with macPattern (optional) (default to null)
 
 // Delete a list of devices matching a criteria
-[apiInstance deleteDeviceListWith:macPattern
-    select:select
+[apiInstance deleteDeviceListWith:select
     simulatedOnly:simulatedOnly
+    macPattern:macPattern
+    oldestContact:oldestContact
               completionHandler: ^(NSError* error) {
     if (error) {
         NSLog(@"Error: %@", error);
@@ -21605,10 +21609,11 @@ bearerAuth.accessToken = "YOUR ACCESS TOKEN";
 
 // Create an instance of the API class
 var api = new UCentralGatewayApi.DevicesApi()
-var macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // {String} MAC address must match this pattern
 var opts = {
   'select': serial1,serial2,serial3, // {String} Supply a list of devices comma separated
-  'simulatedOnly': true // {Boolean} Only simulated devices
+  'simulatedOnly': true, // {Boolean} Only simulated devices
+  'macPattern': ["aabbcc*","*aabbcc*","*cccddee"], // {String} MAC address must match this pattern.  Mutually exclusive with oldestContact
+  'oldestContact': 789 // {Long} lastRecordedContact older than this value. Mutually exclusive with macPattern
 };
 
 var callback = function(error, data, response) {
@@ -21618,7 +21623,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully.');
   }
 };
-api.deleteDeviceList(macPattern, opts, callback);
+api.deleteDeviceList(opts, callback);
 </code></pre>
                             </div>
 
@@ -21647,13 +21652,14 @@ namespace Example
 
             // Create an instance of the API class
             var apiInstance = new DevicesApi();
-            var macPattern = ["aabbcc*","*aabbcc*","*cccddee"];  // String | MAC address must match this pattern (default to null)
             var select = serial1,serial2,serial3;  // String | Supply a list of devices comma separated (optional)  (default to null)
             var simulatedOnly = true;  // Boolean | Only simulated devices (optional)  (default to false)
+            var macPattern = ["aabbcc*","*aabbcc*","*cccddee"];  // String | MAC address must match this pattern.  Mutually exclusive with oldestContact (optional)  (default to null)
+            var oldestContact = 789;  // Long | lastRecordedContact older than this value. Mutually exclusive with macPattern (optional)  (default to null)
 
             try {
                 // Delete a list of devices matching a criteria
-                apiInstance.deleteDeviceList(macPattern, select, simulatedOnly);
+                apiInstance.deleteDeviceList(select, simulatedOnly, macPattern, oldestContact);
             } catch (Exception e) {
                 Debug.Print("Exception when calling DevicesApi.deleteDeviceList: " + e.Message );
             }
@@ -21677,12 +21683,13 @@ OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('',
 
 // Create an instance of the API class
 $api_instance = new OpenAPITools\Client\Api\DevicesApi();
-$macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String | MAC address must match this pattern
 $select = serial1,serial2,serial3; // String | Supply a list of devices comma separated
 $simulatedOnly = true; // Boolean | Only simulated devices
+$macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String | MAC address must match this pattern.  Mutually exclusive with oldestContact
+$oldestContact = 789; // Long | lastRecordedContact older than this value. Mutually exclusive with macPattern
 
 try {
-    $api_instance->deleteDeviceList($macPattern, $select, $simulatedOnly);
+    $api_instance->deleteDeviceList($select, $simulatedOnly, $macPattern, $oldestContact);
 } catch (Exception $e) {
     echo 'Exception when calling DevicesApi->deleteDeviceList: ', $e->getMessage(), PHP_EOL;
 }
@@ -21704,12 +21711,13 @@ $WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
 
 # Create an instance of the API class
 my $api_instance = WWW::OPenAPIClient::DevicesApi->new();
-my $macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; # String | MAC address must match this pattern
 my $select = serial1,serial2,serial3; # String | Supply a list of devices comma separated
 my $simulatedOnly = true; # Boolean | Only simulated devices
+my $macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; # String | MAC address must match this pattern.  Mutually exclusive with oldestContact
+my $oldestContact = 789; # Long | lastRecordedContact older than this value. Mutually exclusive with macPattern
 
 eval {
-    $api_instance->deleteDeviceList(macPattern => $macPattern, select => $select, simulatedOnly => $simulatedOnly);
+    $api_instance->deleteDeviceList(select => $select, simulatedOnly => $simulatedOnly, macPattern => $macPattern, oldestContact => $oldestContact);
 };
 if ($@) {
     warn "Exception when calling DevicesApi->deleteDeviceList: $@\n";
@@ -21733,13 +21741,14 @@ openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
 
 # Create an instance of the API class
 api_instance = openapi_client.DevicesApi()
-macPattern = ["aabbcc*","*aabbcc*","*cccddee"] # String | MAC address must match this pattern (default to null)
 select = serial1,serial2,serial3 # String | Supply a list of devices comma separated (optional) (default to null)
 simulatedOnly = true # Boolean | Only simulated devices (optional) (default to false)
+macPattern = ["aabbcc*","*aabbcc*","*cccddee"] # String | MAC address must match this pattern.  Mutually exclusive with oldestContact (optional) (default to null)
+oldestContact = 789 # Long | lastRecordedContact older than this value. Mutually exclusive with macPattern (optional) (default to null)
 
 try:
     # Delete a list of devices matching a criteria
-    api_instance.delete_device_list(macPattern, select=select, simulatedOnly=simulatedOnly)
+    api_instance.delete_device_list(select=select, simulatedOnly=simulatedOnly, macPattern=macPattern, oldestContact=oldestContact)
 except ApiException as e:
     print("Exception when calling DevicesApi->deleteDeviceList: %s\n" % e)</code></pre>
                             </div>
@@ -21748,12 +21757,13 @@ except ApiException as e:
                               <pre class="prettyprint"><code class="language-rust">extern crate DevicesApi;
 
 pub fn main() {
-    let macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String
     let select = serial1,serial2,serial3; // String
     let simulatedOnly = true; // Boolean
+    let macPattern = ["aabbcc*","*aabbcc*","*cccddee"]; // String
+    let oldestContact = 789; // Long
 
     let mut context = DevicesApi::Context::default();
-    let result = client.deleteDeviceList(macPattern, select, simulatedOnly, &context).wait();
+    let result = client.deleteDeviceList(select, simulatedOnly, macPattern, oldestContact, &context).wait();
 
     println!("{:?}", result);
 }
@@ -21818,7 +21828,7 @@ Only simulated devices
 </td>
 </tr>
 
-                                <tr><td style="width:150px;">macPattern*</td>
+                                <tr><td style="width:150px;">macPattern</td>
 <td>
 
 
@@ -21830,12 +21840,32 @@ Only simulated devices
                 </span>
 
                     <div class="inner description marked">
-MAC address must match this pattern
+MAC address must match this pattern.  Mutually exclusive with oldestContact
                     </div>
             </div>
-                <div class="inner required">
-                    Required
-                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">oldestContact</td>
+<td>
+
+
+    <div id="d2e199_deleteDeviceList_oldestContact">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    Long
+                </span>
+                    <span class="format">
+                        (int64)
+                    </span>
+
+                    <div class="inner description marked">
+lastRecordedContact older than this value. Mutually exclusive with macPattern
+                    </div>
+            </div>
         </div>
     </div>
 </td>
