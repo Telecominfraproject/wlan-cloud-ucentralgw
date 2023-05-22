@@ -27,6 +27,10 @@ namespace OpenWifi::Utils {
 				std::all_of(Serial.begin(), Serial.end(), [](auto i) { return std::isxdigit(i); }));
 	}
 
+	[[nodiscard]] bool ValidSerialNumbers(const std::vector<std::string> &numbers) {
+		return std::all_of(numbers.begin(),numbers.end(),[](auto &number) {return ValidSerialNumber(number);});
+	}
+
 	[[nodiscard]] bool ValidUUID(const std::string &UUID) {
 		if (UUID.size() > 36)
 			return false;

@@ -617,11 +617,10 @@ namespace OpenWifi {
 				Poco::Data::Keywords::into(SerialNumbers);
 			GetSerialNumbers.execute();
 
-			std::cout << "Found " << SerialNumbers.size() << " devices" << std::endl;
+			poco_information(Logger(),fmt::format("Found {} devices that match the criteria {} to delete.", SerialNumbers.size(), SerialPattern));
 
 			for (auto &serialNumber:SerialNumbers) {
-				std::cout << "Deleting device: " << serialNumber << std::endl;
-/*
+				poco_information(Logger(),fmt::format("BATCH-DEVICE_DELETE: deleting {}", serialNumber));
 				for (const auto &tableName : TableNames) {
 
 					Poco::Data::Session DeleteSess = Pool_->get();
@@ -648,7 +647,7 @@ namespace OpenWifi {
 					KafkaManager()->PostMessage(KafkaTopics::COMMAND, serialNumber, std::make_shared<std::string>(StrPayload.str()));
 				}
 
-*/			}
+			}
 
 			return true;
 		} catch (const Poco::Exception &E) {

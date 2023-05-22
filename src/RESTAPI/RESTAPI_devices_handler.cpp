@@ -174,6 +174,17 @@ namespace OpenWifi {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
+		if(!QB_.Select.empty() && !Utils::ValidSerialNumbers(QB_.Select)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		if(!QB_.Select.empty()) {
+			for(auto &serialNumber:QB_.Select) {
+				StorageService()->DeleteDevice(serialNumber);
+			}
+			return OK();
+		}
+
 		auto macPattern = GetParameter("macPattern","");
 		if(macPattern.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
