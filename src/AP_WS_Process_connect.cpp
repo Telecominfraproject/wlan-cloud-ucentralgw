@@ -109,7 +109,7 @@ namespace OpenWifi {
 			GWObjects::Device DeviceInfo;
 			auto DeviceExists = StorageService()->GetDevice(SerialNumber_, DeviceInfo);
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
-				StorageService()->CreateDefaultDevice(SerialNumber_, Caps, Firmware, PeerAddress_);
+				StorageService()->CreateDefaultDevice(SerialNumber_, Caps, Firmware, PeerAddress_, State_.VerifiedCertificate==GWObjects::SIMULATED );
 			} else if (!Daemon()->AutoProvisioning() && !DeviceExists) {
 				SendKafkaDeviceNotProvisioned(SerialNumber_, Firmware, Compatible_, CId_);
 				poco_warning(Logger(),fmt::format("Device {} is a {} from {} and cannot be provisioned.",SerialNumber_,Compatible_, CId_));

@@ -211,7 +211,7 @@ add_executable( owgw
         src/RegulatoryInfo.cpp src/RegulatoryInfo.h
         src/RADIUSSessionTracker.cpp src/RADIUSSessionTracker.h
         src/libs/Scheduler.h src/libs/InterruptableSleep.h src/libs/ctpl_stl.h src/libs/Cron.h
-        src/GenericScheduler.cpp src/GenericScheduler.h src/framework/default_device_types.h src/AP_WS_Process_rebootLog.cpp)
+        src/GenericScheduler.cpp src/GenericScheduler.h src/framework/default_device_types.h src/AP_WS_Process_rebootLog.cpp src/AP_WS_ConfigAutoUpgrader.cpp src/AP_WS_ConfigAutoUpgrader.h)
 
 if(NOT SMALL_BUILD)
 

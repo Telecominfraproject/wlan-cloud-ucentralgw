@@ -11,6 +11,10 @@
 #include "Poco/Util/Application.h"
 #include "Poco/Util/Option.h"
 
+#include <framework/ConfigurationValidator.h>
+#include <framework/UI_WebSocketClientServer.h>
+#include <framework/default_device_types.h>
+
 #include "AP_WS_Server.h"
 #include "CommandManager.h"
 #include "Daemon.h"
@@ -29,10 +33,8 @@
 #include "GenericScheduler.h"
 #include "UI_GW_WebSocketNotifications.h"
 #include "VenueBroadcaster.h"
-#include "framework/ConfigurationValidator.h"
-#include "framework/UI_WebSocketClientServer.h"
+#include "AP_WS_ConfigAutoUpgrader.h"
 #include "rttys/RTTYS_server.h"
-#include <framework/default_device_types.h>
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
@@ -45,7 +47,8 @@ namespace OpenWifi {
 						 RTTYS_server(), RADIUS_proxy_server(), VenueBroadcaster(), ScriptManager(),
 						 SignatureManager(), AP_WS_Server(),
 						 RegulatoryInfo(),
-						 RADIUSSessionTracker()
+						 RADIUSSessionTracker(),
+						 AP_WS_ConfigAutoUpgrader()
 			});
 		return &instance;
 	}

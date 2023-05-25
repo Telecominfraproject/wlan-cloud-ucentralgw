@@ -451,7 +451,8 @@ namespace OpenWifi {
 
 	bool Storage::CreateDefaultDevice(std::string &SerialNumber, const Config::Capabilities &Caps,
 									  std::string &Firmware,
-									  const Poco::Net::IPAddress &IPAddress) {
+									  const Poco::Net::IPAddress &IPAddress,
+									  bool simulated) {
 
 		GWObjects::Device D;
 		poco_information(Logger(), fmt::format("AUTO-CREATION({})", SerialNumber));
@@ -494,6 +495,7 @@ namespace OpenWifi {
 		D.MACAddress = Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
+		D.simulated = simulated;
 		D.Notes = SecurityObjects::NoteInfoVec{
 			SecurityObjects::NoteInfo{(uint64_t)Utils::Now(), "", "Auto-provisioned."}};
 

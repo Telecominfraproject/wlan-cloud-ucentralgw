@@ -119,7 +119,8 @@ namespace OpenWifi {
 
 		bool CreateDevice(GWObjects::Device &);
 		bool CreateDefaultDevice(std::string &SerialNumber, const Config::Capabilities &Caps,
-								 std::string &Firmware, const Poco::Net::IPAddress &IPAddress);
+								 std::string &Firmware, const Poco::Net::IPAddress &IPAddress,
+								 bool simulated);
 
 		bool GetDevice(std::string &SerialNumber, GWObjects::Device &);
 		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices,
