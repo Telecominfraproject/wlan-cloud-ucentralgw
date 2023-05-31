@@ -302,97 +302,116 @@ namespace OpenWifi {
 			StorageService()->RemovedExpiredCommands();
 			StorageService()->RemoveTimedOutCommands();
 
-			std::vector<GWObjects::CommandDetails> Commands;
-			if (StorageService()->GetReadyToExecuteCommands(0, 200, Commands)) {
-				poco_trace(MyLogger,
-						   fmt::format("Scheduler about to process {} commands.", Commands.size()));
-				for (auto &Cmd : Commands) {
-					if (!Running_) {
-						poco_warning(MyLogger, "Scheduler quitting because service is stopping.");
-						break;
+			std::uint64_t offset = 0;
+			bool Done = false;
+			while (!Done) {
+				std::vector<GWObjects::CommandDetails> Commands;
+				if (StorageService()->GetReadyToExecuteCommands(offset, 200, Commands)) {
+					if(Commands.empty()) {
+						Done=true;
+						continue;
 					}
-					poco_trace(MyLogger,
-							   fmt::format("{}: Serial={} Command={} Starting processing.",
-										   Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
-					try {
-
-						//	Skip an already running command
-						if (IsCommandRunning(Cmd.UUID)) {
-							continue;
+					poco_trace(MyLogger, fmt::format("Scheduler about to process {} commands.",
+													 Commands.size()));
+					for (auto &Cmd : Commands) {
+						if (!Running_) {
+							poco_warning(MyLogger,
+										 "Scheduler quitting because service is stopping.");
+							break;
 						}
+						poco_trace(MyLogger,
+								   fmt::format("{}: Serial={} Command={} Starting processing.",
+											   Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+						try {
 
-						auto now = Utils::Now();
-						// 2 hour timeout for commands
-						if ((now - Cmd.Submitted) > commandTimeOut_) {
-							poco_information(MyLogger,
-											 fmt::format("{}: Serial={} Command={} has expired.",
-														 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
-							StorageService()->SetCommandTimedOut(Cmd.UUID);
-							continue;
-						}
+							//	Skip an already running command
+							if (IsCommandRunning(Cmd.UUID)) {
+								continue;
+							}
 
-						auto SerialNumberInt = Utils::SerialNumberToInt(Cmd.SerialNumber);
-						if (!AP_WS_Server()->Connected(SerialNumberInt)) {
-							poco_trace(
+							auto now = Utils::Now();
+							// 2 hour timeout for commands
+							if ((now - Cmd.Submitted) > commandTimeOut_) {
+								poco_information(
+									MyLogger, fmt::format("{}: Serial={} Command={} has expired.",
+														  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+								StorageService()->SetCommandTimedOut(Cmd.UUID);
+								continue;
+							}
+
+							auto SerialNumberInt = Utils::SerialNumberToInt(Cmd.SerialNumber);
+							if (!AP_WS_Server()->Connected(SerialNumberInt)) {
+								poco_trace(
+									MyLogger,
+									fmt::format("{}: Serial={} Command={} Device is not connected.",
+												Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+								StorageService()->SetCommandLastTry(Cmd.UUID);
+								continue;
+							}
+
+							std::string ExecutingUUID;
+							APCommands::Commands ExecutingCommand = APCommands::Commands::unknown;
+							if (CommandRunningForDevice(SerialNumberInt, ExecutingUUID,
+														ExecutingCommand)) {
+								poco_trace(
+									MyLogger,
+									fmt::format("{}: Serial={} Command={} Device is already busy "
+												"with command {} (Command={}).",
+												Cmd.UUID, Cmd.SerialNumber, Cmd.Command,
+												ExecutingUUID,
+												APCommands::to_string(ExecutingCommand)));
+								continue;
+							}
+
+							Poco::JSON::Parser P;
+							bool Sent;
+							poco_information(
 								MyLogger,
-								fmt::format("{}: Serial={} Command={} Device is not connected.",
+								fmt::format("{}: Serial={} Command={} Preparing execution.",
 											Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
-							StorageService()->SetCommandLastTry(Cmd.UUID);
-							continue;
-						}
-
-						std::string ExecutingUUID;
-						APCommands::Commands ExecutingCommand = APCommands::Commands::unknown;
-						if (CommandRunningForDevice(SerialNumberInt, ExecutingUUID,
-													ExecutingCommand)) {
-							poco_trace(
+							auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
+							auto Result = PostCommandDisk(
+								Next_RPC_ID(), APCommands::to_apcommand(Cmd.Command.c_str()),
+								Cmd.SerialNumber, Cmd.Command, *Params, Cmd.UUID, Sent);
+							if (Sent) {
+								StorageService()->SetCommandExecuted(Cmd.UUID);
+								poco_debug(MyLogger,
+										   fmt::format("{}: Serial={} Command={} Sent.", Cmd.UUID,
+													   Cmd.SerialNumber, Cmd.Command));
+							} else {
+								poco_debug(
+									MyLogger,
+									fmt::format("{}: Serial={} Command={} Re-queued command.",
+												Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+								StorageService()->SetCommandLastTry(Cmd.UUID);
+							}
+						} catch (const Poco::Exception &E) {
+							poco_debug(
 								MyLogger,
-								fmt::format("{}: Serial={} Command={} Device is already busy "
-											"with command {} (Command={}).",
-											Cmd.UUID, Cmd.SerialNumber, Cmd.Command, ExecutingUUID,
-											APCommands::to_string(ExecutingCommand)));
-							continue;
-						}
-
-						Poco::JSON::Parser P;
-						bool Sent;
-						poco_information(
-							MyLogger, fmt::format("{}: Serial={} Command={} Preparing execution.",
-												  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
-						auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
-						auto Result = PostCommandDisk(
-							Next_RPC_ID(), APCommands::to_apcommand(Cmd.Command.c_str()),
-							Cmd.SerialNumber, Cmd.Command, *Params, Cmd.UUID, Sent);
-						if (Sent) {
+								fmt::format(
+									"{}: Serial={} Command={} Failed. Command marked as completed.",
+									Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+							MyLogger.log(E);
 							StorageService()->SetCommandExecuted(Cmd.UUID);
+						} catch (...) {
 							poco_debug(MyLogger,
-									   fmt::format("{}: Serial={} Command={} Sent.", Cmd.UUID,
-												   Cmd.SerialNumber, Cmd.Command));
-						} else {
-							poco_debug(MyLogger,
-									   fmt::format("{}: Serial={} Command={} Re-queued command.",
+									   fmt::format("{}: Serial={} Command={} Hard failure. "
+												   "Command marked as completed.",
 												   Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
-							StorageService()->SetCommandLastTry(Cmd.UUID);
+							StorageService()->SetCommandExecuted(Cmd.UUID);
 						}
-					} catch (const Poco::Exception &E) {
-						poco_debug(
-							MyLogger,
-							fmt::format(
-								"{}: Serial={} Command={} Failed. Command marked as completed.",
-								Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
-						MyLogger.log(E);
-						StorageService()->SetCommandExecuted(Cmd.UUID);
-					} catch (...) {
-						poco_debug(MyLogger, fmt::format("{}: Serial={} Command={} Hard failure. "
-														 "Command marked as completed.",
-														 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
-						StorageService()->SetCommandExecuted(Cmd.UUID);
 					}
+					offset += Commands.size();
+				} else {
+					Done=true;
+					continue;
 				}
 			}
-		} catch (Poco::Exception &E) {
+		}
+		catch (Poco::Exception &E) {
 			MyLogger.log(E);
-		} catch (...) {
+		}
+		catch (...) {
 			poco_warning(MyLogger, "Exception during command processing.");
 		}
 		poco_trace(MyLogger, "Scheduler done.");

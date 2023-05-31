@@ -1184,6 +1184,6 @@ case "$1" in
 	"deletesimdevices") login; deletesimdevices "$2"; logout;;
 	"deletebulkdevices") login; deletebulkdevices "$2"; logout;;
 	"testtoken") testtoken;;
-  *) help ;;
+  	*) help ;;
 esac
 
