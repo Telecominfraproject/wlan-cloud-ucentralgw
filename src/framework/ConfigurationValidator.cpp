@@ -37,6 +37,10 @@ static std::string DefaultUCentralSchema = R"foo(
         "uuid": {
             "type": "integer"
         },
+        "public_ip_lookup": {
+            "type": "string",
+            "format": "uc-fqdn"
+        },
         "unit": {
             "$ref": "#/$defs/unit"
         },
@@ -634,26 +638,6 @@ static std::string DefaultUCentralSchema = R"foo(
                     "type": "string",
                     "format": "uc-timeout",
                     "default": "6h"
-                },
-                "relay-server": {
-                    "type": "string",
-                    "format": "ipv4",
-                    "example": "192.168.2.1"
-                },
-                "circuit-id-format": {
-                    "type": "string",
-                    "example": [
-                        "\\{Interface\\}:\\{VLAN-Id\\}:\\{SSID\\}:\\{Model\\}:\\{Name\\}:\\{AP-MAC\\}:\\{Location\\}",
-                        "\\{AP-MAC\\};\\{SSID\\};\\{Crypto\\}",
-                        "\\{Name\\} \\{ESSID\\}"
-                    ]
-                },
-                "remote-id-format": {
-                    "type": "string",
-                    "example": [
-                        "\\{Client-MAC-hex\\} \\{SSID\\}",
-                        "\\{AP-MAC-hex\\} \\{SSID\\}"
-                    ]
                 }
             }
         },
@@ -1232,6 +1216,32 @@ static std::string DefaultUCentralSchema = R"foo(
                         "secret"
                     ]
                 },
+                "secondary": {
+                    "type": "object",
+                    "properties": {
+                        "host": {
+                            "type": "string",
+                            "format": "uc-host",
+                            "examples": [
+                                "192.168.1.10"
+                            ]
+                        },
+                        "port": {
+                            "type": "integer",
+                            "maximum": 65535,
+                            "minimum": 1024,
+                            "examples": [
+                                1812
+                            ]
+                        },
+                        "secret": {
+                            "type": "string",
+                            "examples": [
+                                "secret"
+                            ]
+                        }
+                    }
+                },
                 "request-attribute": {
                     "type": "array",
                     "items": {
@@ -1307,6 +1317,25 @@ static std::string DefaultUCentralSchema = R"foo(
                                     {
                                         "id": 126,
                                         "value": "Example Operator"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "maximum": 255,
+                                        "minimum": 1
+                                    },
+                                    "hex-value": {
+                                        "type": "string"
+                                    }
+                                },
+                                "examples": [
+                                    {
+                                        "id": 32,
+                                        "value": "0a0b0c0d"
                                     }
                                 ]
                             }
@@ -1658,6 +1687,236 @@ static std::string DefaultUCentralSchema = R"foo(
                 }
             }
         },
+        "service.captive.click": {
+            "type": "object",
+            "properties": {
+                "auth-mode": {
+                    "type": "string",
+                    "const": "click-to-continue"
+                }
+            }
+        },
+        "service.captive.radius": {
+            "type": "object",
+            "properties": {
+                "auth-mode": {
+                    "type": "string",
+                    "const": "radius"
+                },
+                "auth-server": {
+                    "type": "string",
+                    "format": "uc-host",
+                    "examples": [
+                        "192.168.1.10"
+                    ]
+                },
+                "auth-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1024,
+                    "default": 1812
+                },
+                "auth-secret": {
+                    "type": "string",
+                    "examples": [
+                        "secret"
+                    ]
+                },
+                "acct-server": {
+                    "type": "string",
+                    "format": "uc-host",
+                    "examples": [
+                        "192.168.1.10"
+                    ]
+                },
+                "acct-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1024,
+                    "default": 1812
+                },
+                "acct-secret": {
+                    "type": "string",
+                    "examples": [
+                        "secret"
+                    ]
+                },
+                "acct-interval": {
+                    "type": "integer",
+                    "default": 600
+                }
+            }
+        },
+        "service.captive.credentials": {
+            "type": "object",
+            "properties": {
+                "auth-mode": {
+                    "type": "string",
+                    "const": "credentials"
+                },
+                "credentials": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "username": {
+                                "type": "string"
+                            },
+                            "password": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "service.captive.uam": {
+            "type": "object",
+            "properties": {
+                "auth-mode": {
+                    "type": "string",
+                    "const": "uam"
+                },
+                "uam-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1024,
+                    "default": 3990
+                },
+                "uam-secret": {
+                    "type": "string"
+                },
+                "uam-server": {
+                    "type": "string"
+                },
+                "nasid": {
+                    "type": "string"
+                },
+                "nasmac": {
+                    "type": "string"
+                },
+                "auth-server": {
+                    "type": "string",
+                    "format": "uc-host",
+                    "examples": [
+                        "192.168.1.10"
+                    ]
+                },
+                "auth-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1024,
+                    "default": 1812
+                },
+                "auth-secret": {
+                    "type": "string",
+                    "examples": [
+                        "secret"
+                    ]
+                },
+                "acct-server": {
+                    "type": "string",
+                    "format": "uc-host",
+                    "examples": [
+                        "192.168.1.10"
+                    ]
+                },
+                "acct-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1024,
+                    "default": 1812
+                },
+                "acct-secret": {
+                    "type": "string",
+                    "examples": [
+                        "secret"
+                    ]
+                },
+                "acct-interval": {
+                    "type": "integer",
+                    "default": 600
+                },
+                "ssid": {
+                    "type": "string"
+                },
+                "mac-format": {
+                    "type": "string",
+                    "enum": [
+                        "aabbccddeeff",
+                        "aa-bb-cc-dd-ee-ff",
+                        "aa:bb:cc:dd:ee:ff",
+                        "AABBCCDDEEFF",
+                        "AA:BB:CC:DD:EE:FF",
+                        "AA-BB-CC-DD-EE-FF"
+                    ]
+                },
+                "final-redirect-url": {
+                    "type": "string",
+                    "enum": [
+                        "default",
+                        "uam"
+                    ]
+                },
+                "mac-auth": {
+                    "type": "boolean",
+                    "default": "default"
+                },
+                "radius-gw-proxy": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "service.captive": {
+            "allOf": [
+                {
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/service.captive.click"
+                        },
+                        {
+                            "$ref": "#/$defs/service.captive.radius"
+                        },
+                        {
+                            "$ref": "#/$defs/service.captive.credentials"
+                        },
+                        {
+                            "$ref": "#/$defs/service.captive.uam"
+                        }
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "walled-garden-fqdn": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "walled-garden-ipaddr": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uc-ip"
+                            }
+                        },
+                        "web-root": {
+                            "type": "string",
+                            "format": "uc-base64"
+                        },
+                        "idle-timeout": {
+                            "type": "integer",
+                            "default": 600
+                        },
+                        "session-timeout": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            ]
+        },
         "interface.ssid": {
             "type": "object",
             "properties": {
@@ -1709,6 +1968,10 @@ static std::string DefaultUCentralSchema = R"foo(
                 },
                 "isolate-clients": {
                     "type": "boolean"
+                },
+                "strict-forwarding": {
+                    "type": "boolean",
+                    "default": false
                 },
                 "power-save": {
                     "type": "boolean"
@@ -1778,7 +2041,14 @@ static std::string DefaultUCentralSchema = R"foo(
                     "$ref": "#/$defs/interface.ssid.rate-limit"
                 },
                 "roaming": {
-                    "$ref": "#/$defs/interface.ssid.roaming"
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/interface.ssid.roaming"
+                        },
+                        {
+                            "type": "boolean"
+                        }
+                    ]
                 },
                 "radius": {
                     "$ref": "#/$defs/interface.ssid.radius"
@@ -1794,6 +2064,9 @@ static std::string DefaultUCentralSchema = R"foo(
                 },
                 "access-control-list": {
                     "$ref": "#/$defs/interface.ssid.acl"
+                },
+                "captive": {
+                    "$ref": "#/$defs/service.captive"
                 },
                 "hostapd-bss-raw": {
                     "type": "array",
@@ -2084,6 +2357,10 @@ static std::string DefaultUCentralSchema = R"foo(
                     "examples": [
                         "01234567890123456789012345678901"
                     ]
+                },
+                "mutual-tls": {
+                    "type": "boolean",
+                    "default": true
                 }
             }
         },
@@ -2693,236 +2970,6 @@ static std::string DefaultUCentralSchema = R"foo(
                 }
             }
         },
-        "service.captive.click": {
-            "type": "object",
-            "properties": {
-                "auth-mode": {
-                    "type": "string",
-                    "const": "click-to-continue"
-                }
-            }
-        },
-        "service.captive.radius": {
-            "type": "object",
-            "properties": {
-                "auth-mode": {
-                    "type": "string",
-                    "const": "radius"
-                },
-                "auth-server": {
-                    "type": "string",
-                    "format": "uc-host",
-                    "examples": [
-                        "192.168.1.10"
-                    ]
-                },
-                "auth-port": {
-                    "type": "integer",
-                    "maximum": 65535,
-                    "minimum": 1024,
-                    "default": 1812
-                },
-                "auth-secret": {
-                    "type": "string",
-                    "examples": [
-                        "secret"
-                    ]
-                },
-                "acct-server": {
-                    "type": "string",
-                    "format": "uc-host",
-                    "examples": [
-                        "192.168.1.10"
-                    ]
-                },
-                "acct-port": {
-                    "type": "integer",
-                    "maximum": 65535,
-                    "minimum": 1024,
-                    "default": 1812
-                },
-                "acct-secret": {
-                    "type": "string",
-                    "examples": [
-                        "secret"
-                    ]
-                },
-                "acct-interval": {
-                    "type": "integer",
-                    "default": 600
-                }
-            }
-        },
-        "service.captive.credentials": {
-            "type": "object",
-            "properties": {
-                "auth-mode": {
-                    "type": "string",
-                    "const": "credentials"
-                },
-                "credentials": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "username": {
-                                "type": "string"
-                            },
-                            "password": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "service.captive.uam": {
-            "type": "object",
-            "properties": {
-                "auth-mode": {
-                    "type": "string",
-                    "const": "uam"
-                },
-                "uam-port": {
-                    "type": "integer",
-                    "maximum": 65535,
-                    "minimum": 1024,
-                    "default": 3990
-                },
-                "uam-secret": {
-                    "type": "string"
-                },
-                "uam-server": {
-                    "type": "string"
-                },
-                "nasid": {
-                    "type": "string"
-                },
-                "nasmac": {
-                    "type": "string"
-                },
-                "auth-server": {
-                    "type": "string",
-                    "format": "uc-host",
-                    "examples": [
-                        "192.168.1.10"
-                    ]
-                },
-                "auth-port": {
-                    "type": "integer",
-                    "maximum": 65535,
-                    "minimum": 1024,
-                    "default": 1812
-                },
-                "auth-secret": {
-                    "type": "string",
-                    "examples": [
-                        "secret"
-                    ]
-                },
-                "acct-server": {
-                    "type": "string",
-                    "format": "uc-host",
-                    "examples": [
-                        "192.168.1.10"
-                    ]
-                },
-                "acct-port": {
-                    "type": "integer",
-                    "maximum": 65535,
-                    "minimum": 1024,
-                    "default": 1812
-                },
-                "acct-secret": {
-                    "type": "string",
-                    "examples": [
-                        "secret"
-                    ]
-                },
-                "acct-interval": {
-                    "type": "integer",
-                    "default": 600
-                },
-                "ssid": {
-                    "type": "string"
-                },
-                "mac-format": {
-                    "type": "string",
-                    "enum": [
-                        "aabbccddeeff",
-                        "aa-bb-cc-dd-ee-ff",
-                        "aa:bb:cc:dd:ee:ff",
-                        "AABBCCDDEEFF",
-                        "AA:BB:CC:DD:EE:FF",
-                        "AA-BB-CC-DD-EE-FF"
-                    ]
-                },
-                "final-redirect-url": {
-                    "type": "string",
-                    "enum": [
-                        "default",
-                        "uam"
-                    ]
-                },
-                "mac-auth": {
-                    "type": "boolean",
-                    "default": "default"
-                },
-                "radius-gw-proxy": {
-                    "type": "boolean",
-                    "default": false
-                }
-            }
-        },
-        "service.captive": {
-            "allOf": [
-                {
-                    "oneOf": [
-                        {
-                            "$ref": "#/$defs/service.captive.click"
-                        },
-                        {
-                            "$ref": "#/$defs/service.captive.radius"
-                        },
-                        {
-                            "$ref": "#/$defs/service.captive.credentials"
-                        },
-                        {
-                            "$ref": "#/$defs/service.captive.uam"
-                        }
-                    ]
-                },
-                {
-                    "type": "object",
-                    "properties": {
-                        "walled-garden-fqdn": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "walled-garden-ipaddr": {
-                            "type": "array",
-                            "items": {
-                                "type": "string",
-                                "format": "uc-ip"
-                            }
-                        },
-                        "web-root": {
-                            "type": "string",
-                            "format": "uc-base64"
-                        },
-                        "idle-timeout": {
-                            "type": "integer",
-                            "default": 600
-                        },
-                        "session-timeout": {
-                            "type": "integer"
-                        }
-                    }
-                }
-            ]
-        },
         "service.gps": {
             "type": "object",
             "properties": {
@@ -2938,6 +2985,32 @@ static std::string DefaultUCentralSchema = R"foo(
                         9600,
                         19200
                     ]
+                }
+            }
+        },
+        "service.dhcp-relay": {
+            "type": "object",
+            "properties": {
+                "select-ports": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "vlans": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "vlan": {
+                                "type": "number"
+                            },
+                            "relay-server": {
+                                "type": "string",
+                                "format": "uc-ip"
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -3000,6 +3073,9 @@ static std::string DefaultUCentralSchema = R"foo(
                 },
                 "gps": {
                     "$ref": "#/$defs/service.gps"
+                },
+                "dhcp-relay": {
+                    "$ref": "#/$defs/service.dhcp-relay"
                 }
             }
         },
