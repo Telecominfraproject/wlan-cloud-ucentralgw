@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: uCentral gateway API
   description: A process to manage configuration for devices.
-  version: 2.10.0
+  version: 2.11.0
   license:
     name: BSD3
     url: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
@@ -552,6 +552,37 @@ components:
           type: array
           items:
             $ref : '#/components/schemas/DefaultConfiguration'
+
+    DefaultFirmware:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        modelIds:
+          type: array
+          items:
+            type: string
+        uri:
+          type: string
+        imageCreationDate:
+          type: integer
+          format: int64
+        created:
+          type: integer
+          format: int64
+        lastModified:
+          type: integer
+          format: int64
+
+    DefaultFirmwareList:
+      type: object
+      properties:
+        firmwares:
+          type: array
+          items:
+            $ref: '#/components/schemas/DefaultFirmware'
 
     UpgradeRequest:
       type: object
@@ -1763,6 +1794,123 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DefaultConfiguration'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /default_firmwares:
+    get:
+      tags:
+        - Firmware
+      summary: Retrieve the lists of all default firmwares.
+      description: Retrieve the lists of all default firmwares.
+      operationId: getDefaultFirmwares
+
+      responses:
+        200:
+          description: List of default firmwares
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefaultFirmwareList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /default_firmware/{name}:
+    get:
+      tags:
+        - Firmware
+      summary: Retrieve a default firmware.
+      description: Retrieve a default firmware.
+      operationId: getDefaultFirmware
+      parameters:
+        - in: path
+          name: name
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Default firmware included
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefaultFirmware'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags:
+        - Firmware
+      summary: Create a default firmware.
+      description: Create a default firmware.
+      operationId: createDefaultFirmware
+      parameters:
+        - in: path
+          name: name
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Information used to create the new firmware entry
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefaultFirmware'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Firmware
+      summary: Delete a default default firmware
+      description: Delete a default default firmware
+      operationId: deleteDefaultFirmware
+      parameters:
+        - in: path
+          name: name
+          schema:
+            type: string
+          required: true
+      responses:
+        204:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Firmware
+      summary: Update a default firmware
+      description: Update a default firmware
+      operationId: updateDefaultFirmware
+      parameters:
+        - in: path
+          name: name
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Firmware details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefaultFirmware'
       responses:
         200:
           $ref: '#/components/responses/Success'
