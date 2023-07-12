@@ -1089,17 +1089,11 @@ ul.nav-tabs {
     defs["DefaultFirmware"] = {
   "type" : "object",
   "properties" : {
-    "name" : {
+    "deviceType" : {
       "type" : "string"
     },
     "description" : {
       "type" : "string"
-    },
-    "modelIds" : {
-      "type" : "array",
-      "items" : {
-        "type" : "string"
-      }
     },
     "uri" : {
       "type" : "string"
@@ -25152,9 +25146,8 @@ pub fn main() {
  -H "Content-Type: application/json" \
  "https://localhost:16001/api/v1/default_firmware/{name}" \
  -d '{
-  &quot;modelIds&quot; : [ &quot;modelIds&quot;, &quot;modelIds&quot; ],
+  &quot;deviceType&quot; : &quot;deviceType&quot;,
   &quot;created&quot; : 6,
-  &quot;name&quot; : &quot;name&quot;,
   &quot;description&quot; : &quot;description&quot;,
   &quot;lastModified&quot; : 1,
   &quot;uri&quot; : &quot;uri&quot;,
@@ -26844,9 +26837,8 @@ pub fn main() {
  -H "Content-Type: application/json" \
  "https://localhost:16001/api/v1/default_firmware/{name}" \
  -d '{
-  &quot;modelIds&quot; : [ &quot;modelIds&quot;, &quot;modelIds&quot; ],
+  &quot;deviceType&quot; : &quot;deviceType&quot;,
   &quot;created&quot; : 6,
-  &quot;name&quot; : &quot;name&quot;,
   &quot;description&quot; : &quot;description&quot;,
   &quot;lastModified&quot; : 1,
   &quot;uri&quot; : &quot;uri&quot;,
