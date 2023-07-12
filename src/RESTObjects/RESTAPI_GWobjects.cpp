@@ -176,6 +176,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "description", Description);
 		field_to_json(Obj, "modelIds", Models);
 		field_to_json(Obj, "uri", uri);
+		field_to_json(Obj, "revision", revision);
 		field_to_json(Obj, "imageCreationDate", imageCreationDate);
 		field_to_json(Obj, "created", Created);
 		field_to_json(Obj, "lastModified", LastModified);
@@ -187,6 +188,7 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj, "description", Description);
 			field_from_json(Obj, "modelIds", Models);
 			field_from_json(Obj, "uri", uri);
+			field_from_json(Obj, "revision", revision);
 			field_from_json(Obj, "imageCreationDate", imageCreationDate);
 			field_from_json(Obj, "created", Created);
 			field_from_json(Obj, "lastModified", LastModified);

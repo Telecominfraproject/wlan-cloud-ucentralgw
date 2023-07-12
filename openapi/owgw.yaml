@@ -566,6 +566,8 @@ components:
             type: string
         uri:
           type: string
+        revision:
+          type: string
         imageCreationDate:
           type: integer
           format: int64

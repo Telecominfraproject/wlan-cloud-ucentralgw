@@ -14,25 +14,30 @@
 
 namespace OpenWifi {
 
-	const static std::string DB_DefFirmware_SelectFields_ForCreation{"Name VARCHAR(30) PRIMARY KEY, "
-																   "uri TEXT, "
-																   "Models TEXT, "
-																   "Description TEXT, "
-																   "Created BIGINT , "
-																   "imageCreationDate BIGINT , "
-																   "LastModified BIGINT)"};
+	const static std::string DB_DefFirmware_SelectFields_ForCreation{
+						"Name VARCHAR(64) PRIMARY KEY, "
+						"uri TEXT, "
+						"revision TEXT, "
+						"Models TEXT, "
+						"Description TEXT, "
+						"Created BIGINT , "
+						"imageCreationDate BIGINT , "
+						"LastModified BIGINT)" };
 
-	const static std::string DB_DefFirmware_SelectFields{"Name, "
-													   "uri, "
-													   "Models, "
-													   "Description, "
-													   "Created, "
-													   "imageCreationDate, "
-													   "LastModified "};
+	const static std::string DB_DefFirmware_SelectFields{
+						"Name, "
+						"uri, "
+						"revision, "
+						"Models, "
+						"Description, "
+						"Created, "
+						"imageCreationDate, "
+						"LastModified "};
 
-	const static std::string DB_DefFirmware_InsertValues{"?,?,?,?,?,?,?"};
+	const static std::string DB_DefFirmware_InsertValues{"?,?,?,?,?,?,?,?"};
 
 	typedef Poco::Tuple<std::string,
+						std::string,
 						std::string,
 						std::string,
 						std::string,
@@ -45,21 +50,23 @@ namespace OpenWifi {
 	void Convert(const DefFirmwareRecordTuple &R, GWObjects::DefaultFirmware &T) {
 		T.Name = R.get<0>();
 		T.uri = R.get<1>();
-		T.Models = RESTAPI_utils::to_object_array(R.get<2>());
-		T.Description = R.get<3>();
-		T.Created = R.get<4>();
-		T.imageCreationDate = R.get<5>();
-		T.LastModified = R.get<6>();
+		T.revision = R.get<2>();
+		T.Models = RESTAPI_utils::to_object_array(R.get<3>());
+		T.Description = R.get<4>();
+		T.Created = R.get<5>();
+		T.imageCreationDate = R.get<6>();
+		T.LastModified = R.get<7>();
 	}
 
 	void Convert(const GWObjects::DefaultFirmware &R, DefFirmwareRecordTuple &T) {
 		T.set<0>(R.Name);
 		T.set<1>(R.uri);
-		T.set<2>(RESTAPI_utils::to_string(R.Models));
-		T.set<3>(R.Description);
-		T.set<4>(R.Created);
-		T.set<5>(R.imageCreationDate);
-		T.set<6>(R.LastModified);
+		T.set<2>(R.revision);
+		T.set<3>(RESTAPI_utils::to_string(R.Models));
+		T.set<4>(R.Description);
+		T.set<5>(R.Created);
+		T.set<6>(R.imageCreationDate);
+		T.set<7>(R.LastModified);
 	}
 
 	bool Storage::CreateDefaultFirmware(std::string &Name,

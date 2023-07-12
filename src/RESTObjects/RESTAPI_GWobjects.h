@@ -187,6 +187,7 @@ namespace OpenWifi::GWObjects {
 		Types::StringVec Models;
 		std::string Description;
 		std::string uri;
+		std::string revision;
 		uint64_t imageCreationDate;
 		uint64_t Created;
 		uint64_t LastModified;
