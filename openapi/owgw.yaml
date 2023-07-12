@@ -1820,7 +1820,7 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-  /default_firmware/{name}:
+  /default_firmware/{deviceType}:
     get:
       tags:
         - Firmware
@@ -1829,7 +1829,7 @@ paths:
       operationId: getDefaultFirmware
       parameters:
         - in: path
-          name: name
+          name: deviceType
           schema:
             type: string
           required: true
@@ -1853,7 +1853,7 @@ paths:
       operationId: createDefaultFirmware
       parameters:
         - in: path
-          name: name
+          name: deviceType
           schema:
             type: string
           required: true
@@ -1879,7 +1879,7 @@ paths:
       operationId: deleteDefaultFirmware
       parameters:
         - in: path
-          name: name
+          name: deviceType
           schema:
             type: string
           required: true
@@ -1899,7 +1899,7 @@ paths:
       operationId: updateDefaultFirmware
       parameters:
         - in: path
-          name: name
+          name: deviceType
           schema:
             type: string
           required: true
