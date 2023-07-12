@@ -7,7 +7,6 @@
 //
 
 #include "Poco/Array.h"
-#include "Poco/JSON/Stringifier.h"
 
 #include "RESTAPI_default_configurations.h"
 #include "StorageService.h"

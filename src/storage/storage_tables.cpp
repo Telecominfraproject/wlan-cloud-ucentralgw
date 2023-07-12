@@ -21,6 +21,7 @@ namespace OpenWifi {
 		Create_CommandList();
 		Create_BlackList();
 		Create_FileUploads();
+		Create_DefaultFirmwares();
 
 		return 0;
 	}
@@ -265,6 +266,28 @@ namespace OpenWifi {
 						"Models TEXT, "
 						"Description TEXT, "
 						"Created BIGINT , "
+						"LastModified BIGINT)",
+					Poco::Data::Keywords::now;
+			}
+			return 0;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return -1;
+	}
+
+	int Storage::Create_DefaultFirmwares() {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+
+			if (dbType_ == pgsql || dbType_ == sqlite || dbType_ == mysql) {
+				Sess << "CREATE TABLE IF NOT EXISTS DefaultFirmwares ("
+						"Name VARCHAR(30) PRIMARY KEY, "
+						"uri TEXT, "
+						"Models TEXT, "
+						"Description TEXT, "
+						"Created BIGINT , "
+						"imageCreationDate BIGINT , "
 						"LastModified BIGINT)",
 					Poco::Data::Keywords::now;
 			}

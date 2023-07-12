@@ -175,6 +175,22 @@ namespace OpenWifi {
 		uint64_t GetDefaultConfigurationsCount();
 		bool DefaultConfigurationAlreadyExists(std::string &Name);
 
+
+		bool CreateDefaultFirmware(std::string &name,
+										GWObjects::DefaultFirmware &DefConfig);
+		bool DeleteDefaultFirmware(std::string &name);
+		bool UpdateDefaultFirmware(std::string &name,
+										GWObjects::DefaultFirmware &DefConfig);
+		bool GetDefaultFirmware(std::string &name, GWObjects::DefaultFirmware &DefConfig);
+		bool GetDefaultFirmwares(uint64_t From, uint64_t HowMany,
+									  std::vector<GWObjects::DefaultFirmware> &Devices);
+		bool FindDefaultFirmwareForModel(const std::string &Model,
+											  GWObjects::DefaultFirmware &DefConfig);
+		uint64_t GetDefaultFirmwaresCount();
+		bool DefaultFirmwareAlreadyExists(std::string &Name);
+
+
+
 		bool AddCommand(std::string &SerialNumber, GWObjects::CommandDetails &Command,
 						CommandExecutionType Type);
 		bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
@@ -242,6 +258,7 @@ namespace OpenWifi {
 		int Create_CommandList();
 		int Create_BlackList();
 		int Create_FileUploads();
+		int Create_DefaultFirmwares();
 
 		bool AnalyzeCommands(Types::CountedMap &R);
 		bool AnalyzeDevices(GWObjects::Dashboard &D);

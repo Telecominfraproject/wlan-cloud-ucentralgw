@@ -182,6 +182,26 @@ namespace OpenWifi::GWObjects {
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
+	struct DefaultFirmware {
+		std::string Name;
+		Types::StringVec Models;
+		std::string Description;
+		std::string uri;
+		uint64_t imageCreationDate;
+		uint64_t Created;
+		uint64_t LastModified;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
+	struct DefaultFirmwareList {
+		std::vector<DefaultFirmware>	firmwares;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
 	struct CommandDetails {
 		std::string UUID;
 		std::string SerialNumber;
