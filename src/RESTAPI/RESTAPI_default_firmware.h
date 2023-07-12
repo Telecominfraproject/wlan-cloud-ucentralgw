@@ -20,7 +20,7 @@ namespace OpenWifi {
 													  Poco::Net::HTTPRequest::HTTP_OPTIONS},
 							 Server, TransactionId, Internal) {}
 		static auto PathName() {
-			return std::list<std::string>{"/api/v1/default_firmware/{name}"};
+			return std::list<std::string>{"/api/v1/default_firmware/{deviceType}"};
 		}
 		void DoGet() final;
 		void DoDelete() final;

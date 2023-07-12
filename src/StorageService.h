@@ -175,12 +175,9 @@ namespace OpenWifi {
 		uint64_t GetDefaultConfigurationsCount();
 		bool DefaultConfigurationAlreadyExists(std::string &Name);
 
-
-		bool CreateDefaultFirmware(std::string &name,
-										GWObjects::DefaultFirmware &DefConfig);
+		bool UpdateDefaultFirmware(GWObjects::DefaultFirmware &DefFirmware);
+		bool CreateDefaultFirmware(GWObjects::DefaultFirmware &DefConfig);
 		bool DeleteDefaultFirmware(std::string &name);
-		bool UpdateDefaultFirmware(std::string &name,
-										GWObjects::DefaultFirmware &DefConfig);
 		bool GetDefaultFirmware(std::string &name, GWObjects::DefaultFirmware &DefConfig);
 		bool GetDefaultFirmwares(uint64_t From, uint64_t HowMany,
 									  std::vector<GWObjects::DefaultFirmware> &Devices);

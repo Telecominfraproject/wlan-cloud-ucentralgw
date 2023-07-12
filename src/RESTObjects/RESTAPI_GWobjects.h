@@ -183,8 +183,7 @@ namespace OpenWifi::GWObjects {
 	};
 
 	struct DefaultFirmware {
-		std::string Name;
-		Types::StringVec Models;
+		std::string deviceType;
 		std::string Description;
 		std::string uri;
 		std::string revision;

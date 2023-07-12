@@ -15,29 +15,26 @@
 namespace OpenWifi {
 
 	const static std::string DB_DefFirmware_SelectFields_ForCreation{
-						"Name VARCHAR(64) PRIMARY KEY, "
+						"deviceType VARCHAR(128) PRIMARY KEY, "
 						"uri TEXT, "
 						"revision TEXT, "
-						"Models TEXT, "
 						"Description TEXT, "
 						"Created BIGINT , "
 						"imageCreationDate BIGINT , "
 						"LastModified BIGINT)" };
 
 	const static std::string DB_DefFirmware_SelectFields{
-						"Name, "
+						"deviceType, "
 						"uri, "
 						"revision, "
-						"Models, "
 						"Description, "
 						"Created, "
 						"imageCreationDate, "
 						"LastModified "};
 
-	const static std::string DB_DefFirmware_InsertValues{"?,?,?,?,?,?,?,?"};
+	const static std::string DB_DefFirmware_InsertValues{"?,?,?,?,?,?,?"};
 
 	typedef Poco::Tuple<std::string,
-						std::string,
 						std::string,
 						std::string,
 						std::string,
@@ -48,40 +45,38 @@ namespace OpenWifi {
 	typedef std::vector<DefFirmwareRecordTuple> DefFirmwareRecordList;
 
 	void Convert(const DefFirmwareRecordTuple &R, GWObjects::DefaultFirmware &T) {
-		T.Name = R.get<0>();
+		T.deviceType = R.get<0>();
 		T.uri = R.get<1>();
 		T.revision = R.get<2>();
-		T.Models = RESTAPI_utils::to_object_array(R.get<3>());
-		T.Description = R.get<4>();
-		T.Created = R.get<5>();
-		T.imageCreationDate = R.get<6>();
-		T.LastModified = R.get<7>();
+		T.Description = R.get<3>();
+		T.Created = R.get<4>();
+		T.imageCreationDate = R.get<5>();
+		T.LastModified = R.get<6>();
 	}
 
 	void Convert(const GWObjects::DefaultFirmware &R, DefFirmwareRecordTuple &T) {
-		T.set<0>(R.Name);
+		T.set<0>(R.deviceType);
 		T.set<1>(R.uri);
 		T.set<2>(R.revision);
-		T.set<3>(RESTAPI_utils::to_string(R.Models));
-		T.set<4>(R.Description);
-		T.set<5>(R.Created);
-		T.set<6>(R.imageCreationDate);
-		T.set<7>(R.LastModified);
+		T.set<3>(R.Description);
+		T.set<4>(R.Created);
+		T.set<5>(R.imageCreationDate);
+		T.set<6>(R.LastModified);
 	}
 
-	bool Storage::CreateDefaultFirmware(std::string &Name,
-											 GWObjects::DefaultFirmware &DefFirmware) {
+	bool Storage::CreateDefaultFirmware(GWObjects::DefaultFirmware &DefFirmware) {
 		try {
 
 			std::string TmpName;
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			Poco::toLowerInPlace(DefFirmware.Name);
+			Poco::toLowerInPlace(DefFirmware.deviceType);
 
-			std::string St{"SELECT name FROM DefaultFirmwares WHERE Name=?"};
-			Select << ConvertParams(St), Poco::Data::Keywords::into(TmpName),
-				Poco::Data::Keywords::use(Name);
+			std::string St{"SELECT DeviceType FROM DefaultFirmwares WHERE deviceType=?"};
+			Select << ConvertParams(St),
+				Poco::Data::Keywords::into(TmpName),
+				Poco::Data::Keywords::use(DefFirmware.deviceType);
 			Select.execute();
 
 			if (!TmpName.empty())
@@ -96,7 +91,8 @@ namespace OpenWifi {
 
 			DefFirmwareRecordTuple R;
 			Convert(DefFirmware, R);
-			Insert << ConvertParams(St2), Poco::Data::Keywords::use(R);
+			Insert << ConvertParams(St2),
+				Poco::Data::Keywords::use(R);
 			Insert.execute();
 			return true;
 
@@ -107,16 +103,16 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::DeleteDefaultFirmware(std::string &Name) {
+	bool Storage::DeleteDefaultFirmware(std::string &deviceType) {
 		try {
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Delete(Sess);
-			Poco::toLowerInPlace(Name);
+			Poco::toLowerInPlace(deviceType);
 
-			std::string St{"DELETE FROM DefaultFirmwares WHERE Name=?"};
+			std::string St{"DELETE FROM DefaultFirmwares WHERE deviceType=?"};
 
-			Delete << ConvertParams(St), Poco::Data::Keywords::use(Name);
+			Delete << ConvertParams(St), Poco::Data::Keywords::use(deviceType);
 			Delete.execute();
 
 			return true;
@@ -127,25 +123,27 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::UpdateDefaultFirmware(std::string &Name,
-											 GWObjects::DefaultFirmware &DefFirmware) {
+	bool Storage::UpdateDefaultFirmware(GWObjects::DefaultFirmware &DefFirmware) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
 			uint64_t Now = time(nullptr);
 			Poco::Data::Statement Update(Sess);
 			DefFirmware.LastModified = Now;
-			Poco::toLowerInPlace(DefFirmware.Name);
+			Poco::toLowerInPlace(DefFirmware.deviceType);
 
-			std::string St{"UPDATE DefaultFirmwares SET Name=?, Configuration=?,  Models=?,  "
-						   "Description=?,  Created=? , LastModified=?  WHERE Name=?"};
+
+			std::string St{"UPDATE DefaultFirmwares SET deviceType=?, uri=?,  revision=?,  "
+						   "Description=?,  Created=? , imageCreationDate=?, LastModified=?  WHERE deviceType=?"};
 
 			DefFirmwareRecordTuple R;
 			Convert(DefFirmware, R);
 
-			Update << ConvertParams(St), Poco::Data::Keywords::use(R),
-				Poco::Data::Keywords::use(Name);
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(R),
+				Poco::Data::Keywords::use(DefFirmware.deviceType);
 			Update.execute();
+
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -154,20 +152,21 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::GetDefaultFirmware(std::string &Name,
+	bool Storage::GetDefaultFirmware(std::string &deviceType,
 										  GWObjects::DefaultFirmware &DefFirmware) {
 		try {
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
-			Poco::toLowerInPlace(DefFirmware.Name);
+			Poco::toLowerInPlace(deviceType);
 
 			std::string St{"SELECT " + DB_DefFirmware_SelectFields +
-						   " FROM DefaultFirmwares WHERE Name=?"};
+						   " FROM DefaultFirmwares WHERE deviceType=?"};
 
 			DefFirmwareRecordTuple R;
-			Select << ConvertParams(St), Poco::Data::Keywords::into(R),
-				Poco::Data::Keywords::use(Name);
+			Select << ConvertParams(St),
+				Poco::Data::Keywords::into(R),
+				Poco::Data::Keywords::use(deviceType);
 			Select.execute();
 
 			if (Select.rowsExtracted() == 1) {
@@ -182,19 +181,19 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::DefaultFirmwareAlreadyExists(std::string &Name) {
+	bool Storage::DefaultFirmwareAlreadyExists(std::string &deviceType) {
 		try {
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
-			Poco::toLowerInPlace(Name);
+			Poco::toLowerInPlace(deviceType);
 
 			std::string St{"SELECT " + DB_DefFirmware_SelectFields +
-						   " FROM DefaultFirmwares WHERE Name=?"};
+						   " FROM DefaultFirmwares WHERE deviceType=?"};
 
 			DefFirmwareRecordTuple R;
 			Select << ConvertParams(St), Poco::Data::Keywords::into(R),
-				Poco::Data::Keywords::use(Name);
+				Poco::Data::Keywords::use(deviceType);
 			Select.execute();
 
 			return Select.rowsExtracted() == 1;
@@ -207,7 +206,7 @@ namespace OpenWifi {
 
 	bool
 	Storage::GetDefaultFirmwares(uint64_t From, uint64_t HowMany,
-									  std::vector<GWObjects::DefaultFirmware> &DefConfigs) {
+									  std::vector<GWObjects::DefaultFirmware> &Firmwares) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
@@ -217,43 +216,13 @@ namespace OpenWifi {
 						  " FROM DefaultFirmwares ORDER BY NAME ASC " + ComputeRange(From, HowMany),
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
-
+			Firmwares.clear();
 			for (const auto &i : Records) {
 				GWObjects::DefaultFirmware R;
 				Convert(i, R);
-				DefConfigs.push_back(R);
+				Firmwares.push_back(R);
 			}
 			return true;
-		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
-											   E.displayText()));
-		}
-		return false;
-	}
-
-	bool Storage::FindDefaultFirmwareForModel(const std::string &Model,
-												   GWObjects::DefaultFirmware &DefConfig) {
-		try {
-			DefFirmwareRecordList Records;
-
-			Poco::Data::Session Sess = Pool_->get();
-			Poco::Data::Statement Select(Sess);
-
-			Select << "SELECT " + DB_DefFirmware_SelectFields + " FROM DefaultFirmwares",
-				Poco::Data::Keywords::into(Records);
-			Select.execute();
-
-			for (const auto &i : Records) {
-				GWObjects::DefaultFirmware Config;
-				Convert(i, Config);
-				for (const auto &j : Config.Models) {
-					if (j == "*" || j == Model) {
-						DefConfig = Config;
-						return true;
-					}
-				}
-			}
-			return false;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
 											   E.displayText()));

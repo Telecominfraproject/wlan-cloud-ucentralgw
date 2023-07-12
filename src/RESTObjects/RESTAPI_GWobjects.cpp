@@ -172,9 +172,8 @@ namespace OpenWifi::GWObjects {
 	}
 
 	void DefaultFirmware::to_json(Poco::JSON::Object &Obj) const {
-		field_to_json(Obj, "name", Name);
+		field_to_json(Obj, "deviceType", deviceType);
 		field_to_json(Obj, "description", Description);
-		field_to_json(Obj, "modelIds", Models);
 		field_to_json(Obj, "uri", uri);
 		field_to_json(Obj, "revision", revision);
 		field_to_json(Obj, "imageCreationDate", imageCreationDate);
@@ -184,9 +183,8 @@ namespace OpenWifi::GWObjects {
 
 	bool DefaultFirmware::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
-			field_from_json(Obj, "name", Name);
+			field_from_json(Obj, "deviceType", deviceType);
 			field_from_json(Obj, "description", Description);
-			field_from_json(Obj, "modelIds", Models);
 			field_from_json(Obj, "uri", uri);
 			field_from_json(Obj, "revision", revision);
 			field_from_json(Obj, "imageCreationDate", imageCreationDate);

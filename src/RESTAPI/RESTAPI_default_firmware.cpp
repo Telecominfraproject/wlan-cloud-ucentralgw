@@ -16,34 +16,34 @@
 
 namespace OpenWifi {
 	void RESTAPI_default_firmware::DoGet() {
-		std::string Name = ORM::Escape(GetBinding(RESTAPI::Protocol::NAME, ""));
+		std::string deviceType = ORM::Escape(GetBinding(RESTAPI::Protocol::DEVICETYPE, ""));
 		GWObjects::DefaultFirmware Firmware;
-		if (StorageService()->GetDefaultFirmware(Name, Firmware)) {
+		if (StorageService()->GetDefaultFirmware(deviceType, Firmware)) {
 			return Object(Firmware);
 		}
 		NotFound();
 	}
 
 	void RESTAPI_default_firmware::DoDelete() {
-		std::string Name = ORM::Escape(GetBinding(RESTAPI::Protocol::NAME, ""));
-		if (Name.empty()) {
+		std::string deviceType = ORM::Escape(GetBinding(RESTAPI::Protocol::DEVICETYPE, ""));
+		if (deviceType.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
-		if (StorageService()->DeleteDefaultFirmware(Name)) {
+		if (StorageService()->DeleteDefaultFirmware(deviceType)) {
 			return OK();
 		}
 		BadRequest(RESTAPI::Errors::CouldNotBeDeleted);
 	}
 
 	void RESTAPI_default_firmware::DoPost() {
-		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
+		std::string deviceType = GetBinding(RESTAPI::Protocol::DEVICETYPE, "");
 
-		if (Name.empty()) {
+		if (deviceType.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
-		if (StorageService()->DefaultFirmwareAlreadyExists(Name)) {
+		if (StorageService()->DefaultFirmwareAlreadyExists(deviceType)) {
 			return BadRequest(RESTAPI::Errors::DefFirmwareNameExists);
 		}
 
@@ -53,11 +53,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
-		if (Firmware.Models.empty()) {
-			return BadRequest(RESTAPI::Errors::ModelIDListCannotBeEmpty);
-		}
-
-		if(Firmware.uri.empty()) {
+		if(Firmware.uri.empty() || Firmware.revision.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
@@ -68,14 +64,14 @@ namespace OpenWifi {
 		}
 
 		Firmware.Created = Firmware.LastModified = Utils::Now();
-		if (StorageService()->CreateDefaultFirmware(Name, Firmware)) {
+		if (StorageService()->CreateDefaultFirmware(Firmware)) {
 			return OK();
 		}
 		BadRequest(RESTAPI::Errors::RecordNotCreated);
 	}
 
 	void RESTAPI_default_firmware::DoPut() {
-		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
+		std::string deviceType = GetBinding(RESTAPI::Protocol::DEVICETYPE, "");
 
 		const auto &Obj = ParsedBody_;
 		GWObjects::DefaultFirmware NewFirmware;
@@ -84,19 +80,15 @@ namespace OpenWifi {
 		}
 
 		GWObjects::DefaultFirmware Existing;
-		if (!StorageService()->GetDefaultFirmware(Name, Existing)) {
+		if (!StorageService()->GetDefaultFirmware(deviceType, Existing)) {
 			return NotFound();
 		}
 
 		Existing.LastModified = Utils::Now();
 		AssignIfPresent(Obj, "description", Existing.Description);
 		AssignIfPresent(Obj, "imageCreationDate", Existing.imageCreationDate);
-		if (Obj->has("modelIds")) {
-			if(NewFirmware.Models.empty()) {
-				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
-			}
-			Existing.Models = NewFirmware.Models;
-		}
+		AssignIfPresent(Obj, "revision", Existing.revision);
+
 
 		if (Obj->has("uri")) {
 			if(NewFirmware.uri.empty()) {
@@ -111,10 +103,10 @@ namespace OpenWifi {
 		}
 
 
-		if (StorageService()->UpdateDefaultFirmware(Name, Existing)) {
+		if (StorageService()->UpdateDefaultFirmware(Existing)) {
 			GWObjects::DefaultFirmware ModifiedFirmware;
 
-			StorageService()->GetDefaultFirmware(Name, ModifiedFirmware);
+			StorageService()->GetDefaultFirmware(deviceType, ModifiedFirmware);
 			return Object(ModifiedFirmware);
 		}
 

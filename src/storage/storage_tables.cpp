@@ -282,10 +282,9 @@ namespace OpenWifi {
 
 			if (dbType_ == pgsql || dbType_ == sqlite || dbType_ == mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS DefaultFirmwares ("
-						"Name VARCHAR(64) PRIMARY KEY, "
+						"deviceType VARCHAR(128) PRIMARY KEY, "
 						"uri TEXT, "
 						"revision TEXT, "
-						"Models TEXT, "
 						"Description TEXT, "
 						"Created BIGINT , "
 						"imageCreationDate BIGINT , "
