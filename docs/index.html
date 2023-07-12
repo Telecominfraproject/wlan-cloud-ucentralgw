@@ -25119,7 +25119,7 @@ pub fn main() {
                         <p class="marked">Create a default firmware.</p>
                         <p></p>
                         <br />
-                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/default_firmware/{name}</span></code></pre>
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/default_firmware/{deviceType}</span></code></pre>
                         <p>
                           <h3>Usage and SDK Samples</h3>
                         </p>
@@ -25144,7 +25144,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/default_firmware/{name}" \
+ "https://localhost:16001/api/v1/default_firmware/{deviceType}" \
  -d '{
   &quot;deviceType&quot; : &quot;deviceType&quot;,
   &quot;created&quot; : 6,
@@ -25181,11 +25181,11 @@ public class FirmwareApiExample {
 
         // Create an instance of the API class
         FirmwareApi apiInstance = new FirmwareApi();
-        String name = name_example; // String | 
+        String deviceType = deviceType_example; // String | 
         DefaultFirmware defaultFirmware = ; // DefaultFirmware | 
 
         try {
-            apiInstance.createDefaultFirmware(name, defaultFirmware);
+            apiInstance.createDefaultFirmware(deviceType, defaultFirmware);
         } catch (ApiException e) {
             System.err.println("Exception when calling FirmwareApi#createDefaultFirmware");
             e.printStackTrace();
@@ -25201,11 +25201,11 @@ public class FirmwareApiExample {
 public class FirmwareApiExample {
     public static void main(String[] args) {
         FirmwareApi apiInstance = new FirmwareApi();
-        String name = name_example; // String | 
+        String deviceType = deviceType_example; // String | 
         DefaultFirmware defaultFirmware = ; // DefaultFirmware | 
 
         try {
-            apiInstance.createDefaultFirmware(name, defaultFirmware);
+            apiInstance.createDefaultFirmware(deviceType, defaultFirmware);
         } catch (ApiException e) {
             System.err.println("Exception when calling FirmwareApi#createDefaultFirmware");
             e.printStackTrace();
@@ -25230,11 +25230,11 @@ public class FirmwareApiExample {
 
 // Create an instance of the API class
 FirmwareApi *apiInstance = [[FirmwareApi alloc] init];
-String *name = name_example; //  (default to null)
+String *deviceType = deviceType_example; //  (default to null)
 DefaultFirmware *defaultFirmware = ; //  (optional)
 
 // Create a default firmware.
-[apiInstance createDefaultFirmwareWith:name
+[apiInstance createDefaultFirmwareWith:deviceType
     defaultFirmware:defaultFirmware
               completionHandler: ^(NSError* error) {
     if (error) {
@@ -25260,7 +25260,7 @@ bearerAuth.accessToken = "YOUR ACCESS TOKEN";
 
 // Create an instance of the API class
 var api = new UCentralGatewayApi.FirmwareApi()
-var name = name_example; // {String} 
+var deviceType = deviceType_example; // {String} 
 var opts = {
   'defaultFirmware':  // {DefaultFirmware} 
 };
@@ -25272,7 +25272,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully.');
   }
 };
-api.createDefaultFirmware(name, opts, callback);
+api.createDefaultFirmware(deviceType, opts, callback);
 </code></pre>
                             </div>
 
@@ -25301,12 +25301,12 @@ namespace Example
 
             // Create an instance of the API class
             var apiInstance = new FirmwareApi();
-            var name = name_example;  // String |  (default to null)
+            var deviceType = deviceType_example;  // String |  (default to null)
             var defaultFirmware = new DefaultFirmware(); // DefaultFirmware |  (optional) 
 
             try {
                 // Create a default firmware.
-                apiInstance.createDefaultFirmware(name, defaultFirmware);
+                apiInstance.createDefaultFirmware(deviceType, defaultFirmware);
             } catch (Exception e) {
                 Debug.Print("Exception when calling FirmwareApi.createDefaultFirmware: " + e.Message );
             }
@@ -25330,11 +25330,11 @@ OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('',
 
 // Create an instance of the API class
 $api_instance = new OpenAPITools\Client\Api\FirmwareApi();
-$name = name_example; // String | 
+$deviceType = deviceType_example; // String | 
 $defaultFirmware = ; // DefaultFirmware | 
 
 try {
-    $api_instance->createDefaultFirmware($name, $defaultFirmware);
+    $api_instance->createDefaultFirmware($deviceType, $defaultFirmware);
 } catch (Exception $e) {
     echo 'Exception when calling FirmwareApi->createDefaultFirmware: ', $e->getMessage(), PHP_EOL;
 }
@@ -25356,11 +25356,11 @@ $WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
 
 # Create an instance of the API class
 my $api_instance = WWW::OPenAPIClient::FirmwareApi->new();
-my $name = name_example; # String | 
+my $deviceType = deviceType_example; # String | 
 my $defaultFirmware = WWW::OPenAPIClient::Object::DefaultFirmware->new(); # DefaultFirmware | 
 
 eval {
-    $api_instance->createDefaultFirmware(name => $name, defaultFirmware => $defaultFirmware);
+    $api_instance->createDefaultFirmware(deviceType => $deviceType, defaultFirmware => $defaultFirmware);
 };
 if ($@) {
     warn "Exception when calling FirmwareApi->createDefaultFirmware: $@\n";
@@ -25384,12 +25384,12 @@ openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
 
 # Create an instance of the API class
 api_instance = openapi_client.FirmwareApi()
-name = name_example # String |  (default to null)
+deviceType = deviceType_example # String |  (default to null)
 defaultFirmware =  # DefaultFirmware |  (optional)
 
 try:
     # Create a default firmware.
-    api_instance.create_default_firmware(name, defaultFirmware=defaultFirmware)
+    api_instance.create_default_firmware(deviceType, defaultFirmware=defaultFirmware)
 except ApiException as e:
     print("Exception when calling FirmwareApi->createDefaultFirmware: %s\n" % e)</code></pre>
                             </div>
@@ -25398,11 +25398,11 @@ except ApiException as e:
                               <pre class="prettyprint"><code class="language-rust">extern crate FirmwareApi;
 
 pub fn main() {
-    let name = name_example; // String
+    let deviceType = deviceType_example; // String
     let defaultFirmware = ; // DefaultFirmware
 
     let mut context = FirmwareApi::Context::default();
-    let result = client.createDefaultFirmware(name, defaultFirmware, &context).wait();
+    let result = client.createDefaultFirmware(deviceType, defaultFirmware, &context).wait();
 
     println!("{:?}", result);
 }
@@ -25423,11 +25423,11 @@ pub fn main() {
                                   <th width="150px">Name</th>
                                   <th>Description</th>
                                 </tr>
-                                  <tr><td style="width:150px;">name*</td>
+                                  <tr><td style="width:150px;">deviceType*</td>
 <td>
 
 
-    <div id="d2e199_createDefaultFirmware_name">
+    <div id="d2e199_createDefaultFirmware_deviceType">
         <div class="json-schema-view">
             <div class="primitive">
                 <span class="type">
@@ -25577,7 +25577,7 @@ $(document).ready(function() {
                         <p class="marked">Delete a default default firmware</p>
                         <p></p>
                         <br />
-                        <pre class="prettyprint language-html prettyprinted" data-type="delete"><code><span class="pln">/default_firmware/{name}</span></code></pre>
+                        <pre class="prettyprint language-html prettyprinted" data-type="delete"><code><span class="pln">/default_firmware/{deviceType}</span></code></pre>
                         <p>
                           <h3>Usage and SDK Samples</h3>
                         </p>
@@ -25601,7 +25601,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/default_firmware/{name}"
+ "https://localhost:16001/api/v1/default_firmware/{deviceType}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-java">
@@ -25629,10 +25629,10 @@ public class FirmwareApiExample {
 
         // Create an instance of the API class
         FirmwareApi apiInstance = new FirmwareApi();
-        String name = name_example; // String | 
+        String deviceType = deviceType_example; // String | 
 
         try {
-            apiInstance.deleteDefaultFirmware(name);
+            apiInstance.deleteDefaultFirmware(deviceType);
         } catch (ApiException e) {
             System.err.println("Exception when calling FirmwareApi#deleteDefaultFirmware");
             e.printStackTrace();
@@ -25648,10 +25648,10 @@ public class FirmwareApiExample {
 public class FirmwareApiExample {
     public static void main(String[] args) {
         FirmwareApi apiInstance = new FirmwareApi();
-        String name = name_example; // String | 
+        String deviceType = deviceType_example; // String | 
 
         try {
-            apiInstance.deleteDefaultFirmware(name);
+            apiInstance.deleteDefaultFirmware(deviceType);
         } catch (ApiException e) {
             System.err.println("Exception when calling FirmwareApi#deleteDefaultFirmware");
             e.printStackTrace();
@@ -25676,10 +25676,10 @@ public class FirmwareApiExample {
 
 // Create an instance of the API class
 FirmwareApi *apiInstance = [[FirmwareApi alloc] init];
-String *name = name_example; //  (default to null)
+String *deviceType = deviceType_example; //  (default to null)
 
 // Delete a default default firmware
-[apiInstance deleteDefaultFirmwareWith:name
+[apiInstance deleteDefaultFirmwareWith:deviceType
               completionHandler: ^(NSError* error) {
     if (error) {
         NSLog(@"Error: %@", error);
@@ -25704,7 +25704,7 @@ bearerAuth.accessToken = "YOUR ACCESS TOKEN";
 
 // Create an instance of the API class
 var api = new UCentralGatewayApi.FirmwareApi()
-var name = name_example; // {String} 
+var deviceType = deviceType_example; // {String} 
 
 var callback = function(error, data, response) {
   if (error) {
@@ -25713,7 +25713,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully.');
   }
 };
-api.deleteDefaultFirmware(name, callback);
+api.deleteDefaultFirmware(deviceType, callback);
 </code></pre>
                             </div>
 
@@ -25742,11 +25742,11 @@ namespace Example
 
             // Create an instance of the API class
             var apiInstance = new FirmwareApi();
-            var name = name_example;  // String |  (default to null)
+            var deviceType = deviceType_example;  // String |  (default to null)
 
             try {
                 // Delete a default default firmware
-                apiInstance.deleteDefaultFirmware(name);
+                apiInstance.deleteDefaultFirmware(deviceType);
             } catch (Exception e) {
                 Debug.Print("Exception when calling FirmwareApi.deleteDefaultFirmware: " + e.Message );
             }
@@ -25770,10 +25770,10 @@ OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('',
 
 // Create an instance of the API class
 $api_instance = new OpenAPITools\Client\Api\FirmwareApi();
-$name = name_example; // String | 
+$deviceType = deviceType_example; // String | 
 
 try {
-    $api_instance->deleteDefaultFirmware($name);
+    $api_instance->deleteDefaultFirmware($deviceType);
 } catch (Exception $e) {
     echo 'Exception when calling FirmwareApi->deleteDefaultFirmware: ', $e->getMessage(), PHP_EOL;
 }
@@ -25795,10 +25795,10 @@ $WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
 
 # Create an instance of the API class
 my $api_instance = WWW::OPenAPIClient::FirmwareApi->new();
-my $name = name_example; # String | 
+my $deviceType = deviceType_example; # String | 
 
 eval {
-    $api_instance->deleteDefaultFirmware(name => $name);
+    $api_instance->deleteDefaultFirmware(deviceType => $deviceType);
 };
 if ($@) {
     warn "Exception when calling FirmwareApi->deleteDefaultFirmware: $@\n";
@@ -25822,11 +25822,11 @@ openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
 
 # Create an instance of the API class
 api_instance = openapi_client.FirmwareApi()
-name = name_example # String |  (default to null)
+deviceType = deviceType_example # String |  (default to null)
 
 try:
     # Delete a default default firmware
-    api_instance.delete_default_firmware(name)
+    api_instance.delete_default_firmware(deviceType)
 except ApiException as e:
     print("Exception when calling FirmwareApi->deleteDefaultFirmware: %s\n" % e)</code></pre>
                             </div>
@@ -25835,10 +25835,10 @@ except ApiException as e:
                               <pre class="prettyprint"><code class="language-rust">extern crate FirmwareApi;
 
 pub fn main() {
-    let name = name_example; // String
+    let deviceType = deviceType_example; // String
 
     let mut context = FirmwareApi::Context::default();
-    let result = client.deleteDefaultFirmware(name, &context).wait();
+    let result = client.deleteDefaultFirmware(deviceType, &context).wait();
 
     println!("{:?}", result);
 }
@@ -25859,11 +25859,11 @@ pub fn main() {
                                   <th width="150px">Name</th>
                                   <th>Description</th>
                                 </tr>
-                                  <tr><td style="width:150px;">name*</td>
+                                  <tr><td style="width:150px;">deviceType*</td>
 <td>
 
 
-    <div id="d2e199_deleteDefaultFirmware_name">
+    <div id="d2e199_deleteDefaultFirmware_deviceType">
         <div class="json-schema-view">
             <div class="primitive">
                 <span class="type">
@@ -25967,7 +25967,7 @@ pub fn main() {
                         <p class="marked">Retrieve a default firmware.</p>
                         <p></p>
                         <br />
-                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/default_firmware/{name}</span></code></pre>
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/default_firmware/{deviceType}</span></code></pre>
                         <p>
                           <h3>Usage and SDK Samples</h3>
                         </p>
@@ -25992,7 +25992,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/default_firmware/{name}"
+ "https://localhost:16001/api/v1/default_firmware/{deviceType}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-java">
@@ -26020,10 +26020,10 @@ public class FirmwareApiExample {
 
         // Create an instance of the API class
         FirmwareApi apiInstance = new FirmwareApi();
-        String name = name_example; // String | 
+        String deviceType = deviceType_example; // String | 
 
         try {
-            DefaultFirmware result = apiInstance.getDefaultFirmware(name);
+            DefaultFirmware result = apiInstance.getDefaultFirmware(deviceType);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling FirmwareApi#getDefaultFirmware");
@@ -26040,10 +26040,10 @@ public class FirmwareApiExample {
 public class FirmwareApiExample {
     public static void main(String[] args) {
         FirmwareApi apiInstance = new FirmwareApi();
-        String name = name_example; // String | 
+        String deviceType = deviceType_example; // String | 
 
         try {
-            DefaultFirmware result = apiInstance.getDefaultFirmware(name);
+            DefaultFirmware result = apiInstance.getDefaultFirmware(deviceType);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling FirmwareApi#getDefaultFirmware");
@@ -26069,10 +26069,10 @@ public class FirmwareApiExample {
 
 // Create an instance of the API class
 FirmwareApi *apiInstance = [[FirmwareApi alloc] init];
-String *name = name_example; //  (default to null)
+String *deviceType = deviceType_example; //  (default to null)
 
 // Retrieve a default firmware.
-[apiInstance getDefaultFirmwareWith:name
+[apiInstance getDefaultFirmwareWith:deviceType
               completionHandler: ^(DefaultFirmware output, NSError* error) {
     if (output) {
         NSLog(@"%@", output);
@@ -26100,7 +26100,7 @@ bearerAuth.accessToken = "YOUR ACCESS TOKEN";
 
 // Create an instance of the API class
 var api = new UCentralGatewayApi.FirmwareApi()
-var name = name_example; // {String} 
+var deviceType = deviceType_example; // {String} 
 
 var callback = function(error, data, response) {
   if (error) {
@@ -26109,7 +26109,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully. Returned data: ' + data);
   }
 };
-api.getDefaultFirmware(name, callback);
+api.getDefaultFirmware(deviceType, callback);
 </code></pre>
                             </div>
 
@@ -26138,11 +26138,11 @@ namespace Example
 
             // Create an instance of the API class
             var apiInstance = new FirmwareApi();
-            var name = name_example;  // String |  (default to null)
+            var deviceType = deviceType_example;  // String |  (default to null)
 
             try {
                 // Retrieve a default firmware.
-                DefaultFirmware result = apiInstance.getDefaultFirmware(name);
+                DefaultFirmware result = apiInstance.getDefaultFirmware(deviceType);
                 Debug.WriteLine(result);
             } catch (Exception e) {
                 Debug.Print("Exception when calling FirmwareApi.getDefaultFirmware: " + e.Message );
@@ -26167,10 +26167,10 @@ OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('',
 
 // Create an instance of the API class
 $api_instance = new OpenAPITools\Client\Api\FirmwareApi();
-$name = name_example; // String | 
+$deviceType = deviceType_example; // String | 
 
 try {
-    $result = $api_instance->getDefaultFirmware($name);
+    $result = $api_instance->getDefaultFirmware($deviceType);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling FirmwareApi->getDefaultFirmware: ', $e->getMessage(), PHP_EOL;
@@ -26193,10 +26193,10 @@ $WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
 
 # Create an instance of the API class
 my $api_instance = WWW::OPenAPIClient::FirmwareApi->new();
-my $name = name_example; # String | 
+my $deviceType = deviceType_example; # String | 
 
 eval {
-    my $result = $api_instance->getDefaultFirmware(name => $name);
+    my $result = $api_instance->getDefaultFirmware(deviceType => $deviceType);
     print Dumper($result);
 };
 if ($@) {
@@ -26221,11 +26221,11 @@ openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
 
 # Create an instance of the API class
 api_instance = openapi_client.FirmwareApi()
-name = name_example # String |  (default to null)
+deviceType = deviceType_example # String |  (default to null)
 
 try:
     # Retrieve a default firmware.
-    api_response = api_instance.get_default_firmware(name)
+    api_response = api_instance.get_default_firmware(deviceType)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling FirmwareApi->getDefaultFirmware: %s\n" % e)</code></pre>
@@ -26235,10 +26235,10 @@ except ApiException as e:
                               <pre class="prettyprint"><code class="language-rust">extern crate FirmwareApi;
 
 pub fn main() {
-    let name = name_example; // String
+    let deviceType = deviceType_example; // String
 
     let mut context = FirmwareApi::Context::default();
-    let result = client.getDefaultFirmware(name, &context).wait();
+    let result = client.getDefaultFirmware(deviceType, &context).wait();
 
     println!("{:?}", result);
 }
@@ -26259,11 +26259,11 @@ pub fn main() {
                                   <th width="150px">Name</th>
                                   <th>Description</th>
                                 </tr>
-                                  <tr><td style="width:150px;">name*</td>
+                                  <tr><td style="width:150px;">deviceType*</td>
 <td>
 
 
-    <div id="d2e199_getDefaultFirmware_name">
+    <div id="d2e199_getDefaultFirmware_deviceType">
         <div class="json-schema-view">
             <div class="primitive">
                 <span class="type">
@@ -26810,7 +26810,7 @@ pub fn main() {
                         <p class="marked">Update a default firmware</p>
                         <p></p>
                         <br />
-                        <pre class="prettyprint language-html prettyprinted" data-type="put"><code><span class="pln">/default_firmware/{name}</span></code></pre>
+                        <pre class="prettyprint language-html prettyprinted" data-type="put"><code><span class="pln">/default_firmware/{deviceType}</span></code></pre>
                         <p>
                           <h3>Usage and SDK Samples</h3>
                         </p>
@@ -26835,7 +26835,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/default_firmware/{name}" \
+ "https://localhost:16001/api/v1/default_firmware/{deviceType}" \
  -d '{
   &quot;deviceType&quot; : &quot;deviceType&quot;,
   &quot;created&quot; : 6,
@@ -26872,11 +26872,11 @@ public class FirmwareApiExample {
 
         // Create an instance of the API class
         FirmwareApi apiInstance = new FirmwareApi();
-        String name = name_example; // String | 
+        String deviceType = deviceType_example; // String | 
         DefaultFirmware defaultFirmware = ; // DefaultFirmware | 
 
         try {
-            apiInstance.updateDefaultFirmware(name, defaultFirmware);
+            apiInstance.updateDefaultFirmware(deviceType, defaultFirmware);
         } catch (ApiException e) {
             System.err.println("Exception when calling FirmwareApi#updateDefaultFirmware");
             e.printStackTrace();
@@ -26892,11 +26892,11 @@ public class FirmwareApiExample {
 public class FirmwareApiExample {
     public static void main(String[] args) {
         FirmwareApi apiInstance = new FirmwareApi();
-        String name = name_example; // String | 
+        String deviceType = deviceType_example; // String | 
         DefaultFirmware defaultFirmware = ; // DefaultFirmware | 
 
         try {
-            apiInstance.updateDefaultFirmware(name, defaultFirmware);
+            apiInstance.updateDefaultFirmware(deviceType, defaultFirmware);
         } catch (ApiException e) {
             System.err.println("Exception when calling FirmwareApi#updateDefaultFirmware");
             e.printStackTrace();
@@ -26921,11 +26921,11 @@ public class FirmwareApiExample {
 
 // Create an instance of the API class
 FirmwareApi *apiInstance = [[FirmwareApi alloc] init];
-String *name = name_example; //  (default to null)
+String *deviceType = deviceType_example; //  (default to null)
 DefaultFirmware *defaultFirmware = ; //  (optional)
 
 // Update a default firmware
-[apiInstance updateDefaultFirmwareWith:name
+[apiInstance updateDefaultFirmwareWith:deviceType
     defaultFirmware:defaultFirmware
               completionHandler: ^(NSError* error) {
     if (error) {
@@ -26951,7 +26951,7 @@ bearerAuth.accessToken = "YOUR ACCESS TOKEN";
 
 // Create an instance of the API class
 var api = new UCentralGatewayApi.FirmwareApi()
-var name = name_example; // {String} 
+var deviceType = deviceType_example; // {String} 
 var opts = {
   'defaultFirmware':  // {DefaultFirmware} 
 };
@@ -26963,7 +26963,7 @@ var callback = function(error, data, response) {
     console.log('API called successfully.');
   }
 };
-api.updateDefaultFirmware(name, opts, callback);
+api.updateDefaultFirmware(deviceType, opts, callback);
 </code></pre>
                             </div>
 
@@ -26992,12 +26992,12 @@ namespace Example
 
             // Create an instance of the API class
             var apiInstance = new FirmwareApi();
-            var name = name_example;  // String |  (default to null)
+            var deviceType = deviceType_example;  // String |  (default to null)
             var defaultFirmware = new DefaultFirmware(); // DefaultFirmware |  (optional) 
 
             try {
                 // Update a default firmware
-                apiInstance.updateDefaultFirmware(name, defaultFirmware);
+                apiInstance.updateDefaultFirmware(deviceType, defaultFirmware);
             } catch (Exception e) {
                 Debug.Print("Exception when calling FirmwareApi.updateDefaultFirmware: " + e.Message );
             }
@@ -27021,11 +27021,11 @@ OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('',
 
 // Create an instance of the API class
 $api_instance = new OpenAPITools\Client\Api\FirmwareApi();
-$name = name_example; // String | 
+$deviceType = deviceType_example; // String | 
 $defaultFirmware = ; // DefaultFirmware | 
 
 try {
-    $api_instance->updateDefaultFirmware($name, $defaultFirmware);
+    $api_instance->updateDefaultFirmware($deviceType, $defaultFirmware);
 } catch (Exception $e) {
     echo 'Exception when calling FirmwareApi->updateDefaultFirmware: ', $e->getMessage(), PHP_EOL;
 }
@@ -27047,11 +27047,11 @@ $WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
 
 # Create an instance of the API class
 my $api_instance = WWW::OPenAPIClient::FirmwareApi->new();
-my $name = name_example; # String | 
+my $deviceType = deviceType_example; # String | 
 my $defaultFirmware = WWW::OPenAPIClient::Object::DefaultFirmware->new(); # DefaultFirmware | 
 
 eval {
-    $api_instance->updateDefaultFirmware(name => $name, defaultFirmware => $defaultFirmware);
+    $api_instance->updateDefaultFirmware(deviceType => $deviceType, defaultFirmware => $defaultFirmware);
 };
 if ($@) {
     warn "Exception when calling FirmwareApi->updateDefaultFirmware: $@\n";
@@ -27075,12 +27075,12 @@ openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
 
 # Create an instance of the API class
 api_instance = openapi_client.FirmwareApi()
-name = name_example # String |  (default to null)
+deviceType = deviceType_example # String |  (default to null)
 defaultFirmware =  # DefaultFirmware |  (optional)
 
 try:
     # Update a default firmware
-    api_instance.update_default_firmware(name, defaultFirmware=defaultFirmware)
+    api_instance.update_default_firmware(deviceType, defaultFirmware=defaultFirmware)
 except ApiException as e:
     print("Exception when calling FirmwareApi->updateDefaultFirmware: %s\n" % e)</code></pre>
                             </div>
@@ -27089,11 +27089,11 @@ except ApiException as e:
                               <pre class="prettyprint"><code class="language-rust">extern crate FirmwareApi;
 
 pub fn main() {
-    let name = name_example; // String
+    let deviceType = deviceType_example; // String
     let defaultFirmware = ; // DefaultFirmware
 
     let mut context = FirmwareApi::Context::default();
-    let result = client.updateDefaultFirmware(name, defaultFirmware, &context).wait();
+    let result = client.updateDefaultFirmware(deviceType, defaultFirmware, &context).wait();
 
     println!("{:?}", result);
 }
@@ -27114,11 +27114,11 @@ pub fn main() {
                                   <th width="150px">Name</th>
                                   <th>Description</th>
                                 </tr>
-                                  <tr><td style="width:150px;">name*</td>
+                                  <tr><td style="width:150px;">deviceType*</td>
 <td>
 
 
-    <div id="d2e199_updateDefaultFirmware_name">
+    <div id="d2e199_updateDefaultFirmware_deviceType">
         <div class="json-schema-view">
             <div class="primitive">
                 <span class="type">
