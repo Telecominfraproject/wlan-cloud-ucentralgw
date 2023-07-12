@@ -556,14 +556,10 @@ components:
     DefaultFirmware:
       type: object
       properties:
-        name:
+        deviceType:
           type: string
         description:
           type: string
-        modelIds:
-          type: array
-          items:
-            type: string
         uri:
           type: string
         revision:
