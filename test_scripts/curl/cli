@@ -900,6 +900,22 @@ radiuscoadm() {
 		jq < ${result_file}
 }
 
+listdefaultfirmwares() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_firmwares" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
+getdefaultfirmware() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_firmware/$1" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
 check_response() {
 
 	if [ -s "$1" ]; then
@@ -1183,6 +1199,8 @@ case "$1" in
 	"radiussearchmac") login; radiussearchmac "$2"; logout;;
 	"deletesimdevices") login; deletesimdevices "$2"; logout;;
 	"deletebulkdevices") login; deletebulkdevices "$2"; logout;;
+	"listdefaultfirmwares") login; listdefaultfirmwares; logout;;
+	"getdefaultfirmware") login; getdefaultfirmware "$2"; logout;;
 	"testtoken") testtoken;;
   	*) help ;;
 esac
