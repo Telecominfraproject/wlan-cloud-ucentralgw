@@ -35,6 +35,7 @@
 #include "VenueBroadcaster.h"
 #include "AP_WS_ConfigAutoUpgrader.h"
 #include "rttys/RTTYS_server.h"
+#include "firmware_revision_cache.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
@@ -42,13 +43,14 @@ namespace OpenWifi {
 			vDAEMON_PROPERTIES_FILENAME, vDAEMON_ROOT_ENV_VAR, vDAEMON_CONFIG_ENV_VAR,
 			vDAEMON_APP_NAME, vDAEMON_BUS_TIMER,
 			SubSystemVec{GenericScheduler(), StorageService(), SerialNumberCache(), ConfigurationValidator(),
-						 UI_WebSocketClientServer(), OUIServer(), FindCountryFromIP(),
-						 CommandManager(), FileUploader(), StorageArchiver(), TelemetryStream(),
-						 RTTYS_server(), RADIUS_proxy_server(), VenueBroadcaster(), ScriptManager(),
-						 SignatureManager(), AP_WS_Server(),
-						 RegulatoryInfo(),
-						 RADIUSSessionTracker(),
-						 AP_WS_ConfigAutoUpgrader()
+				UI_WebSocketClientServer(), OUIServer(), FindCountryFromIP(),
+				CommandManager(), FileUploader(), StorageArchiver(), TelemetryStream(),
+				RTTYS_server(), RADIUS_proxy_server(), VenueBroadcaster(), ScriptManager(),
+				SignatureManager(), AP_WS_Server(),
+				RegulatoryInfo(),
+				RADIUSSessionTracker(),
+				AP_WS_ConfigAutoUpgrader(),
+				FirmwareRevisionCache()
 			});
 		return &instance;
 	}

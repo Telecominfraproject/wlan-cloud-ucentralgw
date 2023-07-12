@@ -14,6 +14,8 @@
 #include "framework/KafkaManager.h"
 #include "framework/utils.h"
 
+#include "firmware_revision_cache.h"
+
 #include "UI_GW_WebSocketNotifications.h"
 #include <GWKafkaEvents.h>
 
@@ -109,7 +111,55 @@ namespace OpenWifi {
 			GWObjects::Device DeviceInfo;
 			auto DeviceExists = StorageService()->GetDevice(SerialNumber_, DeviceInfo);
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
-				StorageService()->CreateDefaultDevice(SerialNumber_, Caps, Firmware, PeerAddress_, State_.VerifiedCertificate==GWObjects::SIMULATED );
+				//	check the firmware version. if this is too old, we cannot let that device connect yet, we must
+				//	force a firmware upgrade
+				GWObjects::DefaultFirmware	MinimumFirmware;
+				if(FirmwareRevisionCache()->DeviceMustUpgrade(Compatible_, Firmware, MinimumFirmware)) {
+/*
+
+					{    "jsonrpc" : "2.0" ,
+						 "method" : "upgrade" ,
+						 "params" : {
+								"serial" : <serial number> ,
+								"when"  : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
+								"uri"   : <URI to download the firmware>,
+								"FWsignature" : <string representation of the signature for the FW> (optional)
+						 },
+						 "id" : <some number>
+					}
+
+ */
+					Poco::JSON::Object	UpgradeCommand, Params;
+					UpgradeCommand.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
+					UpgradeCommand.set(uCentralProtocol::METHOD,uCentralProtocol::UPGRADE);
+					Params.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
+					Params.set(uCentralProtocol::WHEN, 0);
+					Params.set(uCentralProtocol::URI, MinimumFirmware.uri);
+					Params.set(uCentralProtocol::KEEP_REDIRECTOR,1);
+					UpgradeCommand.set(uCentralProtocol::PARAMS, Params);
+					UpgradeCommand.set(uCentralProtocol::ID, 1);
+
+					std::ostringstream Command;
+					UpgradeCommand.stringify(Command);
+					if(Send(Command.str())) {
+						poco_information(
+							Logger(),
+							fmt::format(
+								"Forcing device {} to upgrade to {} before connection is allowed.",
+								SerialNumber_, MinimumFirmware.revision));
+					} else {
+						poco_error(
+							Logger(),
+							fmt::format(
+								"Could not force device {} to upgrade to {} before connection is allowed.",
+								SerialNumber_, MinimumFirmware.revision));
+					}
+					return;
+				} else {
+					StorageService()->CreateDefaultDevice(
+						SerialNumber_, Caps, Firmware, PeerAddress_,
+						State_.VerifiedCertificate == GWObjects::SIMULATED);
+				}
 			} else if (!Daemon()->AutoProvisioning() && !DeviceExists) {
 				SendKafkaDeviceNotProvisioned(SerialNumber_, Firmware, Compatible_, CId_);
 				poco_warning(Logger(),fmt::format("Device {} is a {} from {} and cannot be provisioned.",SerialNumber_,Compatible_, CId_));
