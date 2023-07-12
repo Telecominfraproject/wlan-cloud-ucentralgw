@@ -1086,6 +1086,49 @@ ul.nav-tabs {
     }
   }
 };
+    defs["DefaultFirmware"] = {
+  "type" : "object",
+  "properties" : {
+    "name" : {
+      "type" : "string"
+    },
+    "description" : {
+      "type" : "string"
+    },
+    "modelIds" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
+      }
+    },
+    "uri" : {
+      "type" : "string"
+    },
+    "imageCreationDate" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "created" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "lastModified" : {
+      "type" : "integer",
+      "format" : "int64"
+    }
+  }
+};
+    defs["DefaultFirmwareList"] = {
+  "type" : "object",
+  "properties" : {
+    "firmwares" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/components/schemas/DefaultFirmware"
+      }
+    }
+  }
+};
     defs["Device"] = {
   "required" : [ "deviceType" ],
   "type" : "object",
@@ -2850,6 +2893,22 @@ ul.nav-tabs {
                     <li data-group="Files" data-name="getUploadFile" class="">
                       <a href="#api-Files-getUploadFile">getUploadFile</a>
                     </li>
+                  <li class="nav-header" data-group="Firmware"><a href="#api-Firmware">API Methods - Firmware</a></li>
+                    <li data-group="Firmware" data-name="createDefaultFirmware" class="">
+                      <a href="#api-Firmware-createDefaultFirmware">createDefaultFirmware</a>
+                    </li>
+                    <li data-group="Firmware" data-name="deleteDefaultFirmware" class="">
+                      <a href="#api-Firmware-deleteDefaultFirmware">deleteDefaultFirmware</a>
+                    </li>
+                    <li data-group="Firmware" data-name="getDefaultFirmware" class="">
+                      <a href="#api-Firmware-getDefaultFirmware">getDefaultFirmware</a>
+                    </li>
+                    <li data-group="Firmware" data-name="getDefaultFirmwares" class="">
+                      <a href="#api-Firmware-getDefaultFirmwares">getDefaultFirmwares</a>
+                    </li>
+                    <li data-group="Firmware" data-name="updateDefaultFirmware" class="">
+                      <a href="#api-Firmware-updateDefaultFirmware">updateDefaultFirmware</a>
+                    </li>
                   <li class="nav-header" data-group="OUIs"><a href="#api-OUIs">API Methods - OUIs</a></li>
                     <li data-group="OUIs" data-name="getOUIs" class="">
                       <a href="#api-OUIs-getOUIs">getOUIs</a>
@@ -2921,7 +2980,7 @@ ul.nav-tabs {
         <div id="header">
           <div id="api-_">
             <h2 id="welcome-to-apidoc">API and SDK Documentation</h2>
-              <div class="app-desc">Version: 2.10.0</div>
+              <div class="app-desc">Version: 2.11.0</div>
             <hr>
             <div id="app-description" class="app-desc">
                 A process to manage configuration for devices.
@@ -25044,6 +25103,2158 @@ pub fn main() {
 
 
                             <div class="tab-content" id="responses-Files-getUploadFile-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                  </section>
+                <section id="api-Firmware">
+                  <h1>Firmware</h1>
+                    <div id="api-Firmware-createDefaultFirmware">
+                      <article id="api-Firmware-createDefaultFirmware-0" data-group="User" data-name="createDefaultFirmware" data-version="0">
+                        <div class="pull-left">
+                          <h1>createDefaultFirmware</h1>
+                          <p>Create a default firmware.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Create a default firmware.</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/default_firmware/{name}</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Firmware-createDefaultFirmware-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Firmware-createDefaultFirmware-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Firmware-createDefaultFirmware-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Firmware-createDefaultFirmware-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Firmware-createDefaultFirmware-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Firmware-createDefaultFirmware-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Firmware-createDefaultFirmware-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Firmware-createDefaultFirmware-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Firmware-createDefaultFirmware-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Firmware-createDefaultFirmware-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Firmware-createDefaultFirmware-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Firmware-createDefaultFirmware-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Firmware-createDefaultFirmware-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X POST \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Content-Type: application/json" \
+ "https://localhost:16001/api/v1/default_firmware/{name}" \
+ -d '{
+  &quot;modelIds&quot; : [ &quot;modelIds&quot;, &quot;modelIds&quot; ],
+  &quot;created&quot; : 6,
+  &quot;name&quot; : &quot;name&quot;,
+  &quot;description&quot; : &quot;description&quot;,
+  &quot;lastModified&quot; : 1,
+  &quot;uri&quot; : &quot;uri&quot;,
+  &quot;imageCreationDate&quot; : 0
+}'
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.FirmwareApi;
+
+import java.io.File;
+import java.util.*;
+
+public class FirmwareApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        FirmwareApi apiInstance = new FirmwareApi();
+        String name = name_example; // String | 
+        DefaultFirmware defaultFirmware = ; // DefaultFirmware | 
+
+        try {
+            apiInstance.createDefaultFirmware(name, defaultFirmware);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling FirmwareApi#createDefaultFirmware");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.FirmwareApi;
+
+public class FirmwareApiExample {
+    public static void main(String[] args) {
+        FirmwareApi apiInstance = new FirmwareApi();
+        String name = name_example; // String | 
+        DefaultFirmware defaultFirmware = ; // DefaultFirmware | 
+
+        try {
+            apiInstance.createDefaultFirmware(name, defaultFirmware);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling FirmwareApi#createDefaultFirmware");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+FirmwareApi *apiInstance = [[FirmwareApi alloc] init];
+String *name = name_example; //  (default to null)
+DefaultFirmware *defaultFirmware = ; //  (optional)
+
+// Create a default firmware.
+[apiInstance createDefaultFirmwareWith:name
+    defaultFirmware:defaultFirmware
+              completionHandler: ^(NSError* error) {
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.FirmwareApi()
+var name = name_example; // {String} 
+var opts = {
+  'defaultFirmware':  // {DefaultFirmware} 
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.createDefaultFirmware(name, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class createDefaultFirmwareExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new FirmwareApi();
+            var name = name_example;  // String |  (default to null)
+            var defaultFirmware = new DefaultFirmware(); // DefaultFirmware |  (optional) 
+
+            try {
+                // Create a default firmware.
+                apiInstance.createDefaultFirmware(name, defaultFirmware);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling FirmwareApi.createDefaultFirmware: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\FirmwareApi();
+$name = name_example; // String | 
+$defaultFirmware = ; // DefaultFirmware | 
+
+try {
+    $api_instance->createDefaultFirmware($name, $defaultFirmware);
+} catch (Exception $e) {
+    echo 'Exception when calling FirmwareApi->createDefaultFirmware: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::FirmwareApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::FirmwareApi->new();
+my $name = name_example; # String | 
+my $defaultFirmware = WWW::OPenAPIClient::Object::DefaultFirmware->new(); # DefaultFirmware | 
+
+eval {
+    $api_instance->createDefaultFirmware(name => $name, defaultFirmware => $defaultFirmware);
+};
+if ($@) {
+    warn "Exception when calling FirmwareApi->createDefaultFirmware: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.FirmwareApi()
+name = name_example # String |  (default to null)
+defaultFirmware =  # DefaultFirmware |  (optional)
+
+try:
+    # Create a default firmware.
+    api_instance.create_default_firmware(name, defaultFirmware=defaultFirmware)
+except ApiException as e:
+    print("Exception when calling FirmwareApi->createDefaultFirmware: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-createDefaultFirmware-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate FirmwareApi;
+
+pub fn main() {
+    let name = name_example; // String
+    let defaultFirmware = ; // DefaultFirmware
+
+    let mut context = FirmwareApi::Context::default();
+    let result = client.createDefaultFirmware(name, defaultFirmware, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">name*</td>
+<td>
+
+
+    <div id="d2e199_createDefaultFirmware_name">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">defaultFirmware </td>
+<td>
+<p class="marked">Information used to create the new firmware entry</p>
+<script>
+$(document).ready(function() {
+  var schemaWrapper = {
+  "description" : "Information used to create the new firmware entry",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/DefaultFirmware"
+      }
+    }
+  }
+};
+
+  var schema = findNode('schema',schemaWrapper).schema;
+  if (!schema) {
+    schema = schemaWrapper.schema;
+  }
+  if (schema.$ref != null) {
+    schema = defsParser.$refs.get(schema.$ref);
+  } else {
+    schemaWrapper.definitions = Object.assign({}, defs);
+    $RefParser.dereference(schemaWrapper).catch(function(err) {
+      console.log(err);
+    });
+  }
+
+  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+  var result = $('#d2e199_createDefaultFirmware_defaultFirmware');
+  result.empty();
+  result.append(view.render());
+});
+</script>
+<div id="d2e199_createDefaultFirmware_defaultFirmware"></div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Firmware-createDefaultFirmware-title-200"></h3>
+                            <p id="examples-Firmware-createDefaultFirmware-description-200" class="marked"></p>
+                            <script>
+                              var responseFirmware200_description = ``;
+                              var responseFirmware200_description_break = responseFirmware200_description.indexOf('\n');
+                              if (responseFirmware200_description_break == -1) {
+                                $("#examples-Firmware-createDefaultFirmware-title-200").text("Status: 200 - " + responseFirmware200_description);
+                              } else {
+                                $("#examples-Firmware-createDefaultFirmware-title-200").text("Status: 200 - " + responseFirmware200_description.substring(0, responseFirmware200_description_break));
+                                $("#examples-Firmware-createDefaultFirmware-description-200").html(responseFirmware200_description.substring(responseFirmware200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-createDefaultFirmware-200" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-createDefaultFirmware-200-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Firmware-createDefaultFirmware-title-403"></h3>
+                            <p id="examples-Firmware-createDefaultFirmware-description-403" class="marked"></p>
+                            <script>
+                              var responseFirmware403_description = ``;
+                              var responseFirmware403_description_break = responseFirmware403_description.indexOf('\n');
+                              if (responseFirmware403_description_break == -1) {
+                                $("#examples-Firmware-createDefaultFirmware-title-403").text("Status: 403 - " + responseFirmware403_description);
+                              } else {
+                                $("#examples-Firmware-createDefaultFirmware-title-403").text("Status: 403 - " + responseFirmware403_description.substring(0, responseFirmware403_description_break));
+                                $("#examples-Firmware-createDefaultFirmware-description-403").html(responseFirmware403_description.substring(responseFirmware403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-createDefaultFirmware-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-createDefaultFirmware-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Firmware-createDefaultFirmware-title-404"></h3>
+                            <p id="examples-Firmware-createDefaultFirmware-description-404" class="marked"></p>
+                            <script>
+                              var responseFirmware404_description = ``;
+                              var responseFirmware404_description_break = responseFirmware404_description.indexOf('\n');
+                              if (responseFirmware404_description_break == -1) {
+                                $("#examples-Firmware-createDefaultFirmware-title-404").text("Status: 404 - " + responseFirmware404_description);
+                              } else {
+                                $("#examples-Firmware-createDefaultFirmware-title-404").text("Status: 404 - " + responseFirmware404_description.substring(0, responseFirmware404_description_break));
+                                $("#examples-Firmware-createDefaultFirmware-description-404").html(responseFirmware404_description.substring(responseFirmware404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-createDefaultFirmware-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-createDefaultFirmware-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Firmware-deleteDefaultFirmware">
+                      <article id="api-Firmware-deleteDefaultFirmware-0" data-group="User" data-name="deleteDefaultFirmware" data-version="0">
+                        <div class="pull-left">
+                          <h1>deleteDefaultFirmware</h1>
+                          <p>Delete a default default firmware</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Delete a default default firmware</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="delete"><code><span class="pln">/default_firmware/{name}</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Firmware-deleteDefaultFirmware-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Firmware-deleteDefaultFirmware-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Firmware-deleteDefaultFirmware-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ "https://localhost:16001/api/v1/default_firmware/{name}"
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.FirmwareApi;
+
+import java.io.File;
+import java.util.*;
+
+public class FirmwareApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        FirmwareApi apiInstance = new FirmwareApi();
+        String name = name_example; // String | 
+
+        try {
+            apiInstance.deleteDefaultFirmware(name);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling FirmwareApi#deleteDefaultFirmware");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.FirmwareApi;
+
+public class FirmwareApiExample {
+    public static void main(String[] args) {
+        FirmwareApi apiInstance = new FirmwareApi();
+        String name = name_example; // String | 
+
+        try {
+            apiInstance.deleteDefaultFirmware(name);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling FirmwareApi#deleteDefaultFirmware");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+FirmwareApi *apiInstance = [[FirmwareApi alloc] init];
+String *name = name_example; //  (default to null)
+
+// Delete a default default firmware
+[apiInstance deleteDefaultFirmwareWith:name
+              completionHandler: ^(NSError* error) {
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.FirmwareApi()
+var name = name_example; // {String} 
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.deleteDefaultFirmware(name, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class deleteDefaultFirmwareExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new FirmwareApi();
+            var name = name_example;  // String |  (default to null)
+
+            try {
+                // Delete a default default firmware
+                apiInstance.deleteDefaultFirmware(name);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling FirmwareApi.deleteDefaultFirmware: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\FirmwareApi();
+$name = name_example; // String | 
+
+try {
+    $api_instance->deleteDefaultFirmware($name);
+} catch (Exception $e) {
+    echo 'Exception when calling FirmwareApi->deleteDefaultFirmware: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::FirmwareApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::FirmwareApi->new();
+my $name = name_example; # String | 
+
+eval {
+    $api_instance->deleteDefaultFirmware(name => $name);
+};
+if ($@) {
+    warn "Exception when calling FirmwareApi->deleteDefaultFirmware: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.FirmwareApi()
+name = name_example # String |  (default to null)
+
+try:
+    # Delete a default default firmware
+    api_instance.delete_default_firmware(name)
+except ApiException as e:
+    print("Exception when calling FirmwareApi->deleteDefaultFirmware: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate FirmwareApi;
+
+pub fn main() {
+    let name = name_example; // String
+
+    let mut context = FirmwareApi::Context::default();
+    let result = client.deleteDefaultFirmware(name, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">name*</td>
+<td>
+
+
+    <div id="d2e199_deleteDefaultFirmware_name">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Firmware-deleteDefaultFirmware-title-204"></h3>
+                            <p id="examples-Firmware-deleteDefaultFirmware-description-204" class="marked"></p>
+                            <script>
+                              var responseFirmware204_description = ``;
+                              var responseFirmware204_description_break = responseFirmware204_description.indexOf('\n');
+                              if (responseFirmware204_description_break == -1) {
+                                $("#examples-Firmware-deleteDefaultFirmware-title-204").text("Status: 204 - " + responseFirmware204_description);
+                              } else {
+                                $("#examples-Firmware-deleteDefaultFirmware-title-204").text("Status: 204 - " + responseFirmware204_description.substring(0, responseFirmware204_description_break));
+                                $("#examples-Firmware-deleteDefaultFirmware-description-204").html(responseFirmware204_description.substring(responseFirmware204_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-deleteDefaultFirmware-204" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-deleteDefaultFirmware-204-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Firmware-deleteDefaultFirmware-title-403"></h3>
+                            <p id="examples-Firmware-deleteDefaultFirmware-description-403" class="marked"></p>
+                            <script>
+                              var responseFirmware403_description = ``;
+                              var responseFirmware403_description_break = responseFirmware403_description.indexOf('\n');
+                              if (responseFirmware403_description_break == -1) {
+                                $("#examples-Firmware-deleteDefaultFirmware-title-403").text("Status: 403 - " + responseFirmware403_description);
+                              } else {
+                                $("#examples-Firmware-deleteDefaultFirmware-title-403").text("Status: 403 - " + responseFirmware403_description.substring(0, responseFirmware403_description_break));
+                                $("#examples-Firmware-deleteDefaultFirmware-description-403").html(responseFirmware403_description.substring(responseFirmware403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-deleteDefaultFirmware-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-deleteDefaultFirmware-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Firmware-deleteDefaultFirmware-title-404"></h3>
+                            <p id="examples-Firmware-deleteDefaultFirmware-description-404" class="marked"></p>
+                            <script>
+                              var responseFirmware404_description = ``;
+                              var responseFirmware404_description_break = responseFirmware404_description.indexOf('\n');
+                              if (responseFirmware404_description_break == -1) {
+                                $("#examples-Firmware-deleteDefaultFirmware-title-404").text("Status: 404 - " + responseFirmware404_description);
+                              } else {
+                                $("#examples-Firmware-deleteDefaultFirmware-title-404").text("Status: 404 - " + responseFirmware404_description.substring(0, responseFirmware404_description_break));
+                                $("#examples-Firmware-deleteDefaultFirmware-description-404").html(responseFirmware404_description.substring(responseFirmware404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-deleteDefaultFirmware-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-deleteDefaultFirmware-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Firmware-getDefaultFirmware">
+                      <article id="api-Firmware-getDefaultFirmware-0" data-group="User" data-name="getDefaultFirmware" data-version="0">
+                        <div class="pull-left">
+                          <h1>getDefaultFirmware</h1>
+                          <p>Retrieve a default firmware.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Retrieve a default firmware.</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/default_firmware/{name}</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Firmware-getDefaultFirmware-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmware-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmware-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Firmware-getDefaultFirmware-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmware-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmware-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Firmware-getDefaultFirmware-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmware-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmware-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmware-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmware-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmware-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Firmware-getDefaultFirmware-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X GET \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Accept: application/json" \
+ "https://localhost:16001/api/v1/default_firmware/{name}"
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.FirmwareApi;
+
+import java.io.File;
+import java.util.*;
+
+public class FirmwareApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        FirmwareApi apiInstance = new FirmwareApi();
+        String name = name_example; // String | 
+
+        try {
+            DefaultFirmware result = apiInstance.getDefaultFirmware(name);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling FirmwareApi#getDefaultFirmware");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.FirmwareApi;
+
+public class FirmwareApiExample {
+    public static void main(String[] args) {
+        FirmwareApi apiInstance = new FirmwareApi();
+        String name = name_example; // String | 
+
+        try {
+            DefaultFirmware result = apiInstance.getDefaultFirmware(name);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling FirmwareApi#getDefaultFirmware");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+FirmwareApi *apiInstance = [[FirmwareApi alloc] init];
+String *name = name_example; //  (default to null)
+
+// Retrieve a default firmware.
+[apiInstance getDefaultFirmwareWith:name
+              completionHandler: ^(DefaultFirmware output, NSError* error) {
+    if (output) {
+        NSLog(@"%@", output);
+    }
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.FirmwareApi()
+var name = name_example; // {String} 
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.getDefaultFirmware(name, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class getDefaultFirmwareExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new FirmwareApi();
+            var name = name_example;  // String |  (default to null)
+
+            try {
+                // Retrieve a default firmware.
+                DefaultFirmware result = apiInstance.getDefaultFirmware(name);
+                Debug.WriteLine(result);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling FirmwareApi.getDefaultFirmware: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\FirmwareApi();
+$name = name_example; // String | 
+
+try {
+    $result = $api_instance->getDefaultFirmware($name);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling FirmwareApi->getDefaultFirmware: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::FirmwareApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::FirmwareApi->new();
+my $name = name_example; # String | 
+
+eval {
+    my $result = $api_instance->getDefaultFirmware(name => $name);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling FirmwareApi->getDefaultFirmware: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.FirmwareApi()
+name = name_example # String |  (default to null)
+
+try:
+    # Retrieve a default firmware.
+    api_response = api_instance.get_default_firmware(name)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling FirmwareApi->getDefaultFirmware: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate FirmwareApi;
+
+pub fn main() {
+    let name = name_example; // String
+
+    let mut context = FirmwareApi::Context::default();
+    let result = client.getDefaultFirmware(name, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">name*</td>
+<td>
+
+
+    <div id="d2e199_getDefaultFirmware_name">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Firmware-getDefaultFirmware-title-200"></h3>
+                            <p id="examples-Firmware-getDefaultFirmware-description-200" class="marked"></p>
+                            <script>
+                              var responseFirmware200_description = `Default firmware included`;
+                              var responseFirmware200_description_break = responseFirmware200_description.indexOf('\n');
+                              if (responseFirmware200_description_break == -1) {
+                                $("#examples-Firmware-getDefaultFirmware-title-200").text("Status: 200 - " + responseFirmware200_description);
+                              } else {
+                                $("#examples-Firmware-getDefaultFirmware-title-200").text("Status: 200 - " + responseFirmware200_description.substring(0, responseFirmware200_description_break));
+                                $("#examples-Firmware-getDefaultFirmware-description-200").html(responseFirmware200_description.substring(responseFirmware200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-getDefaultFirmware-200" class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-Firmware-getDefaultFirmware-200-schema">Schema</a>
+                                </li>
+
+
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-getDefaultFirmware-200-wrapper" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-Firmware-getDefaultFirmware-200-schema">
+                                  <div id="responses-Firmware-getDefaultFirmware-schema-200" class="exampleStyle">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = ;
+                                        var schema = findNode('schema',schemaWrapper).schema;
+                                        if (!schema) {
+                                          schema = schemaWrapper.schema;
+                                        }
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                          Object.keys(schema.properties).forEach( (item) => {
+                                            if (schema.properties[item].$ref != null) {
+                                              schema.properties[item] = defsParser.$refs.get(schema.properties[item].$ref);
+                                            }
+                                          });
+                                        } else if (schema.items != null && schema.items.$ref != null) {
+                                            schema.items = defsParser.$refs.get(schema.items.$ref);
+                                        } else {
+                                          schemaWrapper.definitions = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-Firmware-getDefaultFirmware-200-schema-data').val(JSON.stringify(schema));
+                                        var result = $('#responses-Firmware-getDefaultFirmware-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-Firmware-getDefaultFirmware-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+                            <h3 id="examples-Firmware-getDefaultFirmware-title-403"></h3>
+                            <p id="examples-Firmware-getDefaultFirmware-description-403" class="marked"></p>
+                            <script>
+                              var responseFirmware403_description = ``;
+                              var responseFirmware403_description_break = responseFirmware403_description.indexOf('\n');
+                              if (responseFirmware403_description_break == -1) {
+                                $("#examples-Firmware-getDefaultFirmware-title-403").text("Status: 403 - " + responseFirmware403_description);
+                              } else {
+                                $("#examples-Firmware-getDefaultFirmware-title-403").text("Status: 403 - " + responseFirmware403_description.substring(0, responseFirmware403_description_break));
+                                $("#examples-Firmware-getDefaultFirmware-description-403").html(responseFirmware403_description.substring(responseFirmware403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-getDefaultFirmware-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-getDefaultFirmware-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Firmware-getDefaultFirmware-title-404"></h3>
+                            <p id="examples-Firmware-getDefaultFirmware-description-404" class="marked"></p>
+                            <script>
+                              var responseFirmware404_description = ``;
+                              var responseFirmware404_description_break = responseFirmware404_description.indexOf('\n');
+                              if (responseFirmware404_description_break == -1) {
+                                $("#examples-Firmware-getDefaultFirmware-title-404").text("Status: 404 - " + responseFirmware404_description);
+                              } else {
+                                $("#examples-Firmware-getDefaultFirmware-title-404").text("Status: 404 - " + responseFirmware404_description.substring(0, responseFirmware404_description_break));
+                                $("#examples-Firmware-getDefaultFirmware-description-404").html(responseFirmware404_description.substring(responseFirmware404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-getDefaultFirmware-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-getDefaultFirmware-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Firmware-getDefaultFirmwares">
+                      <article id="api-Firmware-getDefaultFirmwares-0" data-group="User" data-name="getDefaultFirmwares" data-version="0">
+                        <div class="pull-left">
+                          <h1>getDefaultFirmwares</h1>
+                          <p>Retrieve the lists of all default firmwares.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Retrieve the lists of all default firmwares.</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/default_firmwares</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Firmware-getDefaultFirmwares-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Firmware-getDefaultFirmwares-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Firmware-getDefaultFirmwares-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X GET \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Accept: application/json" \
+ "https://localhost:16001/api/v1/default_firmwares"
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.FirmwareApi;
+
+import java.io.File;
+import java.util.*;
+
+public class FirmwareApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        FirmwareApi apiInstance = new FirmwareApi();
+
+        try {
+            DefaultFirmwareList result = apiInstance.getDefaultFirmwares();
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling FirmwareApi#getDefaultFirmwares");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.FirmwareApi;
+
+public class FirmwareApiExample {
+    public static void main(String[] args) {
+        FirmwareApi apiInstance = new FirmwareApi();
+
+        try {
+            DefaultFirmwareList result = apiInstance.getDefaultFirmwares();
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling FirmwareApi#getDefaultFirmwares");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+FirmwareApi *apiInstance = [[FirmwareApi alloc] init];
+
+// Retrieve the lists of all default firmwares.
+[apiInstance getDefaultFirmwaresWithCompletionHandler: 
+              ^(DefaultFirmwareList output, NSError* error) {
+    if (output) {
+        NSLog(@"%@", output);
+    }
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.FirmwareApi()
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.getDefaultFirmwares(callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class getDefaultFirmwaresExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new FirmwareApi();
+
+            try {
+                // Retrieve the lists of all default firmwares.
+                DefaultFirmwareList result = apiInstance.getDefaultFirmwares();
+                Debug.WriteLine(result);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling FirmwareApi.getDefaultFirmwares: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\FirmwareApi();
+
+try {
+    $result = $api_instance->getDefaultFirmwares();
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling FirmwareApi->getDefaultFirmwares: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::FirmwareApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::FirmwareApi->new();
+
+eval {
+    my $result = $api_instance->getDefaultFirmwares();
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling FirmwareApi->getDefaultFirmwares: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.FirmwareApi()
+
+try:
+    # Retrieve the lists of all default firmwares.
+    api_response = api_instance.get_default_firmwares()
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling FirmwareApi->getDefaultFirmwares: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate FirmwareApi;
+
+pub fn main() {
+
+    let mut context = FirmwareApi::Context::default();
+    let result = client.getDefaultFirmwares(&context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+
+
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Firmware-getDefaultFirmwares-title-200"></h3>
+                            <p id="examples-Firmware-getDefaultFirmwares-description-200" class="marked"></p>
+                            <script>
+                              var responseFirmware200_description = `List of default firmwares`;
+                              var responseFirmware200_description_break = responseFirmware200_description.indexOf('\n');
+                              if (responseFirmware200_description_break == -1) {
+                                $("#examples-Firmware-getDefaultFirmwares-title-200").text("Status: 200 - " + responseFirmware200_description);
+                              } else {
+                                $("#examples-Firmware-getDefaultFirmwares-title-200").text("Status: 200 - " + responseFirmware200_description.substring(0, responseFirmware200_description_break));
+                                $("#examples-Firmware-getDefaultFirmwares-description-200").html(responseFirmware200_description.substring(responseFirmware200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-getDefaultFirmwares-200" class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-Firmware-getDefaultFirmwares-200-schema">Schema</a>
+                                </li>
+
+
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-getDefaultFirmwares-200-wrapper" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-Firmware-getDefaultFirmwares-200-schema">
+                                  <div id="responses-Firmware-getDefaultFirmwares-schema-200" class="exampleStyle">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = ;
+                                        var schema = findNode('schema',schemaWrapper).schema;
+                                        if (!schema) {
+                                          schema = schemaWrapper.schema;
+                                        }
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                          Object.keys(schema.properties).forEach( (item) => {
+                                            if (schema.properties[item].$ref != null) {
+                                              schema.properties[item] = defsParser.$refs.get(schema.properties[item].$ref);
+                                            }
+                                          });
+                                        } else if (schema.items != null && schema.items.$ref != null) {
+                                            schema.items = defsParser.$refs.get(schema.items.$ref);
+                                        } else {
+                                          schemaWrapper.definitions = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-Firmware-getDefaultFirmwares-200-schema-data').val(JSON.stringify(schema));
+                                        var result = $('#responses-Firmware-getDefaultFirmwares-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-Firmware-getDefaultFirmwares-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+                            <h3 id="examples-Firmware-getDefaultFirmwares-title-403"></h3>
+                            <p id="examples-Firmware-getDefaultFirmwares-description-403" class="marked"></p>
+                            <script>
+                              var responseFirmware403_description = ``;
+                              var responseFirmware403_description_break = responseFirmware403_description.indexOf('\n');
+                              if (responseFirmware403_description_break == -1) {
+                                $("#examples-Firmware-getDefaultFirmwares-title-403").text("Status: 403 - " + responseFirmware403_description);
+                              } else {
+                                $("#examples-Firmware-getDefaultFirmwares-title-403").text("Status: 403 - " + responseFirmware403_description.substring(0, responseFirmware403_description_break));
+                                $("#examples-Firmware-getDefaultFirmwares-description-403").html(responseFirmware403_description.substring(responseFirmware403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-getDefaultFirmwares-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-getDefaultFirmwares-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Firmware-getDefaultFirmwares-title-404"></h3>
+                            <p id="examples-Firmware-getDefaultFirmwares-description-404" class="marked"></p>
+                            <script>
+                              var responseFirmware404_description = ``;
+                              var responseFirmware404_description_break = responseFirmware404_description.indexOf('\n');
+                              if (responseFirmware404_description_break == -1) {
+                                $("#examples-Firmware-getDefaultFirmwares-title-404").text("Status: 404 - " + responseFirmware404_description);
+                              } else {
+                                $("#examples-Firmware-getDefaultFirmwares-title-404").text("Status: 404 - " + responseFirmware404_description.substring(0, responseFirmware404_description_break));
+                                $("#examples-Firmware-getDefaultFirmwares-description-404").html(responseFirmware404_description.substring(responseFirmware404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-getDefaultFirmwares-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-getDefaultFirmwares-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Firmware-updateDefaultFirmware">
+                      <article id="api-Firmware-updateDefaultFirmware-0" data-group="User" data-name="updateDefaultFirmware" data-version="0">
+                        <div class="pull-left">
+                          <h1>updateDefaultFirmware</h1>
+                          <p>Update a default firmware</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Update a default firmware</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="put"><code><span class="pln">/default_firmware/{name}</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Firmware-updateDefaultFirmware-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Firmware-updateDefaultFirmware-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Firmware-updateDefaultFirmware-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X PUT \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Content-Type: application/json" \
+ "https://localhost:16001/api/v1/default_firmware/{name}" \
+ -d '{
+  &quot;modelIds&quot; : [ &quot;modelIds&quot;, &quot;modelIds&quot; ],
+  &quot;created&quot; : 6,
+  &quot;name&quot; : &quot;name&quot;,
+  &quot;description&quot; : &quot;description&quot;,
+  &quot;lastModified&quot; : 1,
+  &quot;uri&quot; : &quot;uri&quot;,
+  &quot;imageCreationDate&quot; : 0
+}'
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.FirmwareApi;
+
+import java.io.File;
+import java.util.*;
+
+public class FirmwareApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        FirmwareApi apiInstance = new FirmwareApi();
+        String name = name_example; // String | 
+        DefaultFirmware defaultFirmware = ; // DefaultFirmware | 
+
+        try {
+            apiInstance.updateDefaultFirmware(name, defaultFirmware);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling FirmwareApi#updateDefaultFirmware");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.FirmwareApi;
+
+public class FirmwareApiExample {
+    public static void main(String[] args) {
+        FirmwareApi apiInstance = new FirmwareApi();
+        String name = name_example; // String | 
+        DefaultFirmware defaultFirmware = ; // DefaultFirmware | 
+
+        try {
+            apiInstance.updateDefaultFirmware(name, defaultFirmware);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling FirmwareApi#updateDefaultFirmware");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+FirmwareApi *apiInstance = [[FirmwareApi alloc] init];
+String *name = name_example; //  (default to null)
+DefaultFirmware *defaultFirmware = ; //  (optional)
+
+// Update a default firmware
+[apiInstance updateDefaultFirmwareWith:name
+    defaultFirmware:defaultFirmware
+              completionHandler: ^(NSError* error) {
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.FirmwareApi()
+var name = name_example; // {String} 
+var opts = {
+  'defaultFirmware':  // {DefaultFirmware} 
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.updateDefaultFirmware(name, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class updateDefaultFirmwareExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new FirmwareApi();
+            var name = name_example;  // String |  (default to null)
+            var defaultFirmware = new DefaultFirmware(); // DefaultFirmware |  (optional) 
+
+            try {
+                // Update a default firmware
+                apiInstance.updateDefaultFirmware(name, defaultFirmware);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling FirmwareApi.updateDefaultFirmware: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\FirmwareApi();
+$name = name_example; // String | 
+$defaultFirmware = ; // DefaultFirmware | 
+
+try {
+    $api_instance->updateDefaultFirmware($name, $defaultFirmware);
+} catch (Exception $e) {
+    echo 'Exception when calling FirmwareApi->updateDefaultFirmware: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::FirmwareApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::FirmwareApi->new();
+my $name = name_example; # String | 
+my $defaultFirmware = WWW::OPenAPIClient::Object::DefaultFirmware->new(); # DefaultFirmware | 
+
+eval {
+    $api_instance->updateDefaultFirmware(name => $name, defaultFirmware => $defaultFirmware);
+};
+if ($@) {
+    warn "Exception when calling FirmwareApi->updateDefaultFirmware: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.FirmwareApi()
+name = name_example # String |  (default to null)
+defaultFirmware =  # DefaultFirmware |  (optional)
+
+try:
+    # Update a default firmware
+    api_instance.update_default_firmware(name, defaultFirmware=defaultFirmware)
+except ApiException as e:
+    print("Exception when calling FirmwareApi->updateDefaultFirmware: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Firmware-updateDefaultFirmware-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate FirmwareApi;
+
+pub fn main() {
+    let name = name_example; // String
+    let defaultFirmware = ; // DefaultFirmware
+
+    let mut context = FirmwareApi::Context::default();
+    let result = client.updateDefaultFirmware(name, defaultFirmware, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">name*</td>
+<td>
+
+
+    <div id="d2e199_updateDefaultFirmware_name">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">defaultFirmware </td>
+<td>
+<p class="marked">Firmware details</p>
+<script>
+$(document).ready(function() {
+  var schemaWrapper = {
+  "description" : "Firmware details",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/DefaultFirmware"
+      }
+    }
+  }
+};
+
+  var schema = findNode('schema',schemaWrapper).schema;
+  if (!schema) {
+    schema = schemaWrapper.schema;
+  }
+  if (schema.$ref != null) {
+    schema = defsParser.$refs.get(schema.$ref);
+  } else {
+    schemaWrapper.definitions = Object.assign({}, defs);
+    $RefParser.dereference(schemaWrapper).catch(function(err) {
+      console.log(err);
+    });
+  }
+
+  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+  var result = $('#d2e199_updateDefaultFirmware_defaultFirmware');
+  result.empty();
+  result.append(view.render());
+});
+</script>
+<div id="d2e199_updateDefaultFirmware_defaultFirmware"></div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Firmware-updateDefaultFirmware-title-200"></h3>
+                            <p id="examples-Firmware-updateDefaultFirmware-description-200" class="marked"></p>
+                            <script>
+                              var responseFirmware200_description = ``;
+                              var responseFirmware200_description_break = responseFirmware200_description.indexOf('\n');
+                              if (responseFirmware200_description_break == -1) {
+                                $("#examples-Firmware-updateDefaultFirmware-title-200").text("Status: 200 - " + responseFirmware200_description);
+                              } else {
+                                $("#examples-Firmware-updateDefaultFirmware-title-200").text("Status: 200 - " + responseFirmware200_description.substring(0, responseFirmware200_description_break));
+                                $("#examples-Firmware-updateDefaultFirmware-description-200").html(responseFirmware200_description.substring(responseFirmware200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-updateDefaultFirmware-200" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-updateDefaultFirmware-200-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Firmware-updateDefaultFirmware-title-403"></h3>
+                            <p id="examples-Firmware-updateDefaultFirmware-description-403" class="marked"></p>
+                            <script>
+                              var responseFirmware403_description = ``;
+                              var responseFirmware403_description_break = responseFirmware403_description.indexOf('\n');
+                              if (responseFirmware403_description_break == -1) {
+                                $("#examples-Firmware-updateDefaultFirmware-title-403").text("Status: 403 - " + responseFirmware403_description);
+                              } else {
+                                $("#examples-Firmware-updateDefaultFirmware-title-403").text("Status: 403 - " + responseFirmware403_description.substring(0, responseFirmware403_description_break));
+                                $("#examples-Firmware-updateDefaultFirmware-description-403").html(responseFirmware403_description.substring(responseFirmware403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-updateDefaultFirmware-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-updateDefaultFirmware-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Firmware-updateDefaultFirmware-title-404"></h3>
+                            <p id="examples-Firmware-updateDefaultFirmware-description-404" class="marked"></p>
+                            <script>
+                              var responseFirmware404_description = ``;
+                              var responseFirmware404_description_break = responseFirmware404_description.indexOf('\n');
+                              if (responseFirmware404_description_break == -1) {
+                                $("#examples-Firmware-updateDefaultFirmware-title-404").text("Status: 404 - " + responseFirmware404_description);
+                              } else {
+                                $("#examples-Firmware-updateDefaultFirmware-title-404").text("Status: 404 - " + responseFirmware404_description.substring(0, responseFirmware404_description_break));
+                                $("#examples-Firmware-updateDefaultFirmware-description-404").html(responseFirmware404_description.substring(responseFirmware404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Firmware-updateDefaultFirmware-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Firmware-updateDefaultFirmware-404-wrapper" style='margin-bottom: 10px;'>
                             </div>
                         </article>
                       </div>
