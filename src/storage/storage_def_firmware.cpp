@@ -213,7 +213,7 @@ namespace OpenWifi {
 
 			DefFirmwareRecordList Records;
 			Select << "SELECT " + DB_DefFirmware_SelectFields +
-						  " FROM DefaultFirmwares ORDER BY NAME ASC " + ComputeRange(From, HowMany),
+						  " FROM DefaultFirmwares ORDER BY deviceType ASC " + ComputeRange(From, HowMany),
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 			Firmwares.clear();

@@ -65,7 +65,9 @@ namespace OpenWifi {
 
 		Firmware.Created = Firmware.LastModified = Utils::Now();
 		if (StorageService()->CreateDefaultFirmware(Firmware)) {
-			return OK();
+			GWObjects::DefaultFirmware ModifiedFirmware;
+			StorageService()->GetDefaultFirmware(deviceType, ModifiedFirmware);
+			return Object(ModifiedFirmware);
 		}
 		BadRequest(RESTAPI::Errors::RecordNotCreated);
 	}
