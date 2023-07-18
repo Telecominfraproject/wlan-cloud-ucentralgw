@@ -85,7 +85,7 @@ ENV APP_NAME=$APP_NAME \
     APP_CONFIG=/$APP_NAME-data \
     APP_HOME_DIR=$APP_HOME_DIR
 
-RUN echo "Vars: $APP_USER $APP_NAME"
+RUN echo "Vars: ${APP_USER} ${APP_NAME}"
 RUN useradd "$APP_USER"
 
 RUN mkdir $APP_HOME_DIR
