@@ -79,10 +79,10 @@ RUN cmake --build . --config Release -j8
 
 FROM debian:$DEBIAN_VERSION
 
-ENV APP_USER=$APP_NAME \
+ENV APP_NAME=$APP_NAME \
+    APP_USER=$APP_NAME \
     APP_ROOT=/$APP_NAME-data \
     APP_CONFIG=/$APP_NAME-data \
-    APP_NAME=$APP_NAME \
     APP_HOME_DIR=$APP_HOME_DIR
 
 RUN echo "Vars: $APP_USER $APP_NAME"
