@@ -5,6 +5,7 @@ ARG VALIJASON_VERSION=tip-v1
 ARG APP_HOME_DIR=/openwifi
 ARG APP_NAME=owgw
 
+
 FROM debian:$DEBIAN_VERSION AS build-base
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
