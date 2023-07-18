@@ -60,10 +60,10 @@ RUN cmake --build . --target install
 
 FROM build-base AS app-build
 
-ADD CMakeLists.txt build /$APP_NAME/
-ADD cmake /$APP_NAME/cmake
-ADD src /$APP_NAME/src
-ADD .git /$APP_NAME/.git
+ADD CMakeLists.txt build /${APP_NAME}/
+ADD cmake /${APP_NAME}/cmake
+ADD src /${APP_NAME}/src
+ADD .git /${APP_NAME}/.git
 
 COPY --from=poco-build /usr/local/include /usr/local/include
 COPY --from=poco-build /usr/local/lib /usr/local/lib
@@ -71,9 +71,9 @@ COPY --from=cppkafka-build /usr/local/include /usr/local/include
 COPY --from=cppkafka-build /usr/local/lib /usr/local/lib
 COPY --from=valijson-build /usr/local/include /usr/local/include
 
-WORKDIR /$APP_NAME
+WORKDIR /${APP_NAME}
 RUN mkdir cmake-build
-WORKDIR /$APP_NAME/cmake-build
+WORKDIR /${APP_NAME}/cmake-build
 RUN cmake ..
 RUN cmake --build . --config Release -j8
 
@@ -86,7 +86,7 @@ FROM debian:$DEBIAN_VERSION
 #    APP_HOME_DIR=$APP_HOME_DIR
 
 RUN echo "Vars: $APP_USER $APP_NAME"
-RUN useradd "$APP_USER"
+RUN useradd $APP_USER
 
 RUN mkdir $APP_HOME_DIR
 RUN mkdir -p $APP_ROOT $APP_CONFIG" && \
