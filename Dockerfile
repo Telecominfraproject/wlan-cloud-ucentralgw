@@ -58,10 +58,10 @@ RUN cmake --build . --target install
 
 FROM build-base AS app-build
 
-ADD CMakeLists.txt build /${APP_NAME}/
-ADD cmake /${APP_NAME}/cmake
-ADD src /o${APP_NAME}wgw/src
-ADD .git /${APP_NAME}/.git
+ADD CMakeLists.txt build /$APP_NAME/
+ADD cmake /$APP_NAME/cmake
+ADD src /$APP_NAME/src
+ADD .git /$APP_NAME/.git
 
 COPY --from=poco-build /usr/local/include /usr/local/include
 COPY --from=poco-build /usr/local/lib /usr/local/lib
@@ -69,9 +69,9 @@ COPY --from=cppkafka-build /usr/local/include /usr/local/include
 COPY --from=cppkafka-build /usr/local/lib /usr/local/lib
 COPY --from=valijson-build /usr/local/include /usr/local/include
 
-WORKDIR /${APP_NAME}
+WORKDIR /$APP_NAME
 RUN mkdir cmake-build
-WORKDIR /${APP_NAME}/cmake-build
+WORKDIR /$APP_NAME/cmake-build
 RUN cmake ..
 RUN cmake --build . --config Release -j8
 
@@ -104,7 +104,7 @@ COPY rtty_ui /dist/rtty_ui
 RUN wget https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentral-deploy/main/docker-compose/certs/restapi-ca.pem \
     -O /usr/local/share/ca-certificates/restapi-ca-selfsigned.crt
 
-COPY --from=app-build /${APP_NAME}/cmake-build/$APP_NAME $APP_HOME_DIR/$APP_NAME
+COPY --from=app-build /$APP_NAME/cmake-build/$APP_NAME $APP_HOME_DIR/$APP_NAME
 COPY --from=cppkafka-build /cppkafka/cmake-build/src/lib /usr/local/lib/
 COPY --from=poco-build /poco/cmake-build/lib /usr/local/lib/
 
