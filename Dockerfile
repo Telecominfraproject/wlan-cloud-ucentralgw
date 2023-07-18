@@ -83,12 +83,12 @@ ENV APP_USER=$APP_NAME \
     APP_NAME=$APP_NAME \
     APP_HOME_DIR=$APP_HOME_DIR
 
-RUN echo "Vars: ${APP_USER} ${APP_NAME}"
-RUN useradd "${APP_USER}"
+RUN echo "Vars: $APP_USER $APP_NAME"
+RUN useradd "$APP_USER"
 
-RUN mkdir ${APP_HOME_DIR}
-RUN mkdir -p "${APP_ROOT}" "${APP_CONFIG}" && \
-    chown "${APP_USER}": "${APP_ROOT}" "${APP_CONFIG}"
+RUN mkdir $APP_HOME_DIR
+RUN mkdir -p $APP_ROOT $APP_CONFIG" && \
+    chown $APP_USER: $APP_ROOT $APP_CONFIG
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
     librdkafka++1 gosu gettext ca-certificates bash jq curl wget \
@@ -97,7 +97,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 COPY readiness_check /readiness_check
 COPY test_scripts/curl/cli /cli
 
-COPY "$APP_NAME".properties.tmpl /
+COPY $APP_NAME.properties.tmpl /
 COPY docker-entrypoint.sh /
 COPY wait-for-postgres.sh /
 COPY rtty_ui /dist/rtty_ui
