@@ -77,11 +77,11 @@ RUN cmake --build . --config Release -j8
 
 FROM debian:$DEBIAN_VERSION
 
-ENV APP_USER=${APP_NAME} \
-    APP_ROOT=/${APP_NAME}-data \
-    APP_CONFIG=/${APP_NAME}-data \
-    APP_NAME=${APP_NAME} \
-    APP_HOME_DIR=${APP_HOME_DIR}
+ENV APP_USER=$APP_NAME \
+    APP_ROOT=/$APP_NAME-data \
+    APP_CONFIG=/$APP_NAME-data \
+    APP_NAME=$APP_NAME \
+    APP_HOME_DIR=$APP_HOME_DIR
 
 RUN echo "Vars: ${APP_USER} ${APP_NAME}"
 RUN useradd "${APP_USER}"
@@ -97,14 +97,14 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 COPY readiness_check /readiness_check
 COPY test_scripts/curl/cli /cli
 
-COPY "${APP_NAME}".properties.tmpl /
+COPY "$APP_NAME".properties.tmpl /
 COPY docker-entrypoint.sh /
 COPY wait-for-postgres.sh /
 COPY rtty_ui /dist/rtty_ui
 RUN wget https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentral-deploy/main/docker-compose/certs/restapi-ca.pem \
     -O /usr/local/share/ca-certificates/restapi-ca-selfsigned.crt
 
-COPY --from=app-build /${APP_NAME}/cmake-build/${APP_NAME} ${APP_HOME_DIR}/${APP_NAME}
+COPY --from=app-build /${APP_NAME}/cmake-build/$APP_NAME $APP_HOME_DIR/$APP_NAME
 COPY --from=cppkafka-build /cppkafka/cmake-build/src/lib /usr/local/lib/
 COPY --from=poco-build /poco/cmake-build/lib /usr/local/lib/
 
@@ -113,4 +113,4 @@ RUN ldconfig
 EXPOSE 15002 16002 16003 17002 16102
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["${APP_HOME_DIR}/${APP_NAME}"]
+CMD ["$APP_HOME_DIR/$APP_NAME"]
