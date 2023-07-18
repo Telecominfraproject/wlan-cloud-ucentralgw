@@ -95,7 +95,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 COPY readiness_check /readiness_check
 COPY test_scripts/curl/cli /cli
 
-COPY ${APP_NAME}.properties.tmpl /
+COPY /"${APP_NAME}".properties.tmpl /
 COPY docker-entrypoint.sh /
 COPY wait-for-postgres.sh /
 COPY rtty_ui /dist/rtty_ui
