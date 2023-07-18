@@ -57,6 +57,8 @@ RUN cmake --build . --target install
 
 FROM build-base AS app-build
 
+ARG APP_NAME
+
 ADD CMakeLists.txt build /${APP_NAME}/
 ADD cmake /${APP_NAME}/cmake
 ADD src /${APP_NAME}/src
@@ -75,6 +77,9 @@ RUN cmake ..
 RUN cmake --build . --config Release -j8
 
 FROM debian:$DEBIAN_VERSION
+
+ARG APP_NAME
+ARG APP_HOME_DIR
 
 # ENV APP_NAME=${APP_NAME}
 ENV APP_USER=$APP_NAME
