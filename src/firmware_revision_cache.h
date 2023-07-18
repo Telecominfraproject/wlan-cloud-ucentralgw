@@ -29,6 +29,7 @@ namespace OpenWifi {
 		inline bool DeviceMustUpgrade([[maybe_unused]] std::string &deviceType,
 									  [[maybe_unused]] const std::string &firmware_string,
 									  [[maybe_unused]] GWObjects::DefaultFirmware &Firmware) {
+			return false;
 			if(StorageService()->GetDefaultFirmware(deviceType,Firmware)) {
 
 				std::string	key{ deviceType + Firmware.revision };
