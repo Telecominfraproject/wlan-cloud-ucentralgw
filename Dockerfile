@@ -90,7 +90,7 @@ RUN echo "Vars: $APP_USER $APP_NAME"
 RUN useradd $APP_USER
 
 RUN mkdir $APP_HOME_DIR
-RUN mkdir -p $APP_ROOT $APP_CONFIG" && \
+RUN mkdir -p $APP_ROOT $APP_CONFIG && \
     chown $APP_USER: $APP_ROOT $APP_CONFIG
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
