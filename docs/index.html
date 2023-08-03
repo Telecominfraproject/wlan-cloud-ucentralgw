@@ -1783,11 +1783,6 @@ ul.nav-tabs {
     }
   }
 };
-    defs["getSystemCommand_200_response"] = {
-  "oneOf" : [ {
-    "$ref" : "#/components/schemas/SystemInfoResults"
-  } ]
-};
     defs["HealthCheck"] = {
   "type" : "object",
   "properties" : {
@@ -2417,9 +2412,9 @@ ul.nav-tabs {
     defs["SystemCommandResults"] = {
   "type" : "object",
   "oneOf" : [ {
-    "$ref" : "#/components/schemas/StringList"
+    "$ref" : "#/components/schemas/SystemResources"
   }, {
-    "$ref" : "#/components/schemas/TagValuePairList"
+    "$ref" : "#/components/schemas/SystemInfoResults"
   } ]
 };
     defs["SystemCommandSetLogLevel"] = {
@@ -2497,6 +2492,31 @@ ul.nav-tabs {
       "type" : "string"
     },
     "expires" : {
+      "type" : "integer",
+      "format" : "int64"
+    }
+  }
+};
+    defs["SystemResources"] = {
+  "type" : "object",
+  "properties" : {
+    "numberOfFileDescriptors" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "currRealMem" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "peakRealMem" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "currVirtMem" : {
+      "type" : "integer",
+      "format" : "int64"
+    },
+    "peakVirtMem" : {
       "type" : "integer",
       "format" : "int64"
     }
@@ -32277,7 +32297,6 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X GET \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- -H "Accept: application/json" \
  "https://localhost:16001/api/v1/system?command=command_example"
 </code></pre>
                           </div>
@@ -32309,8 +32328,7 @@ public class SystemCommandsApiExample {
         String command = command_example; // String | Get a value
 
         try {
-            getSystemCommand_200_response result = apiInstance.getSystemCommand(command);
-            System.out.println(result);
+            apiInstance.getSystemCommand(command);
         } catch (ApiException e) {
             System.err.println("Exception when calling SystemCommandsApi#getSystemCommand");
             e.printStackTrace();
@@ -32329,8 +32347,7 @@ public class SystemCommandsApiExample {
         String command = command_example; // String | Get a value
 
         try {
-            getSystemCommand_200_response result = apiInstance.getSystemCommand(command);
-            System.out.println(result);
+            apiInstance.getSystemCommand(command);
         } catch (ApiException e) {
             System.err.println("Exception when calling SystemCommandsApi#getSystemCommand");
             e.printStackTrace();
@@ -32359,10 +32376,7 @@ String *command = command_example; // Get a value (default to null)
 
 // Retrieve different values from the running service.
 [apiInstance getSystemCommandWith:command
-              completionHandler: ^(getSystemCommand_200_response output, NSError* error) {
-    if (output) {
-        NSLog(@"%@", output);
-    }
+              completionHandler: ^(NSError* error) {
     if (error) {
         NSLog(@"Error: %@", error);
     }
@@ -32392,7 +32406,7 @@ var callback = function(error, data, response) {
   if (error) {
     console.error(error);
   } else {
-    console.log('API called successfully. Returned data: ' + data);
+    console.log('API called successfully.');
   }
 };
 api.getSystemCommand(command, callback);
@@ -32428,8 +32442,7 @@ namespace Example
 
             try {
                 // Retrieve different values from the running service.
-                getSystemCommand_200_response result = apiInstance.getSystemCommand(command);
-                Debug.WriteLine(result);
+                apiInstance.getSystemCommand(command);
             } catch (Exception e) {
                 Debug.Print("Exception when calling SystemCommandsApi.getSystemCommand: " + e.Message );
             }
@@ -32456,8 +32469,7 @@ $api_instance = new OpenAPITools\Client\Api\SystemCommandsApi();
 $command = command_example; // String | Get a value
 
 try {
-    $result = $api_instance->getSystemCommand($command);
-    print_r($result);
+    $api_instance->getSystemCommand($command);
 } catch (Exception $e) {
     echo 'Exception when calling SystemCommandsApi->getSystemCommand: ', $e->getMessage(), PHP_EOL;
 }
@@ -32482,8 +32494,7 @@ my $api_instance = WWW::OPenAPIClient::SystemCommandsApi->new();
 my $command = command_example; # String | Get a value
 
 eval {
-    my $result = $api_instance->getSystemCommand(command => $command);
-    print Dumper($result);
+    $api_instance->getSystemCommand(command => $command);
 };
 if ($@) {
     warn "Exception when calling SystemCommandsApi->getSystemCommand: $@\n";
@@ -32511,8 +32522,7 @@ command = command_example # String | Get a value (default to null)
 
 try:
     # Retrieve different values from the running service.
-    api_response = api_instance.get_system_command(command)
-    pprint(api_response)
+    api_instance.get_system_command(command)
 except ApiException as e:
     print("Exception when calling SystemCommandsApi->getSystemCommand: %s\n" % e)</code></pre>
                             </div>
@@ -32578,7 +32588,7 @@ Get a value
                             <h3 id="examples-SystemCommands-getSystemCommand-title-200"></h3>
                             <p id="examples-SystemCommands-getSystemCommand-description-200" class="marked"></p>
                             <script>
-                              var responseSystemCommands200_description = `Successful command execution`;
+                              var responseSystemCommands200_description = ``;
                               var responseSystemCommands200_description_break = responseSystemCommands200_description.indexOf('\n');
                               if (responseSystemCommands200_description_break == -1) {
                                 $("#examples-SystemCommands-getSystemCommand-title-200").text("Status: 200 - " + responseSystemCommands200_description);
@@ -32590,52 +32600,12 @@ Get a value
 
 
                             <ul id="responses-detail-SystemCommands-getSystemCommand-200" class="nav nav-tabs nav-tabs-examples" >
-                                <li class="active">
-                                  <a data-toggle="tab" href="#responses-SystemCommands-getSystemCommand-200-schema">Schema</a>
-                                </li>
-
-
 
 
                             </ul>
 
 
                             <div class="tab-content" id="responses-SystemCommands-getSystemCommand-200-wrapper" style='margin-bottom: 10px;'>
-                                <div class="tab-pane active" id="responses-SystemCommands-getSystemCommand-200-schema">
-                                  <div id="responses-SystemCommands-getSystemCommand-schema-200" class="exampleStyle">
-                                    <script>
-                                      $(document).ready(function() {
-                                        var schemaWrapper = ;
-                                        var schema = findNode('schema',schemaWrapper).schema;
-                                        if (!schema) {
-                                          schema = schemaWrapper.schema;
-                                        }
-                                        if (schema.$ref != null) {
-                                          schema = defsParser.$refs.get(schema.$ref);
-                                          Object.keys(schema.properties).forEach( (item) => {
-                                            if (schema.properties[item].$ref != null) {
-                                              schema.properties[item] = defsParser.$refs.get(schema.properties[item].$ref);
-                                            }
-                                          });
-                                        } else if (schema.items != null && schema.items.$ref != null) {
-                                            schema.items = defsParser.$refs.get(schema.items.$ref);
-                                        } else {
-                                          schemaWrapper.definitions = Object.assign({}, defs);
-                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
-                                            console.log(err);
-                                          });
-                                        }
-
-                                        var view = new JSONSchemaView(schema, 3);
-                                        $('#responses-SystemCommands-getSystemCommand-200-schema-data').val(JSON.stringify(schema));
-                                        var result = $('#responses-SystemCommands-getSystemCommand-schema-200');
-                                        result.empty();
-                                        result.append(view.render());
-                                      });
-                                    </script>
-                                  </div>
-                                  <input id='responses-SystemCommands-getSystemCommand-200-schema-data' type='hidden' value=''></input>
-                                </div>
                             </div>
                             <h3 id="examples-SystemCommands-getSystemCommand-title-403"></h3>
                             <p id="examples-SystemCommands-getSystemCommand-description-403" class="marked"></p>
