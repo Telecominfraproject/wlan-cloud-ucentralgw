@@ -971,31 +971,6 @@ components:
             - $ref: '#/components/schemas/StringList'
             - $ref: '#/components/schemas/TagValuePairList'
 
-    SystemResources:
-      type: object
-      properties:
-        numberOfFileDescriptors:
-          type: integer
-          format: int64
-        currRealMem:
-          type: integer
-          format: int64
-        peakRealMem:
-          type: integer
-          format: int64
-        currVirtMem:
-          type: integer
-          format: int64
-        peakVirtMem:
-          type: integer
-          format: int64
-
-    SystemCommandResults:
-      type: object
-      oneOf:
-        - $ref: '#/components/schemas/StringList'
-        - $ref: '#/components/schemas/TagValuePairList'
-
     NoteInfo:
       type: object
       properties:
@@ -1035,11 +1010,32 @@ components:
                 type: integer
                 format: int64
 
+    SystemResources:
+      type: object
+      properties:
+        numberOfFileDescriptors:
+          type: integer
+          format: int64
+        currRealMem:
+          type: integer
+          format: int64
+        peakRealMem:
+          type: integer
+          format: int64
+        currVirtMem:
+          type: integer
+          format: int64
+        peakVirtMem:
+          type: integer
+          format: int64
+
     SystemCommandResults:
       type: object
       oneOf:
         - $ref: '#/components/schemas/SystemResources'
         - $ref: '#/components/schemas/SystemInfoResults'
+        - $ref: '#/components/schemas/StringList'
+        - $ref: '#/components/schemas/TagValuePairList'
 
     SystemCommandSetLogLevel:
       type: object

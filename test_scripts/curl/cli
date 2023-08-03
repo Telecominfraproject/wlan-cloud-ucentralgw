@@ -299,6 +299,14 @@ systeminfo() {
 		jq < ${result_file}
 }
 
+systemresources() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=resources" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
 reloadsubsystem() {
 	payload="{ \"command\" : \"reload\", \"subsystems\" : [ \"$1\" ] }"
 			  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
@@ -1166,6 +1174,7 @@ case "$1" in
 	"getsubsystemnames") login; getsubsystemnames; logout ;;
 	"reloadsubsystem") login; reloadsubsystem "$2"; logout ;;
 	"systeminfo") login; systeminfo ; logout;;
+	"systemresources") login; systemresources ; logout;;
 	"ouilookup") login; ouilookup "$2"; logout;;
 	"telemetry") login; telemetry "$2"; logout;;
 	"telemetry_to_kafka") login; telemetry_to_kafka "$2" "$3"; logout;;
