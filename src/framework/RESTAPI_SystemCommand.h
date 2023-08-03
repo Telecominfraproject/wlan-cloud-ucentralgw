@@ -24,50 +24,63 @@ namespace OpenWifi {
 							 Server, TransactionId, Internal) {}
 		static auto PathName() { return std::list<std::string>{"/api/v1/system"}; }
 
-		inline void DoGet() {
+		inline void DoGet() final {
 			std::string Arg;
-			if (HasParameter("command", Arg) && Arg == "info") {
-				Poco::JSON::Object Answer;
-				Answer.set(RESTAPI::Protocol::VERSION, MicroServiceVersion());
-				Answer.set(RESTAPI::Protocol::UPTIME, MicroServiceUptimeTotalSeconds());
-				Answer.set(RESTAPI::Protocol::START, MicroServiceStartTimeEpochTime());
-				Answer.set(RESTAPI::Protocol::OS, Poco::Environment::osName());
-				Answer.set(RESTAPI::Protocol::PROCESSORS, Poco::Environment::processorCount());
-				Answer.set(RESTAPI::Protocol::HOSTNAME, Poco::Environment::nodeName());
-				Answer.set(RESTAPI::Protocol::UI, MicroServiceGetUIURI());
+			if (HasParameter("command", Arg)) {
+				if (Arg == "info") {
+					Poco::JSON::Object Answer;
+					Answer.set(RESTAPI::Protocol::VERSION, MicroServiceVersion());
+					Answer.set(RESTAPI::Protocol::UPTIME, MicroServiceUptimeTotalSeconds());
+					Answer.set(RESTAPI::Protocol::START, MicroServiceStartTimeEpochTime());
+					Answer.set(RESTAPI::Protocol::OS, Poco::Environment::osName());
+					Answer.set(RESTAPI::Protocol::PROCESSORS, Poco::Environment::processorCount());
+					Answer.set(RESTAPI::Protocol::HOSTNAME, Poco::Environment::nodeName());
+					Answer.set(RESTAPI::Protocol::UI, MicroServiceGetUIURI());
 
-				Poco::JSON::Array Certificates;
-				auto SubSystems = MicroServiceGetFullSubSystems();
-				std::set<std::string> CertNames;
+					Poco::JSON::Array Certificates;
+					auto SubSystems = MicroServiceGetFullSubSystems();
+					std::set<std::string> CertNames;
 
-				for (const auto &i : SubSystems) {
-					auto Hosts = i->HostSize();
-					for (uint64_t j = 0; j < Hosts; ++j) {
-						auto CertFileName = i->Host(j).CertFile();
-						if (!CertFileName.empty()) {
-							Poco::File F1(CertFileName);
-							if (F1.exists()) {
-								auto InsertResult = CertNames.insert(CertFileName);
-								if (InsertResult.second) {
-									Poco::JSON::Object Inner;
-									Poco::Path F(CertFileName);
-									Inner.set("filename", F.getFileName());
-									Poco::Crypto::X509Certificate C(CertFileName);
-									auto ExpiresOn = C.expiresOn();
-									Inner.set("expiresOn", ExpiresOn.timestamp().epochTime());
-									Certificates.add(Inner);
+					for (const auto &i : SubSystems) {
+						auto Hosts = i->HostSize();
+						for (uint64_t j = 0; j < Hosts; ++j) {
+							auto CertFileName = i->Host(j).CertFile();
+							if (!CertFileName.empty()) {
+								Poco::File F1(CertFileName);
+								if (F1.exists()) {
+									auto InsertResult = CertNames.insert(CertFileName);
+									if (InsertResult.second) {
+										Poco::JSON::Object Inner;
+										Poco::Path F(CertFileName);
+										Inner.set("filename", F.getFileName());
+										Poco::Crypto::X509Certificate C(CertFileName);
+										auto ExpiresOn = C.expiresOn();
+										Inner.set("expiresOn", ExpiresOn.timestamp().epochTime());
+										Certificates.add(Inner);
+									}
 								}
 							}
 						}
 					}
+					Answer.set("certificates", Certificates);
+					return ReturnObject(Answer);
 				}
-				Answer.set("certificates", Certificates);
-				return ReturnObject(Answer);
-			}
-			if (GetBoolParameter("extraConfiguration")) {
-				Poco::JSON::Object Answer;
-				MicroServiceGetExtraConfiguration(Answer);
-				return ReturnObject(Answer);
+				if (Arg == "extraConfiguration") {
+					Poco::JSON::Object Answer;
+					MicroServiceGetExtraConfiguration(Answer);
+					return ReturnObject(Answer);
+				}
+				if (Arg == "resources") {
+					Poco::JSON::Object Answer;
+					Answer.set("numberOfFileDescriptors", Utils::get_open_fds());
+					std::uint64_t currRealMem, peakRealMem, currVirtMem, peakVirtMem;
+					Utils::getMemory(currRealMem, peakRealMem, currVirtMem, peakVirtMem);
+					Answer.set("currRealMem", currRealMem);
+					Answer.set("peakRealMem", peakRealMem);
+					Answer.set("currVirtMem", currVirtMem);
+					Answer.set("peakVirtMem", peakVirtMem);
+					return ReturnObject(Answer);
+				}
 			}
 			BadRequest(RESTAPI::Errors::InvalidCommand);
 		}

@@ -13,6 +13,8 @@
 #include <string>
 #include <thread>
 
+#include <dirent.h>
+
 #include "Poco/Base64Decoder.h"
 #include "Poco/Base64Encoder.h"
 #include "Poco/File.h"
@@ -179,6 +181,69 @@ namespace OpenWifi::Utils {
 			return match(first + 1, second)
 				   || match(first, second + 1);
 		return false;
+	}
+
+	static inline std::uint64_t GetValue(FILE *file) {
+		unsigned long v=0;
+		char factor[32];
+		if(fscanf(file, " %lu %31s", &v, factor)==2) {
+			switch (factor[0]) {
+			case 'k':
+				return v * 1000;
+			case 'M':
+				return v * 1000000;
+			case 'G':
+				return v * 1000000000;
+			}
+		}
+		return v;
+	}
+
+	inline bool getMemory(
+		std::uint64_t &currRealMem, std::uint64_t &peakRealMem,
+		std::uint64_t &currVirtMem, std::uint64_t &peakVirtMem) {
+
+		// stores each word in status file
+		char buffer[1024] = "";
+
+		currRealMem = peakRealMem = currVirtMem = peakVirtMem = 0;
+
+		// linux file contains this-process info
+		FILE * file = std::fopen("/proc/self/status", "r");
+		if (file == nullptr) {
+			return false;
+		}
+
+		// read the entire file, recording mems in kB
+		while (fscanf(file, " %1023s", buffer) == 1) {
+
+			if (strcmp(buffer, "VmRSS:") == 0) {
+				currRealMem= GetValue(file);
+			} else if (strcmp(buffer, "VmHWM:") == 0) {
+				peakRealMem= GetValue(file);
+			} else if (strcmp(buffer, "VmSize:") == 0) {
+				currVirtMem= GetValue(file);
+			} else if (strcmp(buffer, "VmPeak:") == 0) {
+				peakVirtMem= GetValue(file);
+			}
+		}
+		fclose(file);
+
+		return true;
+	}
+
+	inline int get_open_fds() {
+		DIR *dp = opendir("/proc/self/fd");
+		struct dirent *de;
+		int count = -3; // '.', '..', dp
+
+		if (dp == nullptr)
+			return -1;
+		while ((de = readdir(dp)) != nullptr)
+			count++;
+		(void)closedir(dp);
+
+		return count;
 	}
 
 } // namespace OpenWifi::Utils
