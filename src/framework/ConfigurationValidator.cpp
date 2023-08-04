@@ -2235,6 +2235,17 @@ static std::string DefaultUCentralSchema = R"foo(
                         ]
                     }
                 },
+                "vlan-awareness": {
+                    "type": "object",
+                    "properties": {
+                        "first": {
+                            "type": "integer"
+                        },
+                        "last": {
+                            "type": "integer"
+                        }
+                    }
+                },
                 "vlan": {
                     "$ref": "#/$defs/interface.vlan"
                 },
