@@ -73,6 +73,7 @@ namespace OpenWifi {
 									 *this, &AP_WS_Connection::OnSocketError));
 		Registered_ = true;
 		Valid_ = true;
+		uuid_ = MicroServiceRandom(std::numeric_limits<std::uint64_t>::max()-1);
 	}
 
 	bool AP_WS_Connection::ValidatedDevice() {
@@ -222,12 +223,13 @@ namespace OpenWifi {
 		return false;
 	}
 
-	static void NotifyKafkaDisconnect(const std::string &SerialNumber) {
+	static void NotifyKafkaDisconnect(const std::string &SerialNumber, std::uint64_t uuid) {
 		try {
 			Poco::JSON::Object Disconnect;
 			Poco::JSON::Object Details;
 			Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber);
 			Details.set(uCentralProtocol::TIMESTAMP, Utils::Now());
+			Details.set(uCentralProtocol::UUID,uuid);
 			Disconnect.set(uCentralProtocol::DISCONNECTION, Details);
 			Poco::JSON::Stringifier Stringify;
 			std::ostringstream OS;
@@ -242,9 +244,9 @@ namespace OpenWifi {
 		EndConnection();
 	}
 
-	void DeviceDisconnectionCleanup(const std::string &SerialNumber) {
+	void DeviceDisconnectionCleanup(const std::string &SerialNumber, std::uint64_t uuid) {
 		if (KafkaManager()->Enabled()) {
-			NotifyKafkaDisconnect(SerialNumber);
+			NotifyKafkaDisconnect(SerialNumber, uuid);
 		}
 		RADIUSSessionTracker()->DeviceDisconnect(SerialNumber);
 	}
@@ -272,7 +274,7 @@ namespace OpenWifi {
 			WS_->close();
 
 			if(!SerialNumber_.empty()) {
-				std::thread	Cleanup(DeviceDisconnectionCleanup,SerialNumber_);
+				std::thread	Cleanup(DeviceDisconnectionCleanup,SerialNumber_, uuid_);
 				Cleanup.detach();
 			}
 
@@ -720,6 +722,7 @@ namespace OpenWifi {
 					PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
 					PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
 					PingDetails.set(uCentralProtocol::TIMESTAMP, Utils::Now());
+					PingDetails.set(uCentralProtocol::UUID, uuid_);
 					PingDetails.set("locale", State_.locale);
 					PingObject.set(uCentralProtocol::PING, PingDetails);
 					Poco::JSON::Stringifier Stringify;

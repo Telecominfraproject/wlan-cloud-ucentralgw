@@ -280,6 +280,7 @@ namespace OpenWifi {
 				ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
 				ParamsObj->set("locale", State_.locale);
 				ParamsObj->set(uCentralProtocol::TIMESTAMP, Utils::Now());
+				ParamsObj->set(uCentralProtocol::UUID, uuid_);
 				std::ostringstream OS;
 				Stringify.condense(ParamsObj, OS);
 				KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, std::make_shared<std::string>(OS.str()));

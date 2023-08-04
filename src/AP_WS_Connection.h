@@ -201,6 +201,7 @@ namespace OpenWifi {
 		void UpdateCounts();
 		bool hasGPS=false;
 		std::double_t 	memory_used_=0.0, cpu_load_ = 0.0, temperature_ = 0.0;
+		std::uint64_t 	uuid_=0;
 	};
 
 } // namespace OpenWifi
