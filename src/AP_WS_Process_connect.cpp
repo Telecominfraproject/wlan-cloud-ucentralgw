@@ -65,6 +65,11 @@ namespace OpenWifi {
 			auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 			auto Capabilities = ParamsObj->getObject(uCentralProtocol::CAPABILITIES);
 
+			std::string DevicePassword;
+			if(ParamsObj->has("password")) {
+				DevicePassword = ParamsObj->get("password").toString();
+			}
+
 			SerialNumber_ = Serial;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
@@ -183,6 +188,11 @@ namespace OpenWifi {
 						DeviceInfo.LastFWUpdate = Utils::Now();
 						++Updated;
 					}
+				}
+
+				if(DeviceInfo.DevicePassword!=DevicePassword) {
+					DeviceInfo.DevicePassword = DevicePassword.empty() ? "openwifi" : DevicePassword ;
+					++Updated;
 				}
 
 				if (DeviceInfo.lastRecordedContact==0) {

@@ -24,7 +24,7 @@ namespace OpenWifi {
 			StorageService()->SetDevicePassword(Serial, Password);
 			poco_trace(
 				Logger_,
-				fmt::format("DEVICEUPDATE({}): Device is updating its login password.", Serial));
+				fmt::format("DEVICE-UPDATE({}): Device is updating its login password.", Serial));
 		}
 	}
 
