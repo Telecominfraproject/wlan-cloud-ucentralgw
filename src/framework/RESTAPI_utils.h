@@ -102,6 +102,20 @@ namespace OpenWifi::RESTAPI_utils {
 		Obj.set(Field, A);
 	}
 
+	inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const Types::DoubleList &V) {
+		Poco::JSON::Array A;
+		for (const auto &i : V)
+			A.add(i);
+		Obj.set(Field, A);
+	}
+
+	inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const Types::IntList &V) {
+		Poco::JSON::Array A;
+		for (const auto &i : V)
+			A.add(i);
+		Obj.set(Field, A);
+	}
+
 	inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const Types::TagList &V) {
 		Poco::JSON::Array A;
 		for (const auto &i : V)
@@ -275,6 +289,28 @@ namespace OpenWifi::RESTAPI_utils {
 
 	inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field,
 								Types::TagList &Value) {
+		if (Obj->isArray(Field) && !Obj->isNull(Field)) {
+			Value.clear();
+			Poco::JSON::Array::Ptr A = Obj->getArray(Field);
+			for (const auto &i : *A) {
+				Value.push_back(i);
+			}
+		}
+	}
+
+	inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field,
+								Types::DoubleList &Value) {
+		if (Obj->isArray(Field) && !Obj->isNull(Field)) {
+			Value.clear();
+			Poco::JSON::Array::Ptr A = Obj->getArray(Field);
+			for (const auto &i : *A) {
+				Value.push_back(i);
+			}
+		}
+	}
+
+	inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field,
+								Types::IntList &Value) {
 		if (Obj->isArray(Field) && !Obj->isNull(Field)) {
 			Value.clear();
 			Poco::JSON::Array::Ptr A = Obj->getArray(Field);

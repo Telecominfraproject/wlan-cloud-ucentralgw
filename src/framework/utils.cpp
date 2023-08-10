@@ -132,6 +132,15 @@ namespace OpenWifi::Utils {
 		return std::regex_match(Hostname, HostNameRegex);
 	}
 
+	[[nodiscard]] bool ValidNumber(const std::string &number, bool isSigned)
+	{
+		static std::regex IntRegex("^-?[0-9]\\d*(\\.\\d+)?$");
+		if(!isSigned) {
+			IntRegex = "^[0-9]\\d*(\\.\\d+)?$";
+		}
+		return std::regex_match(number, IntRegex);
+	}
+
 	[[nodiscard]] std::string ToHex(const std::vector<unsigned char> &B) {
 		std::string R;
 		R.reserve(B.size() * 2);

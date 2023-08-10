@@ -73,6 +73,7 @@ namespace OpenWifi::Utils {
 	[[nodiscard]] bool ValidSerialNumbers(const std::vector<std::string> &Serial);
 	[[nodiscard]] bool ValidUUID(const std::string &UUID);
 	[[nodiscard]] bool ValidHostname(const std::string &hostname);
+	[[nodiscard]] bool ValidNumber(const std::string &number, bool isSigned);
 
 	template <typename... Args> std::string ComputeHash(Args &&...args) {
 		Poco::SHA2Engine E;

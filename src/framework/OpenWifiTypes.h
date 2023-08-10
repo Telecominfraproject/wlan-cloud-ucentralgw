@@ -28,6 +28,9 @@ namespace OpenWifi::Types {
 	typedef std::string UUID_t;
 	typedef std::vector<UUID_t> UUIDvec_t;
 	typedef std::map<std::string, std::map<uint32_t, uint64_t>> Counted3DMapSII;
+	typedef std::vector<int64_t> IntList;
+	typedef std::vector<uint64_t> UIntList;
+	typedef std::vector<double> DoubleList;
 
 	struct MicroServiceMeta {
 		uint64_t Id = 0;
