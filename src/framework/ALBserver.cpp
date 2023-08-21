@@ -26,7 +26,7 @@ namespace OpenWifi {
 			Response.set("Connection", "keep-alive");
 			Response.setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
 			std::ostream &Answer = Response.send();
-			Answer << "process Alive and kicking!";
+			Answer << ALBHealthCheckServer()->CallbackText();
 		} catch (...) {
 		}
 	}

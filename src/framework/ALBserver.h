@@ -37,6 +37,8 @@ namespace OpenWifi {
 		inline static std::atomic_uint64_t req_id_ = 1;
 	};
 
+	typedef std::string ALBHealthMessageCallback();
+
 	class ALBHealthCheckServer : public SubSystemServer {
 	  public:
 		ALBHealthCheckServer();
@@ -48,10 +50,22 @@ namespace OpenWifi {
 
 		int Start() override;
 		void Stop() override;
+		inline void RegisterExtendedHealthMessage(ALBHealthMessageCallback *F) {
+			Callback_=F;
+		};
+
+		inline std::string CallbackText() {
+			if(Callback_== nullptr) {
+				return "process Alive and kicking!";
+			} else {
+				return Callback_();
+			}
+		}
 
 	  private:
 		std::unique_ptr<Poco::Net::HTTPServer> Server_;
 		std::unique_ptr<Poco::Net::ServerSocket> Socket_;
+		ALBHealthMessageCallback	*Callback_= nullptr;
 		int Port_ = 0;
 		mutable std::atomic_bool Running_ = false;
 	};

@@ -55,10 +55,22 @@ namespace OpenWifi {
 		return &instance;
 	}
 
+	static std::string ALBHealthCallback() {
+		uint64_t Connections, AverageConnectionTime, NumberOfConnectingDevices;
+		AP_WS_Server()->AverageDeviceStatistics(Connections, AverageConnectionTime,
+								NumberOfConnectingDevices);
+		std::ostringstream os;
+		os << 	"Connections: " << Connections << std::endl <<
+				"ConnectingDevices: " << NumberOfConnectingDevices << std::endl <<
+				"ConnectionTime: " << AverageConnectionTime << std::endl;
+		return os.str();
+	}
+
 	void Daemon::PostInitialization([[maybe_unused]] Poco::Util::Application &self) {
 		AutoProvisioning_ = config().getBool("openwifi.autoprovisioning", false);
 		DeviceTypes_ = DefaultDeviceTypeList;
 		WebSocketProcessor_ = std::make_unique<GwWebSocketClient>(logger());
+		MicroServiceALBCallback(ALBHealthCallback);
 	}
 
 	[[nodiscard]] std::string Daemon::IdentifyDevice(const std::string &Id) const {

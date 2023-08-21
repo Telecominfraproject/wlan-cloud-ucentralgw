@@ -53,4 +53,5 @@ namespace OpenWifi {
 	std::string MicroServiceGetPublicAPIEndPoint();
 	void MicroServiceDeleteOverrideConfiguration();
 	bool AllowExternalMicroServices();
+	void MicroServiceALBCallback( std::string Callback());
 } // namespace OpenWifi

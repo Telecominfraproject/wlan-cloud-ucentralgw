@@ -5,6 +5,8 @@
 #include "framework/MicroServiceFuncs.h"
 #include "framework/MicroService.h"
 
+#include "framework/ALBserver.h"
+
 namespace OpenWifi {
 	const std::string &MicroServiceDataDirectory() { return MicroService::instance().DataDir(); }
 
@@ -121,6 +123,10 @@ namespace OpenWifi {
 
 	bool AllowExternalMicroServices() {
 		return MicroService::instance().AllowExternalMicroServices();
+	}
+
+	void MicroServiceALBCallback( std::string Callback()) {
+		return ALBHealthCheckServer()->RegisterExtendedHealthMessage(Callback);
 	}
 
 } // namespace OpenWifi
