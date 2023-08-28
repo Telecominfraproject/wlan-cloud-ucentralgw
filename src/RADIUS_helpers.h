@@ -667,7 +667,7 @@ namespace OpenWifi::RADIUS {
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == RADIUS::Attributes::CALLING_STATION_ID && attribute.len > 2) {
 					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
-								  attribute.len - 2);
+								  attribute.len);
 					return Result;
 				}
 			}
@@ -679,7 +679,7 @@ namespace OpenWifi::RADIUS {
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == RADIUS::Attributes::ACCT_SESSION_ID && attribute.len > 2) {
 					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
-								  attribute.len - 2);
+								  attribute.len );
 					return Result;
 				}
 			}
@@ -691,7 +691,7 @@ namespace OpenWifi::RADIUS {
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == RADIUS::Attributes::CALLED_STATION_ID && attribute.len > 2) {
 					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
-								  attribute.len - 2);
+								  attribute.len);
 					return Result;
 				}
 			}
