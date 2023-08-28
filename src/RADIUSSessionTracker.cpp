@@ -98,7 +98,7 @@ namespace OpenWifi {
 	void RADIUSSessionTracker::ProcessAuthenticationSession([[maybe_unused]] OpenWifi::SessionNotification &Notification) {
 		std::lock_guard Guard(Mutex_);
 
-		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName, ChargeableUserIdentity, Interface, nasId;
+		std::string CallingStationId, CalledStationId, AccountingSessionId, AccountingMultiSessionId, UserName, ChargeableUserIdentity, Interface, nasId;
 		for (const auto &attribute : Notification.Packet_.Attrs_) {
 			switch (attribute.type) {
 			case RADIUS::Attributes::AUTH_USERNAME: {
@@ -108,6 +108,11 @@ namespace OpenWifi {
 			} break;
 			case RADIUS::Attributes::CALLING_STATION_ID: {
 				CallingStationId.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
+			case RADIUS::Attributes::CALLED_STATION_ID: {
+				CalledStationId.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
@@ -161,6 +166,7 @@ namespace OpenWifi {
 			NewSession->started = NewSession->lastTransaction = Utils::Now();
 			NewSession->userName = UserName;
 			NewSession->callingStationId = CallingStationId;
+			NewSession->calledStationId = CalledStationId;
 			NewSession->accountingSessionId = AccountingSessionId;
 			NewSession->accountingMultiSessionId = AccountingMultiSessionId;
 			NewSession->chargeableUserIdentity = ChargeableUserIdentity;
