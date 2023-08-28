@@ -188,7 +188,7 @@ namespace OpenWifi {
 	RADIUSSessionTracker::ProcessAccountingSession(OpenWifi::SessionNotification &Notification) {
 		std::lock_guard     Guard(Mutex_);
 
-		std::string CallingStationId, AccountingSessionId, AccountingMultiSessionId, UserName, ChargeableUserIdentity, Interface;
+		std::string CallingStationId, CalledStationId, AccountingSessionId, AccountingMultiSessionId, UserName, ChargeableUserIdentity, Interface;
 		std::uint8_t AccountingPacketType = 0;
 		std::uint32_t InputOctets=0, OutputOctets=0, InputPackets=0, OutputPackets=0, InputGigaWords=0, OutputGigaWords=0,
 					  SessionTime = 0;
@@ -201,6 +201,11 @@ namespace OpenWifi {
 			} break;
 			case RADIUS::Attributes::CALLING_STATION_ID: {
 				CallingStationId.assign(
+					&Notification.Packet_.P_.attributes[attribute.pos],
+					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
+			} break;
+			case RADIUS::Attributes::CALLED_STATION_ID: {
+				CalledStationId.assign(
 					&Notification.Packet_.P_.attributes[attribute.pos],
 					&Notification.Packet_.P_.attributes[attribute.pos + attribute.len]);
 			} break;
@@ -281,6 +286,7 @@ namespace OpenWifi {
 			NewSession->started = NewSession->lastTransaction = Utils::Now();
 			NewSession->userName = UserName;
 			NewSession->callingStationId = CallingStationId;
+			NewSession->calledStationId = CalledStationId;
 			NewSession->accountingSessionId = AccountingSessionId;
 			NewSession->accountingMultiSessionId = AccountingMultiSessionId;
 			NewSession->accountingPacket = Notification.Packet_;
@@ -341,12 +347,12 @@ namespace OpenWifi {
 		P.AppendAttribute(RADIUS::Attributes::AUTH_USERNAME, session->userName);
 		P.AppendAttribute(RADIUS::Attributes::NAS_IP, (std::uint32_t)(0x7f000001));
 		P.AppendAttribute(RADIUS::Attributes::CALLING_STATION_ID, session->callingStationId);
+		if(!session->calledStationId.empty())
+			P.AppendAttribute(RADIUS::Attributes::CALLED_STATION_ID, session->calledStationId);
 		if(!session->accountingSessionId.empty())
 			P.AppendAttribute(RADIUS::Attributes::ACCT_SESSION_ID, session->accountingSessionId);
 		if(!session->accountingMultiSessionId.empty())
 			P.AppendAttribute(RADIUS::Attributes::ACCT_MULTI_SESSION_ID, session->accountingMultiSessionId);
-//		if(!session->chargeableUserIdentity.empty())
-//			P.AppendAttribute(RADIUS::Attributes::CHARGEABLE_USER_IDENTITY, session->chargeableUserIdentity);
 		if(!session->nasId.empty())
 			P.AppendAttribute(RADIUS::Attributes::NAS_IDENTIFIER, session->nasId);
 		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + session->interface;

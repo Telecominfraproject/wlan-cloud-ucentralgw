@@ -423,6 +423,7 @@ namespace OpenWifi::GWObjects {
 								inputGigaWords = 0,
 								outputGigaWords = 0;
 		std::uint32_t 			sessionTime = 0;
+		std::string 			calledStationId;
 
 #ifdef TIP_GATEWAY_SERVICE
 		RADIUS::RadiusPacket	accountingPacket;
