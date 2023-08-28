@@ -686,6 +686,18 @@ namespace OpenWifi::RADIUS {
 			return Result;
 		}
 
+		std::string ExtractAccountingMultiSessionID() const {
+			std::string Result;
+			for (const auto &attribute : Attrs_) {
+				if (attribute.type == RADIUS::Attributes::ACCT_MULTI_SESSION_ID && attribute.len > 0) {
+					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
+								  attribute.len );
+					return Result;
+				}
+			}
+			return Result;
+		}
+
 		std::string ExtractCalledStationID() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {

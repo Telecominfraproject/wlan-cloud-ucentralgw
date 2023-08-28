@@ -18,8 +18,6 @@ namespace OpenWifi {
 	const int DEFAULT_RADIUS_ACCOUNTING_PORT = 1813;
 	const int DEFAULT_RADIUS_CoA_PORT = 3799;
 
-
-
 	int RADIUS_proxy_server::Start() {
 
 		ConfigFilename_ = MicroServiceDataDirectory() + "/radius_pool_config.json";
@@ -192,14 +190,13 @@ namespace OpenWifi {
 			poco_warning(Logger(), "Accounting: missing serial number.");
 			return;
 		}
-		auto CallingStationID = P.ExtractCallingStationID();
-		auto CalledStationID = P.ExtractCalledStationID();
-
+		auto SessionID = P.ExtractAccountingSessionID();
+		auto MultiSessionID = P.ExtractAccountingMultiSessionID();
 		poco_debug(
 			Logger(),
 			fmt::format(
-				"Accounting Packet received for {}, CalledStationID: {}, CallingStationID:{}",
-				SerialNumber, CalledStationID, CallingStationID));
+				"Accounting Packet received for {}, SessionID: {}, MultiSessionID: {}",
+				SerialNumber, SessionID, MultiSessionID));
 		AP_WS_Server()->SendRadiusAccountingData(SerialNumber, P.Buffer(), P.Size());
 	}
 
