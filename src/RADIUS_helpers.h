@@ -622,7 +622,7 @@ namespace OpenWifi::RADIUS {
 					std::string Attr33;
 					// format is serial:IP:port:interface
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],
-								  attribute.len - 2);
+								  attribute.len);
 					auto Parts = Poco::StringTokenizer(Attr33, "|");
 					if (Parts.count() == 4) {
 						return Parts[0];
@@ -645,7 +645,7 @@ namespace OpenWifi::RADIUS {
 					// format is
 
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],
-								  attribute.len - 2);
+								  attribute.len);
 					auto Parts = Poco::StringTokenizer(Attr33, "|");
 					if (Parts.count() == 4) {
 						Poco::Net::SocketAddress D(Parts[1], Parts[2]);
@@ -665,7 +665,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractCallingStationID() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == RADIUS::Attributes::CALLING_STATION_ID && attribute.len > 2) {
+				if (attribute.type == RADIUS::Attributes::CALLING_STATION_ID && attribute.len > 0) {
 					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len);
 					return Result;
@@ -677,7 +677,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractAccountingSessionID() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == RADIUS::Attributes::ACCT_SESSION_ID && attribute.len > 2) {
+				if (attribute.type == RADIUS::Attributes::ACCT_SESSION_ID && attribute.len > 0) {
 					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len );
 					return Result;
@@ -689,7 +689,7 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractCalledStationID() const {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
-				if (attribute.type == RADIUS::Attributes::CALLED_STATION_ID && attribute.len > 2) {
+				if (attribute.type == RADIUS::Attributes::CALLED_STATION_ID && attribute.len > 0) {
 					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len);
 					return Result;
