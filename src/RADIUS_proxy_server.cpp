@@ -184,20 +184,15 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
-
-		P.Log(std::cout);
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if (SerialNumber.empty()) {
 			poco_warning(Logger(), "Accounting: missing serial number.");
 			return;
 		}
-		auto SessionID = P.ExtractAccountingSessionID();
-		auto MultiSessionID = P.ExtractAccountingMultiSessionID();
 		poco_debug(
 			Logger(),
 			fmt::format(
-				"Accounting Packet received for {}, SessionID: {}, MultiSessionID: {}",
-				SerialNumber, SessionID, MultiSessionID));
+				"Accounting Packet Response received for {}", SerialNumber ));
 		AP_WS_Server()->SendRadiusAccountingData(SerialNumber, P.Buffer(), P.Size());
 	}
 
