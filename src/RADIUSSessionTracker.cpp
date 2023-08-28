@@ -345,8 +345,8 @@ namespace OpenWifi {
 			P.AppendAttribute(RADIUS::Attributes::ACCT_SESSION_ID, session->accountingSessionId);
 		if(!session->accountingMultiSessionId.empty())
 			P.AppendAttribute(RADIUS::Attributes::ACCT_MULTI_SESSION_ID, session->accountingMultiSessionId);
-		if(!session->chargeableUserIdentity.empty())
-			P.AppendAttribute(RADIUS::Attributes::CHARGEABLE_USER_IDENTITY, session->chargeableUserIdentity);
+//		if(!session->chargeableUserIdentity.empty())
+//			P.AppendAttribute(RADIUS::Attributes::CHARGEABLE_USER_IDENTITY, session->chargeableUserIdentity);
 		if(!session->nasId.empty())
 			P.AppendAttribute(RADIUS::Attributes::NAS_IDENTIFIER, session->nasId);
 		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + session->interface;
