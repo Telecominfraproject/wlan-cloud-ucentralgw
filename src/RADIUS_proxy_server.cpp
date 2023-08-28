@@ -266,6 +266,7 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress Dst(Destination);
 
 			P.Log(std::cout);
+			std::cout << CallingStationID << " --- " << CalledStationID << std::endl;
 
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
