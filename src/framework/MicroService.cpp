@@ -129,6 +129,8 @@ namespace OpenWifi {
 				}
 			} else {
 				poco_error(logger(), "Bad bus message.");
+                std::ostringstream os;
+                Object->stringify(std::cout);
 			}
 
 			auto i = Services_.begin();

@@ -213,7 +213,7 @@ namespace OpenWifi {
 	}
 
 	void KafkaProducer::Produce(const char *Topic, const std::string &Key,
-								const std::shared_ptr<std::string> Payload) {
+								std::shared_ptr<std::string> Payload) {
 		std::lock_guard G(Mutex_);
 		Queue_.enqueueNotification(new KafkaMessage(Topic, Key, Payload));
 	}

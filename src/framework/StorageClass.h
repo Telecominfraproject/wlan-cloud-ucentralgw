@@ -22,9 +22,8 @@ namespace OpenWifi {
 
 	class StorageClass : public SubSystemServer {
 	  public:
-		StorageClass() noexcept : SubSystemServer("StorageClass", "STORAGE-SVR", "storage") {}
 
-		int Start() override {
+        inline int Start() override {
 			std::lock_guard Guard(Mutex_);
 
 			Logger().notice("Starting.");
@@ -40,17 +39,22 @@ namespace OpenWifi {
 			return 0;
 		}
 
-		void Stop() override { Pool_->shutdown(); }
+		inline void Stop() override { Pool_->shutdown(); }
 
 		DBType Type() const { return dbType_; };
+
+        StorageClass() noexcept : SubSystemServer("StorageClass", "STORAGE-SVR", "storage") {
+
+        }
 
 	  private:
 		inline int Setup_SQLite();
 		inline int Setup_MySQL();
 		inline int Setup_PostgreSQL();
 
-	  protected:
-		std::unique_ptr<Poco::Data::SessionPool> Pool_;
+
+    protected:
+		std::shared_ptr<Poco::Data::SessionPool> Pool_;
 		Poco::Data::SQLite::Connector SQLiteConn_;
 		Poco::Data::PostgreSQL::Connector PostgresConn_;
 		Poco::Data::MySQL::Connector MySQLConn_;
@@ -81,7 +85,7 @@ namespace OpenWifi {
 		//        Poco::Data::SessionPool(SQLiteConn_.name(), DBName, 8,
 		//                                                                                     (int)NumSessions,
 		//                                                                                     (int)IdleTime));
-		Pool_ = std::make_unique<Poco::Data::SessionPool>(SQLiteConn_.name(), DBName, 8,
+		Pool_ = std::make_shared<Poco::Data::SessionPool>(SQLiteConn_.name(), DBName, 8,
 														  (int)NumSessions, (int)IdleTime);
 		return 0;
 	}
@@ -102,7 +106,7 @@ namespace OpenWifi {
 									";compress=true;auto-reconnect=true";
 
 		Poco::Data::MySQL::Connector::registerConnector();
-		Pool_ = std::make_unique<Poco::Data::SessionPool>(MySQLConn_.name(), ConnectionStr, 8,
+		Pool_ = std::make_shared<Poco::Data::SessionPool>(MySQLConn_.name(), ConnectionStr, 8,
 														  NumSessions, IdleTime);
 
 		return 0;
@@ -126,7 +130,7 @@ namespace OpenWifi {
 									" connect_timeout=" + ConnectionTimeout;
 
 		Poco::Data::PostgreSQL::Connector::registerConnector();
-		Pool_ = std::make_unique<Poco::Data::SessionPool>(PostgresConn_.name(), ConnectionStr, 8,
+		Pool_ = std::make_shared<Poco::Data::SessionPool>(PostgresConn_.name(), ConnectionStr, 8,
 														  NumSessions, IdleTime);
 
 		return 0;

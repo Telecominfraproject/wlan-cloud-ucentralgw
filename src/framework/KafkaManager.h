@@ -18,8 +18,8 @@ namespace OpenWifi {
 
 	class KafkaMessage : public Poco::Notification {
 	  public:
-		KafkaMessage(const char * Topic, const std::string &Key, const std::shared_ptr<std::string> Payload)
-			: Topic_(Topic), Key_(Key), Payload_(std::move(Payload)) {}
+		KafkaMessage(const char * Topic, const std::string &Key, std::shared_ptr<std::string> Payload)
+			: Topic_(Topic), Key_(Key), Payload_(Payload) {}
 
 		inline const char * Topic() { return Topic_; }
 		inline const std::string &Key() { return Key_; }
@@ -36,7 +36,7 @@ namespace OpenWifi {
 		void run() override;
 		void Start();
 		void Stop();
-		void Produce(const char *Topic, const std::string &Key, const std::shared_ptr<std::string> Payload);
+		void Produce(const char *Topic, const std::string &Key, std::shared_ptr<std::string> Payload);
 
 	  private:
 		std::recursive_mutex Mutex_;
@@ -92,9 +92,9 @@ namespace OpenWifi {
 		void Stop() override;
 
 		void PostMessage(const char *topic, const std::string &key,
-						 const std::shared_ptr<std::string> PayLoad, bool WrapMessage = true);
-		void Dispatch(const char *Topic, const std::string &Key, const std::shared_ptr<std::string> Payload);
-		[[nodiscard]] const std::shared_ptr<std::string> WrapSystemId(const std::shared_ptr<std::string> PayLoad);
+						 std::shared_ptr<std::string> PayLoad, bool WrapMessage = true);
+		void Dispatch(const char *Topic, const std::string &Key, std::shared_ptr<std::string> Payload);
+		[[nodiscard]] const std::shared_ptr<std::string> WrapSystemId(std::shared_ptr<std::string> PayLoad);
 		[[nodiscard]] inline bool Enabled() const { return KafkaEnabled_; }
 		uint64_t RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F);
 		void UnregisterTopicWatcher(const std::string &Topic, uint64_t Id);
