@@ -370,16 +370,16 @@ namespace OpenWifi {
 		P.Identifier(std::rand() & 0x00ff);
 		P.AppendAttribute(RADIUS::Attributes::AUTH_USERNAME, session->userName);
 		P.AppendAttribute(RADIUS::Attributes::NAS_IP, (std::uint32_t)(0x7f000001));
-		P.AppendAttribute(RADIUS::Attributes::CALLING_STATION_ID, session->callingStationId);
 		if(!session->calledStationId.empty())
 			P.AppendAttribute(RADIUS::Attributes::CALLED_STATION_ID, session->calledStationId);
+		if(!session->callingStationId.empty())
+			P.AppendAttribute(RADIUS::Attributes::CALLING_STATION_ID, session->callingStationId);
+		if(!session->nasId.empty())
+			P.AppendAttribute(RADIUS::Attributes::NAS_IDENTIFIER, session->nasId);
 		if(!session->accountingSessionId.empty())
 			P.AppendAttribute(RADIUS::Attributes::ACCT_SESSION_ID, session->accountingSessionId);
 		if(!session->accountingMultiSessionId.empty())
 			P.AppendAttribute(RADIUS::Attributes::ACCT_MULTI_SESSION_ID, session->accountingMultiSessionId);
-		if(!session->nasId.empty())
-			P.AppendAttribute(RADIUS::Attributes::NAS_IDENTIFIER, session->nasId);
-//		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + "down1v0_0_0_0" ; // session->interface;
 		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + session->interface;
 		std::cout << "Proxy state: " << ProxyState << "   Secret: " << session->secret << std::endl;
 		P.AppendAttribute(RADIUS::Attributes::PROXY_STATE, ProxyState);
