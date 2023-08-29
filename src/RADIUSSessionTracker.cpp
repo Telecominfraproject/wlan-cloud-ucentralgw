@@ -286,6 +286,8 @@ namespace OpenWifi {
 				return;
 			}
 
+			std::cout << "AccountingSessionId: " << AccountingSessionId << "  AccountingMultiSessionId: " << AccountingMultiSessionId << std::endl;
+
 			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
 			NewSession->serialNumber = Notification.SerialNumber_;
 			NewSession->destination = Notification.Destination_;
