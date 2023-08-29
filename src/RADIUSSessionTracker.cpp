@@ -151,6 +151,8 @@ namespace OpenWifi {
 			}
 		}
 
+		std::cout << "AUTH -> AccountingSessionId: " << AccountingSessionId << "  AccountingMultiSessionId: " << AccountingMultiSessionId << std::endl;
+
 		auto ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
 		if(ap_hint==end(AccountingSessions_)) {
 			SessionMap M;
@@ -269,7 +271,6 @@ namespace OpenWifi {
 			}
 		}
 
-		auto Index = CallingStationId; // + AccountingSessionId; // +AccountingMultiSessionId;
 		auto ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
 		if(ap_hint==end(AccountingSessions_)) {
 			SessionMap M;
@@ -277,6 +278,7 @@ namespace OpenWifi {
 			ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
 		}
 
+		auto Index = AccountingSessionId + AccountingMultiSessionId;
 		auto session_hint = ap_hint->second.find(Index);
 		if(session_hint==end(ap_hint->second)) {
 			//  find the calling_station_id
@@ -286,7 +288,7 @@ namespace OpenWifi {
 				return;
 			}
 
-			std::cout << "AccountingSessionId: " << AccountingSessionId << "  AccountingMultiSessionId: " << AccountingMultiSessionId << std::endl;
+			std::cout << "ACT -> AccountingSessionId: " << AccountingSessionId << "  AccountingMultiSessionId: " << AccountingMultiSessionId << std::endl;
 
 			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
 			NewSession->serialNumber = Notification.SerialNumber_;
