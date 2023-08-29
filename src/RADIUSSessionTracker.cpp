@@ -183,7 +183,7 @@ namespace OpenWifi {
 		if(ap_hint!=AccountingSessions_.end()) {
 			std::cout << "Auth table:" << std::endl;
 			for(const auto &session:ap_hint->second) {
-				std::cout << Notification.SerialNumber_ << ": ID: " << session.second->accountingSessionId << "  MID:" << session.second->accountingMultiSessionId << std::endl;
+				std::cout << Notification.SerialNumber_ << ":  Index: " << session.first << ": ID: " << session.second->accountingSessionId << "  MID:" << session.second->accountingMultiSessionId << std::endl;
 			}
 		}
 
@@ -346,7 +346,7 @@ namespace OpenWifi {
 		if(ap_hint!=AccountingSessions_.end()) {
 			std::cout << "Acct table:" << std::endl;
 			for(const auto &session:ap_hint->second) {
-				std::cout << Notification.SerialNumber_ << ": ID: " << session.second->accountingSessionId << "  MID:" << session.second->accountingMultiSessionId << std::endl;
+				std::cout << Notification.SerialNumber_ << ":  Index: " << session.first << ": ID: " << session.second->accountingSessionId << "  MID:" << session.second->accountingMultiSessionId << std::endl;
   			}
 		}
 	}
