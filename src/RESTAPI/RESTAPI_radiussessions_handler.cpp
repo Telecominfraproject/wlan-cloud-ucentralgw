@@ -117,7 +117,8 @@ namespace OpenWifi {
 		auto Command = GetParameter("operation","");
 
 		if(Command=="coadm") {
-			if(RADIUSSessionTracker()->SendCoADM(SerialNumber, Parameters.accountingSessionId)) {
+			auto Index = Parameters.accountingSessionId + Parameters.accountingMultiSessionId;
+			if(RADIUSSessionTracker()->SendCoADM(SerialNumber, Index)) {
 				return OK();
 			}
 			return BadRequest(RESTAPI::Errors::CouldNotPerformCommand);
