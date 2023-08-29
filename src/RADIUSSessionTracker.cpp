@@ -365,7 +365,8 @@ namespace OpenWifi {
 			P.AppendAttribute(RADIUS::Attributes::ACCT_MULTI_SESSION_ID, session->accountingMultiSessionId);
 		if(!session->nasId.empty())
 			P.AppendAttribute(RADIUS::Attributes::NAS_IDENTIFIER, session->nasId);
-		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + "down1v0_0_0_0" ; // session->interface;
+//		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + "down1v0_0_0_0" ; // session->interface;
+		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + session->interface;
 		std::cout << "Proxy state: " << ProxyState << "   Secret: " << session->secret << std::endl;
 		// P.AppendAttribute(RADIUS::PROXY_STATE, ProxyState);
 		P.RecomputeAuthenticator(session->secret);
