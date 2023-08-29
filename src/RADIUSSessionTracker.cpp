@@ -399,10 +399,9 @@ namespace OpenWifi {
 			return false;
 		}
 
-		for(const auto &[_,session]:ap_hint->second) {
-			if(session->accountingSessionId==sessionId) {
-				SendCoADM(session);
-			}
+		auto session_hint = ap_hint->second.find(sessionId);
+		if(session_hint!=ap_hint->second.end()) {
+			SendCoADM(session_hint->second);
 		}
 
 		return true;
