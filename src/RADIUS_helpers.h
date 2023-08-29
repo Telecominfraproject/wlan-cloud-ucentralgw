@@ -66,6 +66,7 @@ namespace OpenWifi::RADIUS {
 		constexpr std::uint8_t ACCT_INPUT_GIGAWORDS = 52;
 		constexpr std::uint8_t ACCT_OUTPUT_GIGAWORDS = 53;
 		constexpr std::uint8_t EVENT_TIMESTAMP = 55;
+		constexpr std::uint8_t TUNNEL_PRIVATE_GROUP_ID = 81;
 		constexpr std::uint8_t MESSAGE_AUTHENTICATOR = 80;
 		constexpr std::uint8_t CHARGEABLE_USER_IDENTITY = 89;
 	};

@@ -207,7 +207,9 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
-		// P.Log(std::cout);
+		if(P.PacketTypeInt()==OpenWifi::RADIUS::Access_Accept) {
+			P.Log(std::cout);
+		}
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if (SerialNumber.empty()) {
 			poco_warning(Logger(), "Authentication: missing serial number.");
@@ -257,9 +259,6 @@ namespace OpenWifi {
 			auto CallingStationID = P.ExtractCallingStationID();
 			auto CalledStationID = P.ExtractCalledStationID();
 			Poco::Net::SocketAddress Dst(Destination);
-
-			P.Log(std::cout);
-			std::cout << CallingStationID << " --- " << CalledStationID << std::endl;
 
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
