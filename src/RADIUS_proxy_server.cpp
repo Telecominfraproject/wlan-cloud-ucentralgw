@@ -207,6 +207,15 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
+		for(const auto &Attribute:P.Attrs_) {
+			if(Attribute.type==26) {
+				if(Attribute.len>4) {
+					std::uint32_t Vendor = ntohl(P.Buffer()[Attribute.pos]);
+					std::cout << "Vendor: " << Vendor << "  len: " << Attribute.len << std::endl;
+				}
+			}
+		}
+
 		if(P.PacketTypeInt()==OpenWifi::RADIUS::Access_Accept) {
 			P.Log(std::cout);
 		}
