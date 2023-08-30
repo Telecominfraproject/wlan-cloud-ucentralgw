@@ -437,6 +437,11 @@ namespace OpenWifi {
 
 			P.Log(std::cout);
 
+			if(Destination.empty()) {
+				std::cout << "No destination in CoA. Dropped." << std::endl;
+				return;
+			}
+
 			Poco::Net::SocketAddress Dst(Destination);
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
