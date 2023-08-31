@@ -750,6 +750,10 @@ namespace OpenWifi {
 			return Pool[0].Addr;
 		}
 
+		if(Pool.empty()) {
+			std::cout << __LINE__ << std::endl;
+		}
+
 		std::cout << __LINE__ << std::endl;
 		if (Pool[0].strategy == "weighted") {
 			bool found = false;
@@ -800,6 +804,7 @@ namespace OpenWifi {
 			Pool[index].state += 1;
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "random") {
+			std::cout << __LINE__ << std::endl;
 			if (Pool.size() > 1) {
 				std::cout << __LINE__ << std::endl;
 				auto index = std::rand() % Pool.size();
