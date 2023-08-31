@@ -599,6 +599,12 @@ namespace OpenWifi {
 										pool.useByDefault);
 						ParseServerList(pool.coaConfig, NewPool.CoaV4, NewPool.CoaV6,
 										pool.useByDefault);
+						std::cout << "Pool size 1: " << NewPool.CoaV4.size() << std::endl;
+						std::cout << "Pool size 2: " << NewPool.AuthV4.size() << std::endl;
+						std::cout << "Pool size 3: " << NewPool.AuthV4.size() << std::endl;
+						std::cout << "Pool size 1: " << NewPool.CoaV6.size() << std::endl;
+						std::cout << "Pool size 2: " << NewPool.AuthV6.size() << std::endl;
+						std::cout << "Pool size 3: " << NewPool.AuthV6.size() << std::endl;
 						Pools_.push_back(NewPool);
 					}
 				} else {
