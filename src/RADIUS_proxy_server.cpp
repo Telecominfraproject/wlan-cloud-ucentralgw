@@ -241,7 +241,7 @@ namespace OpenWifi {
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberTIP();
 		if (SerialNumber.empty()) {
-			poco_warning(Logger(), "CoA/DM: missing serial number.");
+			poco_warning(Logger(), "CoA/DM: missing serial number. Dropping request.");
 			return;
 		}
 		auto CallingStationID = P.ExtractCallingStationID();
