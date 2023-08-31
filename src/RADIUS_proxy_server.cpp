@@ -424,9 +424,11 @@ namespace OpenWifi {
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer,
 										  std::size_t size, std::string & secret) {
 
+		std::cout << __LINE__ << std::endl;
 		if (!Continue())
 			return;
 
+		std::cout << __LINE__ << std::endl;
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
 			auto Destination = P.ExtractProxyStateDestination();
@@ -437,46 +439,68 @@ namespace OpenWifi {
 
 			P.Log(std::cout);
 
+			std::cout << __LINE__ << std::endl;
 			if(Destination.empty()) {
+				std::cout << __LINE__ << std::endl;
 				std::cout << "No destination in CoA. Dropped." << std::endl;
 				return;
 			}
 
+			std::cout << __LINE__ << std::endl;
 			Poco::Net::SocketAddress Dst(Destination);
+			std::cout << __LINE__ << std::endl;
 			std::lock_guard G(Mutex_);
+			std::cout << __LINE__ << std::endl;
 			bool UseRADSEC = false;
+			std::cout << __LINE__ << std::endl;
 			auto FinalDestination = Route(radius_type::coa, Dst, P, UseRADSEC, secret);
+			std::cout << __LINE__ << std::endl;
 			std::cout << "CoA secret: " << secret << std::endl;
+			std::cout << __LINE__ << std::endl;
 			if (UseRADSEC) {
+				std::cout << __LINE__ << std::endl;
 				Poco::Net::SocketAddress RSP(FinalDestination.host(), 0);
+				std::cout << __LINE__ << std::endl;
 				auto DestinationServer = RADSECservers_.find(RSP);
+				std::cout << __LINE__ << std::endl;
 				if (DestinationServer != end(RADSECservers_)) {
+					std::cout << __LINE__ << std::endl;
 					DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer,
 														size);
 				}
 			} else {
+				std::cout << __LINE__ << std::endl;
 				if ((Dst.family() == Poco::Net::SocketAddress::IPv4 && CoASocketV4_ == nullptr) ||
 					(Dst.family() == Poco::Net::SocketAddress::IPv6 && CoASocketV6_ == nullptr)) {
+					std::cout << __LINE__ << std::endl;
 					poco_debug(
 						Logger(),
 						fmt::format(
 							"CoA: Trying to use RADIUS GW PROXY but not configured. Device={}",
 							serialNumber));
+					std::cout << __LINE__ << std::endl;
 					return;
 				}
+				std::cout << __LINE__ << std::endl;
 				auto AllSent = SendData(
 					Dst.family() == Poco::Net::SocketAddress::IPv4 ? *CoASocketV4_ : *CoASocketV6_,
 					(const unsigned char *)buffer, size, FinalDestination);
-				if (!AllSent)
+				std::cout << __LINE__ << std::endl;
+				if (!AllSent) {
+					std::cout << __LINE__ << std::endl;
 					poco_error(Logger(), fmt::format("{}: Could not send CoA packet packet to {}.",
 													 serialNumber, Destination));
+				}
 				else
 					poco_debug(Logger(), fmt::format("{}: Sending CoA Packet to {}", serialNumber,
 													 FinalDestination.toString()));
 			}
+			std::cout << __LINE__ << std::endl;
 		} catch (const Poco::Exception &E) {
+			std::cout << __LINE__ << std::endl;
 			Logger().log(E);
 		} catch (...) {
+			std::cout << __LINE__ << std::endl;
 			poco_warning(Logger(),
 						 fmt::format("Bad RADIUS CoA/DM Packet from {}. Dropped.", serialNumber));
 		}
