@@ -702,6 +702,7 @@ namespace OpenWifi {
 		std::cout << __LINE__ << " : V4: " << IsV4 << std::endl;
 		bool useDefault;
 		std::cout << __LINE__ << std::endl;
+
 		useDefault = IsV4 ? RequestedAddress.host() ==
 								Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4)
 						  : RequestedAddress.host() ==
