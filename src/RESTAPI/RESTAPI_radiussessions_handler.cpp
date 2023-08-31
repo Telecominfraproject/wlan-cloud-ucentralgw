@@ -101,18 +101,25 @@ namespace OpenWifi {
 
 	void RESTAPI_radiussessions_handler::DoPut() {
 		auto SerialNumber = GetBinding("serialNumber","");
+		std::cout << __LINE__ << std::endl;
 		if(SerialNumber.empty() || !Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
+		std::cout << __LINE__ << std::endl;
+
 		GWObjects::RadiusCoADMParameters	Parameters;
+		std::cout << __LINE__ << std::endl;
 		if(!Parameters.from_json(ParsedBody_)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
+		std::cout << __LINE__ << std::endl;
 
 		auto Command = GetParameter("operation","");
+		std::cout << __LINE__ << std::endl;
 
 		if(Command=="coadm") {
+			std::cout << __LINE__ << std::endl;
 			if(Parameters.callingStationId.empty() || Parameters.accountingSessionId.empty() || Parameters.accountingMultiSessionId.empty()) {
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			}
@@ -125,13 +132,17 @@ namespace OpenWifi {
 		}
 
 		if(Command=="disconnectUser" && !Parameters.userName.empty()) {
+			std::cout << __LINE__ << std::endl;
 			if(Parameters.userName.empty()) {
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			}
+			std::cout << __LINE__ << std::endl;
 			poco_information(Logger(), fmt::format("Disconnecting sessions for user: {}", Parameters.userName ));
 			if(RADIUSSessionTracker()->DisconnectUser(Parameters.userName)) {
+				std::cout << __LINE__ << std::endl;
 				return OK();
 			}
+			std::cout << __LINE__ << std::endl;
 			return BadRequest(RESTAPI::Errors::CouldNotPerformCommand);
 		}
 
