@@ -382,7 +382,7 @@ namespace OpenWifi {
 			P.AppendAttribute(RADIUS::Attributes::ACCT_MULTI_SESSION_ID, session->accountingMultiSessionId);
 		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + session->interface;
 		std::cout << "Proxy state: " << ProxyState << "   Secret: " << session->secret << std::endl;
-		// P.AppendAttribute(RADIUS::Attributes::PROXY_STATE, ProxyState);
+		P.AppendAttribute(RADIUS::Attributes::PROXY_STATE, ProxyState);
 		P.RecomputeAuthenticator(session->secret);
 		P.Log(std::cout);
 		AP_WS_Server()->SendRadiusCoAData(session->serialNumber, P.Buffer(), P.Size_);
