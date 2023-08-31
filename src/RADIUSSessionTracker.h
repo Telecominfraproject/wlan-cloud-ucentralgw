@@ -165,6 +165,7 @@ namespace OpenWifi {
 
 		bool SendCoADM(const std::string &serialNumber, const std::string &sessionId);
 		bool SendCoADM(const RADIUSSessionPtr &session);
+		bool DisconnectUser(const std::string &UserName);
 
 		inline std::uint32_t HasSessions(const std::string & serialNumber) {
 			std::lock_guard	G(Mutex_);

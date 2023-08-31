@@ -124,6 +124,13 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::CouldNotPerformCommand);
 		}
 
+		if(Command=="disconnectUser" && !Parameters.userName.empty()) {
+			if(RADIUSSessionTracker()->DisconnectUser(Parameters.userName)) {
+				return OK();
+			}
+			return BadRequest(RESTAPI::Errors::CouldNotPerformCommand);
+		}
+
 		return BadRequest(RESTAPI::Errors::InvalidCommand);
 	}
 

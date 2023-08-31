@@ -671,6 +671,7 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj, "accountingMultiSessionId", accountingMultiSessionId);
 			field_from_json(Obj, "callingStationId", callingStationId);
 			field_from_json(Obj, "chargeableUserIdentity", chargeableUserIdentity);
+			field_from_json(Obj, "userName", userName);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}

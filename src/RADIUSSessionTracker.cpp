@@ -407,6 +407,21 @@ namespace OpenWifi {
 		return true;
 	}
 
+	bool RADIUSSessionTracker::DisconnectUser(const std::string &UserName) {
+		poco_information(Logger(),fmt::format("Disconnect user {}.", UserName));
+		std::lock_guard		Guard(Mutex_);
+
+		for(const auto &AP:AccountingSessions_) {
+			for(const auto &Session:AP.second) {
+				if(Session.second->userName==UserName) {
+					SendCoADM(Session.second);
+				}
+			}
+		}
+
+		return true;
+	}
+
 	void RADIUSSessionTracker::DisconnectSession(const std::string &SerialNumber) {
 		poco_information(Logger(),fmt::format("{}: Disconnecting.", SerialNumber));
 

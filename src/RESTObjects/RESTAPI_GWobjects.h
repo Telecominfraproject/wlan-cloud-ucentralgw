@@ -441,7 +441,8 @@ namespace OpenWifi::GWObjects {
 		std::string 			accountingSessionId,
 								accountingMultiSessionId,
 								callingStationId,
-								chargeableUserIdentity;
+								chargeableUserIdentity,
+								userName;
 
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};

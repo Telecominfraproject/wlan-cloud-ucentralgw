@@ -1408,6 +1408,9 @@ components:
           type: string
         chargeableUserIdentity:
           type: string
+        userName:
+          type: string
+
 
 paths:
   /devices:
@@ -3253,6 +3256,7 @@ paths:
             type: string
             enum:
               - coadm
+              - disconnectUser
       requestBody:
         description: operationParameters
         content:
