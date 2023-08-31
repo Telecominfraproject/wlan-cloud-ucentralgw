@@ -615,7 +615,9 @@ namespace OpenWifi {
 									  const Poco::Net::SocketAddress &RequestedAddress,
 									  const RADIUS::RadiusPacket &P, bool &UseRADSEC,
 									  std::string &Secret) {
+
 		bool IsV4 = RequestedAddress.family() == Poco::Net::SocketAddress::IPv4;
+		std::cout << __LINE__ << std::endl;
 
 		// find the realm...
 		auto UserName = P.UserName();
@@ -639,7 +641,9 @@ namespace OpenWifi {
 			}
 		}
 
+		std::cout << __LINE__ << std::endl;
 		if (DefaultIsRADSEC_) {
+			std::cout << __LINE__ << std::endl;
 			UseRADSEC = true;
 			return (IsV4 ? Pools_[DefaultPoolIndex_].AuthV4[0].Addr
 						 : Pools_[DefaultPoolIndex_].AuthV6[0].Addr);
@@ -652,6 +656,7 @@ namespace OpenWifi {
 								 RequestedAddress, Secret);
 		}
 		case radius_type::coa: {
+			std::cout << __LINE__ << std::endl;
 			return ChooseAddress(IsV4 ? Pools_[DefaultPoolIndex_].CoaV4
 									  : Pools_[DefaultPoolIndex_].CoaV6,
 								 RequestedAddress, Secret);
@@ -690,6 +695,7 @@ namespace OpenWifi {
 
 		std::cout << __LINE__ << std::endl;
 		if (useDefault) {
+			std::cout << __LINE__ << std::endl;
 			return DefaultRoute(rtype, RequestedAddress, P, UseRADSEC, Secret);
 		}
 
@@ -737,11 +743,14 @@ namespace OpenWifi {
 									   const Poco::Net::SocketAddress &OriginalAddress,
 									   std::string &Secret) {
 
+		std::cout << __LINE__ << std::endl;
 		if (Pool.size() == 1) {
+			std::cout << __LINE__ << std::endl;
 			Secret = Pool[0].secret;
 			return Pool[0].Addr;
 		}
 
+		std::cout << __LINE__ << std::endl;
 		if (Pool[0].strategy == "weighted") {
 			bool found = false;
 			uint64_t cur_state = std::numeric_limits<uint64_t>::max();
@@ -792,13 +801,16 @@ namespace OpenWifi {
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "random") {
 			if (Pool.size() > 1) {
+				std::cout << __LINE__ << std::endl;
 				auto index = std::rand() % Pool.size();
 				Secret = Pool[index].secret;
 				return Pool[index].Addr;
 			} else {
+				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 		}
+		std::cout << __LINE__ << std::endl;
 		return OriginalAddress;
 	}
 
