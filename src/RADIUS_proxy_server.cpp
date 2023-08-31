@@ -591,12 +591,6 @@ namespace OpenWifi {
 										pool.useByDefault);
 						ParseServerList(pool.coaConfig, NewPool.CoaV4, NewPool.CoaV6,
 										pool.useByDefault);
-						std::cout << "Pool size 1: " << NewPool.CoaV4.size() << std::endl;
-						std::cout << "Pool size 2: " << NewPool.AuthV4.size() << std::endl;
-						std::cout << "Pool size 3: " << NewPool.AuthV4.size() << std::endl;
-						std::cout << "Pool size 1: " << NewPool.CoaV6.size() << std::endl;
-						std::cout << "Pool size 2: " << NewPool.AuthV6.size() << std::endl;
-						std::cout << "Pool size 3: " << NewPool.AuthV6.size() << std::endl;
 						Pools_.push_back(NewPool);
 					}
 				} else {
@@ -612,6 +606,15 @@ namespace OpenWifi {
 		} catch (...) {
 			poco_error(Logger(),
 					   fmt::format("Error while parsing configuration file '{}'", ConfigFilename_));
+		}
+
+		for(const auto &Pool:Pools_) {
+			std::cout << "Pool size 1: " << Pool.CoaV4.size() << std::endl;
+			std::cout << "Pool size 2: " << Pool.AuthV4.size() << std::endl;
+			std::cout << "Pool size 3: " << Pool.AuthV4.size() << std::endl;
+			std::cout << "Pool size 1: " << Pool.CoaV6.size() << std::endl;
+			std::cout << "Pool size 2: " << Pool.AuthV6.size() << std::endl;
+			std::cout << "Pool size 3: " << Pool.AuthV6.size() << std::endl;
 		}
 	}
 
@@ -667,7 +670,7 @@ namespace OpenWifi {
 								 RequestedAddress, Secret);
 		}
 		case radius_type::coa: {
-			std::cout << __LINE__ << std::endl;
+			std::cout << __LINE__ << " : index = " << DefaultPoolIndex_ << std::endl;
 			std::cout << "Pool size 1: " << Pools_[DefaultPoolIndex_].CoaV4.size() << std::endl;
 			std::cout << "Pool size 2: " << Pools_[DefaultPoolIndex_].AuthV4.size() << std::endl;
 			std::cout << "Pool size 3: " << Pools_[DefaultPoolIndex_].AuthV6.size() << std::endl;
