@@ -651,15 +651,15 @@ namespace OpenWifi {
 									  : Pools_[DefaultPoolIndex_].AuthV6,
 								 RequestedAddress, Secret);
 		}
+		case radius_type::coa: {
+			return ChooseAddress(IsV4 ? Pools_[DefaultPoolIndex_].CoaV4
+									  : Pools_[DefaultPoolIndex_].CoaV6,
+								 RequestedAddress, Secret);
+		}
 		case radius_type::acct:
 		default: {
 			return ChooseAddress(IsV4 ? Pools_[DefaultPoolIndex_].AcctV4
 									  : Pools_[DefaultPoolIndex_].AcctV6,
-								 RequestedAddress, Secret);
-		}
-		case radius_type::coa: {
-			return ChooseAddress(IsV4 ? Pools_[DefaultPoolIndex_].CoaV4
-									  : Pools_[DefaultPoolIndex_].CoaV6,
 								 RequestedAddress, Secret);
 		}
 		}
@@ -670,25 +670,32 @@ namespace OpenWifi {
 							   const Poco::Net::SocketAddress &RequestedAddress,
 							   const RADIUS::RadiusPacket &P, bool &UseRADSEC,
 							   std::string &Secret) {
-		std::lock_guard G(Mutex_);
+		std::cout << __LINE__ << std::endl;
 
 		if (Pools_.empty()) {
+			std::cout << __LINE__ << std::endl;
 			UseRADSEC = false;
 			return RequestedAddress;
 		}
+		std::cout << __LINE__ << std::endl;
 
 		bool IsV4 = RequestedAddress.family() == Poco::Net::SocketAddress::IPv4;
+		std::cout << __LINE__ << std::endl;
 		bool useDefault;
+		std::cout << __LINE__ << std::endl;
 		useDefault = IsV4 ? RequestedAddress.host() ==
 								Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4)
 						  : RequestedAddress.host() ==
 								Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6);
 
+		std::cout << __LINE__ << std::endl;
 		if (useDefault) {
 			return DefaultRoute(rtype, RequestedAddress, P, UseRADSEC, Secret);
 		}
 
+		std::cout << __LINE__ << std::endl;
 		auto isAddressInPool = [&](const std::vector<Destination> &D, bool &UseRADSEC) -> bool {
+			std::cout << __LINE__ << std::endl;
 			for (const auto &entry : D)
 				if (entry.Addr.host() == RequestedAddress.host()) {
 					UseRADSEC = entry.useRADSEC;
@@ -697,19 +704,23 @@ namespace OpenWifi {
 			return false;
 		};
 
+		std::cout << __LINE__ << std::endl;
 		for (auto &i : Pools_) {
 			switch (rtype) {
 			case radius_type::coa: {
+				std::cout << __LINE__ << std::endl;
 				if (isAddressInPool((IsV4 ? i.CoaV4 : i.CoaV6), UseRADSEC)) {
 					return ChooseAddress(IsV4 ? i.CoaV4 : i.CoaV6, RequestedAddress, Secret);
 				}
 			} break;
 			case radius_type::auth: {
+				std::cout << __LINE__ << std::endl;
 				if (isAddressInPool((IsV4 ? i.AuthV4 : i.AuthV6), UseRADSEC)) {
 					return ChooseAddress(IsV4 ? i.AuthV4 : i.AuthV6, RequestedAddress, Secret);
 				}
 			} break;
 			case radius_type::acct: {
+				std::cout << __LINE__ << std::endl;
 				if (isAddressInPool((IsV4 ? i.AcctV4 : i.AcctV6), UseRADSEC)) {
 					return ChooseAddress(IsV4 ? i.AcctV4 : i.AcctV6, RequestedAddress, Secret);
 				}
