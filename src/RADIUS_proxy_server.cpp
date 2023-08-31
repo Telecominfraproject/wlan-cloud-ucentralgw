@@ -207,14 +207,6 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
-		for(const auto &Attribute:P.Attrs_) {
-			if(Attribute.type==26) {
-				if(Attribute.len>4) {
-					std::uint32_t Vendor = ntohl(P.Buffer()[Attribute.pos]);
-					std::cout << "Vendor: " << Vendor << "  len: " << Attribute.len << std::endl;
-				}
-			}
-		}
 
 		if(P.PacketTypeInt()==OpenWifi::RADIUS::Access_Accept) {
 			P.Log(std::cout);
@@ -245,7 +237,6 @@ namespace OpenWifi {
 			poco_warning(Logger(), "CoA/DM: bad packet received.");
 			return;
 		}
-		// P.Log(std::cout);
 
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberTIP();
@@ -338,11 +329,7 @@ namespace OpenWifi {
 
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
-
-			// P.Log(std::cout);
-
 			auto Destination = P.ExtractProxyStateDestination();
-			// store_packet(serialNumber, buffer, size);
 			RouteAndSendAccountingPacket(Destination, serialNumber, P, false, secret);
 			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P, secret);
 
@@ -372,14 +359,11 @@ namespace OpenWifi {
 			auto CalledStationID = P.ExtractCalledStationID();
 			Poco::Net::SocketAddress Dst(Destination);
 
-			// P.Log(std::cout);
-
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
 			auto FinalDestination = Route(radius_type::auth, Dst, P, UseRADSEC, secret);
 			RADIUSSessionTracker()->AddAuthenticationSession(Destination, serialNumber, P, secret);
 
-			// std::cout << "Authentication secret: " << secret << std::endl;
 			if (UseRADSEC) {
 				Poco::Net::SocketAddress RSP(FinalDestination.host(), 0);
 				auto DestinationServer = RADSECservers_.find(RSP);
@@ -431,18 +415,13 @@ namespace OpenWifi {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
 			auto Destination = P.ExtractProxyStateDestination();
 
-			std::cout << __LINE__ << " : Destination = " << Destination << std::endl;
 			if (Destination.empty()) {
-				std::cout << __LINE__ << std::endl;
 				Destination = "0.0.0.0:0";
 			}
 
 			P.Log(std::cout);
 
-			std::cout << __LINE__ << " : Destination = " << Destination << std::endl;
-
 			if(Destination.empty()) {
-				std::cout << __LINE__ << std::endl;
 				std::cout << "No destination in CoA. Dropped." << std::endl;
 				return;
 			}
@@ -450,9 +429,7 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress Dst(Destination);
 			std::lock_guard G(Mutex_);
 			bool UseRADSEC = false;
-			std::cout << __LINE__ << std::endl;
 			auto FinalDestination = Route(radius_type::coa, Dst, P, UseRADSEC, secret);
-			std::cout << "CoA secret: " << secret << std::endl;
 			if (UseRADSEC) {
 				Poco::Net::SocketAddress RSP(FinalDestination.host(), 0);
 				auto DestinationServer = RADSECservers_.find(RSP);
@@ -461,25 +438,19 @@ namespace OpenWifi {
 														size);
 				}
 			} else {
-				std::cout << __LINE__ << std::endl;
 				if ((Dst.family() == Poco::Net::SocketAddress::IPv4 && CoASocketV4_ == nullptr) ||
 					(Dst.family() == Poco::Net::SocketAddress::IPv6 && CoASocketV6_ == nullptr)) {
-					std::cout << __LINE__ << std::endl;
 					poco_debug(
 						Logger(),
 						fmt::format(
 							"CoA: Trying to use RADIUS GW PROXY but not configured. Device={}",
 							serialNumber));
-					std::cout << __LINE__ << std::endl;
 					return;
 				}
-				std::cout << __LINE__ << std::endl;
 				auto AllSent = SendData(
 					Dst.family() == Poco::Net::SocketAddress::IPv4 ? *CoASocketV4_ : *CoASocketV6_,
 					(const unsigned char *)buffer, size, FinalDestination);
-				std::cout << __LINE__ << std::endl;
 				if (!AllSent) {
-					std::cout << __LINE__ << std::endl;
 					poco_error(Logger(), fmt::format("{}: Could not send CoA packet packet to {}.",
 													 serialNumber, Destination));
 				}
@@ -487,12 +458,9 @@ namespace OpenWifi {
 					poco_debug(Logger(), fmt::format("{}: Sending CoA Packet to {}", serialNumber,
 													 FinalDestination.toString()));
 			}
-			std::cout << __LINE__ << std::endl;
 		} catch (const Poco::Exception &E) {
-			std::cout << __LINE__ << std::endl;
 			Logger().log(E);
 		} catch (...) {
-			std::cout << __LINE__ << std::endl;
 			poco_warning(Logger(),
 						 fmt::format("Bad RADIUS CoA/DM Packet from {}. Dropped.", serialNumber));
 		}
@@ -504,20 +472,15 @@ namespace OpenWifi {
 											  std::vector<Destination> &V6, bool setAsDefault) {
 		uint64_t TotalV4 = 0, TotalV6 = 0;
 
-		std::cout << __LINE__ << std::endl;
 		for (const auto &server : Config.servers) {
 			Poco::Net::IPAddress a;
-			std::cout << __LINE__ << std::endl;
 			if (!Poco::Net::IPAddress::tryParse(server.ip, a)) {
-				std::cout << __LINE__ << std::endl;
 				poco_error(Logger(), fmt::format("RADIUS-PARSE Config: server address {} is nto a "
 												 "valid address in v4 or v6. Entry skipped.",
 												 server.ip));
 				continue;
 			}
-			std::cout << __LINE__ << std::endl;
 			auto S = Poco::Net::SocketAddress(fmt::format("{}:{}", server.ip, server.port));
-			std::cout << __LINE__ << std::endl;
 			Destination D{.Addr = S,
 						  .state = 0,
 						  .step = 0,
@@ -531,26 +494,20 @@ namespace OpenWifi {
 						  .useRADSEC = server.radsec,
 						  .realms = server.radsecRealms,
 						  .secret = server.secret };
-			std::cout << __LINE__ << std::endl;
 
 			if (setAsDefault && D.useRADSEC)
 				DefaultIsRADSEC_ = true;
 
-			std::cout << __LINE__ << std::endl;
 			if (S.family() == Poco::Net::IPAddress::IPv4) {
-				std::cout << __LINE__ << std::endl;
 				TotalV4 += server.weight;
 				V4.push_back(D);
 			} else {
-				std::cout << __LINE__ << std::endl;
 				TotalV6 += server.weight;
 				V6.push_back(D);
 			}
 		}
 
-		std::cout << __LINE__ << std::endl;
 		for (auto &i : V4) {
-			std::cout << __LINE__ << std::endl;
 			if (TotalV4 == 0) {
 				i.step = 1000;
 			} else {
@@ -559,7 +516,6 @@ namespace OpenWifi {
 		}
 
 		for (auto &i : V6) {
-			std::cout << __LINE__ << std::endl;
 			if (TotalV6 == 0) {
 				i.step = 1000;
 			} else {
@@ -583,7 +539,6 @@ namespace OpenWifi {
 				if (RPC.from_json(RawConfig)) {
 					ResetConfig();
 					PoolList_ = RPC;
-					std::cout << Pools_.size() << " " << RPC.pools.size() << std::endl;
 					for (const auto &pool : RPC.pools) {
 						RadiusPool NewPool;
 						ParseServerList(pool.authConfig, NewPool.AuthV4, NewPool.AuthV6,
@@ -608,15 +563,6 @@ namespace OpenWifi {
 			poco_error(Logger(),
 					   fmt::format("Error while parsing configuration file '{}'", ConfigFilename_));
 		}
-
-		for(const auto &Pool:Pools_) {
-			std::cout << "Pool size 1: " << Pool.CoaV4.size() << std::endl;
-			std::cout << "Pool size 2: " << Pool.AuthV4.size() << std::endl;
-			std::cout << "Pool size 3: " << Pool.AuthV4.size() << std::endl;
-			std::cout << "Pool size 1: " << Pool.CoaV6.size() << std::endl;
-			std::cout << "Pool size 2: " << Pool.AuthV6.size() << std::endl;
-			std::cout << "Pool size 3: " << Pool.AuthV6.size() << std::endl;
-		}
 	}
 
 	static bool RealmMatch(const std::string &user_realm, const std::string &realm) {
@@ -632,7 +578,6 @@ namespace OpenWifi {
 									  std::string &Secret) {
 
 		bool IsV4 = RequestedAddress.family() == Poco::Net::SocketAddress::IPv4;
-		std::cout << __LINE__ << std::endl;
 
 		// find the realm...
 		auto UserName = P.UserName();
@@ -646,7 +591,6 @@ namespace OpenWifi {
 					if (!server.realms.empty()) {
 						for (const auto &realm : server.realms) {
 							if (RealmMatch(UserRealm, realm)) {
-								// std::cout << "Realm match..." << std::endl;
 								UseRADSEC = true;
 								return server.Addr;
 							}
@@ -656,9 +600,7 @@ namespace OpenWifi {
 			}
 		}
 
-		std::cout << __LINE__ << std::endl;
 		if (DefaultIsRADSEC_) {
-			std::cout << __LINE__ << std::endl;
 			UseRADSEC = true;
 			return (IsV4 ? Pools_[DefaultPoolIndex_].AuthV4[0].Addr
 						 : Pools_[DefaultPoolIndex_].AuthV6[0].Addr);
@@ -671,10 +613,6 @@ namespace OpenWifi {
 								 RequestedAddress, Secret);
 		}
 		case radius_type::coa: {
-			std::cout << __LINE__ << " : index = " << DefaultPoolIndex_ << std::endl;
-			std::cout << "Pool size 1: " << Pools_[DefaultPoolIndex_].CoaV4.size() << std::endl;
-			std::cout << "Pool size 2: " << Pools_[DefaultPoolIndex_].AuthV4.size() << std::endl;
-			std::cout << "Pool size 3: " << Pools_[DefaultPoolIndex_].AuthV6.size() << std::endl;
 			return ChooseAddress(IsV4 ? Pools_[DefaultPoolIndex_].CoaV4
 									  : Pools_[DefaultPoolIndex_].CoaV6,
 								 RequestedAddress, Secret);
@@ -693,34 +631,25 @@ namespace OpenWifi {
 							   const Poco::Net::SocketAddress &RequestedAddress,
 							   const RADIUS::RadiusPacket &P, bool &UseRADSEC,
 							   std::string &Secret) {
-		std::cout << __LINE__ << std::endl;
 
 		if (Pools_.empty()) {
-			std::cout << __LINE__ << std::endl;
 			UseRADSEC = false;
 			return RequestedAddress;
 		}
-		std::cout << __LINE__ << std::endl;
 
 		bool IsV4 = RequestedAddress.family() == Poco::Net::SocketAddress::IPv4;
-		std::cout << __LINE__ << " : V4: " << IsV4 << std::endl;
 		bool useDefault;
-		std::cout << __LINE__ << std::endl;
 
 		useDefault = IsV4 ? RequestedAddress.host() ==
 								Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4)
 						  : RequestedAddress.host() ==
 								Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6);
 
-		std::cout << __LINE__ << std::endl;
 		if (useDefault) {
-			std::cout << __LINE__ << std::endl;
 			return DefaultRoute(rtype, RequestedAddress, P, UseRADSEC, Secret);
 		}
 
-		std::cout << __LINE__ << std::endl;
 		auto isAddressInPool = [&](const std::vector<Destination> &D, bool &UseRADSEC) -> bool {
-			std::cout << __LINE__ << std::endl;
 			for (const auto &entry : D)
 				if (entry.Addr.host() == RequestedAddress.host()) {
 					UseRADSEC = entry.useRADSEC;
@@ -729,23 +658,19 @@ namespace OpenWifi {
 			return false;
 		};
 
-		std::cout << __LINE__ << std::endl;
 		for (auto &i : Pools_) {
 			switch (rtype) {
 			case radius_type::coa: {
-				std::cout << __LINE__ << std::endl;
 				if (isAddressInPool((IsV4 ? i.CoaV4 : i.CoaV6), UseRADSEC)) {
 					return ChooseAddress(IsV4 ? i.CoaV4 : i.CoaV6, RequestedAddress, Secret);
 				}
 			} break;
 			case radius_type::auth: {
-				std::cout << __LINE__ << std::endl;
 				if (isAddressInPool((IsV4 ? i.AuthV4 : i.AuthV6), UseRADSEC)) {
 					return ChooseAddress(IsV4 ? i.AuthV4 : i.AuthV6, RequestedAddress, Secret);
 				}
 			} break;
 			case radius_type::acct: {
-				std::cout << __LINE__ << std::endl;
 				if (isAddressInPool((IsV4 ? i.AcctV4 : i.AcctV6), UseRADSEC)) {
 					return ChooseAddress(IsV4 ? i.AcctV4 : i.AcctV6, RequestedAddress, Secret);
 				}
@@ -762,9 +687,7 @@ namespace OpenWifi {
 									   const Poco::Net::SocketAddress &OriginalAddress,
 									   std::string &Secret) {
 
-		std::cout << __LINE__ << std::endl;
 		if (Pool.size() == 1) {
-			std::cout << __LINE__ << std::endl;
 			Secret = Pool[0].secret;
 			return Pool[0].Addr;
 		}
@@ -773,7 +696,6 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 		}
 
-		std::cout << __LINE__ << std::endl;
 		if (Pool[0].strategy == "weighted") {
 			bool found = false;
 			uint64_t cur_state = std::numeric_limits<uint64_t>::max();
@@ -823,18 +745,14 @@ namespace OpenWifi {
 			Pool[index].state += 1;
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "random") {
-			std::cout << __LINE__ << std::endl;
 			if (Pool.size() > 1) {
-				std::cout << __LINE__ << std::endl;
 				auto index = std::rand() % Pool.size();
 				Secret = Pool[index].secret;
 				return Pool[index].Addr;
 			} else {
-				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 		}
-		std::cout << __LINE__ << std::endl;
 		return OriginalAddress;
 	}
 
