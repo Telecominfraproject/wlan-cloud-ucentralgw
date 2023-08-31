@@ -657,6 +657,9 @@ namespace OpenWifi {
 		}
 		case radius_type::coa: {
 			std::cout << __LINE__ << std::endl;
+			std::cout << "Pool size 1: " << Pools_[DefaultPoolIndex_].CoaV4.size() << std::endl;
+			std::cout << "Pool size 2: " << Pools_[DefaultPoolIndex_].AuthV4.size() << std::endl;
+			std::cout << "Pool size 3: " << Pools_[DefaultPoolIndex_].AuthV6.size() << std::endl;
 			return ChooseAddress(IsV4 ? Pools_[DefaultPoolIndex_].CoaV4
 									  : Pools_[DefaultPoolIndex_].CoaV6,
 								 RequestedAddress, Secret);
