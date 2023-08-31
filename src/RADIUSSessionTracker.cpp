@@ -151,8 +151,6 @@ namespace OpenWifi {
 			}
 		}
 
-		std::cout << "AUTH -> " << Notification.SerialNumber_ << ":  AccountingSessionId: " << AccountingSessionId << "  AccountingMultiSessionId: " << AccountingMultiSessionId << std::endl;
-
 		auto ap_hint = AccountingSessions_.find(Notification.SerialNumber_);
 		if(ap_hint==end(AccountingSessions_)) {
 			SessionMap M;
@@ -180,13 +178,14 @@ namespace OpenWifi {
 			session_hint->second->lastTransaction = Utils::Now();
 		}
 
+/*
 		if(ap_hint!=AccountingSessions_.end()) {
 			std::cout << "Auth table:" << std::endl;
 			for(const auto &session:ap_hint->second) {
 				std::cout << Notification.SerialNumber_ << ":  Index: " << session.first << ": ID: " << session.second->accountingSessionId << "  MID:" << session.second->accountingMultiSessionId << std::endl;
 			}
 		}
-
+*/
 	}
 
 	std::uint32_t GetUiInt32(const std::uint8_t *buf) {
@@ -295,7 +294,7 @@ namespace OpenWifi {
 				return;
 			}
 
-			std::cout << "ACT -> " << Notification.SerialNumber_ << ":  AccountingSessionId: " << AccountingSessionId << "  AccountingMultiSessionId: " << AccountingMultiSessionId << std::endl;
+//			std::cout << "ACT -> " << Notification.SerialNumber_ << ":  AccountingSessionId: " << AccountingSessionId << "  AccountingMultiSessionId: " << AccountingMultiSessionId << std::endl;
 
 			auto NewSession = std::make_shared<GWObjects::RADIUSSession>();
 			NewSession->serialNumber = Notification.SerialNumber_;
@@ -343,12 +342,13 @@ namespace OpenWifi {
 			}
 		}
 
-		if(ap_hint!=AccountingSessions_.end()) {
+/*		if(ap_hint!=AccountingSessions_.end()) {
 			std::cout << "Acct table:" << std::endl;
 			for(const auto &session:ap_hint->second) {
 				std::cout << Notification.SerialNumber_ << ":  Index: " << session.first << ": ID: " << session.second->accountingSessionId << "  MID:" << session.second->accountingMultiSessionId << std::endl;
   			}
 		}
+*/
 	}
 
 	[[maybe_unused]] static void store_packet(const std::string &serialNumber, const char *buffer, std::size_t size, int i) {
@@ -381,7 +381,7 @@ namespace OpenWifi {
 		if(!session->accountingMultiSessionId.empty())
 			P.AppendAttribute(RADIUS::Attributes::ACCT_MULTI_SESSION_ID, session->accountingMultiSessionId);
 		auto ProxyState = session->serialNumber + ":" + "0.0.0.0" + ":" + "3799" + ":" + session->interface;
-		std::cout << "Proxy state: " << ProxyState << "   Secret: " << session->secret << std::endl;
+		// std::cout << "Proxy state: " << ProxyState << "   Secret: " << session->secret << std::endl;
 		P.AppendAttribute(RADIUS::Attributes::PROXY_STATE, ProxyState);
 		P.RecomputeAuthenticator(session->secret);
 		P.Log(std::cout);
