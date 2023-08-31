@@ -118,6 +118,7 @@ namespace OpenWifi {
 
 		if(Command=="coadm") {
 			auto Index = Parameters.accountingSessionId + Parameters.accountingMultiSessionId;
+			poco_information(Logger(), fmt::format("Disconnecting session {},{}", Parameters.accountingSessionId, Parameters.accountingMultiSessionId ));
 			if(RADIUSSessionTracker()->SendCoADM(SerialNumber, Index)) {
 				return OK();
 			}
@@ -125,6 +126,7 @@ namespace OpenWifi {
 		}
 
 		if(Command=="disconnectUser" && !Parameters.userName.empty()) {
+			poco_information(Logger(), fmt::format("Disconnecting sessions for user: {}", Parameters.userName ));
 			if(RADIUSSessionTracker()->DisconnectUser(Parameters.userName)) {
 				return OK();
 			}
