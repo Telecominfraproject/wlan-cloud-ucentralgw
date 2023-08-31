@@ -424,16 +424,15 @@ namespace OpenWifi {
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer,
 										  std::size_t size, std::string & secret) {
 
-		std::cout << __LINE__ << std::endl;
 		if (!Continue())
 			return;
 
-		std::cout << __LINE__ << std::endl;
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
 			auto Destination = P.ExtractProxyStateDestination();
 
 			if (Destination.empty()) {
+				std::cout << __LINE__ << std::endl;
 				Destination = "0.0.0.0:0";
 			}
 
@@ -446,25 +445,16 @@ namespace OpenWifi {
 				return;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			Poco::Net::SocketAddress Dst(Destination);
-			std::cout << __LINE__ << std::endl;
 			std::lock_guard G(Mutex_);
-			std::cout << __LINE__ << std::endl;
 			bool UseRADSEC = false;
 			std::cout << __LINE__ << std::endl;
 			auto FinalDestination = Route(radius_type::coa, Dst, P, UseRADSEC, secret);
-			std::cout << __LINE__ << std::endl;
 			std::cout << "CoA secret: " << secret << std::endl;
-			std::cout << __LINE__ << std::endl;
 			if (UseRADSEC) {
-				std::cout << __LINE__ << std::endl;
 				Poco::Net::SocketAddress RSP(FinalDestination.host(), 0);
-				std::cout << __LINE__ << std::endl;
 				auto DestinationServer = RADSECservers_.find(RSP);
-				std::cout << __LINE__ << std::endl;
 				if (DestinationServer != end(RADSECservers_)) {
-					std::cout << __LINE__ << std::endl;
 					DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer,
 														size);
 				}
