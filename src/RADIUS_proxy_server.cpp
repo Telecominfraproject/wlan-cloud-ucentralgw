@@ -583,6 +583,7 @@ namespace OpenWifi {
 				if (RPC.from_json(RawConfig)) {
 					ResetConfig();
 					PoolList_ = RPC;
+					std::cout << Pools_.size() << " " << RPC.pools.size() << std::endl;
 					for (const auto &pool : RPC.pools) {
 						RadiusPool NewPool;
 						ParseServerList(pool.authConfig, NewPool.AuthV4, NewPool.AuthV6,
