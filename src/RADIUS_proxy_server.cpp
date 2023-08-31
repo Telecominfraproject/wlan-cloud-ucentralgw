@@ -508,18 +508,24 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::ParseServerList(const GWObjects::RadiusProxyServerConfig &Config,
 											  std::vector<Destination> &V4,
+
 											  std::vector<Destination> &V6, bool setAsDefault) {
 		uint64_t TotalV4 = 0, TotalV6 = 0;
 
+		std::cout << __LINE__ << std::endl;
 		for (const auto &server : Config.servers) {
 			Poco::Net::IPAddress a;
+			std::cout << __LINE__ << std::endl;
 			if (!Poco::Net::IPAddress::tryParse(server.ip, a)) {
+				std::cout << __LINE__ << std::endl;
 				poco_error(Logger(), fmt::format("RADIUS-PARSE Config: server address {} is nto a "
 												 "valid address in v4 or v6. Entry skipped.",
 												 server.ip));
 				continue;
 			}
+			std::cout << __LINE__ << std::endl;
 			auto S = Poco::Net::SocketAddress(fmt::format("{}:{}", server.ip, server.port));
+			std::cout << __LINE__ << std::endl;
 			Destination D{.Addr = S,
 						  .state = 0,
 						  .step = 0,
@@ -533,20 +539,26 @@ namespace OpenWifi {
 						  .useRADSEC = server.radsec,
 						  .realms = server.radsecRealms,
 						  .secret = server.secret };
+			std::cout << __LINE__ << std::endl;
 
 			if (setAsDefault && D.useRADSEC)
 				DefaultIsRADSEC_ = true;
 
+			std::cout << __LINE__ << std::endl;
 			if (S.family() == Poco::Net::IPAddress::IPv4) {
+				std::cout << __LINE__ << std::endl;
 				TotalV4 += server.weight;
 				V4.push_back(D);
 			} else {
+				std::cout << __LINE__ << std::endl;
 				TotalV6 += server.weight;
 				V6.push_back(D);
 			}
 		}
 
+		std::cout << __LINE__ << std::endl;
 		for (auto &i : V4) {
+			std::cout << __LINE__ << std::endl;
 			if (TotalV4 == 0) {
 				i.step = 1000;
 			} else {
@@ -555,6 +567,7 @@ namespace OpenWifi {
 		}
 
 		for (auto &i : V6) {
+			std::cout << __LINE__ << std::endl;
 			if (TotalV6 == 0) {
 				i.step = 1000;
 			} else {
