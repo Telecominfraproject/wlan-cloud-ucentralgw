@@ -431,6 +431,7 @@ namespace OpenWifi {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
 			auto Destination = P.ExtractProxyStateDestination();
 
+			std::cout << __LINE__ << " : Destination = " << Destination << std::endl;
 			if (Destination.empty()) {
 				std::cout << __LINE__ << std::endl;
 				Destination = "0.0.0.0:0";
@@ -438,7 +439,8 @@ namespace OpenWifi {
 
 			P.Log(std::cout);
 
-			std::cout << __LINE__ << std::endl;
+			std::cout << __LINE__ << " : Destination = " << Destination << std::endl;
+
 			if(Destination.empty()) {
 				std::cout << __LINE__ << std::endl;
 				std::cout << "No destination in CoA. Dropped." << std::endl;
@@ -697,7 +699,7 @@ namespace OpenWifi {
 		std::cout << __LINE__ << std::endl;
 
 		bool IsV4 = RequestedAddress.family() == Poco::Net::SocketAddress::IPv4;
-		std::cout << __LINE__ << std::endl;
+		std::cout << __LINE__ << " : V4: " << IsV4 << std::endl;
 		bool useDefault;
 		std::cout << __LINE__ << std::endl;
 		useDefault = IsV4 ? RequestedAddress.host() ==
