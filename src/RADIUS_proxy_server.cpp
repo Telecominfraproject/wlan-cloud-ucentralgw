@@ -186,7 +186,7 @@ namespace OpenWifi {
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if (SerialNumber.empty()) {
-			poco_warning(Logger(), "Accounting: missing serial number.");
+			poco_warning(Logger(), "Accounting: missing serial number. Dropping request.");
 			return;
 		}
 		poco_debug(
@@ -213,7 +213,7 @@ namespace OpenWifi {
 		}
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if (SerialNumber.empty()) {
-			poco_warning(Logger(), "Authentication: missing serial number.");
+			poco_warning(Logger(), "Authentication: missing serial number. Dropping request.");
 			return;
 		}
 		auto CallingStationID = P.ExtractCallingStationID();
