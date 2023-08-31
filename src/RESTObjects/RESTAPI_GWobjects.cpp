@@ -665,6 +665,14 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "sessions", sessions);
 	}
 
+	void RadiusCoADMParameters::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "accountingSessionId", accountingSessionId);
+		field_to_json(Obj, "accountingMultiSessionId", accountingMultiSessionId);
+		field_to_json(Obj, "callingStationId", callingStationId);
+		field_to_json(Obj, "chargeableUserIdentity", chargeableUserIdentity);
+		field_to_json(Obj, "userName", userName);
+	}
+
 	bool RadiusCoADMParameters::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
 			field_from_json(Obj, "accountingSessionId", accountingSessionId);

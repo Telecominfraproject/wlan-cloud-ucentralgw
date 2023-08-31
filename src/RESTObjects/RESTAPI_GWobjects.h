@@ -445,6 +445,7 @@ namespace OpenWifi::GWObjects {
 								userName;
 
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
 } // namespace OpenWifi::GWObjects
