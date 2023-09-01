@@ -574,6 +574,16 @@ namespace OpenWifi {
 			Poco::JSON::Stringifier::stringify(Object, Answer);
 		}
 
+        inline void ReturnObject(const std::vector<std::string> &Strings) {
+            Poco::JSON::Array   Arr;
+            for(const auto &String:Strings) {
+                Arr.add(String);
+            }
+            std::ostringstream os;
+            Arr.stringify(os);
+            return ReturnRawJSON(os.str());
+        }
+
 		inline void ReturnRawJSON(const std::string &json_doc) {
 			PrepareResponse();
 			if (Request != nullptr) {
