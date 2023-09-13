@@ -180,7 +180,7 @@ namespace OpenWifi {
 							Consumer.async_commit(Msg);
 						continue;
 					}
-					KafkaManager()->Dispatch(Msg.get_topic().c_str(), Msg.get_key(), std::make_shared<std::string>(Msg.get_payload()));
+					KafkaManager()->Dispatch(Msg.get_topic().c_str(), Msg.get_key(), Msg.get_payload());
 					if (!AutoCommit)
 						Consumer.async_commit(Msg);
 				}
@@ -213,7 +213,7 @@ namespace OpenWifi {
 	}
 
 	void KafkaProducer::Produce(const char *Topic, const std::string &Key,
-								std::shared_ptr<std::string> Payload) {
+								const std::string &Payload) {
 		std::lock_guard G(Mutex_);
 		Queue_.enqueueNotification(new KafkaMessage(Topic, Key, Payload));
 	}
@@ -276,7 +276,7 @@ namespace OpenWifi {
 	}
 
 	void KafkaDispatcher::Dispatch(const char *Topic, const std::string &Key,
-								   const std::shared_ptr<std::string> Payload) {
+								   const std::string & Payload) {
 		std::lock_guard G(Mutex_);
 		auto It = Notifiers_.find(Topic);
 		if (It != Notifiers_.end()) {
@@ -333,20 +333,29 @@ namespace OpenWifi {
 	}
 
 	void KafkaManager::PostMessage(const char *topic, const std::string &key,
-								   const std::shared_ptr<std::string> PayLoad, bool WrapMessage) {
+								   const std::string & PayLoad, bool WrapMessage) {
 		if (KafkaEnabled_) {
 			ProducerThr_.Produce(topic, key, WrapMessage ? WrapSystemId(PayLoad) : PayLoad);
 		}
 	}
 
+	void KafkaManager::PostMessage(const char *topic, const std::string &key,
+					 const Poco::JSON::Object &Object, bool WrapMessage) {
+		if (KafkaEnabled_) {
+			std::ostringstream ObjectStr;
+			Object.stringify(ObjectStr);
+			ProducerThr_.Produce(topic, key, WrapMessage ? WrapSystemId(ObjectStr.str()) : ObjectStr.str());
+		}
+	}
+
+
 	void KafkaManager::Dispatch(const char *Topic, const std::string &Key,
-								const std::shared_ptr<std::string> Payload) {
+								const std::string &Payload) {
 		Dispatcher_.Dispatch(Topic, Key, Payload);
 	}
 
-	[[nodiscard]] const std::shared_ptr<std::string> KafkaManager::WrapSystemId(const std::shared_ptr<std::string> PayLoad) {
-		*PayLoad = SystemInfoWrapper_ + *PayLoad + "}";
-		return PayLoad;
+	[[nodiscard]] std::string KafkaManager::WrapSystemId(const std::string & PayLoad) {
+		return SystemInfoWrapper_ + PayLoad + "}";
 	}
 
 	uint64_t KafkaManager::RegisterTopicWatcher(const std::string &Topic,

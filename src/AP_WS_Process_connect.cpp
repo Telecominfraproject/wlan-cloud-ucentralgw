@@ -32,9 +32,7 @@ namespace OpenWifi {
 			Event.set("type", "device.firmware_change");
 			Event.set("timestamp", Utils::Now());
 			Event.set("payload", EventDetails);
-			std::ostringstream OS;
-			Event.stringify(OS);
-			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber, std::make_shared<std::string>(OS.str()));
+			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber, Event);
 		}
 	}
 
@@ -51,9 +49,7 @@ namespace OpenWifi {
 			Event.set("type", "device.not_provisioned");
 			Event.set("timestamp", Utils::Now());
 			Event.set("payload", EventDetails);
-			std::ostringstream OS;
-			Event.stringify(OS);
-			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber, std::make_shared<std::string>(OS.str()));
+			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber, Event);
 		}
 	}
 
@@ -285,15 +281,11 @@ namespace OpenWifi {
 			GWWebSocketNotifications::DeviceConnected(Notification);
 
 			if (KafkaManager()->Enabled()) {
-				Poco::JSON::Stringifier Stringify;
-
 				ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
 				ParamsObj->set("locale", State_.locale);
 				ParamsObj->set(uCentralProtocol::TIMESTAMP, Utils::Now());
 				ParamsObj->set(uCentralProtocol::UUID, uuid_);
-				std::ostringstream OS;
-				Stringify.condense(ParamsObj, OS);
-				KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, std::make_shared<std::string>(OS.str()));
+				KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, *ParamsObj);
 			}
 		} else {
 			poco_warning(

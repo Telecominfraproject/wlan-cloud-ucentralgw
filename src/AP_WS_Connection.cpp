@@ -231,10 +231,7 @@ namespace OpenWifi {
 			Details.set(uCentralProtocol::TIMESTAMP, Utils::Now());
 			Details.set(uCentralProtocol::UUID,uuid);
 			Disconnect.set(uCentralProtocol::DISCONNECTION, Details);
-			Poco::JSON::Stringifier Stringify;
-			std::ostringstream OS;
-			Stringify.condense(Disconnect, OS);
-			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber, std::make_shared<std::string>(OS.str()));
+			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber, Disconnect);
 		} catch (...) {
 		}
 	}
@@ -725,10 +722,7 @@ namespace OpenWifi {
 					PingDetails.set(uCentralProtocol::UUID, uuid_);
 					PingDetails.set("locale", State_.locale);
 					PingObject.set(uCentralProtocol::PING, PingDetails);
-					Poco::JSON::Stringifier Stringify;
-					std::ostringstream OS;
-					Stringify.condense(PingObject, OS);
-					KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, std::make_shared<std::string>(OS.str()));
+					KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_,PingObject);
 				}
 				return;
 			} break;

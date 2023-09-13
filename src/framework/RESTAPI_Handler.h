@@ -584,7 +584,27 @@ namespace OpenWifi {
             return ReturnRawJSON(os.str());
         }
 
-		inline void ReturnRawJSON(const std::string &json_doc) {
+        template<class T> void ReturnObject(const std::vector<T> &Objects) {
+            Poco::JSON::Array   Arr;
+            for(const auto &Object:Objects) {
+                Poco::JSON::Object O;
+                Object.to_json(O);
+                Arr.add(O);
+            }
+            std::ostringstream os;
+            Arr.stringify(os);
+            return ReturnRawJSON(os.str());
+        }
+
+        template<class T> void ReturnObject(const T &Object) {
+            Poco::JSON::Object  O;
+            Object.to_json(O);
+            std::ostringstream os;
+            O.stringify(os);
+            return ReturnRawJSON(os.str());
+        }
+
+        inline void ReturnRawJSON(const std::string &json_doc) {
 			PrepareResponse();
 			if (Request != nullptr) {
 				//   can we compress ???

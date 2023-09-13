@@ -6,7 +6,7 @@
 
 #include "Poco/Notification.h"
 #include "Poco/NotificationQueue.h"
-
+#include "Poco/JSON/Object.h"
 #include "framework/KafkaTopics.h"
 #include "framework/OpenWifiTypes.h"
 #include "framework/SubSystemServer.h"
@@ -18,17 +18,17 @@ namespace OpenWifi {
 
 	class KafkaMessage : public Poco::Notification {
 	  public:
-		KafkaMessage(const char * Topic, const std::string &Key, std::shared_ptr<std::string> Payload)
+		KafkaMessage(const char * Topic, const std::string &Key, const std::string &Payload)
 			: Topic_(Topic), Key_(Key), Payload_(Payload) {}
 
 		inline const char * Topic() { return Topic_; }
 		inline const std::string &Key() { return Key_; }
-		inline const std::string &Payload() { return *Payload_; }
+		inline const std::string &Payload() { return Payload_; }
 
 	  private:
 		const char *Topic_;
 		std::string Key_;
-		std::shared_ptr<std::string> Payload_;
+		std::string Payload_;
 	};
 
 	class KafkaProducer : public Poco::Runnable {
@@ -36,7 +36,7 @@ namespace OpenWifi {
 		void run() override;
 		void Start();
 		void Stop();
-		void Produce(const char *Topic, const std::string &Key, std::shared_ptr<std::string> Payload);
+		void Produce(const char *Topic, const std::string &Key, const std::string & Payload);
 
 	  private:
 		std::recursive_mutex Mutex_;
@@ -63,7 +63,7 @@ namespace OpenWifi {
 		void Stop();
 		auto RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F);
 		void UnregisterTopicWatcher(const std::string &Topic, int Id);
-		void Dispatch(const char *Topic, const std::string &Key, const std::shared_ptr<std::string> Payload);
+		void Dispatch(const char *Topic, const std::string &Key, const std::string & Payload);
 		void run() override;
 		void Topics(std::vector<std::string> &T);
 
@@ -92,9 +92,12 @@ namespace OpenWifi {
 		void Stop() override;
 
 		void PostMessage(const char *topic, const std::string &key,
-						 std::shared_ptr<std::string> PayLoad, bool WrapMessage = true);
-		void Dispatch(const char *Topic, const std::string &Key, std::shared_ptr<std::string> Payload);
-		[[nodiscard]] const std::shared_ptr<std::string> WrapSystemId(std::shared_ptr<std::string> PayLoad);
+						 const std::string &PayLoad, bool WrapMessage = true);
+		void PostMessage(const char *topic, const std::string &key,
+						 const Poco::JSON::Object &Object, bool WrapMessage = true);
+
+		void Dispatch(const char *Topic, const std::string &Key, const std::string &Payload);
+		[[nodiscard]] std::string WrapSystemId(const std::string & PayLoad);
 		[[nodiscard]] inline bool Enabled() const { return KafkaEnabled_; }
 		uint64_t RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F);
 		void UnregisterTopicWatcher(const std::string &Topic, uint64_t Id);

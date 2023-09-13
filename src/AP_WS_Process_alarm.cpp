@@ -25,7 +25,7 @@ namespace OpenWifi {
 				Poco::JSON::Stringifier Stringify;
 				std::ostringstream OS;
 				Stringify.condense(ParamsObj, OS);
-				KafkaManager()->PostMessage(KafkaTopics::ALERTS, SerialNumber_, std::make_shared<std::string>(OS.str()));
+				KafkaManager()->PostMessage(KafkaTopics::ALERTS, SerialNumber_, OS.str());
 			}
 		}
 	}

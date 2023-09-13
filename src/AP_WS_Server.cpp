@@ -233,10 +233,7 @@ namespace OpenWifi {
 		FullEvent.set("timestamp", now);
 		FullEvent.set("payload", KafkaNotification);
 
-		std::ostringstream OS;
-		FullEvent.stringify(OS);
-		KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system",
-									std::make_shared<std::string>(OS.str()));
+		KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
 	}
 
 	void AP_WS_Server::Stop() {

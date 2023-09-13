@@ -22,9 +22,6 @@
 #include <algorithm>
 
 
-#define DBGLINE                                                                                    \
-	{ std::cout << __LINE__ << std::endl; }
-
 namespace OpenWifi {
 
 	int RTTYS_server::Start() {

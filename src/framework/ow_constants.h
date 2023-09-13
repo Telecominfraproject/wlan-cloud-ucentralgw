@@ -40,6 +40,7 @@ namespace OpenWifi {
 	};
 }
 
+#define DBGLINE     std::cout << __LINE__ << ":" << __FILE__ << ", " << __func__ << std::endl;
 namespace OpenWifi::RESTAPI::Errors {
 	struct msg {
 		uint64_t err_num;
