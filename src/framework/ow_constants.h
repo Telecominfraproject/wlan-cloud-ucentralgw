@@ -406,7 +406,16 @@ namespace OpenWifi::RESTAPI::Errors {
             1172, "The venue name already exists."
     };
 
-    static const struct msg DefFirmwareNameExists { 1172, "Firmware name already exists." };
+    static const struct msg InvalidGlobalReachAccount {
+            1173, "Invalid Global Reach account information."
+    };
+    static const struct msg CannotCreateCSR {
+            1174, "Cannot create a CSR certificate."
+    };
+
+    static const struct msg DefFirmwareNameExists { 1175, "Firmware name already exists." };
+
+    static const struct msg NotAValidECKey { 1176, "Not a valid Signing Key." };
 
     static const struct msg SimulationDoesNotExist {
         7000, "Simulation Instance ID does not exist."

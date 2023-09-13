@@ -53,7 +53,6 @@ namespace OpenWifi {
 
 			Context->useCertificate(Cert);
 			Context->addChainCertificate(Root);
-
 			Context->addCertificateAuthority(Root);
 
 			if (level_ == Poco::Net::Context::VERIFY_STRICT) {
@@ -76,8 +75,7 @@ namespace OpenWifi {
 				L.fatal(fmt::format("Wrong Certificate({}) for Key({})", cert_file_, key_file_));
 			}
 
-			SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
-
+            SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
 			if (level_ == Poco::Net::Context::VERIFY_STRICT) {
 				SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(client_cas_.c_str()));
 			}
@@ -87,7 +85,7 @@ namespace OpenWifi {
 			Context->enableSessionCache();
 			Context->setSessionCacheSize(0);
 			Context->setSessionTimeout(60);
-			Context->enableExtendedCertificateVerification(true);
+			Context->enableExtendedCertificateVerification( level_!= Poco::Net::Context::VERIFY_NONE );
 			Context->disableStatelessSessionResumption();
 		}
 
