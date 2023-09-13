@@ -722,7 +722,7 @@ namespace OpenWifi {
 					PingDetails.set(uCentralProtocol::UUID, uuid_);
 					PingDetails.set("locale", State_.locale);
 					PingObject.set(uCentralProtocol::PING, PingDetails);
-					poco_information(Logger_,fmt::format("Sending PIN for {}", SerialNumber_));
+					poco_information(Logger_,fmt::format("Sending PING for {}", SerialNumber_));
 					KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_,PingObject);
 				}
 				return;
