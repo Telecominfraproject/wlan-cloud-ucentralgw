@@ -21,11 +21,7 @@ namespace OpenWifi {
 
 		if (ParamsObj->has(uCentralProtocol::SERIAL) && ParamsObj->has(uCentralProtocol::DATA)) {
 			if (KafkaManager()->Enabled()) {
-				auto Data = ParamsObj->get(uCentralProtocol::DATA);
-				Poco::JSON::Stringifier Stringify;
-				std::ostringstream OS;
-				Stringify.condense(ParamsObj, OS);
-				KafkaManager()->PostMessage(KafkaTopics::ALERTS, SerialNumber_, OS.str());
+				KafkaManager()->PostMessage(KafkaTopics::ALERTS, SerialNumber_, *ParamsObj);
 			}
 		}
 	}
