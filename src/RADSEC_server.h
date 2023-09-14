@@ -52,7 +52,7 @@ namespace OpenWifi {
 		inline void run() final {
 			Poco::Thread::trySleep(5000);
 			std::uint64_t LastStatus = 0;
-			auto RadSecKeepAlive = MicroServiceConfigGetInt("radsec.keepalive", 10);
+			auto RadSecKeepAlive = MicroServiceConfigGetInt("radsec.keepalive", 10000000000);
 			while (TryAgain_) {
 				if (!Connected_) {
 					LastStatus = Utils::Now();
