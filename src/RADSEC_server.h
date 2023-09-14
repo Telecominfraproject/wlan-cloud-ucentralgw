@@ -52,10 +52,9 @@ namespace OpenWifi {
 		inline void run() final {
 			Poco::Thread::trySleep(5000);
 			std::uint64_t LastStatus = 0;
-			auto RadSecKeepAlive = MicroServiceConfigGetInt("radsec.keepalive", 120);
+			auto RadSecKeepAlive = MicroServiceConfigGetInt("radsec.keepalive", 10);
 			while (TryAgain_) {
 				if (!Connected_) {
-					std::lock_guard G(LocalMutex_);
 					LastStatus = Utils::Now();
 					Connect();
 				} else if ((Utils::Now() - LastStatus) > RadSecKeepAlive) {
@@ -65,7 +64,7 @@ namespace OpenWifi {
 					Socket_->sendBytes(P.Data(), P.Len());
 					LastStatus = Utils::Now();
 				}
-				Poco::Thread::trySleep(!Connected_ ? 30000 : 10000);
+				Poco::Thread::trySleep(!Connected_ ? 30000 : 2000);
 			}
 		}
 
