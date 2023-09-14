@@ -248,6 +248,7 @@ namespace OpenWifi {
 				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
+				SecureContext->enableExtendedCertificateVerification(false);
 
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 				DBGLINE
@@ -262,7 +263,6 @@ namespace OpenWifi {
 					DBGLINE
 					Socket_->completeHandshake();
 					DBGLINE
-					SecureContext->enableExtendedCertificateVerification(false);
 					DBGLINE
 
 					if (!Server_.allowSelfSigned) {
