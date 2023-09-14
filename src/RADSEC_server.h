@@ -208,29 +208,39 @@ namespace OpenWifi {
 				system(fmt::format("cat {}",KeyFile_.path()).c_str());
 				system(fmt::format("cat {}",Combined.path()).c_str());
 
+				DBGLINE
 				std::ofstream ofs{OpenRoamingRootCertFile_.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
 				ofs << OpenRoamingRootCert;
 				ofs.close();
+				DBGLINE
 
 				Poco::Net::Context::Ptr SecureContext =
 					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
 						Poco::Net::Context::TLS_CLIENT_USE, KeyFile_.path(), Combined.path(), "", Poco::Net::Context::VERIFY_ONCE));
 
+				DBGLINE
 				if (Server_.allowSelfSigned) {
 					SecureContext->setSecurityLevel(Poco::Net::Context::SECURITY_LEVEL_NONE);
 					SecureContext->enableExtendedCertificateVerification(false);
 				}
 
+				DBGLINE
 				Poco::Crypto::X509Certificate OpenRoamingRootCertX509(OpenRoamingRootCertFile_.path());
 				SecureContext->addCertificateAuthority(OpenRoamingRootCertX509);
+
+				DBGLINE
 
 /*				for (const auto &ca : CaCertFiles_) {
 					Poco::Crypto::X509Certificate cert(ca->path());
 					SecureContext->addChainCertificate(cert);
 				}
 */
+
+				DBGLINE
+
 				SecureContext->disableProtocols(Poco::Net::Context::PROTO_TLSV1_3);
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
+				DBGLINE
 
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
