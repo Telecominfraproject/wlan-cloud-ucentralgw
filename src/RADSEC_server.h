@@ -216,9 +216,9 @@ namespace OpenWifi {
 				system(fmt::format("echo \"\n\" >> {}",Combined.path()).c_str());
 				system(fmt::format("cat {} >>{}", Intermediate.path(), Combined.path()).c_str());
 */
-				system(fmt::format("cat {}",KeyFile_.path()).c_str());
-				system(fmt::format("cat {}",CertFile_.path()).c_str());
-				system(fmt::format("cat {}",OpenRoamingRootCertFile_.path()).c_str());
+//				system(fmt::format("cat {}",KeyFile_.path()).c_str());
+//				system(fmt::format("cat {}",CertFile_.path()).c_str());
+//				system(fmt::format("cat {}",OpenRoamingRootCertFile_.path()).c_str());
 
 				Poco::Net::Context::Ptr SecureContext =
 					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
@@ -249,7 +249,6 @@ namespace OpenWifi {
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
 
-				SecureContext->disableProtocols(Poco::Net::Context::PROTO_TLSV1_3);
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 				DBGLINE
 
