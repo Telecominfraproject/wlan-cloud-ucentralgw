@@ -203,7 +203,9 @@ namespace OpenWifi {
 												"cZqmBNVNN3DBjIb4anug7F+FnYOQF36ua6MLBeGn3aKxvu1aO+hjPg==\n"
 												"-----END CERTIFICATE-----\n"};
 
-				system(fmt::format("cat {} {} >{}", CertFile_.path(), Intermediate.path(), Combined.path()).c_str());
+				system(fmt::format("cat {} >{}", CertFile_.path(), Combined.path()).c_str());
+				system(fmt::format("echo \"\n\" >> {}",Combined.path()).c_str());
+				system(fmt::format("cat {} >>{}", Intermediate.path(), Combined.path()).c_str());
 
 				system(fmt::format("cat {}",KeyFile_.path()).c_str());
 				system(fmt::format("cat {}",Combined.path()).c_str());
