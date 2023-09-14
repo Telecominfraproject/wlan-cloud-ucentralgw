@@ -204,10 +204,10 @@ namespace OpenWifi {
 					Socket_->connect(Destination, Poco::Timespan(100, 0));
 					Socket_->completeHandshake();
 
-					if (!Server_.allowSelfSigned) {
+/*					if (!Server_.allowSelfSigned) {
 						Socket_->verifyPeerCertificate();
 					}
-
+*/
 					if (Socket_->havePeerCertificate()) {
 						Peer_Cert_ = std::make_unique<Poco::Crypto::X509Certificate>(
 							Socket_->peerCertificate());
