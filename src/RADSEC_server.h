@@ -204,6 +204,8 @@ namespace OpenWifi {
 					Socket_->connect(Destination, Poco::Timespan(100, 0));
 					Socket_->completeHandshake();
 
+					SecureContext->enableExtendedCertificateVerification(false);
+
 /*					if (!Server_.allowSelfSigned) {
 						Socket_->verifyPeerCertificate();
 					}
@@ -232,10 +234,10 @@ namespace OpenWifi {
 					poco_information(Logger_, fmt::format("Connected. CN={}", CommonName()));
 					return true;
 				} catch (const Poco::Net::NetException &E) {
-					poco_information(Logger_, "Could not connect.");
+					poco_information(Logger_, "NetException: Could not connect.");
 					Logger_.log(E);
 				} catch (const Poco::Exception &E) {
-					poco_information(Logger_, "Could not connect.");
+					poco_information(Logger_, "Exception: Could not connect.");
 					Logger_.log(E);
 				} catch (...) {
 					poco_information(Logger_, "Could not connect.");
