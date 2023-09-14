@@ -213,9 +213,8 @@ namespace OpenWifi {
 					SecureContext->enableExtendedCertificateVerification(false);
 				}
 
-
-				Poco::Crypto::X509Certificate OpenRoamingRootcertX509(OpenRoamingRootCertFile_.path());
-				SecureContext->addCertificateAuthority(OpenRoamingRootcertX509);
+				Poco::Crypto::X509Certificate OpenRoamingRootCertX509(OpenRoamingRootCertFile_.path());
+				SecureContext->addCertificateAuthority(OpenRoamingRootCertX509);
 
 				for (const auto &ca : CaCertFiles_) {
 					Poco::Crypto::X509Certificate cert(ca->path());
