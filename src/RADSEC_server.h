@@ -172,10 +172,13 @@ namespace OpenWifi {
 				Poco::TemporaryFile CertFile_(MicroServiceDataDirectory());
 				Poco::TemporaryFile KeyFile_(MicroServiceDataDirectory());
 				Poco::TemporaryFile OpenRoamingRootCertFile_(MicroServiceDataDirectory());
+				Poco::TemporaryFile Intermediate(MicroServiceDataDirectory());
+				Poco::TemporaryFile Combined(MicroServiceDataDirectory());
 				std::vector<std::unique_ptr<Poco::TemporaryFile>> CaCertFiles_;
 
-				DecodeFile(CertFile_.path(), Server_.radsecCert);
 				DecodeFile(KeyFile_.path(), Server_.radsecKey);
+				DecodeFile(CertFile_.path(), Server_.radsecCert);
+				DecodeFile(Intermediate.path(), Server_.radsecCacerts[0]);
 
 				for (auto &cert : Server_.radsecCacerts) {
 					CaCertFiles_.emplace_back(
@@ -200,13 +203,18 @@ namespace OpenWifi {
 												"cZqmBNVNN3DBjIb4anug7F+FnYOQF36ua6MLBeGn3aKxvu1aO+hjPg==\n"
 												"-----END CERTIFICATE-----\n"};
 
+				system(fmt::format("cat {} {} >{}", CertFile_.path(), Intermediate.path(), Combined.path()).c_str());
+
+				system(fmt::format("cat {}",KeyFile_.path()).c_str());
+				system(fmt::format("cat {}",Combined.path()).c_str());
+
 				std::ofstream ofs{OpenRoamingRootCertFile_.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
 				ofs << OpenRoamingRootCert;
 				ofs.close();
 
 				Poco::Net::Context::Ptr SecureContext =
 					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
-						Poco::Net::Context::TLS_CLIENT_USE, KeyFile_.path(), CertFile_.path(), "", Poco::Net::Context::VERIFY_ONCE));
+						Poco::Net::Context::TLS_CLIENT_USE, KeyFile_.path(), Combined.path(), "", Poco::Net::Context::VERIFY_ONCE));
 
 				if (Server_.allowSelfSigned) {
 					SecureContext->setSecurityLevel(Poco::Net::Context::SECURITY_LEVEL_NONE);
@@ -216,11 +224,11 @@ namespace OpenWifi {
 				Poco::Crypto::X509Certificate OpenRoamingRootCertX509(OpenRoamingRootCertFile_.path());
 				SecureContext->addCertificateAuthority(OpenRoamingRootCertX509);
 
-				for (const auto &ca : CaCertFiles_) {
+/*				for (const auto &ca : CaCertFiles_) {
 					Poco::Crypto::X509Certificate cert(ca->path());
 					SecureContext->addChainCertificate(cert);
 				}
-
+*/
 				SecureContext->disableProtocols(Poco::Net::Context::PROTO_TLSV1_3);
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 
