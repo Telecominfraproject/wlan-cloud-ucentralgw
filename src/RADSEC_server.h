@@ -255,7 +255,7 @@ namespace OpenWifi {
 					DBGLINE
 					poco_information(Logger_, "Attempting to connect");
 					DBGLINE
-					Socket_->connect(Destination, Poco::Timespan(100, 0));
+					Socket_->connect(Destination, Poco::Timespan(20, 0));
 					DBGLINE
 					Socket_->completeHandshake();
 					DBGLINE
