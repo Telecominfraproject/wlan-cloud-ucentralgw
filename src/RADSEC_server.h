@@ -192,8 +192,10 @@ namespace OpenWifi {
 
 				for (const auto &ca : CaCertFiles_) {
 					Poco::Crypto::X509Certificate cert(ca->path());
-					SecureContext->addCertificateAuthority(cert);
+					// SecureContext->addCertificateAuthority(cert);
+					SecureContext->addChainCertificate(cert);
 				}
+				//SecureContext->disableProtocols()
 
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 
