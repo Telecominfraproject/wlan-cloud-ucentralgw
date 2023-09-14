@@ -222,6 +222,7 @@ namespace OpenWifi {
 					SecureContext->addChainCertificate(cert);
 				}
 
+				SecureContext->disableProtocols(Poco::Net::Context::PROTO_TLSV1_3);
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
