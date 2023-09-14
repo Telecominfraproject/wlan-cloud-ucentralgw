@@ -171,6 +171,7 @@ namespace OpenWifi {
 
 				Poco::TemporaryFile CertFile_(MicroServiceDataDirectory());
 				Poco::TemporaryFile KeyFile_(MicroServiceDataDirectory());
+				Poco::TemporaryFile OpenRoamingRootCertFile_(MicroServiceDataDirectory());
 				std::vector<std::unique_ptr<Poco::TemporaryFile>> CaCertFiles_;
 
 				DecodeFile(CertFile_.path(), Server_.radsecCert);
@@ -182,20 +183,44 @@ namespace OpenWifi {
 					DecodeFile(CaCertFiles_[CaCertFiles_.size() - 1]->path(), cert);
 				}
 
+				std::string OpenRoamingRootCert{"-----BEGIN CERTIFICATE-----\n"
+												"MIIClDCCAhugAwIBAgIUF1f+h+uJNHyr+ZqTpwew8LYRAW0wCgYIKoZIzj0EAwMw\n"
+												"gYkxCzAJBgNVBAYTAkdCMQ8wDQYDVQQIEwZMb25kb24xDzANBgNVBAcTBkxvbmRv\n"
+												"bjEsMCoGA1UEChMjR2xvYmFsUmVhY2ggVGVjaG5vbG9neSBFTUVBIExpbWl0ZWQx\n"
+												"KjAoBgNVBAMTIUdsb2JhbFJlYWNoIENlcnRpZmljYXRlIEF1dGhvcml0eTAeFw0y\n"
+												"MzA3MTQwOTMyMDBaFw00MzA3MDkwOTMyMDBaMIGJMQswCQYDVQQGEwJHQjEPMA0G\n"
+												"A1UECBMGTG9uZG9uMQ8wDQYDVQQHEwZMb25kb24xLDAqBgNVBAoTI0dsb2JhbFJl\n"
+												"YWNoIFRlY2hub2xvZ3kgRU1FQSBMaW1pdGVkMSowKAYDVQQDEyFHbG9iYWxSZWFj\n"
+												"aCBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAARy\n"
+												"f02umFNy5W/TtM5nfMaLhRF61vLxhT8iNQHR1mXiRmNdME3ArForBcAm2eolHPcJ\n"
+												"RH9DcXs59d2zzoPEaBjXADTCjUts3F7G6fjqvfki2e/txx/xfUopQO8G54XcFWqj\n"
+												"QjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBRS\n"
+												"tNe7MgAFwTaMZKUtS1/8pVoBqjAKBggqhkjOPQQDAwNnADBkAjA7VKHTybtSMBcN\n"
+												"717jGYvkWlcj4c9/LzPtkHO053wGsPigaq+1SjY7tDhS/g9oUQACMA6UqH2e8cfn\n"
+												"cZqmBNVNN3DBjIb4anug7F+FnYOQF36ua6MLBeGn3aKxvu1aO+hjPg==\n"
+												"-----END CERTIFICATE-----\n"};
+
+				std::ofstream ofs{OpenRoamingRootCertFile_.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
+				ofs << OpenRoamingRootCert;
+				ofs.close();
+
 				Poco::Net::Context::Ptr SecureContext =
 					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
-						Poco::Net::Context::TLS_CLIENT_USE, KeyFile_.path(), CertFile_.path(), ""));
+						Poco::Net::Context::TLS_CLIENT_USE, KeyFile_.path(), CertFile_.path(), "", Poco::Net::Context::VERIFY_ONCE));
+
 				if (Server_.allowSelfSigned) {
 					SecureContext->setSecurityLevel(Poco::Net::Context::SECURITY_LEVEL_NONE);
 					SecureContext->enableExtendedCertificateVerification(false);
 				}
 
+
+				Poco::Crypto::X509Certificate OpenRoamingRootcertX509(OpenRoamingRootCertFile_.path());
+				SecureContext->addCertificateAuthority(OpenRoamingRootcertX509);
+
 				for (const auto &ca : CaCertFiles_) {
 					Poco::Crypto::X509Certificate cert(ca->path());
-					// SecureContext->addCertificateAuthority(cert);
 					SecureContext->addChainCertificate(cert);
 				}
-				//SecureContext->disableProtocols()
 
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 
