@@ -10,6 +10,7 @@
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
 #include "Poco/Crypto/X509Certificate.h"
+#include "Poco/Crypto/RSAKey.h"
 #include "Poco/Net/Context.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/SecureStreamSocket.h"
@@ -49,7 +50,7 @@ namespace OpenWifi {
 		}
 
 		inline void run() final {
-			Poco::Thread::trySleep(30000);
+			Poco::Thread::trySleep(5000);
 			std::uint64_t LastStatus = 0;
 			auto RadSecKeepAlive = MicroServiceConfigGetInt("radsec.keepalive", 120);
 			while (TryAgain_) {
@@ -218,7 +219,7 @@ namespace OpenWifi {
 
 				Poco::Net::Context::Ptr SecureContext =
 					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
-						Poco::Net::Context::TLS_CLIENT_USE, KeyFile_.path(), Combined.path(), "", Poco::Net::Context::VERIFY_ONCE));
+						Poco::Net::Context::TLS_CLIENT_USE, ""));
 
 				DBGLINE
 				if (Server_.allowSelfSigned) {
@@ -239,6 +240,10 @@ namespace OpenWifi {
 */
 
 				DBGLINE
+				SecureContext->usePrivateKey(Poco::Crypto::RSAKey("",KeyFile_.path(),""));
+				SecureContext->useCertificate(Poco::Crypto::X509Certificate(CertFile_.path()));
+				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
+				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate.path()));
 
 				SecureContext->disableProtocols(Poco::Net::Context::PROTO_TLSV1_3);
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
