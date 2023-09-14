@@ -200,26 +200,37 @@ namespace OpenWifi {
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
 				try {
+					DBGLINE
 					poco_information(Logger_, "Attempting to connect");
+					DBGLINE
 					Socket_->connect(Destination, Poco::Timespan(100, 0));
+					DBGLINE
 					Socket_->completeHandshake();
-
+					DBGLINE
 					SecureContext->enableExtendedCertificateVerification(false);
+					DBGLINE
 
-/*					if (!Server_.allowSelfSigned) {
+					if (!Server_.allowSelfSigned) {
+						DBGLINE
 						Socket_->verifyPeerCertificate();
+						DBGLINE
 					}
-*/
+
+					DBGLINE
 					if (Socket_->havePeerCertificate()) {
+						DBGLINE
 						Peer_Cert_ = std::make_unique<Poco::Crypto::X509Certificate>(
 							Socket_->peerCertificate());
+						DBGLINE
 					}
 
+					DBGLINE
 					Socket_->setBlocking(false);
 					Socket_->setNoDelay(true);
 					Socket_->setKeepAlive(true);
 					Socket_->setReceiveTimeout(Poco::Timespan(1 * 60 * 60, 0));
 
+					DBGLINE
 					Reactor_.addEventHandler(
 						*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ReadableNotification>(
 									  *this, &RADSEC_server::onData));
