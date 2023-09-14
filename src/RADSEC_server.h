@@ -173,13 +173,15 @@ namespace OpenWifi {
 				Poco::TemporaryFile CertFile_(MicroServiceDataDirectory());
 				Poco::TemporaryFile KeyFile_(MicroServiceDataDirectory());
 				Poco::TemporaryFile OpenRoamingRootCertFile_(MicroServiceDataDirectory());
-				Poco::TemporaryFile Intermediate(MicroServiceDataDirectory());
+				Poco::TemporaryFile Intermediate0(MicroServiceDataDirectory());
+				Poco::TemporaryFile Intermediate1(MicroServiceDataDirectory());
 				Poco::TemporaryFile Combined(MicroServiceDataDirectory());
 				std::vector<std::unique_ptr<Poco::TemporaryFile>> CaCertFiles_;
 
 				DecodeFile(KeyFile_.path(), Server_.radsecKey);
 				DecodeFile(CertFile_.path(), Server_.radsecCert);
-				DecodeFile(Intermediate.path(), Server_.radsecCacerts[0]);
+				DecodeFile(Intermediate0.path(), Server_.radsecCacerts[0]);
+				DecodeFile(Intermediate1.path(), Server_.radsecCacerts[1]);
 
 				for (auto &cert : Server_.radsecCacerts) {
 					CaCertFiles_.emplace_back(
@@ -204,18 +206,19 @@ namespace OpenWifi {
 												"cZqmBNVNN3DBjIb4anug7F+FnYOQF36ua6MLBeGn3aKxvu1aO+hjPg==\n"
 												"-----END CERTIFICATE-----\n"};
 
-				system(fmt::format("cat {} >{}", CertFile_.path(), Combined.path()).c_str());
-				system(fmt::format("echo \"\n\" >> {}",Combined.path()).c_str());
-				system(fmt::format("cat {} >>{}", Intermediate.path(), Combined.path()).c_str());
-
-				system(fmt::format("cat {}",KeyFile_.path()).c_str());
-				system(fmt::format("cat {}",Combined.path()).c_str());
-
 				DBGLINE
 				std::ofstream ofs{OpenRoamingRootCertFile_.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
 				ofs << OpenRoamingRootCert;
 				ofs.close();
 				DBGLINE
+
+				/*				system(fmt::format("cat {} >{}", CertFile_.path(), Combined.path()).c_str());
+				system(fmt::format("echo \"\n\" >> {}",Combined.path()).c_str());
+				system(fmt::format("cat {} >>{}", Intermediate.path(), Combined.path()).c_str());
+*/
+				system(fmt::format("cat {}",KeyFile_.path()).c_str());
+				system(fmt::format("cat {}",CertFile_.path()).c_str());
+				system(fmt::format("cat {}",OpenRoamingRootCertFile_.path()).c_str());
 
 				Poco::Net::Context::Ptr SecureContext =
 					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
@@ -228,8 +231,8 @@ namespace OpenWifi {
 				}
 
 				DBGLINE
-				Poco::Crypto::X509Certificate OpenRoamingRootCertX509(OpenRoamingRootCertFile_.path());
-				SecureContext->addCertificateAuthority(OpenRoamingRootCertX509);
+//				Poco::Crypto::X509Certificate OpenRoamingRootCertX509(OpenRoamingRootCertFile_.path());
+//				SecureContext->addCertificateAuthority(OpenRoamingRootCertX509);
 
 				DBGLINE
 
@@ -243,7 +246,8 @@ namespace OpenWifi {
 				SecureContext->usePrivateKey(Poco::Crypto::RSAKey("",KeyFile_.path(),""));
 				SecureContext->useCertificate(Poco::Crypto::X509Certificate(CertFile_.path()));
 				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
-				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate.path()));
+				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
+				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
 
 				SecureContext->disableProtocols(Poco::Net::Context::PROTO_TLSV1_3);
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
