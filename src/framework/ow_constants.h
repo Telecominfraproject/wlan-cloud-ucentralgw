@@ -417,6 +417,8 @@ namespace OpenWifi::RESTAPI::Errors {
 
     static const struct msg NotAValidECKey { 1176, "Not a valid Signing Key." };
 
+	static const struct msg NotAValidRadiusPoolType { 1177, "Not a valid RADIUS pool type." };
+
     static const struct msg SimulationDoesNotExist {
         7000, "Simulation Instance ID does not exist."
     };

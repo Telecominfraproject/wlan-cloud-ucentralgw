@@ -62,6 +62,7 @@ namespace OpenWifi {
 			bool useRADSEC = false;
 			std::vector<std::string> realms;
 			std::string secret;
+			std::string poolProxyIp;
 		};
 
 		inline bool Continue() const { return Running_ && Enabled_ && !Pools_.empty(); }
@@ -107,8 +108,9 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A,
 									   const RADIUS::RadiusPacket &P, bool &UseRADSEC, std::string &secret);
 		void ParseServerList(const GWObjects::RadiusProxyServerConfig &Config,
-							 std::vector<Destination> &V4, std::vector<Destination> &V6,
-							 bool setAsDefault);
+							 std::vector<Destination> &V4,
+							 std::vector<Destination> &V6, bool setAsDefault,
+							 const std::string &poolProxyIp);
 		static Poco::Net::SocketAddress
 		ChooseAddress(std::vector<Destination> &Pool,
 					  const Poco::Net::SocketAddress &OriginalAddress, std::string &Secret);

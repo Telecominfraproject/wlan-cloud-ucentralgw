@@ -8,6 +8,11 @@
 
 namespace OpenWifi {
 
+	static bool ValidRadiusPoolServerType(const std::string &T) {
+		static std::set<std::string> Types{ "generic", "orion", "globalreach"};
+		return Types.find(T)!=Types.end();
+	}
+
 	void RESTAPI_radiusProxyConfig_handler::DoGet() {
 		Logger_.information(fmt::format("GET-RADIUS-PROXY-CONFIG: TID={} user={} thr_id={}",
 										TransactionId_, Requester(),
@@ -44,10 +49,22 @@ namespace OpenWifi {
 		}
 
 		//	Logically validate the config.
-		for (const auto &pool : C.pools) {
+		for (auto &pool : C.pools) {
 			if (pool.name.empty()) {
 				return BadRequest(RESTAPI::Errors::PoolNameInvalid);
 			}
+			if (pool.radsecPoolType.empty()) {
+				pool.radsecPoolType = "generic";
+			}
+
+			if(!ValidRadiusPoolServerType(pool.radsecPoolType)) {
+				return BadRequest(RESTAPI::Errors::NotAValidRadiusPoolType);
+			}
+
+			if(pool.radsecKeepAlive==0) {
+				pool.radsecKeepAlive=25;
+			}
+
 			for (const auto &config : {pool.acctConfig, pool.authConfig, pool.coaConfig}) {
 				if (config.servers.empty())
 					continue;

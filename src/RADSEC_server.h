@@ -28,10 +28,12 @@ namespace OpenWifi {
 
 	class RADSEC_server : public Poco::Runnable {
 	  public:
-		RADSEC_server(Poco::Net::SocketReactor &R, GWObjects::RadiusProxyServerEntry E)
+		RADSEC_server(Poco::Net::SocketReactor &R, GWObjects::RadiusProxyServerEntry E, const GWObjects::RadiusProxyPool &P)
 			: Reactor_(R), Server_(std::move(E)),
 			  Logger_(Poco::Logger::get(
 				  fmt::format("RADSEC: {}@{}:{}", Server_.name, Server_.ip, Server_.port))) {
+			KeepAlive_ = P.radsecKeepAlive;
+			Type_ = P.radsecPoolType;
 			Start();
 		}
 
@@ -52,12 +54,11 @@ namespace OpenWifi {
 		inline void run() final {
 			Poco::Thread::trySleep(5000);
 			std::uint64_t LastStatus = 0;
-			std::uint64_t RadSecKeepAlive = MicroServiceConfigGetInt("radsec.keepalive", 30);
 			while (TryAgain_) {
 				if (!Connected_) {
 					LastStatus = Utils::Now();
 					Connect();
-				} else if ((Utils::Now() - LastStatus) > RadSecKeepAlive) {
+				} else if ((Utils::Now() - LastStatus) > KeepAlive_) {
 					RADIUS::RadiusOutputPacket P(Server_.radsecSecret);
 					P.MakeStatusMessage();
 					poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Server_.name));
@@ -165,7 +166,8 @@ namespace OpenWifi {
 			Disconnect();
 		}
 
-		inline bool Connect() {
+
+		inline bool Connect_GlobalReach() {
 			if (TryAgain_) {
 				std::lock_guard G(LocalMutex_);
 
@@ -209,14 +211,6 @@ namespace OpenWifi {
 				ofs << OpenRoamingRootCert;
 				ofs.close();
 
-				/*				system(fmt::format("cat {} >{}", CertFile_.path(), Combined.path()).c_str());
-				system(fmt::format("echo \"\n\" >> {}",Combined.path()).c_str());
-				system(fmt::format("cat {} >>{}", Intermediate.path(), Combined.path()).c_str());
-*/
-//				system(fmt::format("cat {}",KeyFile_.path()).c_str());
-//				system(fmt::format("cat {}",CertFile_.path()).c_str());
-//				system(fmt::format("cat {}",OpenRoamingRootCertFile_.path()).c_str());
-
 				Poco::Net::Context::Ptr SecureContext =
 					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
 						Poco::Net::Context::TLS_CLIENT_USE, ""));
@@ -225,15 +219,6 @@ namespace OpenWifi {
 					SecureContext->setSecurityLevel(Poco::Net::Context::SECURITY_LEVEL_NONE);
 					SecureContext->enableExtendedCertificateVerification(false);
 				}
-
-//				Poco::Crypto::X509Certificate OpenRoamingRootCertX509(OpenRoamingRootCertFile_.path());
-//				SecureContext->addCertificateAuthority(OpenRoamingRootCertX509);
-
-/*				for (const auto &ca : CaCertFiles_) {
-					Poco::Crypto::X509Certificate cert(ca->path());
-					SecureContext->addChainCertificate(cert);
-				}
-*/
 
 				SecureContext->usePrivateKey(Poco::Crypto::RSAKey("",KeyFile_.path(),""));
 				SecureContext->useCertificate(Poco::Crypto::X509Certificate(CertFile_.path()));
@@ -289,6 +274,26 @@ namespace OpenWifi {
 				}
 			}
 			return false;
+		}
+
+		inline bool Connect_Orion() {
+			if (TryAgain_) {
+				std::lock_guard G(LocalMutex_);
+			}
+			return true;
+		}
+
+		inline bool Connect_Generic() {
+			if (TryAgain_) {
+				std::lock_guard G(LocalMutex_);
+			}
+			return true;
+		}
+
+		inline bool Connect() {
+			if(Type_=="orion") return Connect_Orion();
+			if(Type_=="globalreach") return Connect_GlobalReach();
+			return Connect_Generic();
 		}
 
 		inline void Disconnect() {
@@ -347,5 +352,7 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Crypto::X509Certificate> Peer_Cert_;
 		volatile bool Connected_ = false;
 		volatile bool TryAgain_ = true;
+		std::uint64_t 	KeepAlive_;
+		std::string 	Type_;
 	};
 } // namespace OpenWifi
