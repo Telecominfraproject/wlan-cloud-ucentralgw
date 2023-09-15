@@ -982,7 +982,7 @@ namespace OpenWifi::RADIUS {
 
 		inline void AddAttribute(unsigned char attr, uint8_t len, const unsigned char *data) {
 			P_.attributes[AttributesLen_++] = attr;
-			P_.attributes[AttributesLen_++] = len;
+			P_.attributes[AttributesLen_++] = len+2;
 			memcpy(&P_.attributes[AttributesLen_], data, len);
 			AttributesLen_ += len;
 		}
