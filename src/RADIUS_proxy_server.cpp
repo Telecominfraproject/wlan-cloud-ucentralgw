@@ -635,9 +635,7 @@ namespace OpenWifi {
 							   const RADIUS::RadiusPacket &P, bool &UseRADSEC,
 							   std::string &Secret) {
 
-		std::cout << "Route: " << RequestedAddress.host().toString() << " : " << __LINE__ << std::endl;
 		if (Pools_.empty()) {
-			std::cout << "Route: " << RequestedAddress.host().toString() << " : " << __LINE__ << std::endl;
 			UseRADSEC = false;
 			return RequestedAddress;
 		}
@@ -645,15 +643,12 @@ namespace OpenWifi {
 		bool IsV4 = RequestedAddress.family() == Poco::Net::SocketAddress::IPv4;
 		bool useDefault;
 
-		std::cout << "Route: " << RequestedAddress.host().toString() << " : " << __LINE__ << std::endl;
 		useDefault = IsV4 ? RequestedAddress.host() ==
 								Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4)
 						  : RequestedAddress.host() ==
 								Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6);
 
-		std::cout << "Route: " << RequestedAddress.host().toString() << " : " << __LINE__ << std::endl;
 		if (useDefault) {
-			std::cout << "Route: " << RequestedAddress.host().toString() << " : " << __LINE__ << std::endl;
 			return DefaultRoute(rtype, RequestedAddress, P, UseRADSEC, Secret);
 		}
 
@@ -661,12 +656,10 @@ namespace OpenWifi {
 			for (const auto &entry : D) {
 				if (!entry.poolProxyIp.empty() &&
 					entry.poolProxyIp == RequestedAddress.host().toString()) {
-					std::cout << "Route: " << RequestedAddress.host().toString() << " : " << __LINE__ << std::endl;
 					UseRADSEC = entry.useRADSEC;
 					return true;
 				}
 				if (entry.Addr.host() == RequestedAddress.host()) {
-					std::cout << "Route: " << RequestedAddress.host().toString() << " : " << __LINE__ << std::endl;
 					UseRADSEC = entry.useRADSEC;
 					return true;
 				}
@@ -676,7 +669,6 @@ namespace OpenWifi {
 
 		for (auto &pool : Pools_) {
 			// try and match the pool's address to the destination
-			std::cout << "Route: " << RequestedAddress.host().toString() << " : " << __LINE__ << std::endl;
 			switch (rtype) {
 			case radius_type::coa: {
 				if (isAddressInPool((IsV4 ? pool.CoaV4 : pool.CoaV6), UseRADSEC)) {
@@ -696,7 +688,6 @@ namespace OpenWifi {
 			}
 		}
 
-		std::cout << "Route: " << RequestedAddress.host().toString() << " : " << __LINE__ << std::endl;
 		UseRADSEC = false;
 		return RequestedAddress;
 	}
@@ -709,7 +700,6 @@ namespace OpenWifi {
 		if (Pool.size() == 1) {
 			Secret = Pool[0].secret;
 			auto A = Pool[0].Addr;
-			std::cout << "Chose address " << A.host().toString() << std::endl;
 			return A;
 		}
 
@@ -732,11 +722,9 @@ namespace OpenWifi {
 			}
 
 			if (!found) {
-				std::cout << "Chose address " << OriginalAddress.host().toString() << std::endl;
 				return OriginalAddress;
 			}
 			Pool[index].state += Pool[index].step;
-			std::cout << "Chose address " << Pool[index].Addr.host().toString() << std::endl;
 			return Pool[index].Addr;
 
 		} else if (Pool[0].strategy == "round_robin") {
@@ -758,25 +746,20 @@ namespace OpenWifi {
 			}
 
 			if (!found) {
-				std::cout << "Chose address " << OriginalAddress.host().toString() << std::endl;
-				return OriginalAddress;
+//				return OriginalAddress;
 			}
 
 			Pool[index].state += 1;
-			std::cout << "Chose address " << Pool[index].Addr.host().toString() << std::endl;
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "random") {
 			if (Pool.size() > 1) {
 				auto index = std::rand() % Pool.size();
 				Secret = Pool[index].secret;
-				std::cout << "Chose address " << OriginalAddress.host().toString() << std::endl;
 				return Pool[index].Addr;
 			} else {
-				std::cout << "Chose address " << OriginalAddress.host().toString() << std::endl;
 				return OriginalAddress;
 			}
 		}
-		std::cout << "Chose address " << OriginalAddress.host().toString() << std::endl;
 		return OriginalAddress;
 	}
 
