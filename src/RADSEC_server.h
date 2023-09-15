@@ -61,7 +61,7 @@ namespace OpenWifi {
 					RADIUS::RadiusOutputPacket P(Server_.radsecSecret);
 					P.MakeStatusMessage();
 					poco_information(Logger_, "Keep-Alive message.");
-					Socket_->sendBytes(P.Data(), P.Len());
+//					Socket_->sendBytes(P.Data(), P.Len());
 					LastStatus = Utils::Now();
 				}
 				Poco::Thread::trySleep(!Connected_ ? 30000 : 2000);
