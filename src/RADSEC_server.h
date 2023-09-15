@@ -52,7 +52,7 @@ namespace OpenWifi {
 		inline void run() final {
 			Poco::Thread::trySleep(5000);
 			std::uint64_t LastStatus = 0;
-			auto RadSecKeepAlive = MicroServiceConfigGetInt("radsec.keepalive", 10000000000);
+			auto RadSecKeepAlive = 10 ; // MicroServiceConfigGetInt("radsec.keepalive", 10000000000);
 			while (TryAgain_) {
 				if (!Connected_) {
 					LastStatus = Utils::Now();
@@ -205,11 +205,9 @@ namespace OpenWifi {
 												"cZqmBNVNN3DBjIb4anug7F+FnYOQF36ua6MLBeGn3aKxvu1aO+hjPg==\n"
 												"-----END CERTIFICATE-----\n"};
 
-				DBGLINE
 				std::ofstream ofs{OpenRoamingRootCertFile_.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
 				ofs << OpenRoamingRootCert;
 				ofs.close();
-				DBGLINE
 
 				/*				system(fmt::format("cat {} >{}", CertFile_.path(), Combined.path()).c_str());
 				system(fmt::format("echo \"\n\" >> {}",Combined.path()).c_str());
@@ -223,17 +221,13 @@ namespace OpenWifi {
 					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
 						Poco::Net::Context::TLS_CLIENT_USE, ""));
 
-				DBGLINE
 				if (Server_.allowSelfSigned) {
 					SecureContext->setSecurityLevel(Poco::Net::Context::SECURITY_LEVEL_NONE);
 					SecureContext->enableExtendedCertificateVerification(false);
 				}
 
-				DBGLINE
 //				Poco::Crypto::X509Certificate OpenRoamingRootCertX509(OpenRoamingRootCertFile_.path());
 //				SecureContext->addCertificateAuthority(OpenRoamingRootCertX509);
-
-				DBGLINE
 
 /*				for (const auto &ca : CaCertFiles_) {
 					Poco::Crypto::X509Certificate cert(ca->path());
@@ -241,16 +235,15 @@ namespace OpenWifi {
 				}
 */
 
-				DBGLINE
 				SecureContext->usePrivateKey(Poco::Crypto::RSAKey("",KeyFile_.path(),""));
 				SecureContext->useCertificate(Poco::Crypto::X509Certificate(CertFile_.path()));
 				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
 				SecureContext->enableExtendedCertificateVerification(false);
+				SecureContext->setSessionCacheSize(0);
 
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
-				DBGLINE
 
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
