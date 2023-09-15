@@ -60,7 +60,10 @@ namespace OpenWifi {
 				} else if ((Utils::Now() - LastStatus) > RadSecKeepAlive) {
 					RADIUS::RadiusOutputPacket P(Server_.radsecSecret);
 					P.MakeStatusMessage();
+
 					poco_information(Logger_, "Keep-Alive message.");
+					RADIUS::RadiusPacket	PP(P.Data(),P.Len());
+					PP.Log(std::cout);
 //					Socket_->sendBytes(P.Data(), P.Len());
 					LastStatus = Utils::Now();
 				}
