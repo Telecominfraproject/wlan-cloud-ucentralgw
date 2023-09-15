@@ -241,7 +241,6 @@ namespace OpenWifi {
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
 				SecureContext->enableExtendedCertificateVerification(false);
-				SecureContext->setSessionCacheSize(0);
 
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 
