@@ -533,16 +533,22 @@ namespace OpenWifi {
 			Poco::File F(ConfigFilename_);
 
 			std::lock_guard G(Mutex_);
+			DBGLINE
 
 			if (F.exists()) {
 				std::ifstream ifs(ConfigFilename_, std::ios_base::binary);
 				Poco::JSON::Parser P;
+				DBGLINE
 				auto RawConfig = P.parse(ifs).extract<Poco::JSON::Object::Ptr>();
+				DBGLINE
 				GWObjects::RadiusProxyPoolList RPC;
 				if (RPC.from_json(RawConfig)) {
+					DBGLINE
 					ResetConfig();
 					PoolList_ = RPC;
+					DBGLINE
 					for (const auto &pool : RPC.pools) {
+						DBGLINE
 						RadiusPool NewPool;
 						ParseServerList(pool.authConfig, NewPool.AuthV4, NewPool.AuthV6,
 										pool.useByDefault, pool.poolProxyIp);
@@ -556,16 +562,20 @@ namespace OpenWifi {
 					poco_warning(Logger(),
 								 fmt::format("Configuration file '{}' is bad.", ConfigFilename_));
 				}
+				DBGLINE
 			} else {
 				poco_warning(Logger(),
 							 fmt::format("No configuration file '{}' exists.", ConfigFilename_));
 			}
 		} catch (const Poco::Exception &E) {
+			DBGLINE
 			Logger().log(E);
 		} catch (...) {
+			DBGLINE
 			poco_error(Logger(),
 					   fmt::format("Error while parsing configuration file '{}'", ConfigFilename_));
 		}
+		DBGLINE
 	}
 
 	static bool RealmMatch(const std::string &user_realm, const std::string &realm) {
