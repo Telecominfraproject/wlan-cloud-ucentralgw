@@ -52,7 +52,7 @@ namespace OpenWifi {
 		inline void run() final {
 			Poco::Thread::trySleep(5000);
 			std::uint64_t LastStatus = 0;
-			auto RadSecKeepAlive = 10 ; // MicroServiceConfigGetInt("radsec.keepalive", 10000000000);
+			std::uint64_t RadSecKeepAlive = MicroServiceConfigGetInt("radsec.keepalive", 30);
 			while (TryAgain_) {
 				if (!Connected_) {
 					LastStatus = Utils::Now();
@@ -60,7 +60,7 @@ namespace OpenWifi {
 				} else if ((Utils::Now() - LastStatus) > RadSecKeepAlive) {
 					RADIUS::RadiusOutputPacket P(Server_.radsecSecret);
 					P.MakeStatusMessage();
-					poco_information(Logger_, "Keep-Alive message.");
+					poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Server_.name));
 					Socket_->sendBytes(P.Data(), P.Len());
 					LastStatus = Utils::Now();
 				}
@@ -75,11 +75,11 @@ namespace OpenWifi {
 					RADIUS::RadiusPacket P(buffer, length);
 					int sent_bytes;
 					if (P.VerifyMessageAuthenticator(Server_.radsecSecret)) {
-						poco_debug(Logger_, fmt::format("{}: {} Sending {} bytes", serial_number,
+						poco_trace(Logger_, fmt::format("{}: {} Sending {} bytes", serial_number,
 														P.PacketType(), length));
 						sent_bytes = Socket_->sendBytes(buffer, length);
 					} else {
-						poco_debug(Logger_, fmt::format("{}: {} Sending {} bytes", serial_number,
+						poco_trace(Logger_, fmt::format("{}: {} Sending {} bytes", serial_number,
 														P.PacketType(), length));
 						P.ComputeMessageAuthenticator(Server_.radsecSecret);
 						sent_bytes = Socket_->sendBytes(P.Buffer(), length);
@@ -105,35 +105,35 @@ namespace OpenWifi {
 					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						if (!SerialNumber.empty()) {
-							poco_debug(Logger_,
+							poco_trace(Logger_,
 									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
 																		 NumberOfReceivedBytes);
 						} else {
-							poco_debug(Logger_, "AUTH packet dropped.");
+							poco_trace(Logger_, "AUTH packet dropped.");
 						}
 					} else if (P.IsAccounting()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						if (!SerialNumber.empty()) {
-							poco_debug(Logger_,
+							poco_trace(Logger_,
 									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAccountingData(SerialNumber, Buffer,
 																	 NumberOfReceivedBytes);
 						} else {
-							poco_debug(Logger_, "ACCT packet dropped.");
+							poco_trace(Logger_, "ACCT packet dropped.");
 						}
 					} else if (P.IsAuthority()) {
 						auto SerialNumber = P.ExtractSerialNumberTIP();
 						if (!SerialNumber.empty()) {
-							poco_debug(Logger_,
+							poco_trace(Logger_,
 									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusCoAData(SerialNumber, Buffer,
 															  NumberOfReceivedBytes);
 						} else {
-							poco_debug(Logger_, "CoA/DM packet dropped.");
+							poco_trace(Logger_, "CoA/DM packet dropped.");
 						}
 					} else {
 						poco_warning(Logger_,
@@ -279,13 +279,13 @@ namespace OpenWifi {
 					poco_information(Logger_, fmt::format("Connected. CN={}", CommonName()));
 					return true;
 				} catch (const Poco::Net::NetException &E) {
-					poco_information(Logger_, "NetException: Could not connect.");
+					poco_warning(Logger_, "NetException: Could not connect.");
 					Logger_.log(E);
 				} catch (const Poco::Exception &E) {
-					poco_information(Logger_, "Exception: Could not connect.");
+					poco_warning(Logger_, "Exception: Could not connect.");
 					Logger_.log(E);
 				} catch (...) {
-					poco_information(Logger_, "Could not connect.");
+					poco_warning(Logger_, "Could not connect.");
 				}
 			}
 			return false;
