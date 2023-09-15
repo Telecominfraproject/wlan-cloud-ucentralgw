@@ -208,7 +208,7 @@ namespace OpenWifi {
 		}
 		P.Evaluate(ReceiveSize);
 
-		if(P.PacketTypeInt()==OpenWifi::RADIUS::Access_Accept) {
+		if(Logger().trace()) {
 			P.Log(std::cout);
 		}
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
@@ -419,10 +419,12 @@ namespace OpenWifi {
 				Destination = "0.0.0.0:0";
 			}
 
-			P.Log(std::cout);
+			if(Logger().trace()) {
+				P.Log(std::cout);
+			}
 
 			if(Destination.empty()) {
-				std::cout << "No destination in CoA. Dropped." << std::endl;
+				poco_warning(Logger(),fmt::format("{}: CoA packet does not have a valid destination.", serialNumber));
 				return;
 			}
 
@@ -690,10 +692,6 @@ namespace OpenWifi {
 		if (Pool.size() == 1) {
 			Secret = Pool[0].secret;
 			return Pool[0].Addr;
-		}
-
-		if(Pool.empty()) {
-			std::cout << __LINE__ << std::endl;
 		}
 
 		if (Pool[0].strategy == "weighted") {
