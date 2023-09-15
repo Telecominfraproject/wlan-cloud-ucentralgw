@@ -279,8 +279,80 @@ namespace OpenWifi {
 		inline bool Connect_Orion() {
 			if (TryAgain_) {
 				std::lock_guard G(LocalMutex_);
+
+				Poco::TemporaryFile CertFile_(MicroServiceDataDirectory());
+				Poco::TemporaryFile KeyFile_(MicroServiceDataDirectory());
+				std::vector<std::unique_ptr<Poco::TemporaryFile>> CaCertFiles_;
+
+				DecodeFile(CertFile_.path(), Server_.radsecCert);
+				DecodeFile(KeyFile_.path(), Server_.radsecKey);
+
+				for (auto &cert : Server_.radsecCacerts) {
+					CaCertFiles_.emplace_back(
+						std::make_unique<Poco::TemporaryFile>(MicroServiceDataDirectory()));
+					DecodeFile(CaCertFiles_[CaCertFiles_.size() - 1]->path(), cert);
+				}
+
+				Poco::Net::Context::Ptr SecureContext =
+					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
+						Poco::Net::Context::TLS_CLIENT_USE, KeyFile_.path(), CertFile_.path(), ""));
+				if (Server_.allowSelfSigned) {
+					SecureContext->setSecurityLevel(Poco::Net::Context::SECURITY_LEVEL_NONE);
+					SecureContext->enableExtendedCertificateVerification(false);
+				}
+
+				for (const auto &ca : CaCertFiles_) {
+					Poco::Crypto::X509Certificate cert(ca->path());
+					SecureContext->addCertificateAuthority(cert);
+				}
+
+				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
+
+				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
+
+				try {
+					poco_information(Logger_, "Attempting to connect");
+					Socket_->connect(Destination, Poco::Timespan(100, 0));
+					Socket_->completeHandshake();
+
+					if (!Server_.allowSelfSigned) {
+						Socket_->verifyPeerCertificate();
+					}
+
+					if (Socket_->havePeerCertificate()) {
+						Peer_Cert_ = std::make_unique<Poco::Crypto::X509Certificate>(
+							Socket_->peerCertificate());
+					}
+
+					Socket_->setBlocking(false);
+					Socket_->setNoDelay(true);
+					Socket_->setKeepAlive(true);
+					Socket_->setReceiveTimeout(Poco::Timespan(1 * 60 * 60, 0));
+
+					Reactor_.addEventHandler(
+						*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ReadableNotification>(
+									  *this, &RADSEC_server::onData));
+					Reactor_.addEventHandler(
+						*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ErrorNotification>(
+									  *this, &RADSEC_server::onError));
+					Reactor_.addEventHandler(
+						*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ShutdownNotification>(
+									  *this, &RADSEC_server::onShutdown));
+
+					Connected_ = true;
+					poco_information(Logger_, fmt::format("Connected. CN={}", CommonName()));
+					return true;
+				} catch (const Poco::Net::NetException &E) {
+					poco_information(Logger_, "Could not connect.");
+					Logger_.log(E);
+				} catch (const Poco::Exception &E) {
+					poco_information(Logger_, "Could not connect.");
+					Logger_.log(E);
+				} catch (...) {
+					poco_information(Logger_, "Could not connect.");
+				}
 			}
-			return true;
+			return false;
 		}
 
 		inline bool Connect_Generic() {
