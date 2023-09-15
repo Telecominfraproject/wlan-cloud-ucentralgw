@@ -1937,6 +1937,22 @@ ul.nav-tabs {
     },
     "coaConfig" : {
       "$ref" : "#/components/schemas/RadiusProxyServerConfig"
+    },
+    "radsecPoolType" : {
+      "type" : "string",
+      "default" : "generic",
+      "enum" : [ "generic", "orion", "globalreach" ]
+    },
+    "poolProxyIp" : {
+      "type" : "string",
+      "description" : "This is the fake IP for the entire pool",
+      "example" : "[\"These addresses must match the addresses in the AP configuration and must start with 0.0\",\"0.0.0.1\",\"0.0.1.1\"]"
+    },
+    "radsecPoolKeepAlive" : {
+      "type" : "integer",
+      "description" : "The keep alive value in seconds. Usually 30s or less.",
+      "format" : "int64",
+      "default" : 25
     }
   }
 };
@@ -28381,6 +28397,7 @@ pub fn main() {
  "https://localhost:16001/api/v1/radiusProxyConfig" \
  -d '{
   &quot;pools&quot; : [ {
+    &quot;radsecPoolType&quot; : &quot;generic&quot;,
     &quot;acctConfig&quot; : {
       &quot;monitorMethod&quot; : &quot;none&quot;,
       &quot;servers&quot; : [ {
@@ -28457,6 +28474,8 @@ pub fn main() {
     },
     &quot;name&quot; : &quot;name&quot;,
     &quot;description&quot; : &quot;description&quot;,
+    &quot;poolProxyIp&quot; : &quot;[\&quot;These addresses must match the addresses in the AP configuration and must start with 0.0\&quot;,\&quot;0.0.0.1\&quot;,\&quot;0.0.1.1\&quot;]&quot;,
+    &quot;radsecPoolKeepAlive&quot; : 5,
     &quot;coaConfig&quot; : {
       &quot;monitorMethod&quot; : &quot;none&quot;,
       &quot;servers&quot; : [ {
@@ -28495,6 +28514,7 @@ pub fn main() {
       &quot;strategy&quot; : &quot;random&quot;
     }
   }, {
+    &quot;radsecPoolType&quot; : &quot;generic&quot;,
     &quot;acctConfig&quot; : {
       &quot;monitorMethod&quot; : &quot;none&quot;,
       &quot;servers&quot; : [ {
@@ -28571,6 +28591,8 @@ pub fn main() {
     },
     &quot;name&quot; : &quot;name&quot;,
     &quot;description&quot; : &quot;description&quot;,
+    &quot;poolProxyIp&quot; : &quot;[\&quot;These addresses must match the addresses in the AP configuration and must start with 0.0\&quot;,\&quot;0.0.0.1\&quot;,\&quot;0.0.1.1\&quot;]&quot;,
+    &quot;radsecPoolKeepAlive&quot; : 5,
     &quot;coaConfig&quot; : {
       &quot;monitorMethod&quot; : &quot;none&quot;,
       &quot;servers&quot; : [ {
