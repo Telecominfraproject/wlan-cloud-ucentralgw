@@ -708,7 +708,9 @@ namespace OpenWifi {
 
 		if (Pool.size() == 1) {
 			Secret = Pool[0].secret;
-			return Pool[0].Addr;
+			auto A = Pool[0].Addr;
+			std::cout << "Chose address " << A.host().toString() << std::endl;
+			return A;
 		}
 
 		if (Pool[0].strategy == "weighted") {
@@ -730,9 +732,11 @@ namespace OpenWifi {
 			}
 
 			if (!found) {
+				std::cout << "Chose address " << OriginalAddress.host().toString() << std::endl;
 				return OriginalAddress;
 			}
 			Pool[index].state += Pool[index].step;
+			std::cout << "Chose address " << Pool[index].Addr.host().toString() << std::endl;
 			return Pool[index].Addr;
 
 		} else if (Pool[0].strategy == "round_robin") {
@@ -754,20 +758,25 @@ namespace OpenWifi {
 			}
 
 			if (!found) {
+				std::cout << "Chose address " << OriginalAddress.host().toString() << std::endl;
 				return OriginalAddress;
 			}
 
 			Pool[index].state += 1;
+			std::cout << "Chose address " << Pool[index].Addr.host().toString() << std::endl;
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "random") {
 			if (Pool.size() > 1) {
 				auto index = std::rand() % Pool.size();
 				Secret = Pool[index].secret;
+				std::cout << "Chose address " << OriginalAddress.host().toString() << std::endl;
 				return Pool[index].Addr;
 			} else {
+				std::cout << "Chose address " << OriginalAddress.host().toString() << std::endl;
 				return OriginalAddress;
 			}
 		}
+		std::cout << "Chose address " << OriginalAddress.host().toString() << std::endl;
 		return OriginalAddress;
 	}
 
