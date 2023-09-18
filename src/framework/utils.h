@@ -258,6 +258,10 @@ namespace OpenWifi::Utils {
     };
 
     bool CreateX509CSR(const CSRCreationParameters & Parameters, CSRCreationResults & Results);
-
+    std::string generateStrongPassword(int minLength, int maxLength, int numDigits, int minLowercase, int minSpecial, int minUppercase);
     bool VerifyECKey(const std::string &key);
+    bool VerifyRSAKey(const std::string &key);
+    bool ValidX509Certificate(const std::string &Cert);
+    bool ValidX509Certificate(const std::vector<std::string> &Certs);
+
 } // namespace OpenWifi::Utils

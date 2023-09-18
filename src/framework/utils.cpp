@@ -8,6 +8,12 @@
 #include "framework/AppServiceRegistry.h"
 #include "framework/utils.h"
 
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <string>
+#include <algorithm>
+
 namespace OpenWifi::Utils {
 
 	bool NormalizeMac(std::string &Mac) {
@@ -757,6 +763,103 @@ namespace OpenWifi::Utils {
 
         }
         return false;
+    }
+
+    bool VerifyRSAKey([[
+    maybe_unused]] const std::string &key) {
+        try {
+            Poco::TemporaryFile F;
+
+            std::ofstream of(F.path().c_str(), std::ios_base::trunc | std::ios_base::out | std::ios_base::binary);
+            of << key;
+            of.close();
+
+            auto Key = Poco::SharedPtr<Poco::Crypto::RSAKey>(
+                    new Poco::Crypto::RSAKey("", F.path(),""));
+            return true;
+        } catch (const Poco::Exception &E) {
+
+        }
+        return false;
+    }
+
+    bool ValidX509Certificate([[
+                              maybe_unused]] const std::string &Cert) {
+        try {
+            Poco::TemporaryFile F;
+            std::ofstream of(F.path().c_str(), std::ios_base::trunc | std::ios_base::out | std::ios_base::binary);
+            of << Cert;
+            of.close();
+
+            auto Key = Poco::SharedPtr<Poco::Crypto::X509Certificate>(
+                    new Poco::Crypto::X509Certificate(F.path()));
+            return true;
+        } catch (const Poco::Exception &E) {
+
+        }
+        return false;
+    }
+
+    bool ValidX509Certificate([[
+                              maybe_unused]] const std::vector<std::string> &Certs) {
+        auto F = [](const std::string &C) -> bool { return ValidX509Certificate(C); };
+        return std::all_of(Certs.begin(),Certs.end(), F);
+    }
+
+    std::string generateStrongPassword(int minLength, int maxLength, int numDigits, int minLowercase, int minSpecial, int minUppercase) {
+        // Define character sets for each category
+        const std::string lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+        const std::string uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const std::string digitChars = "0123456789";
+        const std::string specialChars = "!@#$%^&*()_+[]{}|;:,.<>?";
+
+        // Check if parameters are valid
+        if (minLength < 1 || minLength > maxLength || minLowercase + minUppercase + numDigits + minSpecial > maxLength) {
+            return "Invalid parameters";
+        }
+
+        // Initialize random seed
+        std::random_device rd;
+        std::mt19937 g(rd());
+
+        // Initialize the password string
+        std::string password;
+
+        // Generate the required number of each character type
+        for (int i = 0; i < minLowercase; ++i) {
+            password += lowercaseChars[g() % lowercaseChars.length()];
+        }
+        for (int i = 0; i < minUppercase; ++i) {
+            password += uppercaseChars[g() % uppercaseChars.length()];
+        }
+        for (int i = 0; i < numDigits; ++i) {
+            password += digitChars[g() % digitChars.length()];
+        }
+        for (int i = 0; i < minSpecial; ++i) {
+            password += specialChars[g() % specialChars.length()];
+        }
+
+        // Calculate how many more characters are needed
+        int remainingLength = maxLength - (int)password.length();
+
+        // Generate random characters to fill the remaining length
+        for (int i = 0; i < remainingLength; ++i) {
+            int category = g() % 4; // Randomly select a category
+            if (category == 0) {
+                password += lowercaseChars[g() % lowercaseChars.length()];
+            } else if (category == 1) {
+                password += uppercaseChars[g() % uppercaseChars.length()];
+            } else if (category == 2) {
+                password += digitChars[g() % digitChars.length()];
+            } else {
+                password += specialChars[g() % specialChars.length()];
+            }
+        }
+
+        // Shuffle the password to randomize the character order
+        std::shuffle(password.begin(), password.end(),g);
+
+        return password;
     }
 
 } // namespace OpenWifi::Utils

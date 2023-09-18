@@ -28,7 +28,6 @@ static const std::string GitUCentralJSONSchemaFile{
 	"ucentral.schema.json"};
 
 static std::string DefaultUCentralSchema = R"foo(
-
 {
     "$id": "https://openwrt.org/ucentral.schema.json",
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -3326,7 +3325,6 @@ static std::string DefaultUCentralSchema = R"foo(
         }
     }
 }
-
 )foo";
 
 static inline bool IsIPv4(const std::string &value) {
