@@ -101,6 +101,7 @@ namespace OpenWifi {
 				if (Msg != nullptr) {
 					auto NewMessage = cppkafka::MessageBuilder(Msg->Topic());
 					NewMessage.key(Msg->Key());
+					NewMessage.partition(0);
 					NewMessage.payload(Msg->Payload());
 					Producer.produce(NewMessage);
 					Producer.flush();
