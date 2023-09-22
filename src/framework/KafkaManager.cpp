@@ -103,6 +103,7 @@ namespace OpenWifi {
 					NewMessage.key(Msg->Key());
 					NewMessage.payload(Msg->Payload());
 					Producer.produce(NewMessage);
+					Producer.flush();
 				}
 			} catch (const cppkafka::HandleException &E) {
 				poco_warning(Logger_,
