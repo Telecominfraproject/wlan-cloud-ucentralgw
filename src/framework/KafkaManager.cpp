@@ -99,9 +99,10 @@ namespace OpenWifi {
 			try {
 				auto Msg = dynamic_cast<KafkaMessage *>(Note.get());
 				if (Msg != nullptr) {
-					Producer.produce(cppkafka::MessageBuilder(Msg->Topic())
-										 .key(Msg->Key())
-										 .payload(Msg->Payload()));
+					auto NewMessage = cppkafka::MessageBuilder(Msg->Topic());
+					NewMessage.key(Msg->Key());
+					NewMessage.payload(Msg->Payload());
+					Producer.produce(NewMessage);
 				}
 			} catch (const cppkafka::HandleException &E) {
 				poco_warning(Logger_,
