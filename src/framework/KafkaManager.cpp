@@ -359,7 +359,7 @@ namespace OpenWifi {
 
 	[[nodiscard]] std::string KafkaManager::WrapSystemId(const std::string & PayLoad) {
 		return fmt::format(	R"lit({{ "system" : {{ "id" : {},
-									"host" : {} }},
+									"host" : "{}" }},
 									"payload" : {} }})lit", MicroServiceID(),
 						   				MicroServicePrivateEndPoint(), PayLoad ) ;
 	}
