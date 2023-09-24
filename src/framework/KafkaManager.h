@@ -39,7 +39,7 @@ namespace OpenWifi {
 		void Produce(const char *Topic, const std::string &Key, const std::string & Payload);
 
 	  private:
-		std::recursive_mutex Mutex_;
+		std::mutex Mutex_;
 		Poco::Thread Worker_;
 		mutable std::atomic_bool Running_ = false;
 		Poco::NotificationQueue Queue_;
@@ -47,33 +47,22 @@ namespace OpenWifi {
 
 	class KafkaConsumer : public Poco::Runnable {
 	  public:
-		void run() override;
 		void Start();
 		void Stop();
 
 	  private:
-		std::recursive_mutex Mutex_;
-		Poco::Thread Worker_;
+		std::mutex 				ConsumerMutex_;
+		Types::NotifyTable 		Notifiers_;
+		Poco::Thread 			Worker_;
 		mutable std::atomic_bool Running_ = false;
-	};
+		uint64_t 				FunctionId_ = 1;
+		std::unique_ptr<cppkafka::ConsumerDispatcher> 	Dispatcher_;
+		std::set<std::string>	Topics_;
 
-	class KafkaDispatcher : public Poco::Runnable {
-	  public:
-		void Start();
-		void Stop();
-		auto RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F);
+		void run() override;
+		friend class KafkaManager;
+		std::uint64_t RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F);
 		void UnregisterTopicWatcher(const std::string &Topic, int Id);
-		void Dispatch(const char *Topic, const std::string &Key, const std::string & Payload);
-		void run() override;
-		void Topics(std::vector<std::string> &T);
-
-	  private:
-		std::recursive_mutex Mutex_;
-		Types::NotifyTable Notifiers_;
-		Poco::Thread Worker_;
-		mutable std::atomic_bool Running_ = false;
-		uint64_t FunctionId_ = 1;
-		Poco::NotificationQueue Queue_;
 	};
 
 	class KafkaManager : public SubSystemServer {
@@ -96,19 +85,20 @@ namespace OpenWifi {
 		void PostMessage(const char *topic, const std::string &key,
 						 const Poco::JSON::Object &Object, bool WrapMessage = true);
 
-		void Dispatch(const char *Topic, const std::string &Key, const std::string &Payload);
 		[[nodiscard]] std::string WrapSystemId(const std::string & PayLoad);
 		[[nodiscard]] inline bool Enabled() const { return KafkaEnabled_; }
-		uint64_t RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F);
-		void UnregisterTopicWatcher(const std::string &Topic, uint64_t Id);
-		void Topics(std::vector<std::string> &T);
+		inline std::uint64_t RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F) {
+			return ConsumerThr_.RegisterTopicWatcher(Topic,F);
+		}
+		inline void UnregisterTopicWatcher(const std::string &Topic, uint64_t Id) {
+			return ConsumerThr_.UnregisterTopicWatcher(Topic,Id);
+		}
 
 	  private:
 		bool KafkaEnabled_ = false;
 		std::string SystemInfoWrapper_;
 		KafkaProducer ProducerThr_;
 		KafkaConsumer ConsumerThr_;
-		KafkaDispatcher Dispatcher_;
 
 		void PartitionAssignment(const cppkafka::TopicPartitionList &partitions);
 		void PartitionRevocation(const cppkafka::TopicPartitionList &partitions);
