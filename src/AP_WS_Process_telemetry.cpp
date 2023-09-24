@@ -27,7 +27,7 @@ namespace OpenWifi {
 				std::ostringstream SS;
 				Payload->stringify(SS);
 				auto now = Utils::Now();
-				auto KafkaPayload = std::make_shared<std::string>(SS.str());
+				auto KafkaPayload = SS.str();
 				if (ParamsObj->has("adhoc")) {
 					KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
 												KafkaPayload);
@@ -39,7 +39,7 @@ namespace OpenWifi {
 						// std::endl;
 						TelemetryWebSocketPackets_++;
 						State_.websocketPackets = TelemetryWebSocketPackets_;
-						TelemetryStream()->NotifyEndPoint(SerialNumberInt_, *KafkaPayload);
+						TelemetryStream()->NotifyEndPoint(SerialNumberInt_, KafkaPayload);
 					} else {
 						StopWebSocketTelemetry(CommandManager()->Next_RPC_ID());
 					}

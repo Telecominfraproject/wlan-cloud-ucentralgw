@@ -360,6 +360,9 @@ namespace OpenWifi::GWObjects {
 		RadiusProxyServerConfig acctConfig;
 		RadiusProxyServerConfig coaConfig;
 		bool useByDefault = false;
+		std::string 	radsecPoolType;
+		std::string 	poolProxyIp;
+		std::uint64_t 	radsecKeepAlive=25;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);

@@ -34,6 +34,10 @@ static std::string DefaultUCentralSchema = R"foo(
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
+        "strict": {
+            "type": "boolean",
+            "default": false
+        },
         "uuid": {
             "type": "integer"
         },
@@ -114,6 +118,20 @@ static std::string DefaultUCentralSchema = R"foo(
                 "random-password": {
                     "type": "boolean",
                     "default": false
+                },
+                "beacon-advertisement": {
+                    "type": "object",
+                    "properties": {
+                        "device-name": {
+                            "type": "boolean"
+                        },
+                        "device-serial": {
+                            "type": "boolean"
+                        },
+                        "network-id": {
+                            "type": "integer"
+                        }
+                    }
                 }
             }
         },
@@ -219,6 +237,52 @@ static std::string DefaultUCentralSchema = R"foo(
                             "$ref": "#/$defs/globals.wireless-multimedia.profile"
                         }
                     ]
+                }
+            }
+        },
+        "interface.ssid.encryption": {
+            "type": "object",
+            "properties": {
+                "proto": {
+                    "type": "string",
+                    "enum": [
+                        "none",
+                        "owe",
+                        "owe-transition",
+                        "psk",
+                        "psk2",
+                        "psk-mixed",
+                        "psk2-radius",
+                        "wpa",
+                        "wpa2",
+                        "wpa-mixed",
+                        "sae",
+                        "sae-mixed",
+                        "wpa3",
+                        "wpa3-192",
+                        "wpa3-mixed"
+                    ],
+                    "examples": [
+                        "psk2"
+                    ]
+                },
+                "key": {
+                    "type": "string",
+                    "maxLength": 63,
+                    "minLength": 8
+                },
+                "ieee80211w": {
+                    "type": "string",
+                    "enum": [
+                        "disabled",
+                        "optional",
+                        "required"
+                    ],
+                    "default": "disabled"
+                },
+                "key-caching": {
+                    "type": "boolean",
+                    "default": true
                 }
             }
         },
@@ -716,7 +780,8 @@ static std::string DefaultUCentralSchema = R"foo(
                     "type": "string",
                     "enum": [
                         "dynamic",
-                        "static"
+                        "static",
+                        "none"
                     ],
                     "examples": [
                         "static"
@@ -1005,52 +1070,6 @@ static std::string DefaultUCentralSchema = R"foo(
                     "$ref": "#/$defs/interface.broad-band.pppoe"
                 }
             ]
-        },
-        "interface.ssid.encryption": {
-            "type": "object",
-            "properties": {
-                "proto": {
-                    "type": "string",
-                    "enum": [
-                        "none",
-                        "owe",
-                        "owe-transition",
-                        "psk",
-                        "psk2",
-                        "psk-mixed",
-                        "psk2-radius",
-                        "wpa",
-                        "wpa2",
-                        "wpa-mixed",
-                        "sae",
-                        "sae-mixed",
-                        "wpa3",
-                        "wpa3-192",
-                        "wpa3-mixed"
-                    ],
-                    "examples": [
-                        "psk2"
-                    ]
-                },
-                "key": {
-                    "type": "string",
-                    "maxLength": 63,
-                    "minLength": 8
-                },
-                "ieee80211w": {
-                    "type": "string",
-                    "enum": [
-                        "disabled",
-                        "optional",
-                        "required"
-                    ],
-                    "default": "disabled"
-                },
-                "key-caching": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
         },
         "interface.ssid.multi-psk": {
             "type": "object",
@@ -2020,6 +2039,11 @@ static std::string DefaultUCentralSchema = R"foo(
                     "decription": "This option allows embedding custom vendor specific IEs inside the beacons of a BSS in AP mode.",
                     "type": "string"
                 },
+                "tip-information-element": {
+                    "decription": "The device will broadcast the TIP vendor IE inside its beacons if this option is enabled.",
+                    "type": "boolean",
+                    "default": true
+                },
                 "fils-discovery-interval": {
                     "type": "integer",
                     "default": 20,
@@ -2443,6 +2467,24 @@ static std::string DefaultUCentralSchema = R"foo(
                     "type": "boolean",
                     "default": false
                 },
+                "mode": {
+                    "type": "string",
+                    "enum": [
+                        "radius",
+                        "user"
+                    ]
+                },
+                "port-filter": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "examples": [
+                            {
+                                "LAN1": null
+                            }
+                        ]
+                    }
+                },
                 "server-certificate": {
                     "type": "string"
                 },
@@ -2453,6 +2495,77 @@ static std::string DefaultUCentralSchema = R"foo(
                     "type": "array",
                     "items": {
                         "$ref": "#/$defs/interface.ssid.radius.local-user"
+                    }
+                },
+                "radius": {
+                    "type": "object",
+                    "properties": {
+                        "nas-identifier": {
+                            "type": "string"
+                        },
+                        "auth-server-addr": {
+                            "type": "string",
+                            "format": "uc-host",
+                            "examples": [
+                                "192.168.1.10"
+                            ]
+                        },
+                        "auth-server-port": {
+                            "type": "integer",
+                            "maximum": 65535,
+                            "minimum": 1024,
+                            "examples": [
+                                1812
+                            ]
+                        },
+                        "auth-server-secret": {
+                            "type": "string",
+                            "examples": [
+                                "secret"
+                            ]
+                        },
+                        "acct-server-addr": {
+                            "type": "string",
+                            "format": "uc-host",
+                            "examples": [
+                                "192.168.1.10"
+                            ]
+                        },
+                        "acct-server-port": {
+                            "type": "integer",
+                            "maximum": 65535,
+                            "minimum": 1024,
+                            "examples": [
+                                1813
+                            ]
+                        },
+                        "acct-server-secret": {
+                            "type": "string",
+                            "examples": [
+                                "secret"
+                            ]
+                        },
+                        "coa-server-addr": {
+                            "type": "string",
+                            "format": "uc-host",
+                            "examples": [
+                                "192.168.1.10"
+                            ]
+                        },
+                        "coa-server-port": {
+                            "type": "integer",
+                            "maximum": 65535,
+                            "minimum": 1024,
+                            "examples": [
+                                1814
+                            ]
+                        },
+                        "coa-server-secret": {
+                            "type": "string",
+                            "examples": [
+                                "secret"
+                            ]
+                        }
                     }
                 }
             }
@@ -2777,6 +2890,12 @@ static std::string DefaultUCentralSchema = R"foo(
                         }
                     }
                 },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "classifier": {
                     "type": "array",
                     "items": {
@@ -3019,6 +3138,24 @@ static std::string DefaultUCentralSchema = R"foo(
                             "relay-server": {
                                 "type": "string",
                                 "format": "uc-ip"
+                            },
+                            "circuit-id-format": {
+                                "type": "string",
+                                "enum": [
+                                    "vlan-id",
+                                    "ap-mac",
+                                    "ssid"
+                                ],
+                                "default": "vlan-id"
+                            },
+                            "remote-id-format": {
+                                "type": "string",
+                                "enum": [
+                                    "vlan-id",
+                                    "ap-mac",
+                                    "ssid"
+                                ],
+                                "default": "ap-mac"
                             }
                         }
                     }

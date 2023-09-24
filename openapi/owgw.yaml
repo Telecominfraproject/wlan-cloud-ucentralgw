@@ -1339,6 +1339,26 @@ components:
           $ref: '#/components/schemas/RadiusProxyServerConfig'
         coaConfig:
           $ref: '#/components/schemas/RadiusProxyServerConfig'
+        radsecPoolType:
+          type: string
+          enum:
+            - generic
+            - orion
+            - globalreach
+          default:
+            generic
+        poolProxyIp:
+          type: string
+          description: This is the fake IP for the entire pool
+          example:
+            - These addresses must match the addresses in the AP configuration and must start with 0.0
+            - 0.0.0.1
+            - 0.0.1.1
+        radsecPoolKeepAlive:
+          type: integer
+          description: The keep alive value in seconds. Usually 30s or less.
+          format: int64
+          default: 25
 
     RadiusProxyPoolList:
       type: object

@@ -56,10 +56,7 @@ namespace OpenWifi {
 											State_.Associations_5G, State_.Associations_6G);
 
 			if (KafkaManager()->Enabled()) {
-				Poco::JSON::Stringifier Stringify;
-				std::ostringstream OS;
-				Stringify.condense(ParamsObj, OS);
-				KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, std::make_shared<std::string>(OS.str()));
+				KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, *ParamsObj);
 			}
 
 			GWWebSocketNotifications::SingleDevice_t N;

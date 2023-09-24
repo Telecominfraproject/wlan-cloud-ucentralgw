@@ -1024,7 +1024,7 @@ namespace OpenWifi {
 		RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::wifiscan, false, Cmd, Params,
 									*Request, *Response, timeout, nullptr, this, Logger_);
 		if (Cmd.ErrorCode == 0) {
-			KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, std::make_shared<std::string>(Cmd.Results));
+			KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, Cmd.Results);
 		}
 	}
 
@@ -1069,7 +1069,7 @@ namespace OpenWifi {
 										Logger_);
 			if (Cmd.ErrorCode == 0) {
 				KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
-											std::make_shared<std::string>(Cmd.Results));
+											Cmd.Results);
 			}
 			return;
 		}
@@ -1125,9 +1125,6 @@ namespace OpenWifi {
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
-
-#define DBGLINE                                                                                    \
-	{ std::cout << __LINE__ << std::endl; }
 
 	void RESTAPI_device_commandHandler::Rtty(
 		const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout,

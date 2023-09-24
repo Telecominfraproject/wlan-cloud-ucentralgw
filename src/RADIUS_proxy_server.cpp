@@ -162,7 +162,7 @@ namespace OpenWifi {
 			for (const auto &entry : pool.authConfig.servers) {
 				if (entry.radsec) {
 					RADSECservers_[Poco::Net::SocketAddress(entry.ip, 0)] =
-						std::make_unique<RADSEC_server>(*RadiusReactor_, entry);
+						std::make_unique<RADSEC_server>(*RadiusReactor_, entry, pool);
 				}
 			}
 		}
@@ -208,7 +208,7 @@ namespace OpenWifi {
 		}
 		P.Evaluate(ReceiveSize);
 
-		if(P.PacketTypeInt()==OpenWifi::RADIUS::Access_Accept) {
+		if(Logger().trace()) {
 			P.Log(std::cout);
 		}
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
@@ -419,10 +419,12 @@ namespace OpenWifi {
 				Destination = "0.0.0.0:0";
 			}
 
-			P.Log(std::cout);
+			if(Logger().trace()) {
+				P.Log(std::cout);
+			}
 
 			if(Destination.empty()) {
-				std::cout << "No destination in CoA. Dropped." << std::endl;
+				poco_warning(Logger(),fmt::format("{}: CoA packet does not have a valid destination.", serialNumber));
 				return;
 			}
 
@@ -468,8 +470,8 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::ParseServerList(const GWObjects::RadiusProxyServerConfig &Config,
 											  std::vector<Destination> &V4,
-
-											  std::vector<Destination> &V6, bool setAsDefault) {
+											  std::vector<Destination> &V6, bool setAsDefault,
+											  const std::string &poolProxyIp) {
 		uint64_t TotalV4 = 0, TotalV6 = 0;
 
 		for (const auto &server : Config.servers) {
@@ -493,7 +495,8 @@ namespace OpenWifi {
 						  .useAsDefault = setAsDefault,
 						  .useRADSEC = server.radsec,
 						  .realms = server.radsecRealms,
-						  .secret = server.secret };
+						  .secret = server.secret,
+						  .poolProxyIp = poolProxyIp};
 
 			if (setAsDefault && D.useRADSEC)
 				DefaultIsRADSEC_ = true;
@@ -542,11 +545,11 @@ namespace OpenWifi {
 					for (const auto &pool : RPC.pools) {
 						RadiusPool NewPool;
 						ParseServerList(pool.authConfig, NewPool.AuthV4, NewPool.AuthV6,
-										pool.useByDefault);
+										pool.useByDefault, pool.poolProxyIp);
 						ParseServerList(pool.acctConfig, NewPool.AcctV4, NewPool.AcctV6,
-										pool.useByDefault);
+										pool.useByDefault, pool.poolProxyIp);
 						ParseServerList(pool.coaConfig, NewPool.CoaV4, NewPool.CoaV6,
-										pool.useByDefault);
+										pool.useByDefault, pool.poolProxyIp);
 						Pools_.push_back(NewPool);
 					}
 				} else {
@@ -650,29 +653,36 @@ namespace OpenWifi {
 		}
 
 		auto isAddressInPool = [&](const std::vector<Destination> &D, bool &UseRADSEC) -> bool {
-			for (const auto &entry : D)
+			for (const auto &entry : D) {
+				if (!entry.poolProxyIp.empty() &&
+					entry.poolProxyIp == RequestedAddress.host().toString()) {
+					UseRADSEC = entry.useRADSEC;
+					return true;
+				}
 				if (entry.Addr.host() == RequestedAddress.host()) {
 					UseRADSEC = entry.useRADSEC;
 					return true;
 				}
+			}
 			return false;
 		};
 
-		for (auto &i : Pools_) {
+		for (auto &pool : Pools_) {
+			// try and match the pool's address to the destination
 			switch (rtype) {
 			case radius_type::coa: {
-				if (isAddressInPool((IsV4 ? i.CoaV4 : i.CoaV6), UseRADSEC)) {
-					return ChooseAddress(IsV4 ? i.CoaV4 : i.CoaV6, RequestedAddress, Secret);
+				if (isAddressInPool((IsV4 ? pool.CoaV4 : pool.CoaV6), UseRADSEC)) {
+					return ChooseAddress(IsV4 ? pool.CoaV4 : pool.CoaV6, RequestedAddress, Secret);
 				}
 			} break;
 			case radius_type::auth: {
-				if (isAddressInPool((IsV4 ? i.AuthV4 : i.AuthV6), UseRADSEC)) {
-					return ChooseAddress(IsV4 ? i.AuthV4 : i.AuthV6, RequestedAddress, Secret);
+				if (isAddressInPool((IsV4 ? pool.AuthV4 : pool.AuthV6), UseRADSEC)) {
+					return ChooseAddress(IsV4 ? pool.AuthV4 : pool.AuthV6, RequestedAddress, Secret);
 				}
 			} break;
 			case radius_type::acct: {
-				if (isAddressInPool((IsV4 ? i.AcctV4 : i.AcctV6), UseRADSEC)) {
-					return ChooseAddress(IsV4 ? i.AcctV4 : i.AcctV6, RequestedAddress, Secret);
+				if (isAddressInPool((IsV4 ? pool.AcctV4 : pool.AcctV6), UseRADSEC)) {
+					return ChooseAddress(IsV4 ? pool.AcctV4 : pool.AcctV6, RequestedAddress, Secret);
 				}
 			} break;
 			}
@@ -689,11 +699,8 @@ namespace OpenWifi {
 
 		if (Pool.size() == 1) {
 			Secret = Pool[0].secret;
-			return Pool[0].Addr;
-		}
-
-		if(Pool.empty()) {
-			std::cout << __LINE__ << std::endl;
+			auto A = Pool[0].Addr;
+			return A;
 		}
 
 		if (Pool[0].strategy == "weighted") {
@@ -739,7 +746,7 @@ namespace OpenWifi {
 			}
 
 			if (!found) {
-				return OriginalAddress;
+//				return OriginalAddress;
 			}
 
 			Pool[index].state += 1;
