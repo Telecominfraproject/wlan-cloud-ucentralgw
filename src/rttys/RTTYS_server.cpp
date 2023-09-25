@@ -592,7 +592,7 @@ namespace OpenWifi {
 			}
 
 			int flags;
-			unsigned char FrameBuffer[1024];
+			unsigned char FrameBuffer[64000];
 
 			auto ReceivedBytes = Connection->WSSocket_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
@@ -632,6 +632,7 @@ namespace OpenWifi {
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
+				DBGLINE
 				if (ReceivedBytes == 0) {
 					EndConnection(Connection,__func__,__LINE__);
 					return;
