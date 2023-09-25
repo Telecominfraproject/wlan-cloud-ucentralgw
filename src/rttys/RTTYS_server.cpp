@@ -449,12 +449,10 @@ namespace OpenWifi {
 			std::size_t 	agg_buf_pos=0;
 
 			try {
-//				std::cout << "Available: " << buffer.available() << "  ";
 				Poco::Timespan	TS(5,0);
 				received_bytes = hint->second->socket.receiveBytes(buffer);
 				if(received_bytes==0) {
-					// std::cout << hint->second->socket.lastError() << std::endl;
-					poco_warning(Logger(), "Device Closing connection - 0 bytes received.");
+\					poco_warning(Logger(), "Device Closing connection - 0 bytes received.");
 					EndConnection( pNf->socket(), __func__, __LINE__ );
 					return;
 				}
@@ -493,9 +491,6 @@ namespace OpenWifi {
 					// poco_debug(Logger(),fmt::format("Not enough data in the pipe for command data",buffer.used()));
 					return;
 				}
-
-//				std::cout << line++ << "  Available: " << buffer.available() << "  Cmd: " << (int) LastCommand << "  Received: " << received_bytes
-//						  << "  MsgLen: " << msg_len << "  Data in buffer: " << buffer.used() << std::endl;
 
 				buffer.drain(RTTY_HDR_SIZE);
 
@@ -545,8 +540,6 @@ namespace OpenWifi {
 			if(agg_buf_pos>0) {
 				EmptyBuffer(fd, agg_buffer, agg_buf_pos);
 			}
-
-//			std::cout << "Empty: " << buffer.isEmpty() << std::endl;
 
 			if (!good) {
 				EndConnection(pNf->socket(), __func__, __LINE__);
@@ -632,22 +625,16 @@ namespace OpenWifi {
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
-				DBGLINE
 				if (ReceivedBytes == 0) {
 					EndConnection(Connection,__func__,__LINE__);
 					return;
 				} else {
-					DBGLINE
 					poco_trace(Logger(),
 							   fmt::format("Sending {} key strokes to device.", ReceivedBytes));
-					std::cout << "Received bytes: " << ReceivedBytes << std::endl;
-					DBGLINE
 					if (!RTTYS_server().KeyStrokes(Connection, FrameBuffer, ReceivedBytes)) {
-						DBGLINE
 						EndConnection(Connection,__func__,__LINE__);
 						return;
 					}
-					DBGLINE
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
@@ -1055,7 +1042,6 @@ namespace OpenWifi {
 				// buffer.drain(msg_len);
 				return true;
 			} catch (const Poco::Exception &E) {
-				std::cout << "Failed to send WS stuff" << std::endl;
 				Logger().log(E);
 			} catch (const std::exception &E) {
 				LogStdException(E, "Cannot send data to UI Client");
