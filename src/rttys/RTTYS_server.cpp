@@ -21,6 +21,18 @@
 #include "Poco/Net/SocketAcceptor.h"
 #include <algorithm>
 
+/*
+
+2023-09-25 14:57:48.963 RADSEC: radsec.openro.am@3.33.129.120:2084: [Error][thr:7] SSL connection unexpectedly closed
+2023-09-25 14:57:48.964 RADSEC: radsec.openro.am@3.33.129.120:2084: [Information][thr:7] Disconnecting.
+2023-09-25 14:57:50.965 RADSEC: radsec.openro.am@3.33.129.120:2084: [Information][thr:40] Attempting to connect
+2023-09-25 14:57:51.675 RTTY-SVR: [Error][thr:6] Frame readable shutdown.
+2023-09-25 14:57:51.675 RTTY-SVR: [Debug][thr:6] Closing connection onClientSocketReadable:646
+2023-09-25 14:57:51.717 RADSEC: radsec.openro.am@3.33.129.120:2084: [Information][thr:40] Connected. CN=radsec.openro.am
+2023-09-25 14:57:51.717 RADSEC: radsec.openro.am@3.33.129.120:2084: [Error][thr:7] SSL connection unexpectedly closed
+2023-09-25 14:57:51.717 RADSEC: radsec.openro.am@3.33.129.120:2084: [Information][thr:7] Disconnecting.
+
+ */
 
 namespace OpenWifi {
 
@@ -624,9 +636,12 @@ namespace OpenWifi {
 					EndConnection(Connection,__func__,__LINE__);
 					return;
 				} else {
+					DBGLINE
 					poco_trace(Logger(),
 							   fmt::format("Sending {} key strokes to device.", ReceivedBytes));
+					std::cout << "Received bytes: " << ReceivedBytes << std::endl;
 					if (!RTTYS_server().KeyStrokes(Connection, FrameBuffer, ReceivedBytes)) {
+						DBGLINE
 						EndConnection(Connection,__func__,__LINE__);
 						return;
 					}
