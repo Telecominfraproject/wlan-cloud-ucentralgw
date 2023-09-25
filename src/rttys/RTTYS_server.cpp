@@ -640,11 +640,13 @@ namespace OpenWifi {
 					poco_trace(Logger(),
 							   fmt::format("Sending {} key strokes to device.", ReceivedBytes));
 					std::cout << "Received bytes: " << ReceivedBytes << std::endl;
+					DBGLINE
 					if (!RTTYS_server().KeyStrokes(Connection, FrameBuffer, ReceivedBytes)) {
 						DBGLINE
 						EndConnection(Connection,__func__,__LINE__);
 						return;
 					}
+					DBGLINE
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
