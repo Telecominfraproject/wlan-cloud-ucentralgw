@@ -21,6 +21,18 @@
 #include "Poco/Net/SocketAcceptor.h"
 #include <algorithm>
 
+/*
+
+2023-09-25 14:57:48.963 RADSEC: radsec.openro.am@3.33.129.120:2084: [Error][thr:7] SSL connection unexpectedly closed
+2023-09-25 14:57:48.964 RADSEC: radsec.openro.am@3.33.129.120:2084: [Information][thr:7] Disconnecting.
+2023-09-25 14:57:50.965 RADSEC: radsec.openro.am@3.33.129.120:2084: [Information][thr:40] Attempting to connect
+2023-09-25 14:57:51.675 RTTY-SVR: [Error][thr:6] Frame readable shutdown.
+2023-09-25 14:57:51.675 RTTY-SVR: [Debug][thr:6] Closing connection onClientSocketReadable:646
+2023-09-25 14:57:51.717 RADSEC: radsec.openro.am@3.33.129.120:2084: [Information][thr:40] Connected. CN=radsec.openro.am
+2023-09-25 14:57:51.717 RADSEC: radsec.openro.am@3.33.129.120:2084: [Error][thr:7] SSL connection unexpectedly closed
+2023-09-25 14:57:51.717 RADSEC: radsec.openro.am@3.33.129.120:2084: [Information][thr:7] Disconnecting.
+
+ */
 
 namespace OpenWifi {
 
@@ -437,11 +449,9 @@ namespace OpenWifi {
 			std::size_t 	agg_buf_pos=0;
 
 			try {
-//				std::cout << "Available: " << buffer.available() << "  ";
 				Poco::Timespan	TS(5,0);
 				received_bytes = hint->second->socket.receiveBytes(buffer);
 				if(received_bytes==0) {
-					// std::cout << hint->second->socket.lastError() << std::endl;
 					poco_warning(Logger(), "Device Closing connection - 0 bytes received.");
 					EndConnection( pNf->socket(), __func__, __LINE__ );
 					return;
@@ -481,9 +491,6 @@ namespace OpenWifi {
 					// poco_debug(Logger(),fmt::format("Not enough data in the pipe for command data",buffer.used()));
 					return;
 				}
-
-//				std::cout << line++ << "  Available: " << buffer.available() << "  Cmd: " << (int) LastCommand << "  Received: " << received_bytes
-//						  << "  MsgLen: " << msg_len << "  Data in buffer: " << buffer.used() << std::endl;
 
 				buffer.drain(RTTY_HDR_SIZE);
 
@@ -534,8 +541,6 @@ namespace OpenWifi {
 				EmptyBuffer(fd, agg_buffer, agg_buf_pos);
 			}
 
-//			std::cout << "Empty: " << buffer.isEmpty() << std::endl;
-
 			if (!good) {
 				EndConnection(pNf->socket(), __func__, __LINE__);
 			}
@@ -580,7 +585,7 @@ namespace OpenWifi {
 			}
 
 			int flags;
-			unsigned char FrameBuffer[1024];
+			unsigned char FrameBuffer[64000];
 
 			auto ReceivedBytes = Connection->WSSocket_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
@@ -1037,7 +1042,6 @@ namespace OpenWifi {
 				// buffer.drain(msg_len);
 				return true;
 			} catch (const Poco::Exception &E) {
-				std::cout << "Failed to send WS stuff" << std::endl;
 				Logger().log(E);
 			} catch (const std::exception &E) {
 				LogStdException(E, "Cannot send data to UI Client");
