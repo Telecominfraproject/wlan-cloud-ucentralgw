@@ -1359,6 +1359,9 @@ components:
           description: The keep alive value in seconds. Usually 30s or less.
           format: int64
           default: 25
+        enabled:
+          type: boolean
+          default: true
 
     RadiusProxyPoolList:
       type: object
