@@ -303,6 +303,12 @@ namespace OpenWifi {
 				DecodeFile(CertFile_.path(), Server_.radsecCert);
 				DecodeFile(KeyFile_.path(), Server_.radsecKey);
 
+				Poco::Crypto::X509Certificate	Cert(CertFile_.path());
+				if(IsExpired(Cert)) {
+					poco_error(Logger_, fmt::format("Certificate for {} has expired. We cannot connect to this server.", Server_.name));
+					return false;
+				}
+
 				for (auto &cert : Server_.radsecCacerts) {
 					CaCertFiles_.emplace_back(
 						std::make_unique<Poco::TemporaryFile>(MicroServiceDataDirectory()));
