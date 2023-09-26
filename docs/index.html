@@ -1953,6 +1953,10 @@ ul.nav-tabs {
       "description" : "The keep alive value in seconds. Usually 30s or less.",
       "format" : "int64",
       "default" : 25
+    },
+    "enabled" : {
+      "type" : "boolean",
+      "default" : true
     }
   }
 };
@@ -28512,7 +28516,8 @@ pub fn main() {
       &quot;methodParameters&quot; : [ &quot;methodParameters&quot;, &quot;methodParameters&quot; ],
       &quot;monitor&quot; : false,
       &quot;strategy&quot; : &quot;random&quot;
-    }
+    },
+    &quot;enabled&quot; : true
   }, {
     &quot;radsecPoolType&quot; : &quot;generic&quot;,
     &quot;acctConfig&quot; : {
@@ -28629,7 +28634,8 @@ pub fn main() {
       &quot;methodParameters&quot; : [ &quot;methodParameters&quot;, &quot;methodParameters&quot; ],
       &quot;monitor&quot; : false,
       &quot;strategy&quot; : &quot;random&quot;
-    }
+    },
+    &quot;enabled&quot; : true
   } ]
 }'
 </code></pre>
