@@ -53,19 +53,26 @@ namespace OpenWifi {
 
 		inline void run() final {
 			Poco::Thread::trySleep(5000);
-			std::uint64_t LastStatus = 0;
+			std::uint64_t CurrentDelay = 10, maxDelay=300, LastTry=0, LastKeepAlive=0;
 			while (TryAgain_) {
 				if (!Connected_) {
-					LastStatus = Utils::Now();
-					Connect();
-				} else if ((Utils::Now() - LastStatus) > KeepAlive_) {
+					if(!LastTry || (Utils::Now()-LastTry)>CurrentDelay) {
+						LastTry = Utils::Now();
+						if (!Connect()) {
+							CurrentDelay *= 2;
+							if(CurrentDelay>maxDelay) CurrentDelay=10;
+						} else {
+							CurrentDelay = 10;
+						}
+					}
+				} else if ((Utils::Now() - LastKeepAlive) > KeepAlive_) {
 					RADIUS::RadiusOutputPacket P(Server_.radsecSecret);
 					P.MakeStatusMessage();
 					poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Server_.name));
 					Socket_->sendBytes(P.Data(), P.Len());
-					LastStatus = Utils::Now();
+					LastKeepAlive = Utils::Now();
 				}
-				Poco::Thread::trySleep(!Connected_ ? 30000 : 2000);
+				Poco::Thread::trySleep(2000);
 			}
 		}
 
@@ -166,6 +173,9 @@ namespace OpenWifi {
 			Disconnect();
 		}
 
+		static inline bool IsExpired(const Poco::Crypto::X509Certificate &C) {
+			return C.expiresOn().timestamp().epochTime() < (std::time_t)Utils::Now();
+		}
 
 		inline bool Connect_GlobalReach() {
 			if (TryAgain_) {
@@ -221,7 +231,13 @@ namespace OpenWifi {
 				}
 
 				SecureContext->usePrivateKey(Poco::Crypto::RSAKey("",KeyFile_.path(),""));
-				SecureContext->useCertificate(Poco::Crypto::X509Certificate(CertFile_.path()));
+				Poco::Crypto::X509Certificate	Cert(CertFile_.path());
+				if(!IsExpired(Cert)) {
+					SecureContext->useCertificate(Poco::Crypto::X509Certificate(CertFile_.path()));
+				} else {
+					poco_error(Logger_, fmt::format("Certificate for {} has expired. We cannot connect to this server.", Server_.name));
+					return false;
+				}
 				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));

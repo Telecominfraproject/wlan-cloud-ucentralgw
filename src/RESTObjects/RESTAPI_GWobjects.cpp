@@ -433,6 +433,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "radsecKeepAlive", radsecKeepAlive);
 		field_to_json(Obj, "poolProxyIp", poolProxyIp);
 		field_to_json(Obj, "radsecPoolType", radsecPoolType);
+		field_to_json(Obj, "enabled", enabled);
 	}
 
 	bool RadiusProxyPool::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -446,6 +447,7 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj, "radsecKeepAlive", radsecKeepAlive);
 			field_from_json(Obj, "poolProxyIp", poolProxyIp);
 			field_from_json(Obj, "radsecPoolType", radsecPoolType);
+			field_from_json(Obj, "enabled", enabled);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}

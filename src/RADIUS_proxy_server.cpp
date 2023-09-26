@@ -159,11 +159,15 @@ namespace OpenWifi {
 	void RADIUS_proxy_server::StartRADSECServers() {
 		std::lock_guard G(Mutex_);
 		for (const auto &pool : PoolList_.pools) {
-			for (const auto &entry : pool.authConfig.servers) {
-				if (entry.radsec) {
-					RADSECservers_[Poco::Net::SocketAddress(entry.ip, 0)] =
-						std::make_unique<RADSEC_server>(*RadiusReactor_, entry, pool);
+			if(pool.enabled) {
+				for (const auto &entry : pool.authConfig.servers) {
+					if (entry.radsec) {
+						RADSECservers_[Poco::Net::SocketAddress(entry.ip, 0)] =
+							std::make_unique<RADSEC_server>(*RadiusReactor_, entry, pool);
+					}
 				}
+			} else {
+				poco_information(Logger(),fmt::format("Pool {} is not enabled.", pool.name));
 			}
 		}
 	}
