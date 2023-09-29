@@ -247,6 +247,24 @@ namespace OpenWifi::Utils {
 		return count;
 	}
 
+    inline std::uint32_t IPtoInt(const std::string &A) {
+        Poco::Net::IPAddress    IP;
+        std::uint32_t Result=0;
+
+        if(Poco::Net::IPAddress::tryParse(A,IP)) {
+            for(const auto i:IP.toBytes()) {
+                Result <<= 8;
+                Result += i;
+            }
+        }
+        return Result;
+    }
+
+    inline bool ValidIP(const std::string &IPstr) {
+        Poco::Net::IPAddress    IP;
+        return Poco::Net::IPAddress::tryParse(IPstr,IP);
+    }
+
     struct CSRCreationParameters {
         std::string Country, Province, City,
                     Organization, CommonName;
@@ -261,6 +279,7 @@ namespace OpenWifi::Utils {
     std::string generateStrongPassword(int minLength, int maxLength, int numDigits, int minLowercase, int minSpecial, int minUppercase);
     bool VerifyECKey(const std::string &key);
     bool VerifyRSAKey(const std::string &key);
+    bool VerifyPrivateKey(const std::string &key);
     bool ValidX509Certificate(const std::string &Cert);
     bool ValidX509Certificate(const std::vector<std::string> &Certs);
 

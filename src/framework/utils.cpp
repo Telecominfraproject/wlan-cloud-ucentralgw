@@ -783,6 +783,10 @@ namespace OpenWifi::Utils {
         return false;
     }
 
+    bool VerifyPrivateKey(const std::string &key) {
+        return VerifyECKey(key) || VerifyRSAKey(key);
+    }
+
     bool ValidX509Certificate([[
                               maybe_unused]] const std::string &Cert) {
         try {

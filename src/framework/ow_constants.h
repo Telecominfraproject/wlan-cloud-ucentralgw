@@ -414,10 +414,21 @@ namespace OpenWifi::RESTAPI::Errors {
     };
 
     static const struct msg DefFirmwareNameExists { 1175, "Firmware name already exists." };
-
     static const struct msg NotAValidECKey { 1176, "Not a valid Signing Key." };
-
 	static const struct msg NotAValidRadiusPoolType { 1177, "Not a valid RADIUS pool type." };
+    static const struct msg InvalidRadiusTypeEndpoint { 1178, "Invalid RADIUS Server Endpoint type." };
+    static const struct msg InvalidRadiusEndpointPoolStrategy { 1179, "Invalid RADIUS Server Endpoint Pool strategy." };
+    static const struct msg EndpointMustHaveOneTypeOfServers { 1180, "All servers must be either RADIUS or RADSEC." };
+    static const struct msg RadiusEndpointIndexInvalid { 1181, "Index must be an address between 0.0.1.1 and 0.0.2.254" };
+    static const struct msg RadiusEndpointIndexMustBeUnique { 1182, "Index must be unique." };
+    static const struct msg OrionAccountMustExist { 1183, "Orion account must exist." };
+    static const struct msg GlobalReachCertMustExist { 1184, "Global Reach certificate must exist." };
+    static const struct msg InvalidRadsecMainCertificate { 1185, "Invalid Radsec main certificate." };
+    static const struct msg InvalidRadsecCaCertificate { 1186, "Invalid Radsec CA certificates." };
+    static const struct msg InvalidRadsecPrivteKey { 1187, "Invalid Radsec Private key." };
+    static const struct msg InvalidRadsecIPAddress { 1188, "Invalid Radsec IP Address." };
+    static const struct msg InvalidRadsecPort { 1189, "Invalid Radsec Port." };
+    static const struct msg InvalidRadsecSecret { 1190, "Invalid Radsec Secret." };
 
     static const struct msg SimulationDoesNotExist {
         7000, "Simulation Instance ID does not exist."
