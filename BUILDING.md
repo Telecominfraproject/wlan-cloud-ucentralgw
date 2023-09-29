@@ -24,7 +24,7 @@ sudo apt install librdkafka-dev // default-libmysqlclient-dev
 sudo apt install nlohmann-json-dev
 
 cd ~
-git clone https://github.com/AriliaWireless/poco --branch poco-tip-v1
+git clone https://github.com/AriliaWireless/poco --branch poco-tip-v2
 cd poco
 mkdir cmake-build
 cd cmake-build
@@ -75,7 +75,7 @@ sudo yum install yaml-cpp-devel lua-devel
 sudo dnf install postgresql.x86_64 librdkafka-devel
 sudo dnf install postgresql-devel json-devel
 
-git clone https://github.com/AriliaWireless/poco --branch poco-tip-v1
+git clone https://github.com/AriliaWireless/poco --branch poco-tip-v2
 cd poco
 mkdir cmake-build
 cd cmake-build
@@ -125,7 +125,7 @@ brew install openssl \
 	nlohmann-json \
 	fmt
 
-git clone https://github.com/AriliaWireless/poco --branch poco-tip-v1
+git clone https://github.com/AriliaWireless/poco --branch poco-tip-v2
 pushd poco
 mkdir cmake-build
 push cmake-build
