@@ -14,6 +14,8 @@
 #include <string>
 #include <algorithm>
 
+#include <resolv.h>
+
 namespace OpenWifi::Utils {
 
 	bool NormalizeMac(std::string &Mac) {
@@ -865,5 +867,79 @@ namespace OpenWifi::Utils {
 
         return password;
     }
+
+// Function to query NAPTR records for a domain and return them in a vector
+    std::vector<NAPTRRecord> getNAPTRRecords(const std::string& domain) {
+        std::vector<NAPTRRecord> naptrRecords;
+
+        unsigned char buf[4096];
+        ns_msg handle;
+        ns_initparse(buf, NS_PACKETSZ, &handle);
+
+        // Query NAPTR records for the given domain
+        int response = res_query(domain.c_str(), ns_c_in, ns_t_naptr, buf, sizeof(buf));
+        if (response < 0) {
+            return naptrRecords;
+        }
+
+        if(ns_initparse(buf, response, &handle) < 0) {
+            return naptrRecords;
+        }
+
+        // Iterate through the DNS response and extract NAPTR records
+        int count = ns_msg_count(handle, ns_s_an);
+        for (int i = 0; i < count; ++i) {
+            ns_rr rr;
+            if (ns_parserr(&handle, ns_s_an, i, &rr) == 0) {
+                char rdata[256];
+                ns_sprintrr(&handle, &rr, nullptr, nullptr, rdata, sizeof(rdata));
+                NAPTRRecord record;
+                std::istringstream os(rdata);
+                os  >> record.name >> record.ttl >> record.rclass >> record.rtype >> record.order >> record.preference >> record.flags
+                    >> record.service >> record.regexp >>  record.replacement;
+                naptrRecords.push_back(record);
+            }
+        }
+
+        return naptrRecords;
+    }
+
+    std::vector<SrvRecord> getSRVRecords(const std::string& domain) {
+        std::vector<SrvRecord> srvRecords;
+
+        // Buffer to hold the DNS response
+        unsigned char buf[4096];
+        ns_msg handle;
+        ns_initparse(buf, NS_PACKETSZ, &handle);
+
+        // Query NAPTR records for the given domain
+        int response = res_query(domain.c_str(), ns_c_in, ns_t_srv, buf, sizeof(buf));
+        if (response < 0) {
+            std::cerr << "DNS query failed for " << domain << ": " << hstrerror(h_errno) << std::endl;
+            return srvRecords;
+        }
+
+        if(ns_initparse(buf, response, &handle) < 0) {
+            return srvRecords;
+        }
+
+        // Iterate through the DNS response and extract NAPTR records
+        int count = ns_msg_count(handle, ns_s_an);
+        for (int i = 0; i < count; ++i) {
+            ns_rr rr;
+            if (ns_parserr(&handle, ns_s_an, i, &rr) == 0) {
+                char rdata[256];
+                ns_sprintrr(&handle, &rr, nullptr, nullptr, rdata, sizeof(rdata));
+                SrvRecord record;
+                std::istringstream os(rdata);
+                os  >>  record.name >> record.ttl >> record.rclass >> record.rtype >> record.pref >> record.weight >>
+                    record.port >> record.srvname ;
+                srvRecords.push_back(record);
+            }
+        }
+
+        return srvRecords;
+    }
+
 
 } // namespace OpenWifi::Utils

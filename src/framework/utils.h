@@ -283,4 +283,38 @@ namespace OpenWifi::Utils {
     bool ValidX509Certificate(const std::string &Cert);
     bool ValidX509Certificate(const std::vector<std::string> &Certs);
 
+    struct NAPTRRecord {
+        std::string     name;
+        std::string     ttl;
+        std::string     rclass;
+        std::string     rtype;
+        uint32_t        order=0;
+        uint32_t        preference=0;
+        std::string     flags;
+        std::string     service;
+        std::string     regexp;
+        std::string     replacement;
+    };
+
+// Function to query NAPTR records for a domain and return them in a vector
+    std::vector<NAPTRRecord> getNAPTRRecords(const std::string& domain);
+    struct SrvRecord {
+        std::string     name;
+        std::string     ttl;
+        std::string     rclass;
+        std::string     rtype;
+        uint32_t        pref = 0;
+        uint32_t        weight = 0;
+        uint32_t        port = 0;
+        std::string     srvname;
+    };
+
+    std::vector<SrvRecord> getSRVRecords(const std::string& domain);
+
+    struct HostNameServerResult{
+        std::string     Hostname;
+        uint32_t        Port;
+    };
+
+
 } // namespace OpenWifi::Utils

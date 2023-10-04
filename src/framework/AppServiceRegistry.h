@@ -11,10 +11,12 @@
 
 #include "Poco/File.h"
 #include "Poco/StreamCopier.h"
+#include "Poco/JSON/Object.h"
+#include "Poco/JSON/Parser.h"
 
 #include "framework/MicroServiceFuncs.h"
 
-#include "nlohmann/json.hpp"
+// #include "nlohmann/json.hpp"
 
 namespace OpenWifi {
 
@@ -28,11 +30,11 @@ namespace OpenWifi {
 				if (F.exists()) {
 					std::ostringstream OS;
 					std::ifstream IF(FileName);
-					Poco::StreamCopier::copyStream(IF, OS);
-					Registry_ = nlohmann::json::parse(OS.str());
+                    Poco::JSON::Parser  P;
+					Registry_ = P.parse(IF).extract<Poco::JSON::Object::Ptr>();
 				}
 			} catch (...) {
-				Registry_ = nlohmann::json::parse("{}");
+				Registry_ = Poco::makeShared<Poco::JSON::Object>();
 			}
 		}
 
@@ -44,54 +46,47 @@ namespace OpenWifi {
 		inline ~AppServiceRegistry() { Save(); }
 
 		inline void Save() {
-			std::istringstream IS(to_string(Registry_));
 			std::ofstream OF;
 			OF.open(FileName, std::ios::binary | std::ios::trunc);
-			Poco::StreamCopier::copyStream(IS, OF);
+            Registry_->stringify(OF);
 		}
 
-		inline void Set(const char *Key, uint64_t Value) {
-			Registry_[Key] = Value;
+        void Set(const char *key, const std::vector<std::string> &V) {
+            Poco::JSON::Array   Arr;
+            for(const auto &s:V) {
+                Arr.add(s);
+            }
+            Registry_->set(key,Arr);
+            Save();
+        }
+
+        template<class T> void Set(const char *key, const T &Value) {
+            Registry_->set(key,Value);
 			Save();
 		}
 
-		inline void Set(const char *Key, const std::string &Value) {
-			Registry_[Key] = Value;
-			Save();
-		}
+        bool Get(const char *key, std::vector<std::string> &Value) {
+            if(Registry_->has(key) && !Registry_->isNull(key) && Registry_->isArray(key)) {
+                auto Arr = Registry_->get(key);
+                for(const auto &v:Arr) {
+                    Value.emplace_back(v);
+                }
+                return true;
+            }
+            return false;
+        }
 
-		inline void Set(const char *Key, bool Value) {
-			Registry_[Key] = Value;
-			Save();
-		}
-
-		inline bool Get(const char *Key, bool &Value) {
-			if (Registry_[Key].is_boolean()) {
-				Value = Registry_[Key].get<bool>();
-				return true;
-			}
-			return false;
-		}
-
-		inline bool Get(const char *Key, uint64_t &Value) {
-			if (Registry_[Key].is_number_unsigned()) {
-				Value = Registry_[Key].get<uint64_t>();
-				return true;
-			}
-			return false;
-		}
-
-		inline bool Get(const char *Key, std::string &Value) {
-			if (Registry_[Key].is_string()) {
-				Value = Registry_[Key].get<std::string>();
-				return true;
-			}
-			return false;
-		}
+        template<class T> bool Get(const char *key, T &Value) {
+            if(Registry_->has(key) && !Registry_->isNull(key)) {
+                Value = Registry_->getValue<T>(key);
+                return true;
+            }
+            return false;
+        }
 
 	  private:
 		std::string FileName;
-		nlohmann::json Registry_;
+		Poco::JSON::Object::Ptr Registry_;
 	};
 
 	inline auto AppServiceRegistry() { return AppServiceRegistry::instance(); }

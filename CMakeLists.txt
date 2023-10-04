@@ -223,14 +223,17 @@ INSTALL(TARGETS owgw
 
 target_link_libraries(owgw PUBLIC
         ${Poco_LIBRARIES}
-        ${ZLIB_LIBRARIES})
+        ${ZLIB_LIBRARIES}
+)
 
 if(NOT SMALL_BUILD)
     target_link_libraries(owgw PUBLIC
-            ${MySQL_LIBRARIES} ${ZLIB_LIBRARIES}
-                CppKafka::cppkafka
-                fmt::fmt
-             )
+            ${MySQL_LIBRARIES}
+            ${ZLIB_LIBRARIES}
+            CppKafka::cppkafka
+            fmt::fmt
+            resolv
+    )
     if(UNIX AND NOT APPLE)
         target_link_libraries(owgw PUBLIC PocoJSON)
     endif()

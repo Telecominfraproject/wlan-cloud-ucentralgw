@@ -429,6 +429,7 @@ namespace OpenWifi::RESTAPI::Errors {
     static const struct msg InvalidRadsecIPAddress { 1188, "Invalid Radsec IP Address." };
     static const struct msg InvalidRadsecPort { 1189, "Invalid Radsec Port." };
     static const struct msg InvalidRadsecSecret { 1190, "Invalid Radsec Secret." };
+    static const struct msg InvalidRadiusServer { 1191, "Invalid Radius Server." };
 
     static const struct msg SimulationDoesNotExist {
         7000, "Simulation Instance ID does not exist."
