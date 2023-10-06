@@ -222,38 +222,48 @@ namespace OpenWifi {
 					"-----END CERTIFICATE-----\n"
 				};
 
+				std::cout << __LINE__ << std::endl;
 				std::ofstream ofs{OpenRoamingRootCertFile_.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
 				ofs << OpenRoamingRootCert;
 				ofs.close();
 
+				std::cout << __LINE__ << std::endl;
 				Poco::Net::Context::Ptr SecureContext =
 					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
 						Poco::Net::Context::TLS_CLIENT_USE, ""));
 
+				std::cout << __LINE__ << std::endl;
 				if (Server_.allowSelfSigned) {
 					SecureContext->setSecurityLevel(Poco::Net::Context::SECURITY_LEVEL_NONE);
 					SecureContext->enableExtendedCertificateVerification(false);
 				}
 
+				std::cout << __LINE__ << std::endl;
 				SecureContext->usePrivateKey(Poco::Crypto::RSAKey("",KeyFile_.path(),""));
 				Poco::Crypto::X509Certificate	Cert(CertFile_.path());
 				if(!IsExpired(Cert)) {
+					std::cout << __LINE__ << std::endl;
 					SecureContext->useCertificate(Poco::Crypto::X509Certificate(CertFile_.path()));
 				} else {
+					std::cout << __LINE__ << std::endl;
 					poco_error(Logger_, fmt::format("Certificate for {} has expired. We cannot connect to this server.", Server_.name));
 					return false;
 				}
 
+				std::cout << __LINE__ << std::endl;
 				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
 				SecureContext->enableExtendedCertificateVerification(false);
 
+				std::cout << __LINE__ << std::endl;
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
+				std::cout << __LINE__ << std::endl;
 
-				Poco::Net::SocketAddress Destination(Server_.ip, 2084);
+				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
 				try {
+					std::cout << __LINE__ << std::endl;
 					poco_information(Logger_, "Attempting to connect");
 					Socket_->connect(Destination, Poco::Timespan(20, 0));
 					Socket_->completeHandshake();
@@ -295,6 +305,7 @@ namespace OpenWifi {
 					poco_warning(Logger_, "Could not connect.");
 				}
 			}
+			std::cout << __LINE__ << std::endl;
 			return false;
 		}
 
