@@ -258,7 +258,7 @@ namespace OpenWifi {
 
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 
-				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
+				Poco::Net::SocketAddress Destination(Server_.ip, /* Server_.port */ 2084);
 
 				try {
 					poco_information(Logger_, "Attempting to connect");
