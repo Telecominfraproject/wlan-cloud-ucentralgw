@@ -238,27 +238,20 @@ namespace OpenWifi {
 				SecureContext->usePrivateKey(Poco::Crypto::RSAKey("",KeyFile_.path(),""));
 				Poco::Crypto::X509Certificate	Cert(CertFile_.path());
 				if(!IsExpired(Cert)) {
-					Poco::TemporaryFile Combined(MicroServiceDataDirectory());
-					Cat(CertFile_.path(), OpenRoamingRootCertFile_.path(), Combined.path());
-					SecureContext->useCertificate(Poco::Crypto::X509Certificate(Combined.path()));
-					std::ifstream comd_fs(Combined.path().c_str(),std::ios_base::in|std::ios_base::binary);
-					Poco::StreamCopier::copyStream(comd_fs,std::cout);
+					SecureContext->useCertificate(Poco::Crypto::X509Certificate(CertFile_.path()));
 				} else {
 					poco_error(Logger_, fmt::format("Certificate for {} has expired. We cannot connect to this server.", Server_.name));
 					return false;
 				}
-				Poco::TemporaryFile Chain(MicroServiceDataDirectory());
-				Cat(Intermediate0.path(), Intermediate1.path(), Chain.path());
 
 				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
-//				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
-//				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
-				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Chain.path()));
+				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
+				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
 				SecureContext->enableExtendedCertificateVerification(false);
 
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 
-				Poco::Net::SocketAddress Destination(Server_.ip, /* Server_.port */ 2084);
+				Poco::Net::SocketAddress Destination(Server_.ip, 2084);
 
 				try {
 					poco_information(Logger_, "Attempting to connect");
