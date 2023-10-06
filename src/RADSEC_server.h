@@ -211,9 +211,7 @@ namespace OpenWifi {
 					"-----END CERTIFICATE-----\n"
 				};
 
-				// std::ofstream ofs{OpenRoamingRootCertFile_.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
-				std::string rootCert = MicroServiceDataDirectory() + "/gr-root.pem";
-				std::ofstream ofs{rootCert.c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
+				std::ofstream ofs{OpenRoamingRootCertFile_.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
 				ofs << OpenRoamingRootCert;
 				ofs.close();
 
@@ -229,13 +227,21 @@ namespace OpenWifi {
 				SecureContext->usePrivateKey(Poco::Crypto::RSAKey("",KeyFile_.path(),""));
 				Poco::Crypto::X509Certificate	Cert(CertFile_.path());
 				if(!IsExpired(Cert)) {
-					SecureContext->useCertificate(Poco::Crypto::X509Certificate(CertFile_.path()));
+					Poco::TemporaryFile Combined(MicroServiceDataDirectory());
+					std::ofstream comb(Combined.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary);
+					std::ifstream cert_ifs(CertFile_.path().c_str(),std::ios_base::binary|std::ios_base::in);
+					Poco::StreamCopier::copyStream(cert_ifs,comb);
+					comb << std::endl;
+					std::ifstream root_ifs(OpenRoamingRootCertFile_.path().c_str(),std::ios_base::binary|std::ios_base::in);
+					Poco::StreamCopier::copyStream(root_ifs,comb);
+					comb << std::endl;
+					comb.close();
+					SecureContext->useCertificate(Poco::Crypto::X509Certificate(Combined.path()));
 				} else {
 					poco_error(Logger_, fmt::format("Certificate for {} has expired. We cannot connect to this server.", Server_.name));
 					return false;
 				}
-				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(rootCert));
-				// SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
+				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
 				SecureContext->enableExtendedCertificateVerification(false);
