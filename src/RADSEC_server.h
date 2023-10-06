@@ -211,7 +211,9 @@ namespace OpenWifi {
 					"-----END CERTIFICATE-----\n"
 				};
 
-				std::ofstream ofs{OpenRoamingRootCertFile_.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
+				// std::ofstream ofs{OpenRoamingRootCertFile_.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
+				std::string rootCert = MicroServiceDataDirectory() + "/gr-root.pem";
+				std::ofstream ofs{rootCert.c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary};
 				ofs << OpenRoamingRootCert;
 				ofs.close();
 
