@@ -185,14 +185,14 @@ namespace OpenWifi {
 				Poco::TemporaryFile KeyFile_(MicroServiceDataDirectory());
 				Poco::TemporaryFile OpenRoamingRootCertFile_(MicroServiceDataDirectory());
 				Poco::TemporaryFile Intermediate0(MicroServiceDataDirectory());
-//				Poco::TemporaryFile Intermediate1(MicroServiceDataDirectory());
+				Poco::TemporaryFile Intermediate1(MicroServiceDataDirectory());
 				Poco::TemporaryFile Combined(MicroServiceDataDirectory());
 				std::vector<std::unique_ptr<Poco::TemporaryFile>> CaCertFiles_;
 
 				DecodeFile(KeyFile_.path(), Server_.radsecKey);
 				DecodeFile(CertFile_.path(), Server_.radsecCert);
 				DecodeFile(Intermediate0.path(), Server_.radsecCacerts[0]);
-//				DecodeFile(Intermediate1.path(), Server_.radsecCacerts[1]);
+				DecodeFile(Intermediate1.path(), Server_.radsecCacerts[1]);
 
 				for (auto &cert : Server_.radsecCacerts) {
 					CaCertFiles_.emplace_back(
@@ -240,7 +240,7 @@ namespace OpenWifi {
 				}
 				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
 				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
-				//SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
+				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
 				SecureContext->enableExtendedCertificateVerification(false);
 
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
