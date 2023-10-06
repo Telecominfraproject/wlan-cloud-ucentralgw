@@ -177,6 +177,17 @@ namespace OpenWifi {
 			return C.expiresOn().timestamp().epochTime() < (std::time_t)Utils::Now();
 		}
 
+		static inline void Cat(const std::string &F1, const std::string & F2, const std::string &F) {
+			std::ofstream of(F.c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary);
+			std::ifstream if1(F1.c_str(),std::ios_base::binary|std::ios_base::in);
+			Poco::StreamCopier::copyStream(if1,of);
+			of << std::endl;
+			std::ifstream if2(F2.c_str(),std::ios_base::binary|std::ios_base::in);
+			Poco::StreamCopier::copyStream(if2,of);
+			of << std::endl;
+			of.close();
+		}
+
 		inline bool Connect_GlobalReach() {
 			if (TryAgain_) {
 				std::lock_guard G(LocalMutex_);
@@ -228,14 +239,7 @@ namespace OpenWifi {
 				Poco::Crypto::X509Certificate	Cert(CertFile_.path());
 				if(!IsExpired(Cert)) {
 					Poco::TemporaryFile Combined(MicroServiceDataDirectory());
-					std::ofstream comb(Combined.path().c_str(),std::ios_base::trunc|std::ios_base::out|std::ios_base::binary);
-					std::ifstream cert_ifs(CertFile_.path().c_str(),std::ios_base::binary|std::ios_base::in);
-					Poco::StreamCopier::copyStream(cert_ifs,comb);
-					comb << std::endl;
-					std::ifstream root_ifs(OpenRoamingRootCertFile_.path().c_str(),std::ios_base::binary|std::ios_base::in);
-					Poco::StreamCopier::copyStream(root_ifs,comb);
-					comb << std::endl;
-					comb.close();
+					Cat(CertFile_.path(), OpenRoamingRootCertFile_.path(), Combined.path());
 					SecureContext->useCertificate(Poco::Crypto::X509Certificate(Combined.path()));
 					std::ifstream comd_fs(Combined.path().c_str(),std::ios_base::in|std::ios_base::binary);
 					Poco::StreamCopier::copyStream(comd_fs,std::cout);
@@ -243,9 +247,13 @@ namespace OpenWifi {
 					poco_error(Logger_, fmt::format("Certificate for {} has expired. We cannot connect to this server.", Server_.name));
 					return false;
 				}
+				Poco::TemporaryFile Chain(MicroServiceDataDirectory());
+				Cat(Intermediate0.path(), Intermediate1.path(), Chain.path());
+
 				SecureContext->addCertificateAuthority(Poco::Crypto::X509Certificate(OpenRoamingRootCertFile_.path()));
-				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
-				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
+//				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate0.path()));
+//				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Intermediate1.path()));
+				SecureContext->addChainCertificate(Poco::Crypto::X509Certificate(Chain.path()));
 				SecureContext->enableExtendedCertificateVerification(false);
 
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
