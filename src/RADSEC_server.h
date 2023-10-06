@@ -237,6 +237,8 @@ namespace OpenWifi {
 					comb << std::endl;
 					comb.close();
 					SecureContext->useCertificate(Poco::Crypto::X509Certificate(Combined.path()));
+					std::ifstream comd_fs(Combined.path().c_str(),std::ios_base::in|std::ios_base::binary);
+					Poco::StreamCopier::copyStream(comd_fs,std::cout);
 				} else {
 					poco_error(Logger_, fmt::format("Certificate for {} has expired. We cannot connect to this server.", Server_.name));
 					return false;
