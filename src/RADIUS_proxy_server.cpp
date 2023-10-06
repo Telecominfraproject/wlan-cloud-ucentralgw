@@ -107,46 +107,59 @@ namespace OpenWifi {
 	void RADIUS_proxy_server::Stop() {
 		if (Enabled_ && Running_) {
 			poco_information(Logger(), "Stopping...");
-			RadiusReactor_->removeEventHandler(
-				*AuthenticationSocketV4_,
-				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-					*this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
-			RadiusReactor_->removeEventHandler(
-				*AuthenticationSocketV6_,
-				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-					*this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
 
-			RadiusReactor_->removeEventHandler(
-				*AccountingSocketV4_,
-				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
-			RadiusReactor_->removeEventHandler(
-				*AccountingSocketV6_,
-				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+			if(AuthenticationSocketV4_) {
+				RadiusReactor_->removeEventHandler(
+					*AuthenticationSocketV4_,
+					Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+						*this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
+				AuthenticationSocketV4_->close();
+				AuthenticationSocketV4_.reset();
+			}
 
-			RadiusReactor_->removeEventHandler(
-				*CoASocketV4_,
-				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-					*this, &RADIUS_proxy_server::OnCoASocketReadable));
-			RadiusReactor_->removeEventHandler(
-				*CoASocketV6_,
-				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-					*this, &RADIUS_proxy_server::OnCoASocketReadable));
+			if(AuthenticationSocketV6_) {
+				RadiusReactor_->removeEventHandler(
+					*AuthenticationSocketV6_,
+					Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+						*this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
+				AuthenticationSocketV6_->close();
+				AuthenticationSocketV6_.reset();
+			}
 
-			AuthenticationSocketV4_->close();
-			AuthenticationSocketV6_->close();
-			AccountingSocketV4_->close();
-			AccountingSocketV6_->close();
-			CoASocketV4_->close();
-			CoASocketV6_->close();
+			if(AccountingSocketV4_) {
+				RadiusReactor_->removeEventHandler(
+					*AccountingSocketV4_,
+					Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+						*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+				AccountingSocketV4_->close();
+				AccountingSocketV4_.reset();
+			}
+			if(AccountingSocketV6_) {
+				RadiusReactor_->removeEventHandler(
+					*AccountingSocketV6_,
+					Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+						*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+				AccountingSocketV6_->close();
+				AccountingSocketV6_.reset();
+			}
 
-			AuthenticationSocketV4_.reset();
-			AuthenticationSocketV6_.reset();
-			AccountingSocketV4_.reset();
-			AccountingSocketV6_.reset();
-			CoASocketV4_.reset();
-			CoASocketV6_.reset();
+			if(CoASocketV4_) {
+				RadiusReactor_->removeEventHandler(
+					*CoASocketV4_,
+					Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+						*this, &RADIUS_proxy_server::OnCoASocketReadable));
+				CoASocketV4_->close();
+				CoASocketV4_.reset();
+			}
+
+			if(CoASocketV6_) {
+				RadiusReactor_->removeEventHandler(
+					*CoASocketV6_,
+					Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+						*this, &RADIUS_proxy_server::OnCoASocketReadable));
+				CoASocketV6_->close();
+				CoASocketV6_.reset();
+			}
 
 			StopRADSECServers();
 			RadiusReactor_->stop();
@@ -156,10 +169,14 @@ namespace OpenWifi {
 		}
 	}
 
+	inline static bool isRadsec(const GWObjects::RadiusProxyPool &Cfg) {
+		return Cfg.radsecPoolType=="orion" || Cfg.radsecPoolType=="globalreach" || Cfg.radsecPoolType=="radsec";
+	}
+
 	void RADIUS_proxy_server::StartRADSECServers() {
 		std::lock_guard G(Mutex_);
 		for (const auto &pool : PoolList_.pools) {
-			if(pool.enabled) {
+			if(pool.enabled && isRadsec(pool)) {
 				for (const auto &entry : pool.authConfig.servers) {
 					if (entry.radsec) {
 						RADSECservers_[Poco::Net::SocketAddress(entry.ip, 0)] =
@@ -265,6 +282,9 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress Dst(Destination);
 
 			std::lock_guard G(Mutex_);
+
+			//	are we sending this to a pool?
+
 			bool UseRADSEC = false;
 			auto FinalDestination = Route(radius_type::acct, Dst, P, UseRADSEC, secret);
 			if (UseRADSEC) {

@@ -1345,6 +1345,7 @@ components:
             - generic
             - orion
             - globalreach
+            - radsec
           default:
             generic
         poolProxyIp:

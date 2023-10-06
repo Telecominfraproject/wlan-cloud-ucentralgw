@@ -9,7 +9,7 @@
 namespace OpenWifi {
 
 	static bool ValidRadiusPoolServerType(const std::string &T) {
-		static std::set<std::string> Types{ "generic", "orion", "globalreach"};
+		static std::set<std::string> Types{ "radsec", "generic", "orion", "globalreach"};
 		return Types.find(T)!=Types.end();
 	}
 
