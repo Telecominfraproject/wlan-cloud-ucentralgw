@@ -40,7 +40,7 @@ namespace OpenWifi {
 		RadiusReactorThread_.start(*RadiusReactor_);
 		Utils::SetThreadName(RadiusReactorThread_, "rad:reactor");
 		Running_ = true;
-
+		DBGLINE
 		return 0;
 	}
 
