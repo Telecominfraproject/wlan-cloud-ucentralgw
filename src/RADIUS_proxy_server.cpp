@@ -65,11 +65,9 @@ namespace OpenWifi {
 		std::lock_guard G(Mutex_);
 		for (const auto &pool : PoolList_.pools) {
 			if(pool.enabled) {
-				for (const auto &entry : pool.authConfig.servers) {
-DBGLINE					RADIUS_Destinations_[Poco::Net::SocketAddress(entry.ip, 0)] =
+DBGLINE					RADIUS_Destinations_[Poco::Net::SocketAddress(pool.poolProxyIp, 0)] =
 						std::make_unique<RADIUS_Destination>(RadiusReactor_, pool);
 DBGLINE
-				}
 			} else {
 				poco_information(Logger(),fmt::format("Pool {} is not enabled.", pool.name));
 			}
