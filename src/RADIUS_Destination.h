@@ -277,6 +277,7 @@ namespace OpenWifi {
 		}
 
 		inline bool Connect_GlobalReach() {
+			DBGLINE
 			if (TryAgain_) {
 				std::lock_guard G(LocalMutex_);
 
@@ -399,6 +400,7 @@ namespace OpenWifi {
 		}
 
 		inline bool Connect_Orion() {
+			DBGLINE
 			if (TryAgain_) {
 				std::lock_guard G(LocalMutex_);
 
@@ -489,6 +491,7 @@ namespace OpenWifi {
 		}
 
 		inline bool Connect_Generic() {
+			DBGLINE
 			if (TryAgain_) {
 				std::lock_guard G(LocalMutex_);
 
@@ -561,6 +564,7 @@ namespace OpenWifi {
 		}
 
 		inline bool Connect_Radsec() {
+			DBGLINE
 			if (TryAgain_) {
 				std::lock_guard G(LocalMutex_);
 			}
