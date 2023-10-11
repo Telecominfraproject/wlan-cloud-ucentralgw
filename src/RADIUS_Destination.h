@@ -688,19 +688,19 @@ namespace OpenWifi {
 
 		inline bool SendRadiusDataAuthData(const std::string &serialNumber, const unsigned char *buffer, std::size_t  size) {
 			poco_trace(Logger_, fmt::format("{}: Sending RADIUS Auth {} bytes.", serialNumber, size));
-			AuthenticationSocketV4_->sendBytes(buffer, size);
+			AuthenticationSocketV4_->sendTo(buffer, size, Poco::Net::SocketAddress(Pool_.authConfig.servers[0].ip, Pool_.authConfig.servers[0].port));
 			return true;
 		}
 
 		inline bool SendRadiusDataAcctData(const std::string &serialNumber, const unsigned char *buffer, std::size_t  size) {
-			poco_trace(Logger_, fmt::format("{}: Sending RADIUS Auth {} bytes.", serialNumber, size));
-			AccountingSocketV4_->sendBytes(buffer, size);
+			poco_trace(Logger_, fmt::format("{}: Sending RADIUS Acct {} bytes.", serialNumber, size));
+			AccountingSocketV4_->sendTo(buffer, size, Poco::Net::SocketAddress(Pool_.acctConfig.servers[0].ip, Pool_.acctConfig.servers[0].port));
 			return true;
 		}
 
 		inline bool SendRadiusDataCoAData(const std::string &serialNumber, const unsigned char *buffer, std::size_t  size) {
-			poco_trace(Logger_, fmt::format("{}: Sending RADIUS Auth {} bytes.", serialNumber, size));
-			CoASocketV4_->sendBytes(buffer, size);
+			poco_trace(Logger_, fmt::format("{}: Sending RADIUS CoA {} bytes.", serialNumber, size));
+			CoASocketV4_->sendTo(buffer, size, Poco::Net::SocketAddress(Pool_.coaConfig.servers[0].ip, Pool_.coaConfig.servers[0].port));
 			return true;
 		}
 

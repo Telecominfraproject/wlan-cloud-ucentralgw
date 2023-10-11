@@ -199,7 +199,7 @@ add_executable( owgw
         src/AP_WS_Process_deviceupdate.cpp
         src/AP_WS_Process_telemetry.cpp
         src/AP_WS_Process_venuebroadcast.cpp
-        src/RADSEC_server.h
+        src/RADIUS_Destination.h
         src/UI_GW_WebSocketNotifications.cpp src/UI_GW_WebSocketNotifications.h
         src/framework/RESTAPI_SystemConfiguration.h
         src/ScriptManager.cpp src/ScriptManager.h

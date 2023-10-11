@@ -11,7 +11,7 @@
 
 #include "framework/SubSystemServer.h"
 
-#include "RADSEC_server.h"
+#include "RADIUS_Destination.h"
 
 namespace OpenWifi {
 
