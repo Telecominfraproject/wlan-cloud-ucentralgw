@@ -40,8 +40,8 @@ namespace OpenWifi {
 		void DeleteConfig();
 		void GetConfig(GWObjects::RadiusProxyPoolList &C);
 
-		void StartRADSECServers();
-		void StopRADSECServers();
+		void StartRADIUSDestinations();
+		void StopRADIUSDestinations();
 
 		struct Destination {
 			Poco::Net::SocketAddress Addr;

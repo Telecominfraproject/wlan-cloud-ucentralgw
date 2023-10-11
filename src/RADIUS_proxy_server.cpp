@@ -27,7 +27,7 @@ namespace OpenWifi {
 
 		Enabled_ = MicroServiceConfigGetBool("radius.proxy.enable", false);
 		if (!Enabled_ && !Config.exists()) {
-			StopRADSECServers();
+			StopRADIUSDestinations();
 			return 0;
 		}
 
@@ -36,7 +36,7 @@ namespace OpenWifi {
 		Enabled_ = true;
 
 		ParseConfig();
-		StartRADSECServers();
+		StartRADIUSDestinations();
 		RadiusReactorThread_.start(*RadiusReactor_);
 		Utils::SetThreadName(RadiusReactorThread_, "rad:reactor");
 		Running_ = true;
@@ -48,7 +48,7 @@ namespace OpenWifi {
 		if (Enabled_ && Running_) {
 			poco_information(Logger(), "Stopping...");
 
-			StopRADSECServers();
+			StopRADIUSDestinations();
 			RadiusReactor_->stop();
 			RadiusReactorThread_.join();
 			Running_ = false;
@@ -61,13 +61,14 @@ namespace OpenWifi {
 	}
  */
 
-	void RADIUS_proxy_server::StartRADSECServers() {
+	void RADIUS_proxy_server::StartRADIUSDestinations() {
 		std::lock_guard G(Mutex_);
 		for (const auto &pool : PoolList_.pools) {
 			if(pool.enabled) {
 				for (const auto &entry : pool.authConfig.servers) {
-					RADIUS_Destinations_[Poco::Net::SocketAddress(entry.ip, 0)] =
+DBGLINE					RADIUS_Destinations_[Poco::Net::SocketAddress(entry.ip, 0)] =
 						std::make_unique<RADIUS_Destination>(*RadiusReactor_, pool);
+DBGLINE
 				}
 			} else {
 				poco_information(Logger(),fmt::format("Pool {} is not enabled.", pool.name));
@@ -75,7 +76,7 @@ namespace OpenWifi {
 		}
 	}
 
-	void RADIUS_proxy_server::StopRADSECServers() {
+	void RADIUS_proxy_server::StopRADIUSDestinations() {
 		std::lock_guard G(Mutex_);
 		RADIUS_Destinations_.clear();
 	}
