@@ -37,7 +37,7 @@ namespace OpenWifi {
 
 		ParseConfig();
 		StartRADIUSDestinations();
-		RadiusReactorThread_.start(*RadiusReactor_);
+		RadiusReactorThread_.start(RadiusReactor_);
 		Utils::SetThreadName(RadiusReactorThread_, "rad:reactor");
 		Running_ = true;
 		DBGLINE
@@ -49,7 +49,7 @@ namespace OpenWifi {
 			poco_information(Logger(), "Stopping...");
 
 			StopRADIUSDestinations();
-			RadiusReactor_->stop();
+			RadiusReactor_.stop();
 			RadiusReactorThread_.join();
 			Running_ = false;
 			poco_information(Logger(), "Stopped...");
@@ -67,7 +67,7 @@ namespace OpenWifi {
 			if(pool.enabled) {
 				for (const auto &entry : pool.authConfig.servers) {
 DBGLINE					RADIUS_Destinations_[Poco::Net::SocketAddress(entry.ip, 0)] =
-						std::make_unique<RADIUS_Destination>(*RadiusReactor_, pool);
+						std::make_unique<RADIUS_Destination>(RadiusReactor_, pool);
 DBGLINE
 				}
 			} else {

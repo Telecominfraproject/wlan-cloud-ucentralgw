@@ -63,8 +63,8 @@ namespace OpenWifi {
 		inline bool Continue() const { return Running_ && Enabled_ && !Pools_.empty(); }
 
 	  private:
-		std::unique_ptr<Poco::Net::SocketReactor> RadiusReactor_;
-		Poco::Thread RadiusReactorThread_;
+		Poco::Net::SocketReactor 	RadiusReactor_;
+		Poco::Thread 				RadiusReactorThread_;
 
 		GWObjects::RadiusProxyPoolList PoolList_;
 		std::string ConfigFilename_;
