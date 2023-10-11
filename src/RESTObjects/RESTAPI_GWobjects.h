@@ -452,4 +452,48 @@ namespace OpenWifi::GWObjects {
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
+	enum class RadiusPoolStrategy {
+		round_robbin, random, weighted, unknown
+	};
+
+	enum class RadiusEndpointType {
+		generic, radsec, globalreach, orion, unknown
+	};
+
+	static inline RadiusEndpointType RadiusEndpointType(const std::string &T) {
+		if(T=="generic") return RadiusEndpointType::generic;
+		if(T=="radsec") return RadiusEndpointType::radsec;
+		if(T=="globalreach") return RadiusEndpointType::globalreach;
+		if(T=="orion") return RadiusEndpointType::orion;
+		return RadiusEndpointType::unknown;
+	}
+
+	static inline RadiusPoolStrategy RadiusPoolStrategy(const std::string &T) {
+		if(T=="round_robbin") return RadiusPoolStrategy::round_robbin;
+		if(T=="random") return RadiusPoolStrategy::random;
+		if(T=="weighted") return RadiusPoolStrategy::weighted;
+		return RadiusPoolStrategy::unknown;
+	}
+
+	static inline std::string to_string(enum RadiusEndpointType T) {
+		switch(T) {
+		case RadiusEndpointType::generic: return "generic";
+		case RadiusEndpointType::radsec: return "radsec";
+		case RadiusEndpointType::globalreach: return "globalreach";
+		case RadiusEndpointType::orion: return "orion";
+		default:
+			return "unknown";
+		}
+	}
+
+	static inline std::string to_string(enum RadiusPoolStrategy T) {
+		switch(T) {
+		case RadiusPoolStrategy::round_robbin: return "round_robbin";
+		case RadiusPoolStrategy::random: return "random";
+		case RadiusPoolStrategy::weighted: return "weighted";
+		default:
+			return "unknown";
+		}
+	}
+
 } // namespace OpenWifi::GWObjects
