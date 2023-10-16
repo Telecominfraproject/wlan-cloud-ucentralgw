@@ -131,6 +131,9 @@ namespace OpenWifi {
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
 			auto Destination = P.ExtractProxyStateDestination();
+
+			std::cout << "ACCT-DTS-0: " << Destination << std::endl;
+
 			RouteAndSendAccountingPacket(Destination, serialNumber, P, false, secret);
 			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P, secret);
 
