@@ -150,33 +150,48 @@ namespace OpenWifi {
 			return;
 
 		try {
+			DBGLINE
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
 			auto Destination = P.ExtractProxyStateDestination();
 			auto CallingStationID = P.ExtractCallingStationID();
 			auto CalledStationID = P.ExtractCalledStationID();
 			Poco::Net::SocketAddress Dst(Destination);
+			DBGLINE
 
 			std::lock_guard G(Mutex_);
+			DBGLINE
 
 			std::uint32_t 	DstIp = Utils::IPtoInt(Destination);
 			auto DestinationServer = RADIUS_Destinations_.find(DstIp);
 			if (DestinationServer != end(RADIUS_Destinations_)) {
+				DBGLINE
 				poco_trace(Logger(),fmt::format("{}: Sending Auth {} bytes to {}", serialNumber, P.Size(), Destination));
+				DBGLINE
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
+					DBGLINE
 					P.RecomputeAuthenticator(secret);
+					DBGLINE
 					DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer,
 														size);
+					DBGLINE
 				} else {
+					DBGLINE
 					DestinationServer->second->SendRadiusDataAuthData(
 						serialNumber, (const unsigned char *)buffer, size);
+					DBGLINE
 				}
+				DBGLINE
 			}
+			DBGLINE
 		} catch (const Poco::Exception &E) {
+			DBGLINE
 			Logger().log(E);
 		} catch (...) {
+			DBGLINE
 			poco_warning(Logger(),
 						 fmt::format("Bad RADIUS AUTH Packet from {}. Dropped.", serialNumber));
 		}
+		DBGLINE
 	}
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer,
