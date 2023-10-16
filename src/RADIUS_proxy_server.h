@@ -28,7 +28,7 @@ namespace OpenWifi {
 		void Stop() final;
 		inline bool Enabled() const { return Enabled_; }
 
-		void SendAccountingData(const std::string &Destination,const std::string &serialNumber, const char *buffer,
+		void SendAccountingData(const std::string &serialNumber, const char *buffer,
 								std::size_t size, std::string & secret);
 		void SendAuthenticationData(const std::string &serialNumber, const char *buffer,
 									std::size_t size, std::string & secret);

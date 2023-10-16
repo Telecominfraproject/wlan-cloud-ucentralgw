@@ -123,7 +123,7 @@ namespace OpenWifi {
 		ofs.close();
 	}
 
-	void RADIUS_proxy_server::SendAccountingData(const std::string &Destination, const std::string &serialNumber,
+	void RADIUS_proxy_server::SendAccountingData( const std::string &serialNumber,
 												 const char *buffer, std::size_t size, std::string & secret) {
 
 		if (!Continue())
@@ -131,6 +131,7 @@ namespace OpenWifi {
 
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
+			auto Destination = P.ExtractProxyStateDestination();
 			RouteAndSendAccountingPacket(Destination, serialNumber, P, false, secret);
 			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P, secret);
 
