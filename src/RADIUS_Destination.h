@@ -125,6 +125,7 @@ namespace OpenWifi {
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
 																		 NumberOfReceivedBytes);
+							P.Log(std::cout);
 						} else {
 							poco_trace(Logger_, "AUTH packet dropped.");
 						}
