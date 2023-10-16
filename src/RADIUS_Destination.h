@@ -350,7 +350,7 @@ namespace OpenWifi {
 				for (const auto &PoolEntryServer : Pool_.acctConfig.servers) {
 					Poco::Net::SocketAddress Destination(PoolEntryServer.ip, PoolEntryServer.port);
 					try {
-						poco_information(Logger_, "Attempting to connect");
+						poco_information(Logger_, fmt::format("Attempting to connect to {}", CommonName()));
 						Socket_->connect(Destination, Poco::Timespan(20, 0));
 						Socket_->completeHandshake();
 

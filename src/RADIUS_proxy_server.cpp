@@ -64,7 +64,7 @@ namespace OpenWifi {
 		std::lock_guard G(Mutex_);
 		for (const auto &pool : PoolList_.pools) {
 			if(pool.enabled) {
-				RADIUS_Destinations_[Poco::Net::SocketAddress(pool.poolProxyIp, 0)] =
+				RADIUS_Destinations_[Utils::IPtoInt(pool.poolProxyIp)] =
 						std::make_unique<RADIUS_Destination>(RadiusReactor_, pool);
 			} else {
 				poco_information(Logger(),fmt::format("Pool {} is not enabled.", pool.name));
@@ -83,11 +83,11 @@ namespace OpenWifi {
 			//	are we sending this to a pool?
 			auto CallingStationID = P.ExtractCallingStationID();
 			auto CalledStationID = P.ExtractCalledStationID();
-			Poco::Net::SocketAddress Dst(Destination);
+			std::uint32_t DtsIp = Utils::IPtoInt(Destination);
 
 			std::lock_guard G(Mutex_);
 
-			auto DestinationServer = RADIUS_Destinations_.find(Dst);
+			auto DestinationServer = RADIUS_Destinations_.find(DtsIp);
 			if (DestinationServer != end(RADIUS_Destinations_)) {
 				poco_trace(Logger(),fmt::format("{}: Sending Acct {} bytes to {}", serialNumber, P.Size(), Destination));
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
@@ -158,7 +158,8 @@ namespace OpenWifi {
 
 			std::lock_guard G(Mutex_);
 
-			auto DestinationServer = RADIUS_Destinations_.find(Dst);
+			std::uint32_t 	DstIp = Utils::IPtoInt(Destination);
+			auto DestinationServer = RADIUS_Destinations_.find(DstIp);
 			if (DestinationServer != end(RADIUS_Destinations_)) {
 				poco_trace(Logger(),fmt::format("{}: Sending Auth {} bytes to {}", serialNumber, P.Size(), Destination));
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
@@ -192,8 +193,8 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress Dst(Destination);
 
 			std::lock_guard G(Mutex_);
-
-			auto DestinationServer = RADIUS_Destinations_.find(Dst);
+			std::uint32_t DstIp = Utils::IPtoInt(Destination);
+			auto DestinationServer = RADIUS_Destinations_.find(DstIp);
 			if (DestinationServer != end(RADIUS_Destinations_)) {
 				poco_trace(Logger(),fmt::format("{}: Sending CoA {} bytes to {}", serialNumber, P.Size(), Destination));
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {

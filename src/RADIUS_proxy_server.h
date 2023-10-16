@@ -69,7 +69,7 @@ namespace OpenWifi {
 		GWObjects::RadiusProxyPoolList PoolList_;
 		std::string ConfigFilename_;
 
-		std::map<Poco::Net::SocketAddress, std::unique_ptr<RADIUS_Destination>> RADIUS_Destinations_;
+		std::map<std::uint32_t, std::unique_ptr<RADIUS_Destination>> RADIUS_Destinations_;
 
 		struct RadiusPool {
 			std::vector<Destination> AuthV4;
