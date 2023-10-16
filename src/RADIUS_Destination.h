@@ -133,6 +133,7 @@ namespace OpenWifi {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						if (!SerialNumber.empty()) {
 							DBGLINE
+							P.Log(std::cout);
 							poco_trace(Logger_,
 									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
 												   P.PacketType(), NumberOfReceivedBytes));
