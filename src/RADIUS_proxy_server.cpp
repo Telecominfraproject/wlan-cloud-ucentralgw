@@ -88,19 +88,22 @@ namespace OpenWifi {
 			auto DstParts = Utils::Split(Destination, ':');
 			std::uint32_t DtsIp = Utils::IPtoInt(DstParts[0]);
 
-			std::cout << "ACCT-DTS: " << DtsIp << std::endl;
-
 			std::lock_guard G(Mutex_);
 
 			auto DestinationServer = RADIUS_Destinations_.find(DtsIp);
 			if (DestinationServer != end(RADIUS_Destinations_)) {
+				DBGLINE
 				poco_trace(Logger(),fmt::format("{}: Sending Acct {} bytes to {}", serialNumber, P.Size(), Destination));
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
-					if(RecomputeAuthenticator)
+					if(RecomputeAuthenticator) {
+						DBGLINE
 						P.RecomputeAuthenticator(secret);
+					}
+					DBGLINE
 					DestinationServer->second->SendData(serialNumber, (const unsigned char *)P.Buffer(),
 														P.Size());
 				} else {
+					DBGLINE
 					DestinationServer->second->SendRadiusDataAcctData(
 						serialNumber, (const unsigned char *)P.Buffer(), P.Size());
 				}
