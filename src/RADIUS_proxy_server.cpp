@@ -96,6 +96,7 @@ namespace OpenWifi {
 				poco_trace(Logger(),fmt::format("{}: Sending Acct {} bytes to {}", serialNumber, P.Size(), Destination));
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
 					Secret = DestinationServer->second->Pool().acctConfig.servers[0].secret;
+					std::cout << "Secret" << Secret << std::endl;
 					if(RecomputeAuthenticator) {
 						DBGLINE
 						P.RecomputeAuthenticator(Secret);
@@ -139,7 +140,6 @@ namespace OpenWifi {
 			std::string Secret;
 			RouteAndSendAccountingPacket(Destination, serialNumber, P, false, Secret);
 			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P, Secret);
-
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {

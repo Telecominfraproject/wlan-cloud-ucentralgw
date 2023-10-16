@@ -125,7 +125,7 @@ namespace OpenWifi {
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
 																		 NumberOfReceivedBytes);
-							P.Log(std::cout);
+							// P.Log(std::cout);
 						} else {
 							poco_trace(Logger_, "AUTH packet dropped.");
 						}
@@ -133,16 +133,13 @@ namespace OpenWifi {
 						DBGLINE
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						if (!SerialNumber.empty()) {
-							DBGLINE
-							P.Log(std::cout);
+//							P.Log(std::cout);
 							poco_trace(Logger_,
 									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAccountingData(SerialNumber, Buffer,
 																	 NumberOfReceivedBytes);
-							DBGLINE
 						} else {
-							DBGLINE
 							poco_trace(Logger_, "ACCT packet dropped.");
 						}
 					} else if (P.IsAuthority()) {
