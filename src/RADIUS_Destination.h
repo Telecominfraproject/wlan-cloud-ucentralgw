@@ -157,6 +157,7 @@ namespace OpenWifi {
 							poco_trace(Logger_, "CoA/DM packet dropped.");
 						}
 					} else {
+						DBGLINE
 						poco_warning(Logger_,
 									 fmt::format("Unknown packet: Type: {} (type={}) Length={}",
 												 P.PacketType(), P.PacketTypeInt(), P.BufferLen()));
