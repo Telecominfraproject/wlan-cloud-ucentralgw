@@ -14,6 +14,8 @@
 #include "Poco/Net/SocketAddress.h"
 #include "Poco/StringTokenizer.h"
 
+#include <framework/utils.h>
+
 namespace OpenWifi::RADIUS {
 
 	//	Packet types
@@ -661,6 +663,29 @@ namespace OpenWifi::RADIUS {
 				}
 			}
 			return Result;
+		}
+
+		std::uint32_t ExtractProxyStateDestinationIPint() const {
+			std::string Result;
+			for (const auto &attribute : Attrs_) {
+				if (attribute.type == RADIUS::Attributes::PROXY_STATE && attribute.len > 2) {
+					std::string Attr33;
+					// format is
+
+					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],
+								  attribute.len);
+					auto Parts = Poco::StringTokenizer(Attr33, "|");
+					if (Parts.count() == 4) {
+						return Utils::IPtoInt(Parts[1]);
+					}
+					Parts = Poco::StringTokenizer(Attr33, ":");
+					if (Parts.count() == 4) {
+						return Utils::IPtoInt(Parts[1]);
+					}
+					return 0;
+				}
+			}
+			return 0;
 		}
 
 		std::string ExtractCallingStationID() const {
