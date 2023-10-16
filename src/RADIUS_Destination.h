@@ -129,14 +129,18 @@ namespace OpenWifi {
 							poco_trace(Logger_, "AUTH packet dropped.");
 						}
 					} else if (P.IsAccounting()) {
+						DBGLINE
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						if (!SerialNumber.empty()) {
+							DBGLINE
 							poco_trace(Logger_,
 									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAccountingData(SerialNumber, Buffer,
 																	 NumberOfReceivedBytes);
+							DBGLINE
 						} else {
+							DBGLINE
 							poco_trace(Logger_, "ACCT packet dropped.");
 						}
 					} else if (P.IsAuthority()) {
