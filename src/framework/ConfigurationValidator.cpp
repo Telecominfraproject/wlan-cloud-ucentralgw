@@ -3667,7 +3667,6 @@ namespace OpenWifi {
 					return true;
 				}
 				for (const auto &error : Results) {
-					std::cout << error.description << std::endl;
 					Errors.push_back(error.description);
 				}
 				return false;

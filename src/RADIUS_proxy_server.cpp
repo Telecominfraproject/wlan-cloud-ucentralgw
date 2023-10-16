@@ -40,7 +40,6 @@ namespace OpenWifi {
 		RadiusReactorThread_.start(RadiusReactor_);
 		Utils::SetThreadName(RadiusReactorThread_, "rad:reactor");
 		Running_ = true;
-		DBGLINE
 		return 0;
 	}
 
@@ -65,9 +64,8 @@ namespace OpenWifi {
 		std::lock_guard G(Mutex_);
 		for (const auto &pool : PoolList_.pools) {
 			if(pool.enabled) {
-DBGLINE					RADIUS_Destinations_[Poco::Net::SocketAddress(pool.poolProxyIp, 0)] =
+				RADIUS_Destinations_[Poco::Net::SocketAddress(pool.poolProxyIp, 0)] =
 						std::make_unique<RADIUS_Destination>(RadiusReactor_, pool);
-DBGLINE
 			} else {
 				poco_information(Logger(),fmt::format("Pool {} is not enabled.", pool.name));
 			}
