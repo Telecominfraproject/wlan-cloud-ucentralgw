@@ -90,6 +90,8 @@ namespace OpenWifi {
 
 			std::lock_guard G(Mutex_);
 
+			std::cout << "Accounting secret: " << secret << std::endl;
+
 			auto DestinationServer = RADIUS_Destinations_.find(DtsIp);
 			if (DestinationServer != end(RADIUS_Destinations_)) {
 				DBGLINE
