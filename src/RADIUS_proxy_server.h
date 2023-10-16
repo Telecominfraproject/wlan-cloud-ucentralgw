@@ -28,13 +28,12 @@ namespace OpenWifi {
 		void Stop() final;
 		inline bool Enabled() const { return Enabled_; }
 
-		void SendAccountingData(const std::string &serialNumber, const char *buffer,
-								std::size_t size, std::string & secret);
+		void SendAccountingData(const std::string &serialNumber, const char *buffer, std::size_t size);
 		void SendAuthenticationData(const std::string &serialNumber, const char *buffer,
-									std::size_t size, std::string & secret);
-		void SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size, std::string & secret);
+									std::size_t size);
+		void SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size);
 
-		void RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P, bool reComputeAuthenticator, std::string & secret);
+		void RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P, bool reComputeAuthenticator, std::string &Secret);
 
 		void SetConfig(const GWObjects::RadiusProxyPoolList &C);
 		void DeleteConfig();

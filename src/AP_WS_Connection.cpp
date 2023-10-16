@@ -952,23 +952,22 @@ namespace OpenWifi {
 
 	void AP_WS_Connection::ProcessIncomingRadiusData(const Poco::JSON::Object::Ptr &Doc) {
 		if (Doc->has(uCentralProtocol::RADIUSDATA)) {
-			std::string secret;
 			auto Type = Doc->get(uCentralProtocol::RADIUS).toString();
 			if (Type == uCentralProtocol::RADIUSACCT) {
 				auto Data = Doc->get(uCentralProtocol::RADIUSDATA).toString();
 				auto DecodedData = Base64Decode(Data);
 				RADIUS_proxy_server()->SendAccountingData(SerialNumber_, DecodedData.c_str(),
-														  DecodedData.size(),secret);
+														  DecodedData.size());
 			} else if (Type == uCentralProtocol::RADIUSAUTH) {
 				auto Data = Doc->get(uCentralProtocol::RADIUSDATA).toString();
 				auto DecodedData = Base64Decode(Data);
 				RADIUS_proxy_server()->SendAuthenticationData(SerialNumber_, DecodedData.c_str(),
-															  DecodedData.size(), secret);
+															  DecodedData.size());
 			} else if (Type == uCentralProtocol::RADIUSCOA) {
 				auto Data = Doc->get(uCentralProtocol::RADIUSDATA).toString();
 				auto DecodedData = Base64Decode(Data);
 				RADIUS_proxy_server()->SendCoAData(SerialNumber_, DecodedData.c_str(),
-												   DecodedData.size(), secret);
+												   DecodedData.size());
 			}
 		}
 	}

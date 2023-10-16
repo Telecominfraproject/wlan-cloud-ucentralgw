@@ -79,7 +79,7 @@ namespace OpenWifi {
 		RADIUS_Destinations_.clear();
 	}
 
-	void RADIUS_proxy_server::RouteAndSendAccountingPacket(const std::string &Destination,const std::string &serialNumber, RADIUS::RadiusPacket &P, bool RecomputeAuthenticator, std::string & secret) {
+	void RADIUS_proxy_server::RouteAndSendAccountingPacket(const std::string &Destination,const std::string &serialNumber, RADIUS::RadiusPacket &P, bool RecomputeAuthenticator, std::string &Secret) {
 		try{
 
 			//	are we sending this to a pool?
@@ -90,16 +90,15 @@ namespace OpenWifi {
 
 			std::lock_guard G(Mutex_);
 
-			std::cout << "Accounting secret: " << secret << std::endl;
-
 			auto DestinationServer = RADIUS_Destinations_.find(DtsIp);
 			if (DestinationServer != end(RADIUS_Destinations_)) {
 				DBGLINE
 				poco_trace(Logger(),fmt::format("{}: Sending Acct {} bytes to {}", serialNumber, P.Size(), Destination));
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
+					Secret = DestinationServer->second->Pool().acctConfig.servers[0].secret;
 					if(RecomputeAuthenticator) {
 						DBGLINE
-						P.RecomputeAuthenticator(secret);
+						P.RecomputeAuthenticator(Secret);
 					}
 					DBGLINE
 					DestinationServer->second->SendData(serialNumber, (const unsigned char *)P.Buffer(),
@@ -129,7 +128,7 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::SendAccountingData( const std::string &serialNumber,
-												 const char *buffer, std::size_t size, std::string & secret) {
+												 const char *buffer, std::size_t size) {
 
 		if (!Continue())
 			return;
@@ -137,8 +136,9 @@ namespace OpenWifi {
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
 			auto Destination = P.ExtractProxyStateDestination();
-			RouteAndSendAccountingPacket(Destination, serialNumber, P, false, secret);
-			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P, secret);
+			std::string Secret;
+			RouteAndSendAccountingPacket(Destination, serialNumber, P, false, Secret);
+			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P, Secret);
 
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -154,7 +154,7 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber,
-													 const char *buffer, std::size_t size, std::string & secret) {
+													 const char *buffer, std::size_t size) {
 
 		if (!Continue())
 			return;
@@ -170,7 +170,6 @@ namespace OpenWifi {
 			if (DestinationServer != end(RADIUS_Destinations_)) {
 				poco_trace(Logger(),fmt::format("{}: Sending Auth {} bytes to {}", serialNumber, P.Size(), DestinationServer->second->Pool().authConfig.servers[0].ip));
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
-					P.RecomputeAuthenticator(secret);
 					DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer,
 														size);
 				} else {
@@ -187,7 +186,7 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer,
-										  std::size_t size, std::string & secret) {
+										  std::size_t size) {
 
 		if (!Continue())
 			return;
@@ -204,7 +203,6 @@ namespace OpenWifi {
 			if (DestinationServer != end(RADIUS_Destinations_)) {
 				poco_trace(Logger(),fmt::format("{}: Sending CoA {} bytes to {}", serialNumber, P.Size(), DestinationServer->second->Pool().coaConfig.servers[0].ip));
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
-					P.RecomputeAuthenticator(secret);
 					DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer,
 														size);
 				} else {
