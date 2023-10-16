@@ -79,13 +79,14 @@ namespace OpenWifi {
 		RADIUS_Destinations_.clear();
 	}
 
-	void RADIUS_proxy_server::RouteAndSendAccountingPacket(const std::string &Destination, const std::string &serialNumber, RADIUS::RadiusPacket &P, bool RecomputeAuthenticator, std::string & secret) {
+	void RADIUS_proxy_server::RouteAndSendAccountingPacket(const std::string &Destination,const std::string &serialNumber, RADIUS::RadiusPacket &P, bool RecomputeAuthenticator, std::string & secret) {
 		try{
 
 			//	are we sending this to a pool?
 			auto CallingStationID = P.ExtractCallingStationID();
 			auto CalledStationID = P.ExtractCalledStationID();
-			std::uint32_t DtsIp = Utils::IPtoInt(Destination);
+			auto DstParts = Utils::Split(Destination, ':');
+			std::uint32_t DtsIp = Utils::IPtoInt(DstParts[0]);
 
 			std::cout << "ACCT-DTS: " << DtsIp << std::endl;
 
@@ -122,7 +123,7 @@ namespace OpenWifi {
 		ofs.close();
 	}
 
-	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber,
+	void RADIUS_proxy_server::SendAccountingData(const std::string &Destination, const std::string &serialNumber,
 												 const char *buffer, std::size_t size, std::string & secret) {
 
 		if (!Continue())
@@ -130,10 +131,6 @@ namespace OpenWifi {
 
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
-			auto Destination = P.ExtractProxyStateDestination();
-
-			std::cout << "ACCT-DTS-0: " << Destination << std::endl;
-
 			RouteAndSendAccountingPacket(Destination, serialNumber, P, false, secret);
 			RADIUSSessionTracker()->AddAccountingSession(Destination, serialNumber, P, secret);
 
