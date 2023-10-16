@@ -87,6 +87,8 @@ namespace OpenWifi {
 			auto CalledStationID = P.ExtractCalledStationID();
 			std::uint32_t DtsIp = Utils::IPtoInt(Destination);
 
+			std::cout << "ACCT-DTS: " << DtsIp << std::endl;
+
 			std::lock_guard G(Mutex_);
 
 			auto DestinationServer = RADIUS_Destinations_.find(DtsIp);
