@@ -64,6 +64,8 @@ namespace OpenWifi {
 		std::lock_guard G(Mutex_);
 		for (const auto &pool : PoolList_.pools) {
 			if(pool.enabled) {
+				std::cout << "PE: " << pool.poolProxyIp << std::endl;
+
 				RADIUS_Destinations_[Utils::IPtoInt(pool.poolProxyIp)] =
 						std::make_unique<RADIUS_Destination>(RadiusReactor_, pool);
 			} else {
@@ -157,6 +159,8 @@ namespace OpenWifi {
 			auto CalledStationID = P.ExtractCalledStationID();
 			Poco::Net::SocketAddress Dst(Destination);
 			DBGLINE
+
+			std::cout << Destination << std::endl;
 
 			std::lock_guard G(Mutex_);
 			DBGLINE
