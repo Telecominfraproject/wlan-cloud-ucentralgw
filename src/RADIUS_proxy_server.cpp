@@ -64,8 +64,6 @@ namespace OpenWifi {
 		std::lock_guard G(Mutex_);
 		for (const auto &pool : PoolList_.pools) {
 			if(pool.enabled) {
-				std::cout << "PE: " << pool.poolProxyIp << std::endl;
-
 				RADIUS_Destinations_[Utils::IPtoInt(pool.poolProxyIp)] =
 						std::make_unique<RADIUS_Destination>(RadiusReactor_, pool);
 			} else {
@@ -92,20 +90,15 @@ namespace OpenWifi {
 
 			auto DestinationServer = RADIUS_Destinations_.find(DtsIp);
 			if (DestinationServer != end(RADIUS_Destinations_)) {
-				DBGLINE
 				poco_trace(Logger(),fmt::format("{}: Sending Acct {} bytes to {}", serialNumber, P.Size(), Destination));
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
 					Secret = DestinationServer->second->Pool().acctConfig.servers[0].secret;
-					std::cout << "Secret" << Secret << std::endl;
 					if(RecomputeAuthenticator) {
-						DBGLINE
 						P.RecomputeAuthenticator(Secret);
 					}
-					DBGLINE
 					DestinationServer->second->SendData(serialNumber, (const unsigned char *)P.Buffer(),
 														P.Size());
 				} else {
-					DBGLINE
 					DestinationServer->second->SendRadiusDataAcctData(
 						serialNumber, (const unsigned char *)P.Buffer(), P.Size());
 				}
