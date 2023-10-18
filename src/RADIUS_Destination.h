@@ -151,7 +151,6 @@ namespace OpenWifi {
 							poco_trace(Logger_, "CoA/DM packet dropped.");
 						}
 					} else {
-						DBGLINE
 						poco_warning(Logger_,
 									 fmt::format("Unknown packet: Type: {} (type={}) Length={}",
 												 P.PacketType(), P.PacketTypeInt(), P.BufferLen()));
@@ -186,28 +185,22 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress Sender;
 			RADIUS::RadiusPacket P;
 
-			DBGLINE
 			auto ReceiveSize = pNf->socket().impl()->receiveBytes(P.Buffer(), P.BufferLen());
 			if (ReceiveSize < SMALLEST_RADIUS_PACKET) {
 				poco_warning(Logger_, "Accounting: bad packet received.");
-				DBGLINE
 				return;
 			}
 			P.Evaluate(ReceiveSize);
 			auto SerialNumber = P.ExtractSerialNumberFromProxyState();
-			DBGLINE
 			if (SerialNumber.empty()) {
 				poco_warning(Logger_, "Accounting: missing serial number. Dropping request.");
-				DBGLINE
 				return;
 			}
 			poco_debug(
 				Logger_,
 				fmt::format(
 					"Accounting Packet Response received for {}", SerialNumber ));
-			DBGLINE
 			AP_WS_Server()->SendRadiusAccountingData(SerialNumber, P.Buffer(), P.Size());
-			DBGLINE
 		}
 
 		inline void OnAuthenticationSocketReadable(
@@ -696,8 +689,6 @@ namespace OpenWifi {
 
 		inline bool SendRadiusDataAuthData(const std::string &serialNumber, const unsigned char *buffer, std::size_t  size) {
 			poco_trace(Logger_, fmt::format("{}: Sending RADIUS Auth {} bytes.", serialNumber, size));
-			std::cout << "Sending RADIUS Auth " << size << " bytes to " << Pool_.authConfig.servers[0].ip <<
-				":" << Pool_.authConfig.servers[0].port << std::endl;
 			AuthenticationSocketV4_->sendTo(buffer, size, Poco::Net::SocketAddress(Pool_.authConfig.servers[0].ip, Pool_.authConfig.servers[0].port));
 			return true;
 		}
