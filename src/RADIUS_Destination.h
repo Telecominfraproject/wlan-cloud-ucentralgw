@@ -696,6 +696,8 @@ namespace OpenWifi {
 
 		inline bool SendRadiusDataAuthData(const std::string &serialNumber, const unsigned char *buffer, std::size_t  size) {
 			poco_trace(Logger_, fmt::format("{}: Sending RADIUS Auth {} bytes.", serialNumber, size));
+			std::cout << "Sending RADIUS Auth " << size << " bytes to " << Pool_.authConfig.servers[0].ip <<
+				":" << Pool_.authConfig.servers[0].port << std::endl;
 			AuthenticationSocketV4_->sendTo(buffer, size, Poco::Net::SocketAddress(Pool_.authConfig.servers[0].ip, Pool_.authConfig.servers[0].port));
 			return true;
 		}
