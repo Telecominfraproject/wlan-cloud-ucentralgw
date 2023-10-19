@@ -83,82 +83,77 @@ setgateway() {
 			-H "Authorization: Bearer ${token}"  > ${result_file}
 		rawurl="$(cat < ${result_file} | jq -r '.endpoints[] | select( .type == "owgw" ) | .uri')"
 		if [[ ! -z "${rawurl}" ]]; then
-		proto="$(echo "$rawurl" | grep :// | sed -e's,^\(.*://\).*,\1,g')"
-# shellcheck disable=SC2116
-		url="$(echo "${rawurl/$proto/}")"
-		user="$(echo $url | grep @ | cut -d@ -f1)"
-		hostport="$(echo ${url/$user@/} | cut -d/ -f1)"
-		host="$(echo $hostport | sed -e 's,:.*,,g')"
-		port="$(echo $hostport | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
-		path="$(echo $url | grep / | cut -d/ -f2-)"
-		export OWGW=${url}
-					  echo "Using ${OWGW}..."
-					  else
-					  echo "OWGW endpoint is not found:"
-					  jq < ${result_file}
-					  exit 1
-					  fi
-					  else
-					  export OWGW=${OWGW_OVERRIDE}
+  		proto="$(echo "$rawurl" | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+  		url="$(echo "${rawurl/$proto/}")"
+	  	user="$(echo $url | grep @ | cut -d@ -f1)"
+	    export OWGW=${url}
+			echo "Using ${OWGW}..."
+    else
+      echo "OWGW endpoint is not found:"
+      jq < ${result_file}
+      exit 1
+    fi
+  else
+    export OWGW=${OWGW_OVERRIDE}
 	fi
 }
 
 logout() {
-	curl  ${FLAGS} -X DELETE "https://${OWSEC}/api/v1/oauth2/${token}" \
-	-H "Content-Type: application/json" \
-	-H "Authorization: Bearer ${token}"
+  curl  ${FLAGS} -X DELETE "https://${OWSEC}/api/v1/oauth2/${token}" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${token}"
 	rm -rf token.json
 }
 
 getdevice() {
-	curl  ${FLAGS} -X GET --url "https://${OWGW}/api/v1/device/$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+  curl  ${FLAGS} -X GET --url "https://${OWGW}/api/v1/device/$1" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 getcommand() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/command/$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 deletecommand() {
 	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/command/$1" \
-	-H "Accept: application/json" \
-	-H "Authorization: Bearer ${token}"
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}"
 }
 
 listcommands() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/commands?serialNumber=$1&limit=300" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}"  > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}"  > ${result_file}
+  jq < ${result_file}
 }
 
 newestcommands() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/commands?serialNumber=$1&newest=true&limit=50" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}"  > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}"  > ${result_file}
+  jq < ${result_file}
 }
 
 deletecommands() {
 	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/commands?serialNumber=$1" \
-	-H "Accept: application/json" \
-	-H "Authorization: Bearer ${token}"
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}"
 }
 
 getcapabilities() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/capabilities" \
-			-H "accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 deletecapabilities() {
@@ -169,42 +164,42 @@ deletecapabilities() {
 
 listdevices() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 deletesimdevices() {
 	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/devices?simulatedOnly=true&macPattern=$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 deletebulkdevices() {
 	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/devices?macPattern=$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 listdevicesk() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "X-API-KEY: $1" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "X-API-KEY: $1" > ${result_file}
+  jq < ${result_file}
 }
 
 ldevs() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?offset=$1&limit=$2" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 deletedevice() {
@@ -660,7 +655,7 @@ validateconfig() {
 wstest() {
 	echo "Token:${token}"
 	wscat \
-	-c wss://${OWGW}/api/v1/ws
+	-c wss://"${OWGW}"/api/v1/ws
 }
 
 telemetry() {
@@ -712,7 +707,7 @@ telemetry_to_kafka() {
 }
 
 runscript() {
-	scriptcontent=$(base64 -i $3)
+	scriptcontent=$(base64 -i "$3")
 	payload="$(printf '{ "serialNumber": "%s", "type": "%s" , "timeout": 30, "script" : "%s" , "deferred" : false, "when" : 0 }' "$1" "$2" "$scriptcontent" )"
 	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/script" \
 				  -H "Content-Type: application/json" \
@@ -734,61 +729,61 @@ runscriptname() {
 
 deviceping() {
 	payload="$(printf '{ "serialNumber": "%s" }' "$1" )"
-					  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/ping" \
-				  -H "Content-Type: application/json" \
-				  -H "Accept: application/json" \
-				  -H "Authorization: Bearer ${token}" \
-				  -d "$payload"  > ${result_file}
-			  jq < ${result_file}
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/ping" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" \
+    -d "$payload"  > ${result_file}
+  jq < ${result_file}
 }
 
 caplist() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/capabilities" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 iptocountry() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/iptocountry?iplist=$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 setradiusconfig() {
 	curl    ${FLAGS} -X PUT "https://${OWGW}/api/v1/radiusProxyConfig" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-d "@${1}" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -d "@${1}" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 getradiusconfig() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusProxyConfig" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 deleteradiusconfig() {
 	curl    ${FLAGS} -X DELETE "https://${OWGW}/api/v1/radiusProxyConfig" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 connectionstatistics() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?connectionStatistics=true" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 testtoken() {
@@ -836,92 +831,122 @@ stats7count() {
 
 listscripts() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/scripts" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 getscript() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/script/$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 regulatory() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/regulatory?countries=$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 regulatory_reload() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/regulatory?reload=true" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 radiussessions() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusSessions/$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 radiussearch() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusSessions/0?userName=$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 radiussearchmac() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusSessions/0?mac=$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 radiusaps() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusSessions/0?serialNumberOnly=true" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 radiuscoadm() {
 	payload="$(printf '{ "accountingSessionId": "%s", "accountingMultiSessionId": "%s" , "callingStationId": "%s" }' "$2" "$3" "$4" )"
 	curl  ${FLAGS} -X PUT "https://${OWGW}/api/v1/radiusSessions/$1?operation=coadm" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" \
-			-d "$payload"  > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" \
+    -d "$payload"  > ${result_file}
+  jq < ${result_file}
 }
 
 listdefaultfirmwares() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_firmwares" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
 }
 
 getdefaultfirmware() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_firmware/$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" > ${result_file}
+  jq < ${result_file}
+}
+
+transferdevice() {
+  payload="$(printf '{ "serialNumber": "%s", "server": "%s" , "port": %s}' "$1" "$2" "$3")"
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/transfer" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" \
+    -d "$payload"  > ${result_file}
+  jq < ${result_file}
+}
+
+certupdate() {
+  payload="$(printf '{ "serialNumber": "%s", "encodedCertificate": "%s"}' "$1" "$2")"
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/certupdate" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" \
+    -d "$payload"  > ${result_file}
+  jq < ${result_file}
+}
+
+rrm_kick() {
+  payload="$(printf '[{ "action": "kick", "addr": "%s", "reason": %s, "ban_time": %s}' "$2" "$3" "$4")"
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/rrm" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}" \
+    -d "$payload"  > ${result_file}
+  jq < ${result_file}
 }
 
 check_response() {
@@ -1210,6 +1235,9 @@ case "$1" in
 	"deletebulkdevices") login; deletebulkdevices "$2"; logout;;
 	"listdefaultfirmwares") login; listdefaultfirmwares; logout;;
 	"getdefaultfirmware") login; getdefaultfirmware "$2"; logout;;
+  "transferdevice") login; transferdevice "$2" "$3" "$4"; logout;;
+  "certupdate") login; certupdate "$2" "$3"; logout;;
+  "rrm_kick") login; rrm_kick "$2" "$3" "$4" "$5"; logout;;
 	"testtoken") testtoken;;
   	*) help ;;
 esac
