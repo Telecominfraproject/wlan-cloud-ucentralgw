@@ -163,8 +163,10 @@ namespace OpenWifi {
 		{APCommands::Commands::telemetry, false, true, &RESTAPI_device_commandHandler::Telemetry,
 		 30000ms},
 		{APCommands::Commands::ping, false, true, &RESTAPI_device_commandHandler::Ping, 60000ms},
-		{APCommands::Commands::script, false, true, &RESTAPI_device_commandHandler::Script,
-		 300000ms}};
+		{APCommands::Commands::rrm, false, true, &RESTAPI_device_commandHandler::RRM, 60000ms},
+		{APCommands::Commands::certupdate, false, true, &RESTAPI_device_commandHandler::CertUpdate, 60000ms},
+		{APCommands::Commands::transfer, false, true, &RESTAPI_device_commandHandler::Transfer, 60000ms}
+	};
 
 	void RESTAPI_device_commandHandler::DoPost() {
 		if (!ValidateParameters()) {
@@ -1339,4 +1341,146 @@ namespace OpenWifi {
 		}
 		return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
+
+	void RESTAPI_device_commandHandler::RRM(
+		const std::string &CMD_UUID, uint64_t CMD_RPC,
+		[[maybe_unused]] std::chrono::milliseconds timeout,
+		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
+		poco_debug(Logger_, fmt::format("RRM({},{}): TID={} user={} serial={}", CMD_UUID,
+										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+		if(IsDeviceSimulated(SerialNumber_)) {
+			CallCanceled("RRM", CMD_UUID, CMD_RPC, RESTAPI::Errors::SimulatedDeviceNotSupported);
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
+		const auto & Actions = *ParsedBody_->getArray("actions");
+
+		//	perform some validation on the commands.
+		for(const auto &action:Actions) {
+			auto ActionDetails = action.extract<Poco::JSON::Object::Ptr>();
+			if(!ActionDetails->has("action")) {
+				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
+			auto ActionStr = ActionDetails->get("action").toString();
+			if(	ActionStr != "kick"
+				&& ActionStr != "channel_switch"
+				&& ActionStr != "tx_power"
+				&& ActionStr != "beacon_request"
+				&& ActionStr != "bss_transition"
+				&& ActionStr != "neighbors" ) {
+				return BadRequest(RESTAPI::Errors::InvalidRRMAction);
+			}
+		}
+
+		Poco::JSON::Object Params;
+		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+		Params.set(uCentralProtocol::ACTIONS, Actions);
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.SubmittedBy = Requester();
+		Cmd.UUID = CMD_UUID;
+		Cmd.Command = uCentralProtocol::RRM;
+		std::ostringstream os;
+		Params.stringify(os);
+		Cmd.Details = os.str();
+		Cmd.RunAt = 0;
+		Cmd.ErrorCode = 0;
+		Cmd.WaitingForFile = 0;
+
+		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::rrm, false, Cmd,
+										   Params, *Request, *Response, timeout, nullptr, this,
+										   Logger_);
+	}
+
+	void RESTAPI_device_commandHandler::Transfer(
+		const std::string &CMD_UUID, uint64_t CMD_RPC,
+		[[maybe_unused]] std::chrono::milliseconds timeout,
+		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
+
+		if(UserInfo_.userinfo.userRole != SecurityObjects::ROOT &&
+			UserInfo_.userinfo.userRole != SecurityObjects::ADMIN) {
+			CallCanceled("RRM", CMD_UUID, CMD_RPC, RESTAPI::Errors::ACCESS_DENIED);
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
+		poco_debug(Logger_, fmt::format("TRANSFER({},{}): TID={} user={} serial={}", CMD_UUID,
+										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+		if(IsDeviceSimulated(SerialNumber_)) {
+			CallCanceled("RRM", CMD_UUID, CMD_RPC, RESTAPI::Errors::SimulatedDeviceNotSupported);
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
+		GWObjects::DeviceTransferRequest	TR;
+		if(!TR.from_json(ParsedBody_)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.SubmittedBy = Requester();
+		Cmd.UUID = CMD_UUID;
+		Cmd.Command = uCentralProtocol::TRANSFER;
+		std::ostringstream os;
+		ParsedBody_->stringify(os);
+		Cmd.Details = os.str();
+		Cmd.RunAt = 0;
+		Cmd.ErrorCode = 0;
+		Cmd.WaitingForFile = 0;
+
+		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::transfer, false, Cmd,
+										   *ParsedBody_, *Request, *Response, timeout, nullptr, this,
+										   Logger_);
+	}
+
+	void RESTAPI_device_commandHandler::CertUpdate(
+		const std::string &CMD_UUID, uint64_t CMD_RPC,
+		[[maybe_unused]] std::chrono::milliseconds timeout,
+		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
+
+		poco_debug(Logger_, fmt::format("CERTUPDATE({},{}): TID={} user={} serial={}", CMD_UUID,
+										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+		if(UserInfo_.userinfo.userRole != SecurityObjects::ROOT &&
+			UserInfo_.userinfo.userRole != SecurityObjects::ADMIN) {
+			CallCanceled("RRM", CMD_UUID, CMD_RPC, RESTAPI::Errors::ACCESS_DENIED);
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
+		if(IsDeviceSimulated(SerialNumber_)) {
+			CallCanceled("RRM", CMD_UUID, CMD_RPC, RESTAPI::Errors::SimulatedDeviceNotSupported);
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
+		GWObjects::DeviceCertificateUpdateRequest	CR;
+		if(!CR.from_json(ParsedBody_)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		GWObjects::DeviceTransferRequest	TR;
+		if(!TR.from_json(ParsedBody_)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.SubmittedBy = Requester();
+		Cmd.UUID = CMD_UUID;
+		Cmd.Command = uCentralProtocol::CERTUPDATE;
+		std::ostringstream os;
+		ParsedBody_->stringify(os);
+		Cmd.Details = os.str();
+		Cmd.RunAt = 0;
+		Cmd.ErrorCode = 0;
+		Cmd.WaitingForFile = 0;
+
+		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::certupdate, false, Cmd,
+										   *ParsedBody_, *Request, *Response, timeout, nullptr, this,
+										   Logger_);
+
+
+	}
+
 } // namespace OpenWifi

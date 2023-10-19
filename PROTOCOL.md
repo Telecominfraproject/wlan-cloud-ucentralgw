@@ -861,16 +861,18 @@ The device should answer:
 
 ##### Kick
 ```json
-{     "action" : "kick" ,
+{     
+      "action" : "kick" ,
       "addr" : <mac if the client that shall be kicked> ,
-      "reson": <number>, (default: 5, https://www.cisco.com/assets/sol/sb/WAP371_Emulators/WAP371_Emulator_v1-0-1-5/help/Apx_ReasonCodes2.html)
+      "reason": <number>, (default: 5, https://www.cisco.com/assets/sol/sb/WAP371_Emulators/WAP371_Emulator_v1-0-1-5/help/Apx_ReasonCodes2.html)
       "ban_time": <number> (seconds, optional)
 }
 ```
 
 ##### Channel Switch Announcement
 ```json
-{   "action" : "channel_switch" ,
+{   
+    "action" : "channel_switch" ,
     "bssid" : <mac of the SSID> , (all other SSIDs on the same radio will perform the same action)
     "channel" : <number> (HT/HW mode will be retained upon issuing the CSA)
 }
@@ -878,7 +880,8 @@ The device should answer:
 
 ##### Change TX-Power
 ```json
-{   "action" : "tx_power" ,
+{   
+    "action" : "tx_power" ,
     "bssid" : <mac of the SSID> , (all other SSIDs on the same radio will perform the same action)
     "level" : <number> (DBm inside the positive number space)
 }
@@ -886,7 +889,8 @@ The device should answer:
 
 ##### Beacon Scan
 ```json
-{   "action" : "beacon_request" ,
+{   
+    "action" : "beacon_request" ,
     "addr" : <mac if the client that shall perform the scan> ,
     "ssid": <string>, (the SSID the client shall scan for on all frequencies),
     "channel": <number> (the channel that shall be scanned)
@@ -895,7 +899,8 @@ The device should answer:
 
 ##### BSS Transition
 ```json
-{   "action" : "bss_transition" ,
+{   
+    "action" : "bss_transition" ,
     "addr" : <mac if the client that shall perform the roam> ,
     "neighbors": [ <string> ], (an array of BSSIDs the client shall consider as roamin candidates)
 }
@@ -903,7 +908,8 @@ The device should answer:
 
 ##### Update neighbours
 ```json
-{   "action" : "neighbors" ,
+{   
+    "action" : "neighbors" ,
     "bssid" : <mac of the SSID> , (the SSID of the specific VAP)
     "neighbors": [ [ <BSS>, <ssid>, <neighbor report> ] ]
 }

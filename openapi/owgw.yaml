@@ -903,6 +903,106 @@ components:
             kafkaClients:
               type: integer
 
+    RRM_Kick:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+            - kick
+        addr:
+          type: string
+          format: mac
+        reason:
+          type: integer
+          default: 5
+        ban_time:
+          type: integer
+          format: int64
+
+    RRM_channel_switch:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+            - channel_switch
+        bssid:
+          type: string
+          format: mac
+        channel:
+          type: integer
+
+    RRM_tx_power:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+            - tx_power
+        bssid:
+          type: string
+          format: mac
+        level:
+          type: integer
+
+    RRM_beacon_request:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+            - beacon_request
+        addr:
+          type: string
+          format: mac
+        ssid:
+          type: string
+        channel:
+          type: integer
+
+    RRM_bss_transition:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+            - bss_transition
+        addr:
+          type: string
+          format: mac
+        neighbors:
+          type: array
+          items:
+            type: string
+            format: mac
+
+    RRM_neighbors:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+            - neighbors
+        bssid:
+          type: string
+          format: mac
+        neighbors:
+          type: array
+          items:
+            type: string
+            format: mac
+
+    RRM_action:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/RRM_Kick'
+        - $ref: '#/components/schemas/RRM_channel_switch'
+        - $ref: '#/components/schemas/RRM_tx_power'
+        - $ref: '#/components/schemas/RRM_beacon_request'
+        - $ref: '#/components/schemas/RRM_bss_transition'
+        - $ref: '#/components/schemas/RRM_neighbors'
+
     #########################################################################################
     ##
     ## These are endpoints that all services in the uCentral stack must provide
@@ -1435,6 +1535,28 @@ components:
         userName:
           type: string
 
+    DeviceTransferRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+          format: uuid
+        server:
+          type: string
+          format: hostname
+        port:
+          type: integer
+          format: int32
+
+    DeviceCertificateUpdateRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+          format: uuid
+        encodedCertificate:
+          type: string
+          format: base64
 
 paths:
   /devices:
@@ -2790,6 +2912,90 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+  /device/{serialNumber}/rrm:
+    post:
+      tags:
+        - Commands
+      summary: Send RRM commands to a device.
+      operationId: sendRRMcommandsForADevice
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Commands to send
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/RRM_action'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/transfer:
+    post:
+      tags:
+        - Commands
+      summary: Transfer a device to a new redirector.
+      operationId: transferDevice
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Transfer details
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeviceTransferRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/certupdate:
+    post:
+      tags:
+        - Commands
+      summary: Update the certificates for a device.
+      operationId: updateCertificates
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Certificate update details
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeviceCertificateUpdateRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
   /ouis:
     get:
       tags:
@@ -3295,8 +3501,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         404:
           $ref: '#/components/responses/NotFound'
-
-
 
   /deviceDashboard:
     get:

@@ -694,4 +694,25 @@ namespace OpenWifi::GWObjects {
 		return false;
 	}
 
+	bool DeviceTransferRequest::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serialNumber", serialNumber);
+			field_from_json(Obj, "server", server);
+			field_from_json(Obj, "port", port);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
+
+	bool DeviceCertificateUpdateRequest::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serialNumber", serialNumber);
+			field_from_json(Obj, "encodedCertificate", encodedCertificate);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
+
 } // namespace OpenWifi::GWObjects

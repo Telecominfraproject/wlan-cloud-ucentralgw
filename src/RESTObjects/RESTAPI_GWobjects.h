@@ -496,4 +496,19 @@ namespace OpenWifi::GWObjects {
 		}
 	}
 
+	struct DeviceTransferRequest {
+		std::string 	serialNumber;
+		std::string 	server;
+		std::uint64_t 	port;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
+	struct DeviceCertificateUpdateRequest {
+		std::string 	serialNumber;
+		std::string 	encodedCertificate;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
 } // namespace OpenWifi::GWObjects

@@ -431,6 +431,8 @@ namespace OpenWifi::RESTAPI::Errors {
     static const struct msg InvalidRadsecSecret { 1190, "Invalid Radsec Secret." };
     static const struct msg InvalidRadiusServer { 1191, "Invalid Radius Server." };
 
+	static const struct msg InvalidRRMAction { 1192, "Invalid RRM Action." };
+
     static const struct msg SimulationDoesNotExist {
         7000, "Simulation Instance ID does not exist."
     };
@@ -561,6 +563,10 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char *CONTENTDISPOSITION = "Content-Disposition";
 	static const char *CONTENTTYPE = "Content-Type";
 
+	static const char *TRANSFER = "transfer";
+	static const char *CERTUPDATE = "certupdate";
+	static const char *RRM = "rrm";
+
 	static const char *REQUIREMENTS = "requirements";
 	static const char *PASSWORDPATTERN = "passwordPattern";
 	static const char *ACCESSPOLICY = "accessPolicy";
@@ -678,6 +684,12 @@ namespace OpenWifi::uCentralProtocol {
 	static const char *RADIUSCOA = "coa";
 	static const char *RADIUSDST = "dst";
 	static const char *IES = "ies";
+
+	static const char *TRANSFER = "transfer";
+	static const char *CERTUPDATE = "certupdate";
+	static const char *RRM = "rrm";
+	static const char *ACTIONS = "actions";
+
 } // namespace OpenWifi::uCentralProtocol
 
 namespace OpenWifi::uCentralProtocol::Events {
@@ -770,6 +782,9 @@ namespace OpenWifi::APCommands {
 		telemetry,
 		ping,
 		script,
+		rrm,
+		certupdate,
+		transfer,
 		unknown
 	};
 
@@ -782,7 +797,10 @@ namespace OpenWifi::APCommands {
 		RESTAPI::Protocol::LEDS,		 RESTAPI::Protocol::TRACE,
 		RESTAPI::Protocol::REQUEST,		 RESTAPI::Protocol::WIFISCAN,
 		RESTAPI::Protocol::EVENTQUEUE,	 RESTAPI::Protocol::TELEMETRY,
-		RESTAPI::Protocol::PING,		 RESTAPI::Protocol::SCRIPT};
+		RESTAPI::Protocol::PING,		 RESTAPI::Protocol::SCRIPT,
+		RESTAPI::Protocol::RRM,		 	 RESTAPI::Protocol::CERTUPDATE,
+		RESTAPI::Protocol::TRANSFER
+	};
 
 	inline const char *to_string(Commands Cmd) { return uCentralAPCommands[(uint8_t)Cmd]; }
 
