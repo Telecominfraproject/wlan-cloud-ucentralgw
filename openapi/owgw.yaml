@@ -1003,6 +1003,14 @@ components:
         - $ref: '#/components/schemas/RRM_bss_transition'
         - $ref: '#/components/schemas/RRM_neighbors'
 
+    RRM_actions:
+      type: object
+      properties:
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RRM_action'
+
     #########################################################################################
     ##
     ## These are endpoints that all services in the uCentral stack must provide
@@ -2929,9 +2937,7 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/RRM_action'
+              $ref: '#/components/schemas/RRM_actions'
       responses:
         200:
           $ref: '#/components/responses/Success'

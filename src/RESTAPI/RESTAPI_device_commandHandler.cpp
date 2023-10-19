@@ -1346,6 +1346,7 @@ namespace OpenWifi {
 		const std::string &CMD_UUID, uint64_t CMD_RPC,
 		[[maybe_unused]] std::chrono::milliseconds timeout,
 		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
+
 		poco_debug(Logger_, fmt::format("RRM({},{}): TID={} user={} serial={}", CMD_UUID,
 										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
@@ -1354,8 +1355,17 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
 		}
 
-		const auto & Actions = *ParsedBody_->getArray("actions");
+		if(UserInfo_.userinfo.userRole != SecurityObjects::ROOT &&
+			UserInfo_.userinfo.userRole != SecurityObjects::ADMIN) {
+			CallCanceled("RRM", CMD_UUID, CMD_RPC, RESTAPI::Errors::ACCESS_DENIED);
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
 
+		if(!ParsedBody_->has("actions") || !ParsedBody_->isArray("actions")) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		const auto &Actions = *ParsedBody_->getArray("actions");
 		//	perform some validation on the commands.
 		for(const auto &action:Actions) {
 			auto ActionDetails = action.extract<Poco::JSON::Object::Ptr>();
