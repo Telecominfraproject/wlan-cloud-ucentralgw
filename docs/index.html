@@ -1946,6 +1946,17 @@ ul.nav-tabs {
     "$ref" : "#/components/schemas/RRM_neighbors"
   } ]
 };
+    defs["RRM_actions"] = {
+  "type" : "object",
+  "properties" : {
+    "actions" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/components/schemas/RRM_action"
+      }
+    }
+  }
+};
     defs["RRM_beacon_request"] = {
   "type" : "object",
   "properties" : {
@@ -16430,7 +16441,7 @@ $(document).ready(function() {
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
  "https://localhost:16001/api/v1/device/{serialNumber}/rrm" \
- -d 'null'
+ -d ''
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-java">
@@ -16459,10 +16470,10 @@ public class CommandsApiExample {
         // Create an instance of the API class
         CommandsApi apiInstance = new CommandsApi();
         String serialNumber = serialNumber_example; // String | 
-        array[RRM_action] rRMAction = ; // array[RRM_action] | 
+        RRMActions rRMActions = ; // RRMActions | 
 
         try {
-            apiInstance.sendRRMcommandsForADevice(serialNumber, rRMAction);
+            apiInstance.sendRRMcommandsForADevice(serialNumber, rRMActions);
         } catch (ApiException e) {
             System.err.println("Exception when calling CommandsApi#sendRRMcommandsForADevice");
             e.printStackTrace();
@@ -16479,10 +16490,10 @@ public class CommandsApiExample {
     public static void main(String[] args) {
         CommandsApi apiInstance = new CommandsApi();
         String serialNumber = serialNumber_example; // String | 
-        array[RRM_action] rRMAction = ; // array[RRM_action] | 
+        RRMActions rRMActions = ; // RRMActions | 
 
         try {
-            apiInstance.sendRRMcommandsForADevice(serialNumber, rRMAction);
+            apiInstance.sendRRMcommandsForADevice(serialNumber, rRMActions);
         } catch (ApiException e) {
             System.err.println("Exception when calling CommandsApi#sendRRMcommandsForADevice");
             e.printStackTrace();
@@ -16508,11 +16519,11 @@ public class CommandsApiExample {
 // Create an instance of the API class
 CommandsApi *apiInstance = [[CommandsApi alloc] init];
 String *serialNumber = serialNumber_example; //  (default to null)
-array[RRM_action] *rRMAction = ; //  (optional)
+RRMActions *rRMActions = ; //  (optional)
 
 // Send RRM commands to a device.
 [apiInstance sendRRMcommandsForADeviceWith:serialNumber
-    rRMAction:rRMAction
+    rRMActions:rRMActions
               completionHandler: ^(NSError* error) {
     if (error) {
         NSLog(@"Error: %@", error);
@@ -16539,7 +16550,7 @@ bearerAuth.accessToken = "YOUR ACCESS TOKEN";
 var api = new UCentralGatewayApi.CommandsApi()
 var serialNumber = serialNumber_example; // {String} 
 var opts = {
-  'rRMAction':  // {array[RRM_action]} 
+  'rRMActions':  // {RRMActions} 
 };
 
 var callback = function(error, data, response) {
@@ -16579,11 +16590,11 @@ namespace Example
             // Create an instance of the API class
             var apiInstance = new CommandsApi();
             var serialNumber = serialNumber_example;  // String |  (default to null)
-            var rRMAction = new array[RRM_action](); // array[RRM_action] |  (optional) 
+            var rRMActions = new RRMActions(); // RRMActions |  (optional) 
 
             try {
                 // Send RRM commands to a device.
-                apiInstance.sendRRMcommandsForADevice(serialNumber, rRMAction);
+                apiInstance.sendRRMcommandsForADevice(serialNumber, rRMActions);
             } catch (Exception e) {
                 Debug.Print("Exception when calling CommandsApi.sendRRMcommandsForADevice: " + e.Message );
             }
@@ -16608,10 +16619,10 @@ OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('',
 // Create an instance of the API class
 $api_instance = new OpenAPITools\Client\Api\CommandsApi();
 $serialNumber = serialNumber_example; // String | 
-$rRMAction = ; // array[RRM_action] | 
+$rRMActions = ; // RRMActions | 
 
 try {
-    $api_instance->sendRRMcommandsForADevice($serialNumber, $rRMAction);
+    $api_instance->sendRRMcommandsForADevice($serialNumber, $rRMActions);
 } catch (Exception $e) {
     echo 'Exception when calling CommandsApi->sendRRMcommandsForADevice: ', $e->getMessage(), PHP_EOL;
 }
@@ -16634,10 +16645,10 @@ $WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
 # Create an instance of the API class
 my $api_instance = WWW::OPenAPIClient::CommandsApi->new();
 my $serialNumber = serialNumber_example; # String | 
-my $rRMAction = [WWW::OPenAPIClient::Object::array[RRM_action]->new()]; # array[RRM_action] | 
+my $rRMActions = WWW::OPenAPIClient::Object::RRMActions->new(); # RRMActions | 
 
 eval {
-    $api_instance->sendRRMcommandsForADevice(serialNumber => $serialNumber, rRMAction => $rRMAction);
+    $api_instance->sendRRMcommandsForADevice(serialNumber => $serialNumber, rRMActions => $rRMActions);
 };
 if ($@) {
     warn "Exception when calling CommandsApi->sendRRMcommandsForADevice: $@\n";
@@ -16662,11 +16673,11 @@ openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
 # Create an instance of the API class
 api_instance = openapi_client.CommandsApi()
 serialNumber = serialNumber_example # String |  (default to null)
-rRMAction =  # array[RRM_action] |  (optional)
+rRMActions =  # RRMActions |  (optional)
 
 try:
     # Send RRM commands to a device.
-    api_instance.send_rr_mcommands_for_a_device(serialNumber, rRMAction=rRMAction)
+    api_instance.send_rr_mcommands_for_a_device(serialNumber, rRMActions=rRMActions)
 except ApiException as e:
     print("Exception when calling CommandsApi->sendRRMcommandsForADevice: %s\n" % e)</code></pre>
                             </div>
@@ -16676,10 +16687,10 @@ except ApiException as e:
 
 pub fn main() {
     let serialNumber = serialNumber_example; // String
-    let rRMAction = ; // array[RRM_action]
+    let rRMActions = ; // RRMActions
 
     let mut context = CommandsApi::Context::default();
-    let result = client.sendRRMcommandsForADevice(serialNumber, rRMAction, &context).wait();
+    let result = client.sendRRMcommandsForADevice(serialNumber, rRMActions, &context).wait();
 
     println!("{:?}", result);
 }
@@ -16729,7 +16740,7 @@ pub fn main() {
                                 <th width="150px">Name</th>
                                 <th>Description</th>
                               </tr>
-                                <tr><td style="width:150px;">rRMAction </td>
+                                <tr><td style="width:150px;">rRMActions </td>
 <td>
 <p class="marked">Commands to send</p>
 <script>
@@ -16739,10 +16750,7 @@ $(document).ready(function() {
   "content" : {
     "application/json" : {
       "schema" : {
-        "type" : "array",
-        "items" : {
-          "$ref" : "#/components/schemas/RRM_action"
-        }
+        "$ref" : "#/components/schemas/RRM_actions"
       }
     }
   }
@@ -16762,12 +16770,12 @@ $(document).ready(function() {
   }
 
   var view = new JSONSchemaView(schema,2,{isBodyParam: true});
-  var result = $('#d2e199_sendRRMcommandsForADevice_rRMAction');
+  var result = $('#d2e199_sendRRMcommandsForADevice_rRMActions');
   result.empty();
   result.append(view.render());
 });
 </script>
-<div id="d2e199_sendRRMcommandsForADevice_rRMAction"></div>
+<div id="d2e199_sendRRMcommandsForADevice_rRMActions"></div>
 </td>
 </tr>
 
