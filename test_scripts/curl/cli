@@ -940,7 +940,8 @@ certupdate() {
 }
 
 rrm_kick() {
-  payload="$(printf '[{ "action": "kick", "addr": "%s", "reason": %s, "ban_time": %s}' "$2" "$3" "$4")"
+  payload="$(printf '{ "actions" : [{ "action": "kick", "addr": "%s", "reason": %s, "ban_time": %s}] }' "$2" "$3" "$4")"
+  echo "$payload"
   curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/rrm" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \

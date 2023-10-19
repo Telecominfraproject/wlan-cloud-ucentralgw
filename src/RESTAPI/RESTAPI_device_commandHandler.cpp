@@ -1398,10 +1398,17 @@ namespace OpenWifi {
 		Cmd.RunAt = 0;
 		Cmd.ErrorCode = 0;
 		Cmd.WaitingForFile = 0;
-
-		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::rrm, false, Cmd,
-										   Params, *Request, *Response, timeout, nullptr, this,
-										   Logger_);
+		Cmd.Status= "completed";
+		if(CommandManager()->FireAndForget(SerialNumber_, uCentralProtocol::RRM, Params)) {
+			StorageService()->AddCommand(SerialNumber_, Cmd,
+										 Storage::CommandExecutionType::COMMAND_COMPLETED);
+			Cmd.Status= "completed";
+			return OK();
+		}
+		Cmd.Status= "failed";	//	should never happen
+		StorageService()->AddCommand(SerialNumber_, Cmd,
+									 Storage::CommandExecutionType::COMMAND_COMPLETED);
+		return BadRequest(RESTAPI::Errors::CouldNotPerformCommand);
 	}
 
 	void RESTAPI_device_commandHandler::Transfer(

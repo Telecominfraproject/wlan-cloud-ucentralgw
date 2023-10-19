@@ -162,6 +162,8 @@ namespace OpenWifi {
 		inline auto CommandTimeout() const { return commandTimeOut_; }
 		inline auto CommandRetry() const { return commandRetry_; }
 
+		bool FireAndForget(const std::string &SerialNumber, const std::string &Method,
+						   const Poco::JSON::Object &Params);
 	  private:
 		mutable std::recursive_mutex LocalMutex_;
 		std::atomic_bool Running_ = false;

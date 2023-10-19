@@ -467,4 +467,16 @@ namespace OpenWifi {
 		poco_warning(Logger(), fmt::format("{}: Failed to send command. ID: {}", UUID, RPC_ID));
 		return nullptr;
 	}
+
+	bool CommandManager::FireAndForget(const std::string &SerialNumber, const std::string &Method, const Poco::JSON::Object &Params) {
+		Poco::JSON::Object CompleteRPC;
+		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
+		CompleteRPC.set(uCentralProtocol::ID, 0);
+		CompleteRPC.set(uCentralProtocol::METHOD, Method);
+		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
+		std::stringstream ToSend;
+		CompleteRPC.stringify(ToSend);
+		poco_debug(Logger(), fmt::format("{}: Fire and forget command {}.", SerialNumber, Method));
+		return AP_WS_Server()->SendFrame(SerialNumber, ToSend.str())>0;
+	}
 } // namespace OpenWifi
