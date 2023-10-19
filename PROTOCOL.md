@@ -775,6 +775,140 @@ The device should answer:
 }
 ```
 
+#### Controller wants the device to replace its certificates
+Controller sends this command to run a predefined script. Extreme care must be taken.
+```json
+{    "jsonrpc" : "2.0" , 
+     "method" : "certupdate" , 
+     "params" : {
+        "serial" : <serial number>,
+        "certificates" : <BASE64 encoded tar file of the cert package from the certificate portal>
+     },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```json
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : <0 or the value of $? from the shell running the command, 255 signifies a timeout>,
+            "txt" : <text describing the error or success>
+      },
+  "id" : <same number as request>
+}
+```
+
+#### Controller wants the device to switch to another controller
+Controller sends this when the device should change the controller it connects to without looking up a new redirector.
+
+```json
+{    "jsonrpc" : "2.0" , 
+     "method" : "transfer" , 
+     "params" : {
+        "serial" : <serial number>,
+        "server" : <controller hostname>,
+        "port" : <controller port number (integer)>,
+     },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```json
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : <0 or the value of $? from the shell running the command, 255 signifies a timeout>,
+            "txt" : <text describing the error or success>
+      },
+  "id" : <same number as request>
+}
+```
+
+### RRM AP device commands
+The following command is used to send RRM commands to an AP. RRM commands are send to an AP, however the 
+controller will not or cannot verify if they have been sent or the action was performed.
+
+```json
+{    "jsonrpc" : "2.0" , 
+     "method" : "rrm" , 
+     "params" : {
+        "serial" : <serial number>,
+        "actions" : [ array of actions. Each possible action is defined next]
+     },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```json
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : <0 or the value of $? from the shell running the command, 255 signifies a timeout>,
+            "txt" : <text describing the error or success>
+      },
+  "id" : <same number as request>
+}
+```
+
+#### RRM Roam action
+
+##### Kick
+```json
+{     "action" : "kick" ,
+      "addr" : <mac if the client that shall be kicked> ,
+      "reson": <number>, (default: 5, https://www.cisco.com/assets/sol/sb/WAP371_Emulators/WAP371_Emulator_v1-0-1-5/help/Apx_ReasonCodes2.html)
+      "ban_time": <number> (seconds, optional)
+}
+```
+
+##### Channel Switch Announcement
+```json
+{   "action" : "channel_switch" ,
+    "bssid" : <mac of the SSID> , (all other SSIDs on the same radio will perform the same action)
+    "channel" : <number> (HT/HW mode will be retained upon issuing the CSA)
+}
+```
+
+##### Change TX-Power
+```json
+{   "action" : "tx_power" ,
+    "bssid" : <mac of the SSID> , (all other SSIDs on the same radio will perform the same action)
+    "level" : <number> (DBm inside the positive number space)
+}
+```
+
+##### Beacon Scan
+```json
+{   "action" : "beacon_request" ,
+    "addr" : <mac if the client that shall perform the scan> ,
+    "ssid": <string>, (the SSID the client shall scan for on all frequencies),
+    "channel": <number> (the channel that shall be scanned)
+}
+```
+
+##### BSS Transition
+```json
+{   "action" : "bss_transition" ,
+    "addr" : <mac if the client that shall perform the roam> ,
+    "neighbors": [ <string> ], (an array of BSSIDs the client shall consider as roamin candidates)
+}
+```
+
+##### Update neighbours
+```json
+{   "action" : "neighbors" ,
+    "bssid" : <mac of the SSID> , (the SSID of the specific VAP)
+    "neighbors": [ [ <BSS>, <ssid>, <neighbor report> ] ]
+}
+```
+
 ### `rtty server`
 More information about the [rtty server](https://github.com/zhaojh329/rtty) can be found here.
 
