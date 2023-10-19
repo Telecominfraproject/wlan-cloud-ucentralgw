@@ -1250,6 +1250,19 @@ ul.nav-tabs {
   },
   "description" : "Describes the capabilities a device can support."
 };
+    defs["DeviceCertificateUpdateRequest"] = {
+  "type" : "object",
+  "properties" : {
+    "serialNumber" : {
+      "type" : "string",
+      "format" : "uuid"
+    },
+    "encodedCertificate" : {
+      "type" : "string",
+      "format" : "base64"
+    }
+  }
+};
     defs["DeviceConfigureRequest"] = {
   "type" : "object",
   "properties" : {
@@ -1512,6 +1525,23 @@ ul.nav-tabs {
     }
   },
   "description" : "Current device status."
+};
+    defs["DeviceTransferRequest"] = {
+  "type" : "object",
+  "properties" : {
+    "serialNumber" : {
+      "type" : "string",
+      "format" : "uuid"
+    },
+    "server" : {
+      "type" : "string",
+      "format" : "hostname"
+    },
+    "port" : {
+      "type" : "integer",
+      "format" : "int32"
+    }
+  }
 };
     defs["DeviceType"] = {
   "type" : "string",
@@ -1899,6 +1929,134 @@ ul.nav-tabs {
   "oneOf" : [ {
     "$ref" : "#/components/schemas/RadiusCoADMParameters"
   } ]
+};
+    defs["RRM_action"] = {
+  "type" : "object",
+  "oneOf" : [ {
+    "$ref" : "#/components/schemas/RRM_Kick"
+  }, {
+    "$ref" : "#/components/schemas/RRM_channel_switch"
+  }, {
+    "$ref" : "#/components/schemas/RRM_tx_power"
+  }, {
+    "$ref" : "#/components/schemas/RRM_beacon_request"
+  }, {
+    "$ref" : "#/components/schemas/RRM_bss_transition"
+  }, {
+    "$ref" : "#/components/schemas/RRM_neighbors"
+  } ]
+};
+    defs["RRM_beacon_request"] = {
+  "type" : "object",
+  "properties" : {
+    "action" : {
+      "type" : "string",
+      "enum" : [ "beacon_request" ]
+    },
+    "addr" : {
+      "type" : "string",
+      "format" : "mac"
+    },
+    "ssid" : {
+      "type" : "string"
+    },
+    "channel" : {
+      "type" : "integer"
+    }
+  }
+};
+    defs["RRM_bss_transition"] = {
+  "type" : "object",
+  "properties" : {
+    "action" : {
+      "type" : "string",
+      "enum" : [ "bss_transition" ]
+    },
+    "addr" : {
+      "type" : "string",
+      "format" : "mac"
+    },
+    "neighbors" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string",
+        "format" : "mac"
+      }
+    }
+  }
+};
+    defs["RRM_channel_switch"] = {
+  "type" : "object",
+  "properties" : {
+    "action" : {
+      "type" : "string",
+      "enum" : [ "channel_switch" ]
+    },
+    "bssid" : {
+      "type" : "string",
+      "format" : "mac"
+    },
+    "channel" : {
+      "type" : "integer"
+    }
+  }
+};
+    defs["RRM_Kick"] = {
+  "type" : "object",
+  "properties" : {
+    "action" : {
+      "type" : "string",
+      "enum" : [ "kick" ]
+    },
+    "addr" : {
+      "type" : "string",
+      "format" : "mac"
+    },
+    "reason" : {
+      "type" : "integer",
+      "default" : 5
+    },
+    "ban_time" : {
+      "type" : "integer",
+      "format" : "int64"
+    }
+  }
+};
+    defs["RRM_neighbors"] = {
+  "type" : "object",
+  "properties" : {
+    "action" : {
+      "type" : "string",
+      "enum" : [ "neighbors" ]
+    },
+    "bssid" : {
+      "type" : "string",
+      "format" : "mac"
+    },
+    "neighbors" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string",
+        "format" : "mac"
+      }
+    }
+  }
+};
+    defs["RRM_tx_power"] = {
+  "type" : "object",
+  "properties" : {
+    "action" : {
+      "type" : "string",
+      "enum" : [ "tx_power" ]
+    },
+    "bssid" : {
+      "type" : "string",
+      "format" : "mac"
+    },
+    "level" : {
+      "type" : "integer"
+    }
+  }
 };
     defs["RadiusCoADMParameters"] = {
   "type" : "object",
@@ -2876,8 +3034,17 @@ ul.nav-tabs {
                     <li data-group="Commands" data-name="rebootDevice" class="">
                       <a href="#api-Commands-rebootDevice">rebootDevice</a>
                     </li>
+                    <li data-group="Commands" data-name="sendRRMcommandsForADevice" class="">
+                      <a href="#api-Commands-sendRRMcommandsForADevice">sendRRMcommandsForADevice</a>
+                    </li>
                     <li data-group="Commands" data-name="traceRequest" class="">
                       <a href="#api-Commands-traceRequest">traceRequest</a>
+                    </li>
+                    <li data-group="Commands" data-name="transferDevice" class="">
+                      <a href="#api-Commands-transferDevice">transferDevice</a>
+                    </li>
+                    <li data-group="Commands" data-name="updateCertificates" class="">
+                      <a href="#api-Commands-updateCertificates">updateCertificates</a>
                     </li>
                     <li data-group="Commands" data-name="updateConfigurationForADevice" class="">
                       <a href="#api-Commands-updateConfigurationForADevice">updateConfigurationForADevice</a>
@@ -16225,6 +16392,459 @@ $(document).ready(function() {
                         </article>
                       </div>
                       <hr>
+                    <div id="api-Commands-sendRRMcommandsForADevice">
+                      <article id="api-Commands-sendRRMcommandsForADevice-0" data-group="User" data-name="sendRRMcommandsForADevice" data-version="0">
+                        <div class="pull-left">
+                          <h1>sendRRMcommandsForADevice</h1>
+                          <p>Send RRM commands to a device.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/device/{serialNumber}/rrm</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Commands-sendRRMcommandsForADevice-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Commands-sendRRMcommandsForADevice-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Commands-sendRRMcommandsForADevice-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X POST \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Content-Type: application/json" \
+ "https://localhost:16001/api/v1/device/{serialNumber}/rrm" \
+ -d 'null'
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.CommandsApi;
+
+import java.io.File;
+import java.util.*;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        array[RRM_action] rRMAction = ; // array[RRM_action] | 
+
+        try {
+            apiInstance.sendRRMcommandsForADevice(serialNumber, rRMAction);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#sendRRMcommandsForADevice");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.CommandsApi;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        array[RRM_action] rRMAction = ; // array[RRM_action] | 
+
+        try {
+            apiInstance.sendRRMcommandsForADevice(serialNumber, rRMAction);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#sendRRMcommandsForADevice");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+CommandsApi *apiInstance = [[CommandsApi alloc] init];
+String *serialNumber = serialNumber_example; //  (default to null)
+array[RRM_action] *rRMAction = ; //  (optional)
+
+// Send RRM commands to a device.
+[apiInstance sendRRMcommandsForADeviceWith:serialNumber
+    rRMAction:rRMAction
+              completionHandler: ^(NSError* error) {
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.CommandsApi()
+var serialNumber = serialNumber_example; // {String} 
+var opts = {
+  'rRMAction':  // {array[RRM_action]} 
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.sendRRMcommandsForADevice(serialNumber, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class sendRRMcommandsForADeviceExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new CommandsApi();
+            var serialNumber = serialNumber_example;  // String |  (default to null)
+            var rRMAction = new array[RRM_action](); // array[RRM_action] |  (optional) 
+
+            try {
+                // Send RRM commands to a device.
+                apiInstance.sendRRMcommandsForADevice(serialNumber, rRMAction);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling CommandsApi.sendRRMcommandsForADevice: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\CommandsApi();
+$serialNumber = serialNumber_example; // String | 
+$rRMAction = ; // array[RRM_action] | 
+
+try {
+    $api_instance->sendRRMcommandsForADevice($serialNumber, $rRMAction);
+} catch (Exception $e) {
+    echo 'Exception when calling CommandsApi->sendRRMcommandsForADevice: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::CommandsApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::CommandsApi->new();
+my $serialNumber = serialNumber_example; # String | 
+my $rRMAction = [WWW::OPenAPIClient::Object::array[RRM_action]->new()]; # array[RRM_action] | 
+
+eval {
+    $api_instance->sendRRMcommandsForADevice(serialNumber => $serialNumber, rRMAction => $rRMAction);
+};
+if ($@) {
+    warn "Exception when calling CommandsApi->sendRRMcommandsForADevice: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.CommandsApi()
+serialNumber = serialNumber_example # String |  (default to null)
+rRMAction =  # array[RRM_action] |  (optional)
+
+try:
+    # Send RRM commands to a device.
+    api_instance.send_rr_mcommands_for_a_device(serialNumber, rRMAction=rRMAction)
+except ApiException as e:
+    print("Exception when calling CommandsApi->sendRRMcommandsForADevice: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-sendRRMcommandsForADevice-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate CommandsApi;
+
+pub fn main() {
+    let serialNumber = serialNumber_example; // String
+    let rRMAction = ; // array[RRM_action]
+
+    let mut context = CommandsApi::Context::default();
+    let result = client.sendRRMcommandsForADevice(serialNumber, rRMAction, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">serialNumber*</td>
+<td>
+
+
+    <div id="d2e199_sendRRMcommandsForADevice_serialNumber">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">rRMAction </td>
+<td>
+<p class="marked">Commands to send</p>
+<script>
+$(document).ready(function() {
+  var schemaWrapper = {
+  "description" : "Commands to send",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/components/schemas/RRM_action"
+        }
+      }
+    }
+  }
+};
+
+  var schema = findNode('schema',schemaWrapper).schema;
+  if (!schema) {
+    schema = schemaWrapper.schema;
+  }
+  if (schema.$ref != null) {
+    schema = defsParser.$refs.get(schema.$ref);
+  } else {
+    schemaWrapper.definitions = Object.assign({}, defs);
+    $RefParser.dereference(schemaWrapper).catch(function(err) {
+      console.log(err);
+    });
+  }
+
+  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+  var result = $('#d2e199_sendRRMcommandsForADevice_rRMAction');
+  result.empty();
+  result.append(view.render());
+});
+</script>
+<div id="d2e199_sendRRMcommandsForADevice_rRMAction"></div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Commands-sendRRMcommandsForADevice-title-200"></h3>
+                            <p id="examples-Commands-sendRRMcommandsForADevice-description-200" class="marked"></p>
+                            <script>
+                              var responseCommands200_description = ``;
+                              var responseCommands200_description_break = responseCommands200_description.indexOf('\n');
+                              if (responseCommands200_description_break == -1) {
+                                $("#examples-Commands-sendRRMcommandsForADevice-title-200").text("Status: 200 - " + responseCommands200_description);
+                              } else {
+                                $("#examples-Commands-sendRRMcommandsForADevice-title-200").text("Status: 200 - " + responseCommands200_description.substring(0, responseCommands200_description_break));
+                                $("#examples-Commands-sendRRMcommandsForADevice-description-200").html(responseCommands200_description.substring(responseCommands200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-sendRRMcommandsForADevice-200" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-sendRRMcommandsForADevice-200-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-sendRRMcommandsForADevice-title-403"></h3>
+                            <p id="examples-Commands-sendRRMcommandsForADevice-description-403" class="marked"></p>
+                            <script>
+                              var responseCommands403_description = ``;
+                              var responseCommands403_description_break = responseCommands403_description.indexOf('\n');
+                              if (responseCommands403_description_break == -1) {
+                                $("#examples-Commands-sendRRMcommandsForADevice-title-403").text("Status: 403 - " + responseCommands403_description);
+                              } else {
+                                $("#examples-Commands-sendRRMcommandsForADevice-title-403").text("Status: 403 - " + responseCommands403_description.substring(0, responseCommands403_description_break));
+                                $("#examples-Commands-sendRRMcommandsForADevice-description-403").html(responseCommands403_description.substring(responseCommands403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-sendRRMcommandsForADevice-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-sendRRMcommandsForADevice-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-sendRRMcommandsForADevice-title-404"></h3>
+                            <p id="examples-Commands-sendRRMcommandsForADevice-description-404" class="marked"></p>
+                            <script>
+                              var responseCommands404_description = ``;
+                              var responseCommands404_description_break = responseCommands404_description.indexOf('\n');
+                              if (responseCommands404_description_break == -1) {
+                                $("#examples-Commands-sendRRMcommandsForADevice-title-404").text("Status: 404 - " + responseCommands404_description);
+                              } else {
+                                $("#examples-Commands-sendRRMcommandsForADevice-title-404").text("Status: 404 - " + responseCommands404_description.substring(0, responseCommands404_description_break));
+                                $("#examples-Commands-sendRRMcommandsForADevice-description-404").html(responseCommands404_description.substring(responseCommands404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-sendRRMcommandsForADevice-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-sendRRMcommandsForADevice-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
                     <div id="api-Commands-traceRequest">
                       <article id="api-Commands-traceRequest-0" data-group="User" data-name="traceRequest" data-version="0">
                         <div class="pull-left">
@@ -16678,6 +17298,919 @@ $(document).ready(function() {
 
 
                             <div class="tab-content" id="responses-Commands-traceRequest-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Commands-transferDevice">
+                      <article id="api-Commands-transferDevice-0" data-group="User" data-name="transferDevice" data-version="0">
+                        <div class="pull-left">
+                          <h1>transferDevice</h1>
+                          <p>Transfer a device to a new redirector.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/device/{serialNumber}/transfer</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Commands-transferDevice-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Commands-transferDevice-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Commands-transferDevice-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Commands-transferDevice-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Commands-transferDevice-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Commands-transferDevice-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Commands-transferDevice-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Commands-transferDevice-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Commands-transferDevice-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Commands-transferDevice-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Commands-transferDevice-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Commands-transferDevice-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Commands-transferDevice-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X POST \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Content-Type: application/json" \
+ "https://localhost:16001/api/v1/device/{serialNumber}/transfer" \
+ -d '{
+  &quot;server&quot; : &quot;server&quot;,
+  &quot;serialNumber&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
+  &quot;port&quot; : 0
+}'
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Commands-transferDevice-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.CommandsApi;
+
+import java.io.File;
+import java.util.*;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        array[DeviceTransferRequest] deviceTransferRequest = ; // array[DeviceTransferRequest] | 
+
+        try {
+            apiInstance.transferDevice(serialNumber, deviceTransferRequest);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#transferDevice");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Commands-transferDevice-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.CommandsApi;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        array[DeviceTransferRequest] deviceTransferRequest = ; // array[DeviceTransferRequest] | 
+
+        try {
+            apiInstance.transferDevice(serialNumber, deviceTransferRequest);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#transferDevice");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Commands-transferDevice-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Commands-transferDevice-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+CommandsApi *apiInstance = [[CommandsApi alloc] init];
+String *serialNumber = serialNumber_example; //  (default to null)
+array[DeviceTransferRequest] *deviceTransferRequest = ; //  (optional)
+
+// Transfer a device to a new redirector.
+[apiInstance transferDeviceWith:serialNumber
+    deviceTransferRequest:deviceTransferRequest
+              completionHandler: ^(NSError* error) {
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-transferDevice-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.CommandsApi()
+var serialNumber = serialNumber_example; // {String} 
+var opts = {
+  'deviceTransferRequest':  // {array[DeviceTransferRequest]} 
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.transferDevice(serialNumber, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Commands-transferDevice-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Commands-transferDevice-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class transferDeviceExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new CommandsApi();
+            var serialNumber = serialNumber_example;  // String |  (default to null)
+            var deviceTransferRequest = new array[DeviceTransferRequest](); // array[DeviceTransferRequest] |  (optional) 
+
+            try {
+                // Transfer a device to a new redirector.
+                apiInstance.transferDevice(serialNumber, deviceTransferRequest);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling CommandsApi.transferDevice: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-transferDevice-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\CommandsApi();
+$serialNumber = serialNumber_example; // String | 
+$deviceTransferRequest = ; // array[DeviceTransferRequest] | 
+
+try {
+    $api_instance->transferDevice($serialNumber, $deviceTransferRequest);
+} catch (Exception $e) {
+    echo 'Exception when calling CommandsApi->transferDevice: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-transferDevice-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::CommandsApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::CommandsApi->new();
+my $serialNumber = serialNumber_example; # String | 
+my $deviceTransferRequest = [WWW::OPenAPIClient::Object::array[DeviceTransferRequest]->new()]; # array[DeviceTransferRequest] | 
+
+eval {
+    $api_instance->transferDevice(serialNumber => $serialNumber, deviceTransferRequest => $deviceTransferRequest);
+};
+if ($@) {
+    warn "Exception when calling CommandsApi->transferDevice: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-transferDevice-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.CommandsApi()
+serialNumber = serialNumber_example # String |  (default to null)
+deviceTransferRequest =  # array[DeviceTransferRequest] |  (optional)
+
+try:
+    # Transfer a device to a new redirector.
+    api_instance.transfer_device(serialNumber, deviceTransferRequest=deviceTransferRequest)
+except ApiException as e:
+    print("Exception when calling CommandsApi->transferDevice: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-transferDevice-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate CommandsApi;
+
+pub fn main() {
+    let serialNumber = serialNumber_example; // String
+    let deviceTransferRequest = ; // array[DeviceTransferRequest]
+
+    let mut context = CommandsApi::Context::default();
+    let result = client.transferDevice(serialNumber, deviceTransferRequest, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">serialNumber*</td>
+<td>
+
+
+    <div id="d2e199_transferDevice_serialNumber">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">deviceTransferRequest </td>
+<td>
+<p class="marked">Transfer details</p>
+<script>
+$(document).ready(function() {
+  var schemaWrapper = {
+  "description" : "Transfer details",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/components/schemas/DeviceTransferRequest"
+        }
+      }
+    }
+  }
+};
+
+  var schema = findNode('schema',schemaWrapper).schema;
+  if (!schema) {
+    schema = schemaWrapper.schema;
+  }
+  if (schema.$ref != null) {
+    schema = defsParser.$refs.get(schema.$ref);
+  } else {
+    schemaWrapper.definitions = Object.assign({}, defs);
+    $RefParser.dereference(schemaWrapper).catch(function(err) {
+      console.log(err);
+    });
+  }
+
+  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+  var result = $('#d2e199_transferDevice_deviceTransferRequest');
+  result.empty();
+  result.append(view.render());
+});
+</script>
+<div id="d2e199_transferDevice_deviceTransferRequest"></div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Commands-transferDevice-title-200"></h3>
+                            <p id="examples-Commands-transferDevice-description-200" class="marked"></p>
+                            <script>
+                              var responseCommands200_description = ``;
+                              var responseCommands200_description_break = responseCommands200_description.indexOf('\n');
+                              if (responseCommands200_description_break == -1) {
+                                $("#examples-Commands-transferDevice-title-200").text("Status: 200 - " + responseCommands200_description);
+                              } else {
+                                $("#examples-Commands-transferDevice-title-200").text("Status: 200 - " + responseCommands200_description.substring(0, responseCommands200_description_break));
+                                $("#examples-Commands-transferDevice-description-200").html(responseCommands200_description.substring(responseCommands200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-transferDevice-200" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-transferDevice-200-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-transferDevice-title-403"></h3>
+                            <p id="examples-Commands-transferDevice-description-403" class="marked"></p>
+                            <script>
+                              var responseCommands403_description = ``;
+                              var responseCommands403_description_break = responseCommands403_description.indexOf('\n');
+                              if (responseCommands403_description_break == -1) {
+                                $("#examples-Commands-transferDevice-title-403").text("Status: 403 - " + responseCommands403_description);
+                              } else {
+                                $("#examples-Commands-transferDevice-title-403").text("Status: 403 - " + responseCommands403_description.substring(0, responseCommands403_description_break));
+                                $("#examples-Commands-transferDevice-description-403").html(responseCommands403_description.substring(responseCommands403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-transferDevice-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-transferDevice-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-transferDevice-title-404"></h3>
+                            <p id="examples-Commands-transferDevice-description-404" class="marked"></p>
+                            <script>
+                              var responseCommands404_description = ``;
+                              var responseCommands404_description_break = responseCommands404_description.indexOf('\n');
+                              if (responseCommands404_description_break == -1) {
+                                $("#examples-Commands-transferDevice-title-404").text("Status: 404 - " + responseCommands404_description);
+                              } else {
+                                $("#examples-Commands-transferDevice-title-404").text("Status: 404 - " + responseCommands404_description.substring(0, responseCommands404_description_break));
+                                $("#examples-Commands-transferDevice-description-404").html(responseCommands404_description.substring(responseCommands404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-transferDevice-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-transferDevice-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Commands-updateCertificates">
+                      <article id="api-Commands-updateCertificates-0" data-group="User" data-name="updateCertificates" data-version="0">
+                        <div class="pull-left">
+                          <h1>updateCertificates</h1>
+                          <p>Update the certificates for a device.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/device/{serialNumber}/certupdate</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Commands-updateCertificates-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Commands-updateCertificates-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Commands-updateCertificates-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Commands-updateCertificates-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Commands-updateCertificates-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Commands-updateCertificates-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Commands-updateCertificates-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Commands-updateCertificates-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Commands-updateCertificates-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Commands-updateCertificates-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Commands-updateCertificates-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Commands-updateCertificates-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Commands-updateCertificates-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X POST \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Content-Type: application/json" \
+ "https://localhost:16001/api/v1/device/{serialNumber}/certupdate" \
+ -d '{
+  &quot;encodedCertificate&quot; : &quot;encodedCertificate&quot;,
+  &quot;serialNumber&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;
+}'
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Commands-updateCertificates-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.CommandsApi;
+
+import java.io.File;
+import java.util.*;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        array[DeviceCertificateUpdateRequest] deviceCertificateUpdateRequest = ; // array[DeviceCertificateUpdateRequest] | 
+
+        try {
+            apiInstance.updateCertificates(serialNumber, deviceCertificateUpdateRequest);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#updateCertificates");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Commands-updateCertificates-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.CommandsApi;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        array[DeviceCertificateUpdateRequest] deviceCertificateUpdateRequest = ; // array[DeviceCertificateUpdateRequest] | 
+
+        try {
+            apiInstance.updateCertificates(serialNumber, deviceCertificateUpdateRequest);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#updateCertificates");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Commands-updateCertificates-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Commands-updateCertificates-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+CommandsApi *apiInstance = [[CommandsApi alloc] init];
+String *serialNumber = serialNumber_example; //  (default to null)
+array[DeviceCertificateUpdateRequest] *deviceCertificateUpdateRequest = ; //  (optional)
+
+// Update the certificates for a device.
+[apiInstance updateCertificatesWith:serialNumber
+    deviceCertificateUpdateRequest:deviceCertificateUpdateRequest
+              completionHandler: ^(NSError* error) {
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-updateCertificates-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.CommandsApi()
+var serialNumber = serialNumber_example; // {String} 
+var opts = {
+  'deviceCertificateUpdateRequest':  // {array[DeviceCertificateUpdateRequest]} 
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.updateCertificates(serialNumber, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Commands-updateCertificates-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Commands-updateCertificates-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class updateCertificatesExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new CommandsApi();
+            var serialNumber = serialNumber_example;  // String |  (default to null)
+            var deviceCertificateUpdateRequest = new array[DeviceCertificateUpdateRequest](); // array[DeviceCertificateUpdateRequest] |  (optional) 
+
+            try {
+                // Update the certificates for a device.
+                apiInstance.updateCertificates(serialNumber, deviceCertificateUpdateRequest);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling CommandsApi.updateCertificates: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-updateCertificates-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\CommandsApi();
+$serialNumber = serialNumber_example; // String | 
+$deviceCertificateUpdateRequest = ; // array[DeviceCertificateUpdateRequest] | 
+
+try {
+    $api_instance->updateCertificates($serialNumber, $deviceCertificateUpdateRequest);
+} catch (Exception $e) {
+    echo 'Exception when calling CommandsApi->updateCertificates: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-updateCertificates-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::CommandsApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::CommandsApi->new();
+my $serialNumber = serialNumber_example; # String | 
+my $deviceCertificateUpdateRequest = [WWW::OPenAPIClient::Object::array[DeviceCertificateUpdateRequest]->new()]; # array[DeviceCertificateUpdateRequest] | 
+
+eval {
+    $api_instance->updateCertificates(serialNumber => $serialNumber, deviceCertificateUpdateRequest => $deviceCertificateUpdateRequest);
+};
+if ($@) {
+    warn "Exception when calling CommandsApi->updateCertificates: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-updateCertificates-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.CommandsApi()
+serialNumber = serialNumber_example # String |  (default to null)
+deviceCertificateUpdateRequest =  # array[DeviceCertificateUpdateRequest] |  (optional)
+
+try:
+    # Update the certificates for a device.
+    api_instance.update_certificates(serialNumber, deviceCertificateUpdateRequest=deviceCertificateUpdateRequest)
+except ApiException as e:
+    print("Exception when calling CommandsApi->updateCertificates: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-updateCertificates-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate CommandsApi;
+
+pub fn main() {
+    let serialNumber = serialNumber_example; // String
+    let deviceCertificateUpdateRequest = ; // array[DeviceCertificateUpdateRequest]
+
+    let mut context = CommandsApi::Context::default();
+    let result = client.updateCertificates(serialNumber, deviceCertificateUpdateRequest, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">serialNumber*</td>
+<td>
+
+
+    <div id="d2e199_updateCertificates_serialNumber">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">deviceCertificateUpdateRequest </td>
+<td>
+<p class="marked">Certificate update details</p>
+<script>
+$(document).ready(function() {
+  var schemaWrapper = {
+  "description" : "Certificate update details",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/components/schemas/DeviceCertificateUpdateRequest"
+        }
+      }
+    }
+  }
+};
+
+  var schema = findNode('schema',schemaWrapper).schema;
+  if (!schema) {
+    schema = schemaWrapper.schema;
+  }
+  if (schema.$ref != null) {
+    schema = defsParser.$refs.get(schema.$ref);
+  } else {
+    schemaWrapper.definitions = Object.assign({}, defs);
+    $RefParser.dereference(schemaWrapper).catch(function(err) {
+      console.log(err);
+    });
+  }
+
+  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+  var result = $('#d2e199_updateCertificates_deviceCertificateUpdateRequest');
+  result.empty();
+  result.append(view.render());
+});
+</script>
+<div id="d2e199_updateCertificates_deviceCertificateUpdateRequest"></div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Commands-updateCertificates-title-200"></h3>
+                            <p id="examples-Commands-updateCertificates-description-200" class="marked"></p>
+                            <script>
+                              var responseCommands200_description = ``;
+                              var responseCommands200_description_break = responseCommands200_description.indexOf('\n');
+                              if (responseCommands200_description_break == -1) {
+                                $("#examples-Commands-updateCertificates-title-200").text("Status: 200 - " + responseCommands200_description);
+                              } else {
+                                $("#examples-Commands-updateCertificates-title-200").text("Status: 200 - " + responseCommands200_description.substring(0, responseCommands200_description_break));
+                                $("#examples-Commands-updateCertificates-description-200").html(responseCommands200_description.substring(responseCommands200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-updateCertificates-200" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-updateCertificates-200-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-updateCertificates-title-403"></h3>
+                            <p id="examples-Commands-updateCertificates-description-403" class="marked"></p>
+                            <script>
+                              var responseCommands403_description = ``;
+                              var responseCommands403_description_break = responseCommands403_description.indexOf('\n');
+                              if (responseCommands403_description_break == -1) {
+                                $("#examples-Commands-updateCertificates-title-403").text("Status: 403 - " + responseCommands403_description);
+                              } else {
+                                $("#examples-Commands-updateCertificates-title-403").text("Status: 403 - " + responseCommands403_description.substring(0, responseCommands403_description_break));
+                                $("#examples-Commands-updateCertificates-description-403").html(responseCommands403_description.substring(responseCommands403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-updateCertificates-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-updateCertificates-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-updateCertificates-title-404"></h3>
+                            <p id="examples-Commands-updateCertificates-description-404" class="marked"></p>
+                            <script>
+                              var responseCommands404_description = ``;
+                              var responseCommands404_description_break = responseCommands404_description.indexOf('\n');
+                              if (responseCommands404_description_break == -1) {
+                                $("#examples-Commands-updateCertificates-title-404").text("Status: 404 - " + responseCommands404_description);
+                              } else {
+                                $("#examples-Commands-updateCertificates-title-404").text("Status: 404 - " + responseCommands404_description.substring(0, responseCommands404_description_break));
+                                $("#examples-Commands-updateCertificates-description-404").html(responseCommands404_description.substring(responseCommands404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-updateCertificates-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-updateCertificates-404-wrapper" style='margin-bottom: 10px;'>
                             </div>
                         </article>
                       </div>
