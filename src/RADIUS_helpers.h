@@ -1021,7 +1021,7 @@ namespace OpenWifi::RADIUS {
 			auto digest = H.digest();
 			int p = 0;
 			for (const auto &i : digest)
-				P_.attributes[1 + 1 + p++] = i;
+				P_.attributes[8 + 1 + 1 + p++] = i;
 		}
 
 		inline void AddAttribute(unsigned char attr, uint8_t len, const unsigned char *data) {
