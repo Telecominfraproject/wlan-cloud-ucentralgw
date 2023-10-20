@@ -434,11 +434,11 @@ namespace OpenWifi::RADIUS {
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == RADIUS::Attributes::PROXY_STATE) {
 					std::string Attr33;
-					// format is serial:IP:port:interface
+					// format is statis:server name
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len);
 					auto Parts = Poco::StringTokenizer(Attr33, ":");
-					if(Parts.count() == 2) {
+					if(Parts.count() == 2 && Parts[0] == "status") {
 						ReplySource = Parts[1];
 						return true;
 					}
@@ -1017,7 +1017,6 @@ namespace OpenWifi::RADIUS {
 						 MessageAuthenticator);
             // int PktLen = 1 + 1 + 2 + 16 + 1 + 1 + 16 ;
 			int PktLen = 1 + 1 + 2 + 16 + AttributesLen_;
-			std::cout << "Atributes len: " << AttributesLen_ << std::endl;
 			P_.rawlen = htons(PktLen);
 
 			Poco::HMACEngine<Poco::MD5Engine> H(Secret_);
