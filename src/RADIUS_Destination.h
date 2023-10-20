@@ -120,35 +120,35 @@ namespace OpenWifi {
 					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						if (!SerialNumber.empty()) {
-							poco_trace(Logger_,
+							poco_debug(Logger_,
 									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
 																		 NumberOfReceivedBytes);
 						} else {
-							poco_trace(Logger_, "AUTH packet dropped.");
+							poco_debug(Logger_, "AUTH packet dropped.");
 						}
 					} else if (P.IsAccounting()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						if (!SerialNumber.empty()) {
-							poco_trace(Logger_,
+							poco_debug(Logger_,
 									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAccountingData(SerialNumber, Buffer,
 																	 NumberOfReceivedBytes);
 						} else {
-							poco_trace(Logger_, "ACCT packet dropped.");
+							poco_debug(Logger_, "ACCT packet dropped.");
 						}
 					} else if (P.IsAuthority()) {
 						auto SerialNumber = P.ExtractSerialNumberTIP();
 						if (!SerialNumber.empty()) {
-							poco_trace(Logger_,
+							poco_debug(Logger_,
 									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusCoAData(SerialNumber, Buffer,
 															  NumberOfReceivedBytes);
 						} else {
-							poco_trace(Logger_, "CoA/DM packet dropped.");
+							poco_debug(Logger_, "CoA/DM packet dropped.");
 						}
 					} else {
 						poco_warning(Logger_,
