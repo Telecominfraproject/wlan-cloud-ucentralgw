@@ -125,12 +125,12 @@ namespace OpenWifi {
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
 																		 NumberOfReceivedBytes);
-						}  /* else if(P.IsStatusMessageReply()) {
+						} else if(P.IsStatusMessageReply()) {
 							DBGLINE
 							poco_debug(Logger_,
 									   fmt::format("{}: Keepalive message received.", SerialNumber));
 							DBGLINE
-						} */ else {
+						} else {
 							poco_debug(Logger_, "AUTH packet dropped.");
 						}
 					} else if (P.IsAccounting()) {
