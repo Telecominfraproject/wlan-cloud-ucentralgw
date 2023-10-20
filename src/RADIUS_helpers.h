@@ -429,6 +429,20 @@ namespace OpenWifi::RADIUS {
 					P_.code == RADIUS::CoA_ACK || P_.code == RADIUS::CoA_NAK);
 		}
 
+		inline bool IsStatusMessageReply() {
+			std::string Result;
+			for (const auto &attribute : Attrs_) {
+				if (attribute.type == RADIUS::Attributes::PROXY_STATE) {
+					std::string Attr33;
+					// format is serial:IP:port:interface
+					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],
+								  attribute.len);
+					return Attr33 == "status";
+				}
+			}
+			return false;
+
+		}
 		void Log(std::ostream &os) {
 			uint16_t p = 0;
 
@@ -992,9 +1006,10 @@ namespace OpenWifi::RADIUS {
 			P_.identifier = std::rand() & 0x00ff;
 			MakeRadiusAuthenticator(P_.authenticator);
 			unsigned char MessageAuthenticator[16]{0};
+			AddAttribute(RADIUS::Attributes::PROXY_STATE, 6, (const unsigned char *)"status" );
 			AddAttribute(RADIUS::Attributes::MESSAGE_AUTHENTICATOR, sizeof(MessageAuthenticator),
 						 MessageAuthenticator);
-            int PktLen = 1 + 1 + 2 + 16 + 1 + 1 + 16;
+            int PktLen = 1 + 1 + 2 + 16 + 1 + 1 + 16 + 6;
 			P_.rawlen = htons(PktLen);
 
 			Poco::HMACEngine<Poco::MD5Engine> H(Secret_);

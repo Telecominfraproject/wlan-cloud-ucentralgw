@@ -73,9 +73,9 @@ namespace OpenWifi {
 						}
 					}
 				} else if ((Utils::Now() - LastKeepAlive) > Pool_.radsecKeepAlive) {
-					RADIUS::RadiusOutputPacket P(Pool_.acctConfig.servers[ServerIndex_].radsecSecret);
+					RADIUS::RadiusOutputPacket P(Pool_.authConfig.servers[ServerIndex_].radsecSecret);
 					P.MakeStatusMessage();
-					poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Pool_.acctConfig.servers[ServerIndex_].name));
+					poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Pool_.authConfig.servers[ServerIndex_].name));
 					Socket_->sendBytes(P.Data(), P.Len());
 					LastKeepAlive = Utils::Now();
 				}
@@ -89,14 +89,14 @@ namespace OpenWifi {
 				if (Connected_) {
 					RADIUS::RadiusPacket P(buffer, length);
 					int sent_bytes;
-					if (P.VerifyMessageAuthenticator(Pool_.acctConfig.servers[ServerIndex_].radsecSecret)) {
+					if (P.VerifyMessageAuthenticator(Pool_.authConfig.servers[ServerIndex_].radsecSecret)) {
 						poco_trace(Logger_, fmt::format("{}: {} Sending {} bytes", serial_number,
 														P.PacketType(), length));
 						sent_bytes = Socket_->sendBytes(buffer, length);
 					} else {
 						poco_trace(Logger_, fmt::format("{}: {} Sending {} bytes", serial_number,
 														P.PacketType(), length));
-						P.ComputeMessageAuthenticator(Pool_.acctConfig.servers[ServerIndex_].radsecSecret);
+						P.ComputeMessageAuthenticator(Pool_.authConfig.servers[ServerIndex_].radsecSecret);
 						sent_bytes = Socket_->sendBytes(P.Buffer(), length);
 					}
 					return (sent_bytes == length);
@@ -125,6 +125,10 @@ namespace OpenWifi {
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
 																		 NumberOfReceivedBytes);
+						} else if(P.IsStatusMessageReply()) {
+							poco_debug(Logger_,
+									   fmt::format("{}: Keepalive message received.", SerialNumber));
+
 						} else {
 							poco_debug(Logger_, "AUTH packet dropped.");
 						}
@@ -354,7 +358,7 @@ namespace OpenWifi {
 						Socket_->connect(Destination, Poco::Timespan(20, 0));
 						Socket_->completeHandshake();
 
-						if (!Pool_.acctConfig.servers[ServerIndex_].allowSelfSigned) {
+						if (!Pool_.authConfig.servers[ServerIndex_].allowSelfSigned) {
 							Socket_->verifyPeerCertificate();
 						}
 
@@ -444,7 +448,7 @@ namespace OpenWifi {
 						Socket_->connect(Destination, Poco::Timespan(100, 0));
 						Socket_->completeHandshake();
 
-						if (!Pool_.acctConfig.servers[ServerIndex_].allowSelfSigned) {
+						if (!Pool_.authConfig.servers[ServerIndex_].allowSelfSigned) {
 							Socket_->verifyPeerCertificate();
 						}
 
