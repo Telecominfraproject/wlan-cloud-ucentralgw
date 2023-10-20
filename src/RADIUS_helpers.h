@@ -429,17 +429,20 @@ namespace OpenWifi::RADIUS {
 					P_.code == RADIUS::CoA_ACK || P_.code == RADIUS::CoA_NAK);
 		}
 
-		inline bool IsStatusMessageReply() {
+		inline bool IsStatusMessageReply(std::string &ReplySource) {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == RADIUS::Attributes::PROXY_STATE) {
-					DBGLINE
 					std::string Attr33;
 					// format is serial:IP:port:interface
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len);
-					DBGLINE
-					return Attr33 == "status";
+					auto Parts = Poco::StringTokenizer(Attr33, ":");
+					if(Parts.count() == 2) {
+						ReplySource = Parts[1];
+						return true;
+					}
+					return false;
 				}
 			}
 			DBGLINE
@@ -1003,12 +1006,13 @@ namespace OpenWifi::RADIUS {
 	  public:
 		explicit RadiusOutputPacket(const std::string &Secret) : Secret_(Secret) {}
 
-		inline void MakeStatusMessage() {
+		inline void MakeStatusMessage(const std::string &Source) {
 			P_.code = RADIUS::Status_Server;
 			P_.identifier = std::rand() & 0x00ff;
 			MakeRadiusAuthenticator(P_.authenticator);
 			unsigned char MessageAuthenticator[16]{0};
-			AddAttribute(RADIUS::Attributes::PROXY_STATE, 6, (const unsigned char *)"status" );
+			std::string FullSource = "status:" + Source;
+			AddAttribute(RADIUS::Attributes::PROXY_STATE, FullSource.size(), (const unsigned char *)FullSource.c_str());
 			AddAttribute(RADIUS::Attributes::MESSAGE_AUTHENTICATOR, sizeof(MessageAuthenticator),
 						 MessageAuthenticator);
             // int PktLen = 1 + 1 + 2 + 16 + 1 + 1 + 16 ;
@@ -1019,9 +1023,9 @@ namespace OpenWifi::RADIUS {
 			Poco::HMACEngine<Poco::MD5Engine> H(Secret_);
 			H.update((const unsigned char *)&P_, PktLen);
 			auto digest = H.digest();
-			int p = 0;
+			int p = 0, offset = (int)FullSource.size() + 2 ;
 			for (const auto &i : digest)
-				P_.attributes[8 + 1 + 1 + p++] = i;
+				P_.attributes[offset + 1 + 1 + p++] = i;
 		}
 
 		inline void AddAttribute(unsigned char attr, uint8_t len, const unsigned char *data) {

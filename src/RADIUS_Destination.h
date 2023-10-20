@@ -74,7 +74,7 @@ namespace OpenWifi {
 					}
 				} else if ((Utils::Now() - LastKeepAlive) > Pool_.radsecKeepAlive) {
 					RADIUS::RadiusOutputPacket P(Pool_.authConfig.servers[ServerIndex_].radsecSecret);
-					P.MakeStatusMessage();
+					P.MakeStatusMessage(Pool_.authConfig.servers[ServerIndex_].name);
 					poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Pool_.authConfig.servers[ServerIndex_].name));
 					Socket_->sendBytes(P.Data(), P.Len());
 					LastKeepAlive = Utils::Now();
@@ -115,6 +115,7 @@ namespace OpenWifi {
 
 			try {
 				auto NumberOfReceivedBytes = Socket_->receiveBytes(Buffer, sizeof(Buffer));
+				std::string ReplySource;
 				if (NumberOfReceivedBytes >= 20) {
 					RADIUS::RadiusPacket P(Buffer, NumberOfReceivedBytes);
 					if (P.IsAuthentication()) {
@@ -125,11 +126,9 @@ namespace OpenWifi {
 												   P.PacketType(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
 																		 NumberOfReceivedBytes);
-						} else if(P.IsStatusMessageReply()) {
-							DBGLINE
+						} else if(P.IsStatusMessageReply(ReplySource)) {
 							poco_debug(Logger_,
-									   fmt::format("{}: Keepalive message received.", SerialNumber));
-							DBGLINE
+									   fmt::format("{}: Keepalive message received.", ReplySource));
 						} else {
 							poco_debug(Logger_, "AUTH packet dropped.");
 						}
