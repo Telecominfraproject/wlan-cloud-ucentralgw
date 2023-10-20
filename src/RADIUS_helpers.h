@@ -1008,10 +1008,10 @@ namespace OpenWifi::RADIUS {
 			P_.identifier = std::rand() & 0x00ff;
 			MakeRadiusAuthenticator(P_.authenticator);
 			unsigned char MessageAuthenticator[16]{0};
-			// AddAttribute(RADIUS::Attributes::PROXY_STATE, 6, (const unsigned char *)"status" );
+			AddAttribute(RADIUS::Attributes::PROXY_STATE, 6, (const unsigned char *)"status" );
 			AddAttribute(RADIUS::Attributes::MESSAGE_AUTHENTICATOR, sizeof(MessageAuthenticator),
 						 MessageAuthenticator);
-            int PktLen = 1 + 1 + 2 + 16 + 1 + 1 + 16;
+            int PktLen = 1 + 1 + 2 + 16 + 1 + 1 + 16 + 1 + 1 + 6;
 			P_.rawlen = htons(PktLen);
 
 			Poco::HMACEngine<Poco::MD5Engine> H(Secret_);
