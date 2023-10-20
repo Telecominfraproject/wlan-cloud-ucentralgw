@@ -433,15 +433,17 @@ namespace OpenWifi::RADIUS {
 			std::string Result;
 			for (const auto &attribute : Attrs_) {
 				if (attribute.type == RADIUS::Attributes::PROXY_STATE) {
+					DBGLINE
 					std::string Attr33;
 					// format is serial:IP:port:interface
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],
 								  attribute.len);
+					DBGLINE
 					return Attr33 == "status";
 				}
 			}
+			DBGLINE
 			return false;
-
 		}
 		void Log(std::ostream &os) {
 			uint16_t p = 0;
