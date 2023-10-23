@@ -453,7 +453,7 @@ namespace OpenWifi::GWObjects {
 	};
 
 	enum class RadiusPoolStrategy {
-		round_robbin, random, weighted, unknown
+		round_robin, random, weighted, unknown
 	};
 
 	enum class RadiusEndpointType {
@@ -469,7 +469,7 @@ namespace OpenWifi::GWObjects {
 	}
 
 	static inline RadiusPoolStrategy RadiusPoolStrategy(const std::string &T) {
-		if(T=="round_robbin") return RadiusPoolStrategy::round_robbin;
+		if(T=="round_robin") return RadiusPoolStrategy::round_robin;
 		if(T=="random") return RadiusPoolStrategy::random;
 		if(T=="weighted") return RadiusPoolStrategy::weighted;
 		return RadiusPoolStrategy::unknown;
@@ -488,7 +488,7 @@ namespace OpenWifi::GWObjects {
 
 	static inline std::string to_string(enum RadiusPoolStrategy T) {
 		switch(T) {
-		case RadiusPoolStrategy::round_robbin: return "round_robbin";
+		case RadiusPoolStrategy::round_robin: return "round_robin";
 		case RadiusPoolStrategy::random: return "random";
 		case RadiusPoolStrategy::weighted: return "weighted";
 		default:
