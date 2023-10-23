@@ -1194,4 +1194,243 @@ namespace OpenWifi::ProvObjects {
 		return false;
 	}
 
+    void GLBLRAccountInfo::to_json(Poco::JSON::Object &Obj) const {
+        info.to_json(Obj);
+        field_to_json(Obj, "privateKey", privateKey);
+        field_to_json(Obj, "country", country);
+        field_to_json(Obj, "province", province);
+        field_to_json(Obj, "city", city);
+        field_to_json(Obj, "organization", organization);
+        field_to_json(Obj, "commonName", commonName);
+        field_to_json(Obj, "CSR", CSR);
+        field_to_json(Obj, "CSRPrivateKey", CSRPrivateKey);
+        field_to_json(Obj, "CSRPublicKey", CSRPublicKey);
+        field_to_json(Obj, "GlobalReachAcctId", GlobalReachAcctId);
+    }
+
+    bool GLBLRAccountInfo::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            info.from_json(Obj);
+            field_from_json(Obj, "privateKey", privateKey);
+            field_from_json(Obj, "country", country);
+            field_from_json(Obj, "province", province);
+            field_from_json(Obj, "city", city);
+            field_from_json(Obj, "organization", organization);
+            field_from_json(Obj, "commonName", commonName);
+            field_from_json(Obj, "CSR", CSR);
+            field_from_json(Obj, "CSRPrivateKey", CSRPrivateKey);
+            field_from_json(Obj, "CSRPublicKey", CSRPublicKey);
+            field_from_json(Obj, "GlobalReachAcctId", GlobalReachAcctId);
+            return true;
+        } catch (const Poco::Exception &E) {
+
+        }
+        return false;
+    }
+
+    void GLBLRCertificateInfo::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "id", id);
+        field_to_json(Obj, "name", name);
+        field_to_json(Obj, "accountId", accountId);
+        field_to_json(Obj, "csr", csr);
+        field_to_json(Obj, "certificate", certificate);
+        field_to_json(Obj, "certificateChain", certificateChain);
+        field_to_json(Obj, "certificateId", certificateId);
+        field_to_json(Obj, "expiresAt", expiresAt);
+        field_to_json(Obj, "created", created);
+    }
+
+    bool GLBLRCertificateInfo::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "id", id);
+            field_from_json(Obj, "name", name);
+            field_from_json(Obj, "accountId", accountId);
+            field_from_json(Obj, "csr", csr);
+            field_from_json(Obj, "certificate", certificate);
+            field_from_json(Obj, "certificateChain", certificateChain);
+            field_from_json(Obj, "certificateId", certificateId);
+            field_from_json(Obj, "expiresAt", expiresAt);
+            field_from_json(Obj, "created", created);
+            return true;
+        } catch (const Poco::Exception &E) {
+
+        }
+        return false;
+    }
+
+    void GooglOrionAccountInfo::to_json(Poco::JSON::Object &Obj) const {
+        info.to_json(Obj);
+        field_to_json(Obj, "privateKey", privateKey);
+        field_to_json(Obj, "certificate", certificate);
+        field_to_json(Obj, "cacerts", cacerts);
+    }
+
+    bool GooglOrionAccountInfo::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            info.from_json(Obj);
+            field_from_json(Obj, "privateKey", privateKey);
+            field_from_json(Obj, "certificate", certificate);
+            field_from_json(Obj, "cacerts", cacerts);
+            return true;
+        } catch (const Poco::Exception &E) {
+
+        }
+        return false;
+    }
+
+    void RADIUSServer::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "Hostname", Hostname);
+        field_to_json(Obj, "IP", IP);
+        field_to_json(Obj, "Port", Port);
+        field_to_json(Obj, "Secret", Secret);
+    }
+
+    bool RADIUSServer::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "Hostname", Hostname);
+            field_from_json(Obj, "IP", IP);
+            field_from_json(Obj, "Port", Port);
+            field_from_json(Obj, "Secret", Secret);
+            return true;
+        } catch (const Poco::Exception &E) {
+
+        }
+        return false;
+    }
+
+    void RADIUSEndPointRadiusType::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "Authentication", Authentication);
+        field_to_json(Obj, "Accounting", Accounting);
+        field_to_json(Obj, "CoA", CoA);
+        field_to_json(Obj, "AccountingInterval", AccountingInterval);
+    }
+
+    bool RADIUSEndPointRadiusType::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "Authentication", Authentication);
+            field_from_json(Obj, "Accounting", Accounting);
+            field_from_json(Obj, "CoA", CoA);
+            field_from_json(Obj, "AccountingInterval", AccountingInterval);
+            return true;
+        } catch (const Poco::Exception &E) {
+
+        }
+        return false;
+    }
+
+    void RADIUSEndPointRadsecType::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "Hostname", Hostname);
+        field_to_json(Obj, "IP", IP);
+        field_to_json(Obj, "Port", Port);
+        field_to_json(Obj, "Secret", Secret);
+        field_to_json(Obj, "OpenRoamingType", OpenRoamingType);
+        field_to_json(Obj, "UseOpenRoamingAccount", UseOpenRoamingAccount);
+        field_to_json(Obj, "Weight", Weight);
+        field_to_json(Obj, "Certificate", Certificate);
+        field_to_json(Obj, "PrivateKey", PrivateKey);
+        field_to_json(Obj, "CaCerts", CaCerts);
+        field_to_json(Obj, "AllowSelfSigned", AllowSelfSigned);
+    }
+
+    bool RADIUSEndPointRadsecType::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "Hostname", Hostname);
+            field_from_json(Obj, "IP", IP);
+            field_from_json(Obj, "Port", Port);
+            field_from_json(Obj, "Secret", Secret);
+            field_from_json(Obj, "OpenRoamingType", OpenRoamingType);
+            field_from_json(Obj, "UseOpenRoamingAccount", UseOpenRoamingAccount);
+            field_from_json(Obj, "Weight", Weight);
+            field_from_json(Obj, "Certificate", Certificate);
+            field_from_json(Obj, "PrivateKey", PrivateKey);
+            field_from_json(Obj, "CaCerts", CaCerts);
+            field_from_json(Obj, "AllowSelfSigned", AllowSelfSigned);
+            return true;
+        } catch (const Poco::Exception &E) {
+
+        }
+        return false;
+    }
+
+    void RADIUSEndPoint::to_json(Poco::JSON::Object &Obj) const {
+        info.to_json(Obj);
+        field_to_json(Obj, "Type", Type);
+        field_to_json(Obj, "RadsecServers", RadsecServers);
+        field_to_json(Obj, "RadiusServers", RadiusServers);
+        field_to_json(Obj, "PoolStrategy", PoolStrategy);
+        field_to_json(Obj, "Index", Index);
+        field_to_json(Obj, "UsedBy", UsedBy);
+        field_to_json(Obj, "UseGWProxy", UseGWProxy);
+        field_to_json(Obj, "NasIdentifier", NasIdentifier);
+        field_to_json(Obj, "AccountingInterval", AccountingInterval);
+    }
+
+    bool RADIUSEndPoint::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            info.from_json(Obj);
+            field_from_json(Obj, "Type", Type);
+            field_from_json(Obj, "RadsecServers", RadsecServers);
+            field_from_json(Obj, "RadiusServers", RadiusServers);
+            field_from_json(Obj, "PoolStrategy", PoolStrategy);
+            field_from_json(Obj, "Index", Index);
+            field_from_json(Obj, "UsedBy", UsedBy);
+            field_from_json(Obj, "UseGWProxy", UseGWProxy);
+            field_from_json(Obj, "NasIdentifier", NasIdentifier);
+            field_from_json(Obj, "AccountingInterval", AccountingInterval);
+            return true;
+        } catch (const Poco::Exception &E) {
+
+        }
+        return false;
+    }
+
+    void RADIUSEndpointUpdateStatus::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "lastUpdate", lastUpdate);
+        field_to_json(Obj, "lastConfigurationChange", lastConfigurationChange);
+    }
+
+    bool RADIUSEndpointUpdateStatus::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "lastUpdate", lastUpdate);
+            field_from_json(Obj, "lastConfigurationChange", lastConfigurationChange);
+            return true;
+        } catch (const Poco::Exception &E) {
+
+        }
+        return false;
+    }
+
+    bool RADIUSEndpointUpdateStatus::Read() {
+        Poco::File  F(OpenWifi::MicroServiceDataDirectory()+"/RADIUSEndpointUpdateStatus.json");
+        try {
+            if (F.exists()) {
+                Poco::JSON::Parser P;
+                std::ifstream ifs(F.path(), std::ios_base::in | std::ios_base::binary);
+                auto Obj = P.parse(ifs);
+                return from_json(Obj.extract<Poco::JSON::Object::Ptr>());
+            }
+        } catch (...) {
+        }
+        return false;
+    }
+
+    bool RADIUSEndpointUpdateStatus::Save() {
+        Poco::File  F(OpenWifi::MicroServiceDataDirectory()+"/RADIUSEndpointUpdateStatus.json");
+        try {
+            Poco::JSON::Object Obj;
+            to_json(Obj);
+            std::ofstream O(F.path(), std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+            Poco::JSON::Stringifier::stringify(Obj, O);
+            return true;
+        } catch (...) {
+        }
+        return false;
+    }
+
+    bool RADIUSEndpointUpdateStatus::ChangeConfiguration() {
+        Read();
+        lastConfigurationChange = Utils::Now();
+        return Save();
+    }
+
 } // namespace OpenWifi::ProvObjects
