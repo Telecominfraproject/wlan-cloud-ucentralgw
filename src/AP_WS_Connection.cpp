@@ -501,7 +501,6 @@ namespace OpenWifi {
 		} break;
 
 		case uCentralProtocol::Events::ET_EVENT: {
-			ParamsObj->stringify(std::cout);
 			Process_event(ParamsObj);
 		} break;
 

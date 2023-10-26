@@ -20,6 +20,7 @@ namespace OpenWifi::KafkaTopics {
 	inline const char * DEVICE_EVENT_QUEUE = "device_event_queue";
 	inline const char * DEVICE_TELEMETRY = "device_telemetry";
 	inline const char * PROVISIONING_CHANGE = "provisioning_change";
+	inline const char * RRM = "rrm";
 
 	namespace ServiceEvents {
 		inline const char * EVENT_JOIN = "join";

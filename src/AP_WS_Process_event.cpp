@@ -34,8 +34,14 @@ namespace OpenWifi {
 					FullEvent.set("type", EventType);
 					FullEvent.set("timestamp", EventTimeStamp);
 					FullEvent.set("payload", EventPayload);
-					KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
-												FullEvent);
+					if(strncmp(EventType.c_str(),"rrm.",4) == 0 ) {
+						std::cout << "Publishing " << EventType << " to RRM" << std::endl;
+						KafkaManager()->PostMessage(KafkaTopics::RRM, SerialNumber_,
+													FullEvent);
+					} else {
+						KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
+													FullEvent);
+					}
 				}
 			}
 		} catch (const Poco::Exception &E) {
