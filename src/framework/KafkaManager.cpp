@@ -307,10 +307,8 @@ namespace OpenWifi {
 	}
 
 	[[nodiscard]] std::string KafkaManager::WrapSystemId(const std::string & PayLoad) {
-		return fmt::format(	R"lit({{ "system" : {{ "id" : {},
-									"host" : "{}" }},
-									"payload" : {} }})lit", MicroServiceID(),
-						   				MicroServicePrivateEndPoint(), PayLoad ) ;
+		return fmt::format(	R"lit({{ "system" : {{ "id" : {}, "host" : "{}" }}, "payload" : {} }})lit",
+						   MicroServiceID(), MicroServicePrivateEndPoint(), PayLoad ) ;
 	}
 
 	void KafkaManager::PartitionAssignment(const cppkafka::TopicPartitionList &partitions) {
