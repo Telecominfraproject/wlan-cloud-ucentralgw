@@ -455,6 +455,8 @@ namespace OpenWifi {
 			E.rethrow();
 		}
 
+		ParamsObj->stringify(std::cout);
+
 		switch (EventType) {
 		case uCentralProtocol::Events::ET_CONNECT: {
 			Process_connect(ParamsObj, Serial);
