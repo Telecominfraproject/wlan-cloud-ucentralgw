@@ -43,23 +43,24 @@ namespace OpenWifi::OWLSObjects {
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
-	struct SimulationStatus {
-		std::string id;
-		std::string simulationId;
-		std::string state;
-		uint64_t tx;
-		uint64_t rx;
-		uint64_t msgsTx;
-		uint64_t msgsRx;
-		uint64_t liveDevices;
-		uint64_t timeToFullDevices;
-		uint64_t startTime;
-		uint64_t endTime;
-		uint64_t errorDevices;
-		std::string owner;
+    struct SimulationStatus {
+        std::string id;
+        std::string simulationId;
+        std::string state;
+        uint64_t tx;
+        uint64_t rx;
+        uint64_t msgsTx;
+        uint64_t msgsRx;
+        uint64_t liveDevices;
+        uint64_t timeToFullDevices;
+        uint64_t startTime;
+        uint64_t endTime;
+        uint64_t errorDevices;
+        std::string owner;
+        uint64_t expectedDevices;
 
-		void to_json(Poco::JSON::Object &Obj) const;
-	};
+        void to_json(Poco::JSON::Object &Obj) const;
+    };
 
 	struct Dashboard {
 		int O;

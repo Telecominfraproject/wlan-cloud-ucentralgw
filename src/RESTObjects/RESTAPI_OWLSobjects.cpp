@@ -78,21 +78,22 @@ namespace OpenWifi::OWLSObjects {
 		return false;
 	}
 
-	void SimulationStatus::to_json(Poco::JSON::Object &Obj) const {
-		field_to_json(Obj, "id", id);
-		field_to_json(Obj, "simulationId", simulationId);
-		field_to_json(Obj, "state", state);
-		field_to_json(Obj, "tx", tx);
-		field_to_json(Obj, "rx", rx);
-		field_to_json(Obj, "msgsTx", msgsTx);
-		field_to_json(Obj, "msgsRx", msgsRx);
-		field_to_json(Obj, "liveDevices", liveDevices);
-		field_to_json(Obj, "timeToFullDevices", timeToFullDevices);
-		field_to_json(Obj, "startTime", startTime);
-		field_to_json(Obj, "endTime", endTime);
-		field_to_json(Obj, "errorDevices", errorDevices);
-		field_to_json(Obj, "owner", owner);
-	}
+    void SimulationStatus::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "id", id);
+        field_to_json(Obj, "simulationId", simulationId);
+        field_to_json(Obj, "state", state);
+        field_to_json(Obj, "tx", tx);
+        field_to_json(Obj, "rx", rx);
+        field_to_json(Obj, "msgsTx", msgsTx);
+        field_to_json(Obj, "msgsRx", msgsRx);
+        field_to_json(Obj, "liveDevices", liveDevices);
+        field_to_json(Obj, "timeToFullDevices", timeToFullDevices);
+        field_to_json(Obj, "startTime", startTime);
+        field_to_json(Obj, "endTime", endTime);
+        field_to_json(Obj, "errorDevices", errorDevices);
+        field_to_json(Obj, "owner", owner);
+        field_to_json(Obj, "expectedDevices", expectedDevices);
+    }
 
 	void Dashboard::to_json([[maybe_unused]] Poco::JSON::Object &Obj) const {}
 
