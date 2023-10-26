@@ -35,7 +35,6 @@ namespace OpenWifi {
 					FullEvent.set("timestamp", EventTimeStamp);
 					FullEvent.set("payload", EventPayload);
 					if(strncmp(EventType.c_str(),"rrm.",4) == 0 ) {
-						std::cout << "Publishing " << EventType << " to RRM" << std::endl;
 						KafkaManager()->PostMessage(KafkaTopics::RRM, SerialNumber_,
 													FullEvent);
 					} else {
