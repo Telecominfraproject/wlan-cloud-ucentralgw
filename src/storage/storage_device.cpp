@@ -53,7 +53,9 @@ namespace OpenWifi {
 												   "restrictionDetails, "
 												   "pendingUUID, "
 												   "simulated,"
-												   "lastRecordedContact"
+												   "lastRecordedContact,"
+												   "certificateExpiryDate,"
+												   "connectReason "
 	};
 
 	const static std::string DB_DeviceUpdateFields{"SerialNumber=?,"
@@ -84,16 +86,20 @@ namespace OpenWifi {
 												   "restrictionDetails=?, "
 												   "pendingUUID=?, "
 												   "simulated=?,"
-												   "lastRecordedContact=? "};
+												   "lastRecordedContact=?, "
+												   "certificateExpiryDate=?,"
+												   "connectReason=? "
+	};
 
 	const static std::string DB_DeviceInsertValues{
-		" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
+		" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
 
 	typedef Poco::Tuple<std::string, std::string, std::string, std::string, std::string,
 						std::string, std::string, std::string, std::string, std::string,
 						std::string, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t, std::string,
 						std::string, std::string, std::string, uint64_t, std::string, bool,
-						std::string, std::string, std::string, std::uint64_t, bool, std::uint64_t>
+						std::string, std::string, std::string, std::uint64_t, bool, std::uint64_t,
+						std::uint64_t, std::string>
 		DeviceRecordTuple;
 	typedef std::vector<DeviceRecordTuple> DeviceRecordList;
 
@@ -128,6 +134,8 @@ namespace OpenWifi {
 		D.pendingUUID = R.get<26>();
 		D.simulated = R.get<27>();
 		D.lastRecordedContact = R.get<28>();
+		D.certificateExpiryDate = R.get<29>();
+		D.connectReason = R.get<30>();
 	}
 
 	void ConvertDeviceRecord(const GWObjects::Device &D, DeviceRecordTuple &R) {
@@ -160,6 +168,8 @@ namespace OpenWifi {
 		R.set<26>(D.pendingUUID);
 		R.set<27>(D.simulated);
 		R.set<28>(D.lastRecordedContact);
+		R.set<29>(D.certificateExpiryDate);
+		R.set<30>(D.connectReason);
 	}
 
 	bool Storage::GetDeviceCount(uint64_t &Count) {

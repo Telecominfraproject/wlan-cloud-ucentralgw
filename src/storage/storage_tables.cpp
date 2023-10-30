@@ -90,7 +90,9 @@ namespace OpenWifi {
 						"restrictionDetails TEXT, "
 						"pendingUUID	BIGINT, "
 						"simulated 		BOOLEAN,"
-						"lastRecordedContact BIGINT"
+						"lastRecordedContact 	BIGINT,"
+						"certificateExpiryDate 	BIGINT,"
+						"connectReason 			TEXT"
 						",INDEX DeviceOwner (Owner ASC),"
 						"INDEX LocationIndex (Location ASC))",
 					Poco::Data::Keywords::now;
@@ -124,7 +126,9 @@ namespace OpenWifi {
 						"restrictionDetails TEXT,"
 						"pendingUUID 	BIGINT, "
 						"simulated 		BOOLEAN, "
-						"lastRecordedContact BIGINT"
+						"lastRecordedContact 	BIGINT,"
+						"certificateExpiryDate 	BIGINT,"
+						"connectReason 			TEXT"
 						")",
 					Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)",
@@ -145,7 +149,9 @@ namespace OpenWifi {
 				"alter table devices add column restrictionDetails TEXT",
 				"alter table devices add column pendingUUID bigint",
 				"alter table devices add column lastRecordedContact bigint",
-				"alter table devices add column simulated boolean"
+				"alter table devices add column simulated boolean",
+				"alter table devices add column certificateExpiryDate bigint",
+				"alter table devices add column connectReason TEXT"
 			};
 
 			for (const auto &i : Script) {

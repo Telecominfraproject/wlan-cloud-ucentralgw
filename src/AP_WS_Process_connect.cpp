@@ -186,6 +186,12 @@ namespace OpenWifi {
 					}
 				}
 
+				if(ParamsObj->has("reason")) {
+					State_.connectReason = ParamsObj->get("reason").toString();
+					DeviceInfo.connectReason = State_.connectReason;
+					++Updated;
+				}
+
 				if(DeviceInfo.DevicePassword!=DevicePassword) {
 					DeviceInfo.DevicePassword = DevicePassword.empty() ? "openwifi" : DevicePassword ;
 					++Updated;
@@ -223,6 +229,11 @@ namespace OpenWifi {
 
 				if (Restrictions_ != DeviceInfo.restrictionDetails) {
 					DeviceInfo.restrictionDetails = Restrictions_;
+					++Updated;
+				}
+
+				if(DeviceInfo.certificateExpiryDate!=State_.certificateExpiryDate) {
+					DeviceInfo.certificateExpiryDate = State_.certificateExpiryDate;
 					++Updated;
 				}
 

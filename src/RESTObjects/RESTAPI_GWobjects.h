@@ -109,7 +109,9 @@ namespace OpenWifi::GWObjects {
 		DeviceRestrictions restrictionDetails;
 		std::uint64_t pendingUUID = 0;
 		bool simulated=false;
-		std::uint64_t lastRecordedContact=0;
+		std::uint64_t 	lastRecordedContact=0;
+		std::uint64_t 	certificateExpiryDate = 0;
+		std::string 	connectReason;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		void to_json_with_status(Poco::JSON::Object &Obj) const;
