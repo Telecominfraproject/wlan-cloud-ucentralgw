@@ -5978,7 +5978,7 @@ $(document).ready(function() {
                         <p class="marked"></p>
                         <p></p>
                         <br />
-                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/device/{serialNumber}/</span></code></pre>
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/device/{serialNumber}/script</span></code></pre>
                         <p>
                           <h3>Usage and SDK Samples</h3>
                         </p>
@@ -6003,7 +6003,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/" \
+ "https://localhost:16001/api/v1/device/{serialNumber}/script" \
  -d '{
   &quot;deferred&quot; : true,
   &quot;scriptId&quot; : &quot;scriptId&quot;,
