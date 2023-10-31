@@ -2706,7 +2706,7 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-  /device/{serialNumber}/:
+  /device/{serialNumber}/script:
     post:
       tags:
         - Commands

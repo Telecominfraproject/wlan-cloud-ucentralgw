@@ -165,7 +165,8 @@ namespace OpenWifi {
 		{APCommands::Commands::ping, false, true, &RESTAPI_device_commandHandler::Ping, 60000ms},
 		{APCommands::Commands::rrm, false, true, &RESTAPI_device_commandHandler::RRM, 60000ms},
 		{APCommands::Commands::certupdate, false, true, &RESTAPI_device_commandHandler::CertUpdate, 60000ms},
-		{APCommands::Commands::transfer, false, true, &RESTAPI_device_commandHandler::Transfer, 60000ms}
+		{APCommands::Commands::transfer, false, true, &RESTAPI_device_commandHandler::Transfer, 60000ms},
+		{APCommands::Commands::script, false, true, &RESTAPI_device_commandHandler::Script, 60000ms}
 	};
 
 	void RESTAPI_device_commandHandler::DoPost() {
