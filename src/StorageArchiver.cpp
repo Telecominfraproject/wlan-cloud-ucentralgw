@@ -101,6 +101,8 @@ namespace OpenWifi {
 		Timer_.setPeriodicInterval(24 * 60 * 60 * 1000); // 1 hours
 		Timer_.start(*ArchiverCallback_, MicroServiceTimerPool());
 
+		std::cout << MicroServiceConfigGetString("example.test" , "none") << std::endl;
+
 		return 0;
 	}
 
