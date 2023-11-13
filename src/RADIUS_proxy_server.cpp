@@ -81,8 +81,6 @@ namespace OpenWifi {
 		try{
 
 			//	are we sending this to a pool?
-			auto CallingStationID = P.ExtractCallingStationID();
-			auto CalledStationID = P.ExtractCalledStationID();
 			auto DstParts = Utils::Split(Destination, ':');
 			std::uint32_t DtsIp = Utils::IPtoInt(DstParts[0]);
 
@@ -90,7 +88,17 @@ namespace OpenWifi {
 
 			auto DestinationServer = RADIUS_Destinations_.find(DtsIp);
 			if (DestinationServer != end(RADIUS_Destinations_)) {
-				poco_trace(Logger(),fmt::format("{}: Sending Acct {} bytes to {}", serialNumber, P.Size(), Destination));
+				if(Logger().trace()) {
+					auto CallingStationID = P.ExtractCallingStationID();
+					auto CalledStationID = P.ExtractCalledStationID();
+					auto SessionID = P.ExtractAccountingSessionID();
+					auto MultiSessionID = P.ExtractAccountingMultiSessionID();
+					Logger().trace(
+						fmt::format("{}: Sending Accounting {} bytes to {}. CalledStationID={} CallingStationID={} SessionID={}:{}",
+									serialNumber, P.Size(),
+									DestinationServer->second->Pool().authConfig.servers[0].ip,
+									CalledStationID, CallingStationID, SessionID, MultiSessionID));
+				}
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
 					Secret = DestinationServer->second->Pool().acctConfig.servers[0].secret;
 					if(RecomputeAuthenticator) {
@@ -154,18 +162,28 @@ namespace OpenWifi {
 
 		try {
 			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
-			auto CallingStationID = P.ExtractCallingStationID();
-			auto CalledStationID = P.ExtractCalledStationID();
+
 			std::lock_guard G(Mutex_);
 
 			std::uint32_t 	DstIp = P.ExtractProxyStateDestinationIPint();
 			auto DestinationServer = RADIUS_Destinations_.find(DstIp);
 			if (DestinationServer != end(RADIUS_Destinations_)) {
-				poco_trace(Logger(),fmt::format("{}: Sending Auth {} bytes to {}", serialNumber, P.Size(), DestinationServer->second->Pool().authConfig.servers[0].ip));
+				if(Logger().trace()) {
+					auto CallingStationID = P.ExtractCallingStationID();
+					auto CalledStationID = P.ExtractCalledStationID();
+					auto SessionID = P.ExtractAccountingSessionID();
+					auto MultiSessionID = P.ExtractAccountingMultiSessionID();
+					Logger().trace(
+						fmt::format("{}: Sending Authentication {} bytes to {}. CalledStationID={} CallingStationID={} SessionID={}:{}",
+									serialNumber, P.Size(),
+									DestinationServer->second->Pool().authConfig.servers[0].ip,
+									CalledStationID, CallingStationID, SessionID, MultiSessionID));
+				}
 				if(DestinationServer->second->ServerType()!=GWObjects::RadiusEndpointType::generic) {
-					DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer,
-														size);
-				} else {
+						DestinationServer->second->SendData(serialNumber,
+															(const unsigned char *)buffer, size);
+				}
+				else {
 					DestinationServer->second->SendRadiusDataAuthData(
 						serialNumber, (const unsigned char *)buffer, size);
 				}
