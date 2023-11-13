@@ -50,17 +50,17 @@ namespace OpenWifi {
 	class DeviceConfigurationChangeKafkaEvent : public GWKafkaEvents {
 	  public:
 		DeviceConfigurationChangeKafkaEvent(std::uint64_t serialNumber,
-											std::uint64_t timestamp, const std::string config)
+											std::uint64_t timestamp, const Poco::JSON::Object::Ptr config)
 			: GWKafkaEvents(serialNumber, "unit.configuration_change", timestamp), config_(config) {
 		}
 
 		~DeviceConfigurationChangeKafkaEvent() {
-			payload_->set("configuration", config_);
+			payload_->set("configuration", *config_);
 			Send();
 		}
 
 	  private:
-		std::string config_;
+		Poco::JSON::Object::Ptr config_;
 	};
 
 	class DeviceBlacklistedKafkaEvent : public GWKafkaEvents {

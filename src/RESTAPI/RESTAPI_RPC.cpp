@@ -169,10 +169,12 @@ namespace OpenWifi::RESTAPI_RPC {
 
 			if (Cmd.ErrorCode == 0 && Cmd.Command == uCentralProtocol::CONFIGURE) {
 				//	we need to post a kafka event for this.
-				if (Params.has(uCentralProtocol::CONFIG)) {
+				if (Params.has(uCentralProtocol::CONFIG) && Params.isObject(uCentralProtocol::CONFIG)) {
+					auto Config = Params.get(uCentralProtocol::CONFIG)
+									  .extract<Poco::JSON::Object::Ptr>();
 					DeviceConfigurationChangeKafkaEvent KEvent(
 						Utils::SerialNumberToInt(Cmd.SerialNumber), Utils::Now(),
-						Params.get(uCentralProtocol::CONFIG).toString());
+						Config);
 				}
 			}
 
