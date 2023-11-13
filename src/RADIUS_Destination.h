@@ -122,8 +122,10 @@ namespace OpenWifi {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						if (!SerialNumber.empty()) {
 							poco_debug(Logger_,
-									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
-												   P.PacketType(), NumberOfReceivedBytes));
+									   fmt::format("{}: {}:{} Received {} bytes.", SerialNumber,
+												   P.PacketType(),
+												   P.PacketTypeToString(),
+												   NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
 																		 NumberOfReceivedBytes);
 						} else if(P.IsStatusMessageReply(ReplySource)) {
@@ -136,8 +138,9 @@ namespace OpenWifi {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						if (!SerialNumber.empty()) {
 							poco_debug(Logger_,
-									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
-												   P.PacketType(), NumberOfReceivedBytes));
+									   fmt::format("{}: {}:{} Received {} bytes.", SerialNumber,
+												   P.PacketType(),
+												   P.PacketTypeToString(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusAccountingData(SerialNumber, Buffer,
 																	 NumberOfReceivedBytes);
 						} else {
@@ -147,8 +150,9 @@ namespace OpenWifi {
 						auto SerialNumber = P.ExtractSerialNumberTIP();
 						if (!SerialNumber.empty()) {
 							poco_debug(Logger_,
-									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
-												   P.PacketType(), NumberOfReceivedBytes));
+									   fmt::format("{}: {}:{} Received {} bytes.", SerialNumber,
+												   P.PacketType(),
+												   P.PacketTypeToString(), NumberOfReceivedBytes));
 							AP_WS_Server()->SendRadiusCoAData(SerialNumber, Buffer,
 															  NumberOfReceivedBytes);
 						} else {

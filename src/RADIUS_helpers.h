@@ -409,6 +409,15 @@ namespace OpenWifi::RADIUS {
 
 		friend std::ostream &operator<<(std::ostream &os, RadiusPacket const &P);
 
+		[[nodiscard]] inline std::string PacketTypeToString() const {
+
+			for(auto const &Name:radius_command_values) {
+				if(Name.cmd == P_.code)
+					return Name.name;
+			}
+			return "Unknown";
+		}
+
 		inline bool IsAuthentication() {
 			return (P_.code == RADIUS::Access_Request || P_.code == RADIUS::Access_Accept ||
 					P_.code == RADIUS::Access_Challenge || P_.code == RADIUS::Access_Reject ||
