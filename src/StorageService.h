@@ -237,6 +237,8 @@ namespace OpenWifi {
 		bool UpdateBlackListDevice(std::string &SerialNumber, GWObjects::BlackListedDevice &Device);
 		uint64_t GetBlackListDeviceCount();
 
+		bool DeleteSimulatedDevice(const std::string &SerialNumber);
+
 		bool RemoveHealthChecksRecordsOlderThan(uint64_t Date);
 		bool RemoveDeviceLogsRecordsOlderThan(uint64_t Date);
 		bool RemoveStatisticsRecordsOlderThan(uint64_t Date);

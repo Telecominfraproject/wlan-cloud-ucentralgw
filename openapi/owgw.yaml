@@ -1712,8 +1712,12 @@ paths:
             type: integer
             format: int64
           required: false
-
-
+        - in: query
+          description: Filter the results
+          name: simulatedDevices
+          schema:
+            type: boolean
+          required: false
       responses:
         200:
           $ref: '#/components/responses/Success'

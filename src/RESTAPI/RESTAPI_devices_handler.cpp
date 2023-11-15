@@ -174,6 +174,13 @@ namespace OpenWifi {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
+		if(GetBoolParameter("simulatedDevices",false)) {
+			if(StorageService()->DeleteSimulatedDevice("")) {
+				return OK();
+			}
+			return NotFound();
+		}
+
 		if(!QB_.Select.empty() && !Utils::ValidSerialNumbers(QB_.Select)) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}

@@ -457,6 +457,36 @@ namespace OpenWifi {
 		return FoundCountry;
 	}
 
+	bool Storage::DeleteSimulatedDevice([[maybe_unused]] const std::string &SerialNumber) {
+
+		std::vector<std::string> Statements =
+		{
+			"delete from commandlist using devices where commandlist.serialnumber=devices.serialnumber and devices.simulated=true;",
+			"delete from healthchecks using devices where healthchecks.serialnumber=devices.serialnumber and devices.simulated=true;",
+			"delete from statistics using devices where statistics.serialnumber=devices.serialnumber and devices.simulated=true;",
+			"delete from devicelogs using devices where devicelogs.serialnumber=devices.serialnumber and devices.simulated=true;",
+			"delete from capabilities using devices where capabilities.serialnumber=devices.serialnumber and devices.simulated=true;",
+			"delete from devices where devices.simulated=true;"
+		};
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Command(Sess);
+
+			for (const auto &i : Statements) {
+				try {
+					Command << i, Poco::Data::Keywords::now;
+				} catch (const Poco::Exception &E) {
+					Logger().log(E);
+				}
+				Command.reset(Sess);
+			}
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return true;
+	}
+
 #define __DBGLOG__ std::cout << __LINE__ << std::endl;
 
 	bool Storage::CreateDefaultDevice(std::string &SerialNumber, const Config::Capabilities &Caps,
