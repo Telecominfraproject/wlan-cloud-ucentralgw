@@ -950,6 +950,12 @@ rrm_kick() {
   jq < ${result_file}
 }
 
+deletesimulateddevices() {
+	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/devices?simulatedDevices=true" \
+    -H "Accept: application/json" \
+    -H "Authorization: Bearer ${token}"
+}
+
 check_response() {
 
 	if [ -s "$1" ]; then
@@ -1239,6 +1245,7 @@ case "$1" in
   "transferdevice") login; transferdevice "$2" "$3" "$4"; logout;;
   "certupdate") login; certupdate "$2" "$3"; logout;;
   "rrm_kick") login; rrm_kick "$2" "$3" "$4" "$5"; logout;;
+  "deletesimulateddevices") login; deletesimulateddevices ; logout;;
 	"testtoken") testtoken;;
   	*) help ;;
 esac
