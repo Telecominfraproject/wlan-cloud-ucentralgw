@@ -39,9 +39,11 @@ namespace OpenWifi {
 												UUID, request_uuid));
 			}
 
-			uint64_t UpgradedUUID;
-			LookForUpgrade(UUID, UpgradedUUID);
-			State_.UUID = UpgradedUUID;
+			if(!Simulated_) {
+				uint64_t UpgradedUUID;
+				LookForUpgrade(UUID, UpgradedUUID);
+				State_.UUID = UpgradedUUID;
+			}
 			SetLastStats(StateStr);
 
 			GWObjects::Statistics Stats{

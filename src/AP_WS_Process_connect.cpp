@@ -241,7 +241,7 @@ namespace OpenWifi {
 					StorageService()->UpdateDevice(DeviceInfo);
 				}
 
-				if(!DeviceInfo.simulated) {
+				if(!Simulated_) {
 					uint64_t UpgradedUUID = 0;
 					LookForUpgrade(UUID, UpgradedUUID);
 					State_.UUID = UpgradedUUID;

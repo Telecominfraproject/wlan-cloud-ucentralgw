@@ -142,6 +142,7 @@ namespace OpenWifi {
 
 			if(AP_WS_Server::IsSim(CN_)) {
 				State_.VerifiedCertificate = GWObjects::SIMULATED;
+				Simulated_ = true;
 			}
 
 			std::string reason, author;
