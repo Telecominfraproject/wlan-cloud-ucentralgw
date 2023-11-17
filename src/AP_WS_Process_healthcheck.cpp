@@ -40,10 +40,6 @@ namespace OpenWifi {
 												CId_, UUID, request_uuid));
 			}
 
-			uint64_t UpgradedUUID;
-			LookForUpgrade(UUID, UpgradedUUID);
-			State_.UUID = UpgradedUUID;
-
 			GWObjects::HealthCheck Check;
 
 			Check.SerialNumber = SerialNumber_;

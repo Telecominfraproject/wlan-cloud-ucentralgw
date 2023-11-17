@@ -242,8 +242,10 @@ namespace OpenWifi {
 				}
 
 				uint64_t UpgradedUUID = 0;
-				LookForUpgrade(UUID, UpgradedUUID);
-				State_.UUID = UpgradedUUID;
+				if(!DeviceInfo.simulated) {
+					LookForUpgrade(UUID, UpgradedUUID);
+					State_.UUID = UpgradedUUID;
+				}
 			}
 
 			State_.Compatible = Compatible_;
