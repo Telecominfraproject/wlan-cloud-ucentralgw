@@ -59,12 +59,12 @@ namespace OpenWifi {
 		bool StopKafkaTelemetry(uint64_t RPCID);
 
 		inline void GetLastStats(std::string &LastStats) {
-			std::shared_lock G(ConnectionMutex_);
+			std::lock_guard G(ConnectionMutex_);
 			LastStats = RawLastStats_;
 		}
 
 		inline void SetLastStats(const std::string &LastStats) {
-			std::unique_lock G(ConnectionMutex_);
+			std::lock_guard G(ConnectionMutex_);
 			RawLastStats_ = LastStats;
 			try {
 				Poco::JSON::Parser P;
@@ -96,24 +96,24 @@ namespace OpenWifi {
 		}
 
 		inline void SetLastHealthCheck(const GWObjects::HealthCheck &H) {
-			std::unique_lock G(ConnectionMutex_);
+			std::lock_guard G(ConnectionMutex_);
 			RawLastHealthcheck_ = H;
 		}
 
 		inline void GetLastHealthCheck(GWObjects::HealthCheck &H) {
-			std::shared_lock G(ConnectionMutex_);
+			std::lock_guard G(ConnectionMutex_);
 			H = RawLastHealthcheck_;
 		}
 
 		inline void GetState(GWObjects::ConnectionState &State) const {
-			std::shared_lock G(ConnectionMutex_);
+			std::lock_guard G(ConnectionMutex_);
 			State = State_;
 		}
 
 		inline bool HasGPS() { return hasGPS; }
 
 		inline void GetRestrictions(GWObjects::DeviceRestrictions &R) const {
-			std::shared_lock G(ConnectionMutex_);
+			std::lock_guard G(ConnectionMutex_);
 			R = Restrictions_;
 		}
 
@@ -154,14 +154,14 @@ namespace OpenWifi {
 		friend class AP_WS_Server;
 
 		inline GWObjects::DeviceRestrictions Restrictions() const {
-			std::shared_lock G(ConnectionMutex_);
+			std::lock_guard G(ConnectionMutex_);
 			return Restrictions_;
 		}
 
 		inline bool MustBeSecureRtty() const { return RttyMustBeSecure_; }
 
 	  private:
-		mutable std::shared_mutex ConnectionMutex_;
+		mutable std::mutex ConnectionMutex_;
 		std::shared_mutex TelemetryMutex_;
 		Poco::Logger &Logger_;
 		Poco::Net::SocketReactor &Reactor_;
