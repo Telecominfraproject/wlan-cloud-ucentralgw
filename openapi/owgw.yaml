@@ -1561,10 +1561,10 @@ components:
       properties:
         serialNumber:
           type: string
-          format: uuid
         encodedCertificate:
           type: string
           format: base64
+          description: This is a base64 encoded string of the certificate bundle (the current bundle .tar.gz file from the PKI portal)
 
 paths:
   /devices:
