@@ -1254,11 +1254,11 @@ ul.nav-tabs {
   "type" : "object",
   "properties" : {
     "serialNumber" : {
-      "type" : "string",
-      "format" : "uuid"
+      "type" : "string"
     },
     "encodedCertificate" : {
       "type" : "string",
+      "description" : "This is a base64 encoded string of the certificate bundle (the current bundle .tar.gz file from the PKI portal)",
       "format" : "base64"
     }
   }
@@ -17807,7 +17807,7 @@ $(document).ready(function() {
  "https://localhost:16001/api/v1/device/{serialNumber}/certupdate" \
  -d '{
   &quot;encodedCertificate&quot; : &quot;encodedCertificate&quot;,
-  &quot;serialNumber&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;
+  &quot;serialNumber&quot; : &quot;serialNumber&quot;
 }'
 </code></pre>
                           </div>
