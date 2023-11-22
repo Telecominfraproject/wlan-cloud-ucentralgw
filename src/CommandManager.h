@@ -12,7 +12,7 @@
 #include <functional>
 #include <future>
 #include <map>
-#include <shared_mutex>
+#include <mutex>
 #include <utility>
 
 #include "Poco/JSON/Object.h"
@@ -165,7 +165,7 @@ namespace OpenWifi {
 		bool FireAndForget(const std::string &SerialNumber, const std::string &Method,
 						   const Poco::JSON::Object &Params);
 	  private:
-		mutable std::recursive_mutex LocalMutex_;
+		mutable std::mutex LocalMutex_;
 		std::atomic_bool Running_ = false;
 		Poco::Thread ManagerThread;
 		std::atomic_uint64_t Id_ = 3; //	do not start @1. We ignore ID=1 & 0 is illegal..

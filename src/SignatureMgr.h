@@ -5,7 +5,7 @@
 #pragma once
 
 #include <fstream>
-#include <shared_mutex>
+#include <mutex>
 
 #include "framework/MicroServiceFuncs.h"
 #include "framework/SubSystemServer.h"
@@ -38,7 +38,7 @@ namespace OpenWifi {
 		inline int Start() final {
 			poco_notice(Logger(), "Starting...");
 
-			std::shared_lock L(KeyMutex_);
+			std::lock_guard L(KeyMutex_);
 
 			CacheFilename_ = MicroServiceDataDirectory() + "/signature_cache";
 			Poco::File CacheFile(CacheFilename_);
@@ -91,7 +91,7 @@ namespace OpenWifi {
 
 		inline std::string Sign(const GWObjects::DeviceRestrictions &Restrictions,
 								const std::string &Data) const {
-			std::shared_lock L(KeyMutex_);
+			std::lock_guard L(KeyMutex_);
 			try {
 				if (Restrictions.key_info.algo == "static") {
 					return "aaaaaaaaaa";
@@ -120,7 +120,7 @@ namespace OpenWifi {
 
 		inline std::string Sign(const GWObjects::DeviceRestrictions &Restrictions,
 								const Poco::URI &uri) {
-			std::shared_lock L(KeyMutex_);
+			std::lock_guard L(KeyMutex_);
 			try {
 				if (Restrictions.key_info.algo == "static") {
 					return "aaaaaaaaaa";
@@ -172,7 +172,7 @@ namespace OpenWifi {
 		}
 
 	  private:
-		mutable std::shared_mutex KeyMutex_;
+		mutable std::mutex KeyMutex_;
 		std::map<std::string, Poco::SharedPtr<Poco::Crypto::RSAKey>> Keys_;
 		std::map<std::string, std::string> SignatureCache_;
 		std::string CacheFilename_;

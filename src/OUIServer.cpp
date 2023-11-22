@@ -28,7 +28,7 @@ namespace OpenWifi {
 		bool Recovered = false;
 		Poco::File OuiFile(CurrentOUIFileName_);
 		if (OuiFile.exists()) {
-			std::unique_lock Lock(LocalMutex_);
+			std::lock_guard Lock(LocalMutex_);
 			Recovered = ProcessFile(CurrentOUIFileName_, OUIs_);
 			if (Recovered) {
 				poco_notice(Logger(),
@@ -150,7 +150,7 @@ namespace OpenWifi {
 
 		OUIMap TmpOUIs;
 		if (GetFile(LatestOUIFileName_) && ProcessFile(LatestOUIFileName_, TmpOUIs)) {
-			std::unique_lock G(LocalMutex_);
+			std::lock_guard G(LocalMutex_);
 			OUIs_ = std::move(TmpOUIs);
 			LastUpdate_ = Utils::Now();
 			Poco::File F1(CurrentOUIFileName_);
@@ -163,7 +163,7 @@ namespace OpenWifi {
 		} else if (OUIs_.empty()) {
 			if (ProcessFile(CurrentOUIFileName_, TmpOUIs)) {
 				LastUpdate_ = Utils::Now();
-				std::unique_lock G(LocalMutex_);
+				std::lock_guard G(LocalMutex_);
 				OUIs_ = std::move(TmpOUIs);
 			}
 		}
@@ -173,7 +173,7 @@ namespace OpenWifi {
 	}
 
 	std::string OUIServer::GetManufacturer(const std::string &MAC) {
-		std::shared_lock Lock(LocalMutex_);
+		std::lock_guard Lock(LocalMutex_);
 
 		auto Manufacturer = OUIs_.find(Utils::SerialNumberToOUI(MAC));
 		if (Manufacturer != OUIs_.end())

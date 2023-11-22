@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <shared_mutex>
+#include <mutex>
 #include <string>
 
 #include "Poco/JSON/Object.h"
@@ -162,7 +162,7 @@ namespace OpenWifi {
 
 	  private:
 		mutable std::mutex ConnectionMutex_;
-		std::shared_mutex TelemetryMutex_;
+		std::mutex TelemetryMutex_;
 		Poco::Logger &Logger_;
 		Poco::Net::SocketReactor &Reactor_;
 		std::unique_ptr<Poco::Net::WebSocket> WS_;
