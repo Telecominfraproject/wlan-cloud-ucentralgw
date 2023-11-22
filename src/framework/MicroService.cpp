@@ -231,7 +231,7 @@ namespace OpenWifi {
 				"logging.format", "%Y-%m-%d %H:%M:%S.%i %s: [%p][thr:%I] %t");
 			auto UseAsyncLogs_ = MicroService::instance().ConfigGetBool("logging.asynch", true);
 			auto DisableWebSocketLogging =
-				MicroService::instance().ConfigGetBool("logging.websocket.disable", true);
+				MicroService::instance().ConfigGetBool("logging.websocket", false);
 
 			if (LoggingDestination == "null") {
 				Poco::AutoPtr<Poco::NullChannel> DevNull(new Poco::NullChannel);

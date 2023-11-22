@@ -129,4 +129,8 @@ namespace OpenWifi {
 		return ALBHealthCheckServer()->RegisterExtendedHealthMessage(Callback);
 	}
 
+	std::string MicroServiceAccessKey() {
+		return MicroService::instance().Hash();
+	}
+
 } // namespace OpenWifi
