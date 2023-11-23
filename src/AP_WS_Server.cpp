@@ -172,7 +172,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::onGarbageCollecting([[maybe_unused]] Poco::Timer &timer) {
-		static uint64_t last_log = Utils::Now();
+		static uint64_t last_log = Utils::Now(), last_zombie_run = 0;
 		auto now = Utils::Now();
 
 		{
@@ -181,34 +181,44 @@ namespace OpenWifi {
 				Garbage_.clear();
 			}
 
-			NumberOfConnectedDevices_ = 0;
-			NumberOfConnectingDevices_ = 0;
-			AverageDeviceConnectionTime_ = 0;
 			uint64_t total_connected_time = 0;
 
-			auto hint = SerialNumbers_.begin();
-			while (hint != end(SerialNumbers_)) {
-				if (hint->second.second == nullptr) {
-					hint = SerialNumbers_.erase(hint);
-				} else if ((now - hint->second.second->State_.LastContact) > SessionTimeOut_) {
-					hint->second.second->EndConnection(false);
-					poco_information(Logger(),fmt::format("{}: Session seems idle. Controller disconnecting device.", hint->second.second->SerialNumber_));
-					Sessions_.erase(hint->second.second->State_.sessionId);
-					Garbage_.push_back(hint->second.second);
-					hint = SerialNumbers_.erase(hint);
-				} else if (hint->second.second->State_.Connected) {
-					NumberOfConnectedDevices_++;
-					total_connected_time += (now - hint->second.second->State_.started);
-					hint++;
-				} else {
-					NumberOfConnectingDevices_++;
-					hint++;
+			if(now-last_zombie_run > 60) {
+				NumberOfConnectedDevices_ = 0;
+				NumberOfConnectingDevices_ = 0;
+				AverageDeviceConnectionTime_ = 0;
+				last_zombie_run = now;
+				auto hint = SerialNumbers_.begin();
+				while (hint != end(SerialNumbers_)) {
+					if (hint->second.second == nullptr) {
+						hint = SerialNumbers_.erase(hint);
+					} else if ((now - hint->second.second->State_.LastContact) > SessionTimeOut_) {
+						hint->second.second->EndConnection(false);
+						poco_information(
+							Logger(),
+							fmt::format("{}: Session seems idle. Controller disconnecting device.",
+										hint->second.second->SerialNumber_));
+						Sessions_.erase(hint->second.second->State_.sessionId);
+						Garbage_.push_back(hint->second.second);
+						hint = SerialNumbers_.erase(hint);
+					} else if (hint->second.second->State_.Connected) {
+						NumberOfConnectedDevices_++;
+						total_connected_time += (now - hint->second.second->State_.started);
+						hint++;
+					} else {
+						NumberOfConnectingDevices_++;
+						hint++;
+					}
 				}
+
+				AverageDeviceConnectionTime_ =
+					NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_
+												  : 0;
+			} else {
+				NumberOfConnectedDevices_ = SerialNumbers_.size();
+				AverageDeviceConnectionTime_ += 10;
 			}
 
-			AverageDeviceConnectionTime_ = NumberOfConnectedDevices_ > 0
-											   ? total_connected_time / NumberOfConnectedDevices_
-											   : 0;
 			if ((now - last_log) > 120) {
 				last_log = now;
 				poco_information(Logger(),
