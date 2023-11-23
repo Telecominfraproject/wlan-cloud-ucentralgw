@@ -202,7 +202,7 @@ namespace OpenWifi {
 								fmt::format(
 									"{}: Session seems idle. Controller disconnecting device.",
 									hint->second.second->SerialNumber_));
-							SessionsToRemove.emplace_back();
+							SessionsToRemove.emplace_back(hint->second.first);
 							Garbage_.push_back(hint->second.second);
 							hint = SerialNumbers_[hashIndex].erase(hint);
 						} else if (hint->second.second->State_.Connected) {
@@ -216,9 +216,10 @@ namespace OpenWifi {
 					}
 				}
 
-				{
+				if(SessionsToRemove.empty()) {
+					poco_information(Logger(), fmt::format("Removing {} sessions.", SessionsToRemove.size()));
 					std::lock_guard L1(WSServerMutex_);
-					for(const auto &Session:SessionsToRemove) {
+					for (const auto &Session : SessionsToRemove) {
 						Sessions_.erase(Session);
 					}
 				}
