@@ -196,11 +196,15 @@ namespace OpenWifi {
 					std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 					auto hint = SerialNumbers_[hashIndex].begin();
 					while (hint != end(SerialNumbers_[hashIndex])) {
+						std::cout << __LINE__ << std::endl;
 						if (hint->second.second == nullptr) {
 							hint = SerialNumbers_[hashIndex].erase(hint);
+							std::cout << __LINE__ << std::endl;
 						} else if ((now - hint->second.second->State_.LastContact) >
 								   SessionTimeOut_) {
+							std::cout << __LINE__ << std::endl;
 							hint->second.second->EndConnection(false);
+							std::cout << __LINE__ << std::endl;
 							poco_information(
 								Logger(),
 								fmt::format(
@@ -209,34 +213,43 @@ namespace OpenWifi {
 							SessionsToRemove.emplace_back(hint->second.first);
 							Garbage_.push_back(hint->second.second);
 							hint = SerialNumbers_[hashIndex].erase(hint);
+							std::cout << __LINE__ << std::endl;
 						} else if (hint->second.second->State_.Connected) {
 							NumberOfConnectedDevices_++;
 							total_connected_time += (now - hint->second.second->State_.started);
 							hint++;
+							std::cout << __LINE__ << std::endl;
 						} else {
 							NumberOfConnectingDevices_++;
 							hint++;
+							std::cout << __LINE__ << std::endl;
 						}
 					}
 				}
 
+				std::cout << __LINE__ << std::endl;
 				if(SessionsToRemove.empty()) {
+					std::cout << __LINE__ << std::endl;
 					poco_information(Logger(), fmt::format("Removing {} sessions.", SessionsToRemove.size()));
 					std::lock_guard L1(WSServerMutex_);
 					for (const auto &Session : SessionsToRemove) {
 						Sessions_.erase(Session);
 					}
+					std::cout << __LINE__ << std::endl;
 				}
 
+				std::cout << __LINE__ << std::endl;
 				AverageDeviceConnectionTime_ =
-					NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_
-												  : 0;
+				NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_
+											  : 0;
+
 				poco_information(Logger(), fmt::format("Garbage collecting done..."));
 			} else {
-				NumberOfConnectedDevices_ = SerialNumbers_.size();
+				std::cout << __LINE__ << std::endl;
 				AverageDeviceConnectionTime_ += 10;
 			}
 
+			DBGLINE;
 			if ((now - last_log) > 120) {
 				last_log = now;
 				poco_information(Logger(),
@@ -244,6 +257,7 @@ namespace OpenWifi {
 											 NumberOfConnectedDevices_, NumberOfConnectingDevices_,
 											 AverageDeviceConnectionTime_));
 			}
+			DBGLINE;
 		}
 
 		GWWebSocketNotifications::NumberOfConnection_t Notification;
