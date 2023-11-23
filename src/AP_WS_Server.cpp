@@ -176,6 +176,7 @@ namespace OpenWifi {
 		auto now = Utils::Now();
 
 		{
+			std::cout << __LINE__ << std::endl;
 			{
 				std::lock_guard L1(WSServerMutex_);
 				if (!Garbage_.empty()) {
@@ -183,6 +184,7 @@ namespace OpenWifi {
 				}
 			}
 
+			std::cout << __LINE__ << std::endl;
 			uint64_t total_connected_time = 0;
 
 			if(now-last_zombie_run > 20) {
@@ -192,12 +194,17 @@ namespace OpenWifi {
 				NumberOfConnectingDevices_ = 0;
 				AverageDeviceConnectionTime_ = 0;
 				last_zombie_run = now;
+				std::cout << __LINE__ << std::endl;
 				for(int hashIndex=0;hashIndex<=256;hashIndex++) {
+					std::cout << __LINE__ << std::endl;
 					std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
+					std::cout << __LINE__ << std::endl;
 					auto hint = SerialNumbers_[hashIndex].begin();
+					std::cout << __LINE__ << std::endl;
 					while (hint != end(SerialNumbers_[hashIndex])) {
 						std::cout << __LINE__ << std::endl;
 						if (hint->second.second == nullptr) {
+							std::cout << __LINE__ << std::endl;
 							hint = SerialNumbers_[hashIndex].erase(hint);
 							std::cout << __LINE__ << std::endl;
 						} else if ((now - hint->second.second->State_.LastContact) >
@@ -249,7 +256,7 @@ namespace OpenWifi {
 				AverageDeviceConnectionTime_ += 10;
 			}
 
-			DBGLINE;
+			std::cout << __LINE__ << std::endl;
 			if ((now - last_log) > 120) {
 				last_log = now;
 				poco_information(Logger(),
@@ -257,24 +264,28 @@ namespace OpenWifi {
 											 NumberOfConnectedDevices_, NumberOfConnectingDevices_,
 											 AverageDeviceConnectionTime_));
 			}
-			DBGLINE;
+			std::cout << __LINE__ << std::endl;
 		}
 
+		std::cout << __LINE__ << std::endl;
 		GWWebSocketNotifications::NumberOfConnection_t Notification;
 		Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
 		Notification.content.numberOfDevices = NumberOfConnectedDevices_;
 		Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
 		GetTotalDataStatistics(Notification.content.tx,Notification.content.rx);
 		GWWebSocketNotifications::NumberOfConnections(Notification);
+		std::cout << __LINE__ << std::endl;
 
 		Poco::JSON::Object	KafkaNotification;
 		Notification.to_json(KafkaNotification);
+		std::cout << __LINE__ << std::endl;
 
 		Poco::JSON::Object FullEvent;
 		FullEvent.set("type", "load-update");
 		FullEvent.set("timestamp", now);
 		FullEvent.set("payload", KafkaNotification);
 
+		std::cout << __LINE__ << std::endl;
 		KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
 	}
 
