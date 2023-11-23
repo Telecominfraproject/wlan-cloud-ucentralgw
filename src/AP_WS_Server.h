@@ -116,10 +116,11 @@ namespace OpenWifi {
 		}
 
 		inline bool DeviceRequiresSecureRtty(uint64_t serialNumber) const {
-			std::lock_guard Lock(WSServerMutex_);
+			auto hashIndex = Utils::CalculateMacAddressHash(serialNumber);
+			std::lock_guard	G(SerialNumbersMutex_[hashIndex]);
 
-			auto Connection = SerialNumbers_.find(serialNumber);
-			if (Connection==end(SerialNumbers_) || Connection->second.second==nullptr)
+			auto Connection = SerialNumbers_[hashIndex].find(serialNumber);
+			if (Connection==end(SerialNumbers_[hashIndex]) || Connection->second.second==nullptr)
 				return false;
 			return Connection->second.second->RttyMustBeSecure_;
 		}
@@ -201,6 +202,7 @@ namespace OpenWifi {
 			RX = RX_;
 		}
 
+		//	TOD: move to hash based map.
 		inline bool GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers) {
 			std::lock_guard		G(WSServerMutex_);
 
@@ -220,9 +222,12 @@ namespace OpenWifi {
 			std::double_t &Load,
 			std::double_t &Temperature
 			) {
-			std::lock_guard	G(WSServerMutex_);
-			auto session_hint = SerialNumbers_.find(Utils::SerialNumberToInt(serialNumber));
-			if(session_hint==end(SerialNumbers_)) {
+
+			auto serialNumberInt = Utils::SerialNumberToInt(serialNumber);
+			auto hashIndex = Utils::CalculateMacAddressHash(serialNumberInt);
+			std::lock_guard	G(SerialNumbersMutex_[hashIndex]);
+			auto session_hint = SerialNumbers_[hashIndex].find(Utils::SerialNumberToInt(serialNumber));
+			if(session_hint==end(SerialNumbers_[hashIndex])) {
 				return false;
 			}
 			hasGPS = session_hint->second.second->hasGPS;
@@ -247,7 +252,13 @@ namespace OpenWifi {
 		std::unique_ptr<AP_WS_ReactorThreadPool> Reactor_pool_;
 		std::atomic_bool Running_ = false;
 		std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>> Sessions_;
-		std::map<uint64_t, std::pair<uint64_t, std::shared_ptr<AP_WS_Connection>>> SerialNumbers_;
+
+		using SerialNumberMap = std::map<uint64_t /* serial number */, std::pair<uint64_t /* session id*/,
+									 std::shared_ptr<AP_WS_Connection>>>;
+
+		std::array<SerialNumberMap,256>			SerialNumbers_;
+		mutable std::array<std::mutex,256>		SerialNumbersMutex_;
+
 		std::atomic_bool AllowSerialNumberMismatch_ = true;
 		std::atomic_uint64_t MismatchDepth_ = 2;
 
@@ -255,6 +266,7 @@ namespace OpenWifi {
 		std::uint64_t 			AverageDeviceConnectionTime_ = 0;
 		std::uint64_t 			NumberOfConnectingDevices_ = 0;
 		std::uint64_t 			SessionTimeOut_ = 10*60;
+
 		mutable std::mutex		StatsMutex_;
 		std::atomic_uint64_t 	TX_=0,RX_=0;
 
