@@ -195,7 +195,7 @@ namespace OpenWifi {
 				AverageDeviceConnectionTime_ = 0;
 				last_zombie_run = now;
 				std::cout << __LINE__ << std::endl;
-				for(int hashIndex=0;hashIndex<=256;hashIndex++) {
+				for(int hashIndex=0;hashIndex<256;hashIndex++) {
 					std::cout << __LINE__ << std::endl;
 					std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 					std::cout << __LINE__ << std::endl;
