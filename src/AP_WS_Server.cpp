@@ -176,13 +176,17 @@ namespace OpenWifi {
 		auto now = Utils::Now();
 
 		{
-			if (!Garbage_.empty()) {
-				Garbage_.clear();
+			{
+				std::lock_guard L1(WSServerMutex_);
+				if (!Garbage_.empty()) {
+					Garbage_.clear();
+				}
 			}
 
 			uint64_t total_connected_time = 0;
 
-			if(now-last_zombie_run > 60) {
+			if(now-last_zombie_run > 20) {
+				poco_information(Logger(), fmt::format("Garbage collecting..."));
 				std::vector<std::uint64_t> SessionsToRemove;
 				NumberOfConnectedDevices_ = 0;
 				NumberOfConnectingDevices_ = 0;
@@ -227,6 +231,7 @@ namespace OpenWifi {
 				AverageDeviceConnectionTime_ =
 					NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_
 												  : 0;
+				poco_information(Logger(), fmt::format("Garbage collecting done..."));
 			} else {
 				NumberOfConnectedDevices_ = SerialNumbers_.size();
 				AverageDeviceConnectionTime_ += 10;
