@@ -75,7 +75,6 @@ namespace OpenWifi {
 		bool IsCertOk() { return IssuerCert_ != nullptr; }
 		bool ValidateCertificate(const std::string &ConnectionId,
 								 const Poco::Crypto::X509Certificate &Certificate);
-		// Poco::Net::SocketReactor & GetNextReactor() { return ReactorPool_.NextReactor(); }
 
 		inline bool IsSimSerialNumber(const std::string &SerialNumber) const {
 			return IsSim(Poco::toLower(SerialNumber)) &&

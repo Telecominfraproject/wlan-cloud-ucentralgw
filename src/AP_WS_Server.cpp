@@ -234,6 +234,8 @@ namespace OpenWifi {
 
 				poco_information(Logger(), fmt::format("Garbage collecting done..."));
 			} else {
+				std::lock_guard L1(WSServerMutex_);
+				NumberOfConnectedDevices_ = Sessions_.size();
 				AverageDeviceConnectionTime_ += 10;
 			}
 
