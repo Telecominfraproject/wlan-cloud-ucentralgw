@@ -392,11 +392,11 @@ namespace OpenWifi {
 
 			std::string St{"SELECT SerialNumber FROM Devices WHERE SerialNumber=?"};
 
-			Select << ConvertParams(St), Poco::Data::Keywords::into(SerialNumber),
-				Poco::Data::Keywords::use(DeviceDetails.SerialNumber);
-			Select.execute();
+//			Select << ConvertParams(St), Poco::Data::Keywords::into(SerialNumber),
+//				Poco::Data::Keywords::use(DeviceDetails.SerialNumber);
+//			Select.execute();
 
-			if (Select.rowsExtracted() == 0) {
+//			if (Select.rowsExtracted() == 0) {
 				Config::Config Cfg(DeviceDetails.Configuration);
 				uint64_t Now = Utils::Now();
 
@@ -410,7 +410,7 @@ namespace OpenWifi {
 					Poco::Data::Statement Insert(Sess);
 
 					std::string St2{"INSERT INTO Devices ( " + DB_DeviceSelectFields + " ) " +
-									DB_DeviceInsertValues};
+									DB_DeviceInsertValues + " ON CONFLICT (SerialNumber) DO NOTHING"};
 
 					SetCurrentConfigurationID(DeviceDetails.SerialNumber, DeviceDetails.UUID);
 					DeviceRecordTuple R;
@@ -424,11 +424,11 @@ namespace OpenWifi {
 					poco_warning(Logger(), "Cannot create device: invalid configuration.");
 					return false;
 				}
-			} else {
-				poco_warning(Logger(), fmt::format("Device {} already exists.", SerialNumber));
-				return false;
-			}
-
+//			} else {
+//				poco_warning(Logger(), fmt::format("Device {} already exists.", SerialNumber));
+//				return false;
+//			}
+			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}

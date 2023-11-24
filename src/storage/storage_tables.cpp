@@ -40,12 +40,15 @@ namespace OpenWifi {
 				Sess << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, "
 						"Recorded ASC)",
 					Poco::Data::Keywords::now;
+				Sess << "CREATE INDEX IF NOT EXISTS StatsSerial0 ON Statistics (SerialNumber ASC)",
+					Poco::Data::Keywords::now;
 			} else if (dbType_ == mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS Statistics ("
 						"SerialNumber VARCHAR(30), "
 						"UUID INTEGER, "
 						"Data TEXT, "
 						"Recorded BIGINT, "
+						"INDEX StatSerial0 (SerialNumber)), ",
 						"INDEX StatSerial (SerialNumber ASC, Recorded ASC))",
 					Poco::Data::Keywords::now;
 			}
