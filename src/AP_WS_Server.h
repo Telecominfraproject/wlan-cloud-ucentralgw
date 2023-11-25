@@ -101,17 +101,8 @@ namespace OpenWifi {
 
 		inline void AddConnection(uint64_t session_id,
 								  std::shared_ptr<AP_WS_Connection> Connection) {
-			std::lock_guard Lock(WSServerMutex_);
+			std::lock_guard Lock(SessionMutex_);
 			Sessions_[session_id] = std::move(Connection);
-		}
-
-		inline std::shared_ptr<AP_WS_Connection> FindConnection(uint64_t session_id) const {
-			std::lock_guard Lock(WSServerMutex_);
-
-			auto Connection = Sessions_.find(session_id);
-			if (Connection != end(Sessions_))
-				return Connection->second;
-			return nullptr;
 		}
 
 		inline bool DeviceRequiresSecureRtty(uint64_t serialNumber) const {
@@ -203,8 +194,7 @@ namespace OpenWifi {
 
 		//	TOD: move to hash based map.
 		inline bool GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers) {
-			std::lock_guard		G(WSServerMutex_);
-
+			std::lock_guard Lock(SessionMutex_);
 			for(const auto &connection:Sessions_) {
 				if(	connection.second->RawLastHealthcheck_.Sanity>=lowLimit 	&&
 					connection.second->RawLastHealthcheck_.Sanity<=highLimit) {
@@ -238,7 +228,8 @@ namespace OpenWifi {
 		}
 
 	  private:
-		mutable std::recursive_mutex WSServerMutex_;
+		mutable std::mutex 			SessionMutex_;
+		mutable std::mutex			StatsMutex_;
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>> WebServers_;
 		Poco::Net::SocketReactor Reactor_;
@@ -266,7 +257,6 @@ namespace OpenWifi {
 		std::uint64_t 			NumberOfConnectingDevices_ = 0;
 		std::uint64_t 			SessionTimeOut_ = 10*60;
 
-		mutable std::mutex		StatsMutex_;
 		std::atomic_uint64_t 	TX_=0,RX_=0;
 
 		std::vector<std::shared_ptr<AP_WS_Connection>> Garbage_;

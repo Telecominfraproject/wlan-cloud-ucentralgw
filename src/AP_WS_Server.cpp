@@ -107,7 +107,6 @@ namespace OpenWifi {
 			Context->flushSessionCache();
 			Context->enableSessionCache(true);
 			Context->enableExtendedCertificateVerification(false);
-			// Context->disableStatelessSessionResumption();
 			Context->disableProtocols(Poco::Net::Context::PROTO_TLSV1 |
 									  Poco::Net::Context::PROTO_TLSV1_1);
 
@@ -177,7 +176,7 @@ namespace OpenWifi {
 
 		{
 			{
-				std::lock_guard L1(WSServerMutex_);
+				std::lock_guard SessionLock(SessionMutex_);
 				if (!Garbage_.empty()) {
 					Garbage_.clear();
 				}
@@ -222,7 +221,7 @@ namespace OpenWifi {
 
 				if(SessionsToRemove.empty()) {
 					poco_information(Logger(), fmt::format("Removing {} sessions.", SessionsToRemove.size()));
-					std::lock_guard L1(WSServerMutex_);
+					std::lock_guard Lock(SessionMutex_);
 					for (const auto &Session : SessionsToRemove) {
 						Sessions_.erase(Session);
 					}
@@ -234,7 +233,7 @@ namespace OpenWifi {
 
 				poco_information(Logger(), fmt::format("Garbage collecting done..."));
 			} else {
-				std::lock_guard L1(WSServerMutex_);
+				std::lock_guard SessionLock(SessionMutex_);
 				NumberOfConnectedDevices_ = Sessions_.size();
 				AverageDeviceConnectionTime_ += 10;
 			}
@@ -320,7 +319,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber) {
-		std::lock_guard L(WSServerMutex_);
+		std::lock_guard SessionLock(SessionMutex_);
 		auto Conn = Sessions_.find(connection_id);
 		if (Conn == end(Sessions_))
 			return;
@@ -336,8 +335,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
-		std::lock_guard G(WSServerMutex_);
-
+		std::lock_guard SessionLock(SessionMutex_);
 		auto Session = Sessions_.find(session_id);
 		if (Session == end(Sessions_))
 			return false;
@@ -362,32 +360,6 @@ namespace OpenWifi {
 
 		return false;
 	}
-
-/*	bool AP_WS_Server::EndSessionUnSafe(uint64_t session_id, uint64_t serial_number) {
-
-		auto Session = Sessions_.find(session_id);
-		if (Session == end(Sessions_))
-			return false;
-
-		Garbage_.push_back(Session->second);
-
-		auto Device = SerialNumbers_.find(serial_number);
-		if (Device == end(SerialNumbers_)) {
-			Sessions_.erase(Session);
-			return false;
-		}
-
-		if (Device->second.first == session_id) {
-			Sessions_.erase(Session);
-			SerialNumbers_.erase(Device);
-			return true;
-		}
-
-		Sessions_.erase(Session);
-
-		return false;
-	}
-*/
 
 	bool AP_WS_Server::Connected(uint64_t SerialNumber,
 								 GWObjects::DeviceRestrictions &Restrictions) const {
