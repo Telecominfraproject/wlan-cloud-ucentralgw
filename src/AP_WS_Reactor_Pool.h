@@ -11,13 +11,13 @@
 #include "Poco/Net/SocketAcceptor.h"
 #include <Poco/Data/SessionPool.h>
 #include "framework/utils.h"
-#include "framework/StorageClass.h"
+#include <StorageService.h>
 
 namespace OpenWifi {
 	class AP_WS_ReactorThreadPool {
 	  public:
-		explicit AP_WS_ReactorThreadPool() {
-			NumberOfThreads_ = Poco::Environment::processorCount() * 4;
+		explicit AP_WS_ReactorThreadPool(Poco::Logger &Logger) : Logger_(Logger) {
+			NumberOfThreads_ = Poco::Environment::processorCount() * 2;
 			if (NumberOfThreads_ == 0)
 				NumberOfThreads_ = 4;
 		}
@@ -25,6 +25,9 @@ namespace OpenWifi {
 		~AP_WS_ReactorThreadPool() { Stop(); }
 
 		void Start() {
+			Reactors_.reserve(NumberOfThreads_);
+			DbSessions_.reserve(NumberOfThreads_);
+			Threads_.reserve(NumberOfThreads_);
 			for (uint64_t i = 0; i < NumberOfThreads_; ++i) {
 				auto NewReactor = std::make_unique<Poco::Net::SocketReactor>();
 				auto NewThread = std::make_unique<Poco::Thread>();
@@ -33,8 +36,9 @@ namespace OpenWifi {
 				Utils::SetThreadName(*NewThread, ThreadName.c_str());
 				Reactors_.emplace_back(std::move(NewReactor));
 				Threads_.emplace_back(std::move(NewThread));
-				DbSessions_.emplace_back(std::make_unique<Poco::Data::Session>(StorageClass().Pool().get()));
+				DbSessions_.emplace_back(std::make_unique<Poco::Data::Session>(StorageService()->Pool().get()));
 			}
+			Logger_.information(fmt::format("WebSocket Processor: {} threads started.", NumberOfThreads_));
 		}
 
 		void Stop() {
@@ -62,6 +66,7 @@ namespace OpenWifi {
 		std::vector<std::unique_ptr<Poco::Net::SocketReactor>> Reactors_;
 		std::vector<std::unique_ptr<Poco::Thread>> Threads_;
 		std::vector<std::unique_ptr<Poco::Data::Session>> 	DbSessions_;
+		Poco::Logger &Logger_;
 
 	};
 } // namespace OpenWifi

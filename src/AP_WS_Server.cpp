@@ -57,7 +57,7 @@ namespace OpenWifi {
 
 		SessionTimeOut_ = MicroServiceConfigGetInt("openwifi.session.timeout", 10*60);
 
-		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
+		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>(Logger());
 		Reactor_pool_->Start();
 
 		for (const auto &Svr : ConfigServersList_) {

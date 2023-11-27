@@ -175,7 +175,7 @@ add_executable( owgw
         src/SDKcalls.cpp
         src/SDKcalls.h
         src/StateUtils.cpp src/StateUtils.h
-        src/AP_WS_ReactorPool.h
+        src/AP_WS_Reactor_Pool.h
         src/AP_WS_Connection.h
         src/AP_WS_Connection.cpp
         src/TelemetryClient.h src/TelemetryClient.cpp

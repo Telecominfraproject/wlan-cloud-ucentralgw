@@ -24,7 +24,7 @@
 #include "Poco/Timer.h"
 
 #include "AP_WS_Connection.h"
-#include "AP_WS_ReactorPool.h"
+#include "AP_WS_Reactor_Pool.h"
 
 #include "framework/SubSystemServer.h"
 #include "framework/utils.h"
