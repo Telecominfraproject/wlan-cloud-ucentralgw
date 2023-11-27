@@ -38,6 +38,16 @@ namespace OpenWifi {
 	bool Storage::AddHealthCheckData(const GWObjects::HealthCheck &Check) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			return Storage::AddHealthCheckData(Sess, Check);
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
+		}
+		return false;
+	}
+
+	bool Storage::AddHealthCheckData(Poco::Data::Session &Sess, const GWObjects::HealthCheck &Check) {
+		try {
 			Poco::Data::Statement Insert(Sess);
 
 			std::string St{"INSERT INTO HealthChecks ( " + DB_HealthCheckSelectFields +

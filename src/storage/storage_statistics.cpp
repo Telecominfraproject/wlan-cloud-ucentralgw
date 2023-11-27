@@ -8,7 +8,6 @@
 
 #include "AP_WS_Server.h"
 #include "StorageService.h"
-
 #include "fmt/format.h"
 
 namespace OpenWifi {
@@ -33,9 +32,8 @@ namespace OpenWifi {
 		R.set<3>(Stats.Recorded);
 	}
 
-	bool Storage::AddStatisticsData(const GWObjects::Statistics &Stats) {
+	bool Storage::AddStatisticsData(Poco::Data::Session &Sess, const GWObjects::Statistics &Stats) {
 		try {
-			Poco::Data::Session Sess(Pool_->get());
 			Poco::Data::Statement Insert(Sess);
 
 			poco_trace(Logger(), fmt::format("{}: Adding stats. Size={}", Stats.SerialNumber,
@@ -47,6 +45,17 @@ namespace OpenWifi {
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
 			return true;
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
+		}
+		return false;
+	}
+
+	bool Storage::AddStatisticsData(const GWObjects::Statistics &Stats) {
+		try {
+			auto Session = StorageClass().Pool().get();
+			return Storage::AddStatisticsData(Session, Stats);
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
 											   E.displayText()));

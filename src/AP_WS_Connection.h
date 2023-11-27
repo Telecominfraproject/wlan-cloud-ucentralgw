@@ -14,6 +14,7 @@
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/StreamSocket.h"
 #include "Poco/Net/WebSocket.h"
+#include <Poco/Data/Session.h>
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
@@ -25,7 +26,7 @@ namespace OpenWifi {
 	  public:
 		explicit AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
 								  Poco::Net::HTTPServerResponse &response, uint64_t connection_id,
-								  Poco::Logger &L, Poco::Net::SocketReactor &R);
+								  Poco::Logger &L, std::pair<Poco::Net::SocketReactor *, Poco::Data::Session *> R);
 		~AP_WS_Connection();
 
 		void EndConnection(bool DeleteSession=true);
@@ -164,7 +165,8 @@ namespace OpenWifi {
 		mutable std::mutex ConnectionMutex_;
 		std::mutex TelemetryMutex_;
 		Poco::Logger &Logger_;
-		Poco::Net::SocketReactor &Reactor_;
+		Poco::Net::SocketReactor *Reactor_{nullptr};
+		Poco::Data::Session *DbSession_{nullptr};
 		std::unique_ptr<Poco::Net::WebSocket> WS_;
 		std::string SerialNumber_;
 		uint64_t SerialNumberInt_ = 0;
@@ -183,7 +185,7 @@ namespace OpenWifi {
 		volatile uint64_t TelemetryWebSocketPackets_ = 0;
 		volatile uint64_t TelemetryKafkaPackets_ = 0;
 		GWObjects::ConnectionState State_;
-		std::string RawLastStats_;
+		Utils::CompressedString RawLastStats_;
 		GWObjects::HealthCheck RawLastHealthcheck_;
 		std::chrono::time_point<std::chrono::high_resolution_clock> ConnectionStart_ =
 			std::chrono::high_resolution_clock::now();

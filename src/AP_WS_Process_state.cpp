@@ -49,7 +49,7 @@ namespace OpenWifi {
 			GWObjects::Statistics Stats{
 				.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
 			Stats.Recorded = Utils::Now();
-			StorageService()->AddStatisticsData(Stats);
+			StorageService()->AddStatisticsData(*DbSession_,Stats);
 			if (!request_uuid.empty()) {
 				StorageService()->SetCommandResult(request_uuid, StateStr);
 			}

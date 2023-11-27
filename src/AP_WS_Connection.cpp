@@ -36,12 +36,6 @@
 
 namespace OpenWifi {
 
-#define DBL                                                                                        \
-	{                                                                                              \
-		std::cout << __LINE__ << "  ID: " << ConnectionId_ << "  Ser: " << SerialNumber_           \
-				  << std::endl;                                                                    \
-	}
-
 	void AP_WS_Connection::LogException(const Poco::Exception &E) {
 		poco_information(Logger_, fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
 	}
@@ -49,9 +43,12 @@ namespace OpenWifi {
 	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
 									   Poco::Net::HTTPServerResponse &response,
 									   uint64_t connection_id, Poco::Logger &L,
-									   Poco::Net::SocketReactor &R)
-		: Logger_(L), Reactor_(R) {
+									   std::pair<Poco::Net::SocketReactor *, Poco::Data::Session *> R)
+		: Logger_(L) {
+		Reactor_ = R.first;
+		DbSession_ = R.second;
 		State_.sessionId = connection_id;
+
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request, response);
 
 		auto TS = Poco::Timespan(360, 0);
@@ -62,13 +59,13 @@ namespace OpenWifi {
 		WS_->setKeepAlive(true);
 		WS_->setBlocking(false);
 
-		Reactor_.addEventHandler(*WS_,
+		Reactor_->addEventHandler(*WS_,
 								 Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
 									 *this, &AP_WS_Connection::OnSocketReadable));
-		Reactor_.addEventHandler(*WS_,
+		Reactor_->addEventHandler(*WS_,
 								 Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
 									 *this, &AP_WS_Connection::OnSocketShutdown));
-		Reactor_.addEventHandler(*WS_,
+		Reactor_->addEventHandler(*WS_,
 								 Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 									 *this, &AP_WS_Connection::OnSocketError));
 		Registered_ = true;
@@ -127,6 +124,16 @@ namespace OpenWifi {
 			}
 
 			CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
+			if(!Utils::ValidSerialNumber(CN_)) {
+				poco_trace(Logger_,
+						   fmt::format("TLS-CONNECTION({}): Session={} Invalid serial number: CN={}", CId_,
+									   State_.sessionId, CN_));
+				EndConnection();
+				return false;
+			}
+			SerialNumber_ = CN_;
+			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
+
 			State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
 			poco_trace(Logger_,
 					   fmt::format("TLS-CONNECTION({}): Session={} Valid certificate: CN={}", CId_,
@@ -140,14 +147,14 @@ namespace OpenWifi {
 				return false;
 			}
 
-			if(AP_WS_Server::IsSim(CN_)) {
+			if(AP_WS_Server::IsSim(SerialNumber_)) {
 				State_.VerifiedCertificate = GWObjects::SIMULATED;
 				Simulated_ = true;
 			}
 
 			std::string reason, author;
 			std::uint64_t created;
-			if (!CN_.empty() && StorageService()->IsBlackListed(CN_, reason, author, created)) {
+			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumberInt_, reason, author, created)) {
 				DeviceBlacklistedKafkaEvent KE(Utils::SerialNumberToInt(CN_), Utils::Now(), reason, author, created, CId_);
 				poco_warning(
 					Logger_,
@@ -159,8 +166,6 @@ namespace OpenWifi {
 			}
 
 			State_.certificateExpiryDate = PeerCert.expiresOn().timestamp().epochTime();
-			SerialNumber_ = CN_;
-			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 			poco_trace(Logger_,
 					   fmt::format("TLS-CONNECTION({}): Session={} CN={} Completed. (t={})", CId_,
@@ -254,18 +259,18 @@ namespace OpenWifi {
 		if (!Dead_.test_and_set()) {
 
 			if(!SerialNumber_.empty() && State_.LastContact!=0) {
-				StorageService()->SetDeviceLastRecordedContact(SerialNumber_, State_.LastContact);
+				StorageService()->SetDeviceLastRecordedContact(*DbSession_, SerialNumber_, State_.LastContact);
 			}
 
 			if (Registered_) {
 				Registered_ = false;
-				Reactor_.removeEventHandler(
+				Reactor_->removeEventHandler(
 					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
 							  *this, &AP_WS_Connection::OnSocketReadable));
-				Reactor_.removeEventHandler(
+				Reactor_->removeEventHandler(
 					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
 							  *this, &AP_WS_Connection::OnSocketShutdown));
-				Reactor_.removeEventHandler(
+				Reactor_->removeEventHandler(
 					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 							  *this, &AP_WS_Connection::OnSocketError));
 			}
@@ -301,7 +306,7 @@ namespace OpenWifi {
 		}
 
 		GWObjects::Device D;
-		if (StorageService()->GetDevice(SerialNumber_, D)) {
+		if (StorageService()->GetDevice(*DbSession_,SerialNumber_, D)) {
 
 			if(D.pendingUUID!=0 && UUID==D.pendingUUID) {
 				//	so we sent an upgrade to a device, and now it is completing now...
@@ -447,7 +452,7 @@ namespace OpenWifi {
 
 		std::string reason, author;
 		std::uint64_t created;
-		if (StorageService()->IsBlackListed(Serial, reason, author, created)) {
+		if (StorageService()->IsBlackListed(SerialNumberInt_, reason, author, created)) {
 			DeviceBlacklistedKafkaEvent KE(Utils::SerialNumberToInt(CN_), Utils::Now(), reason, author, created, CId_);
 			Poco::Exception E(
 				fmt::format("BLACKLIST({}): device is blacklisted and not allowed to connect.",

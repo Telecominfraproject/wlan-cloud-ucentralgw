@@ -48,7 +48,7 @@ namespace OpenWifi {
 			Check.Data = CheckData;
 			Check.Sanity = Sanity;
 
-			StorageService()->AddHealthCheckData(Check);
+			StorageService()->AddHealthCheckData(*DbSession_, Check);
 
 			if (!request_uuid.empty()) {
 				StorageService()->SetCommandResult(request_uuid, CheckData);

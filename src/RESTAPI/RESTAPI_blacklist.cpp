@@ -63,7 +63,7 @@ namespace OpenWifi {
 		poco_debug(Logger(), fmt::format("BLACKLIST-POST: {}", D.serialNumber));
 
 		Poco::toLowerInPlace(D.serialNumber);
-		if (StorageService()->IsBlackListed(D.serialNumber)) {
+		if (StorageService()->IsBlackListed(Utils::MACToInt(D.serialNumber))) {
 			return BadRequest(RESTAPI::Errors::SerialNumberExists);
 		}
 

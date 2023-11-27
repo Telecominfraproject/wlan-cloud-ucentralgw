@@ -9,8 +9,9 @@
 
 #include "Poco/Environment.h"
 #include "Poco/Net/SocketAcceptor.h"
-
+#include <Poco/Data/SessionPool.h>
 #include "framework/utils.h"
+#include "framework/StorageClass.h"
 
 namespace OpenWifi {
 	class AP_WS_ReactorThreadPool {
@@ -32,6 +33,7 @@ namespace OpenWifi {
 				Utils::SetThreadName(*NewThread, ThreadName.c_str());
 				Reactors_.emplace_back(std::move(NewReactor));
 				Threads_.emplace_back(std::move(NewThread));
+				DbSessions_.emplace_back(std::make_unique<Poco::Data::Session>(StorageClass().Pool().get()));
 			}
 		}
 
@@ -43,13 +45,14 @@ namespace OpenWifi {
 			}
 			Reactors_.clear();
 			Threads_.clear();
+			DbSessions_.clear();
 		}
 
-		Poco::Net::SocketReactor &NextReactor() {
+		std::pair<Poco::Net::SocketReactor *, Poco::Data::Session *> NextReactor() {
 			std::lock_guard Lock(Mutex_);
 			NextReactor_++;
 			NextReactor_ %= NumberOfThreads_;
-			return *Reactors_[NextReactor_];
+			return std::make_pair(Reactors_[NextReactor_].get(), DbSessions_[NextReactor_].get());
 		}
 
 	  private:
@@ -58,5 +61,7 @@ namespace OpenWifi {
 		uint64_t NextReactor_ = 0;
 		std::vector<std::unique_ptr<Poco::Net::SocketReactor>> Reactors_;
 		std::vector<std::unique_ptr<Poco::Thread>> Threads_;
+		std::vector<std::unique_ptr<Poco::Data::Session>> 	DbSessions_;
+
 	};
 } // namespace OpenWifi

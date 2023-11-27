@@ -39,10 +39,8 @@ namespace OpenWifi {
 		R.set<6>(Log.UUID);
 	}
 
-	bool Storage::AddLog(const GWObjects::DeviceLog &Log) {
+	bool Storage::AddLog(Poco::Data::Session &Sess, const GWObjects::DeviceLog &Log) {
 		try {
-
-			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Insert(Sess);
 
 			std::string St{"INSERT INTO DeviceLogs (" + DB_LogsSelectFields + ") values( " +

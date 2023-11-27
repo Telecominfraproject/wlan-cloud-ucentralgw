@@ -330,5 +330,90 @@ namespace OpenWifi::Utils {
         uint32_t        Port;
     };
 
+	class CompressedString {
+	  public:
+		CompressedString() {
+			DecompressedSize_ = 0;
+		};
+
+		explicit CompressedString(const std::string &Data) : DecompressedSize_(Data.size()) {
+			CompressIt(Data);
+		}
+
+		CompressedString(const CompressedString &Data) {
+			this->DecompressedSize_ = Data.DecompressedSize_;
+			this->CompressedData_ = Data.CompressedData_;
+		}
+
+		CompressedString& operator=(const CompressedString& rhs) {
+			if (this != &rhs) {
+				this->DecompressedSize_ = rhs.DecompressedSize_;
+				this->CompressedData_ = rhs.CompressedData_;
+			}
+			return *this;
+		}
+
+		CompressedString& operator=(CompressedString&& rhs) {
+			if (this != &rhs) {
+				this->DecompressedSize_ = rhs.DecompressedSize_;
+				this->CompressedData_ = rhs.CompressedData_;
+			}
+			return *this;
+		}
+
+		~CompressedString() = default;
+
+		operator std::string() const {
+			return DecompressIt();
+		}
+
+		CompressedString &operator=(const std::string &Data) {
+			DecompressedSize_ = Data.size();
+			CompressIt(Data);
+			return *this;
+		}
+
+		auto CompressedSize() const { return CompressedData_.size(); }
+		auto DecompressedSize() const { return DecompressedSize_; }
+
+	  private:
+		std::string     CompressedData_;
+		std::size_t     DecompressedSize_;
+
+		inline void CompressIt(const std::string &Data) {
+			z_stream strm; // = {0};
+			CompressedData_.resize(Data.size());
+			strm.next_in = (Bytef *)Data.data();
+			strm.avail_in = Data.size();
+			strm.next_out = (Bytef *)CompressedData_.data();
+			strm.avail_out = Data.size();
+			strm.zalloc = Z_NULL;
+			strm.zfree = Z_NULL;
+			strm.opaque = Z_NULL;
+			deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 15 + 16, 8, Z_DEFAULT_STRATEGY);
+			deflate(&strm, Z_FINISH);
+			deflateEnd(&strm);
+			CompressedData_.resize(strm.total_out);
+		}
+
+		[[nodiscard]] std::string DecompressIt() const {
+			std::string Result;
+			if(DecompressedSize_!=0) {
+				Result.resize(DecompressedSize_);
+				z_stream strm ; //= {0};
+				strm.next_in = (Bytef *)CompressedData_.data();
+				strm.avail_in = CompressedData_.size();
+				strm.next_out = (Bytef *)Result.data();
+				strm.avail_out = Result.size();
+				strm.zalloc = Z_NULL;
+				strm.zfree = Z_NULL;
+				strm.opaque = Z_NULL;
+				inflateInit2(&strm, 15 + 32);
+				inflate(&strm, Z_FINISH);
+				inflateEnd(&strm);
+			}
+			return Result;
+		}
+	};
 
 } // namespace OpenWifi::Utils

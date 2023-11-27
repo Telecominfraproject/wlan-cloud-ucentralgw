@@ -366,9 +366,8 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::SetDeviceLastRecordedContact(std::string &SerialNumber, std::uint64_t lastRecordedContact) {
+	bool Storage::SetDeviceLastRecordedContact(Poco::Data::Session &Sess, std::string &SerialNumber, std::uint64_t lastRecordedContact) {
 		try {
-			Poco::Data::Session 	Sess = Pool_->get();
 			Poco::Data::Statement 	Update(Sess);
 			std::string St{"UPDATE Devices SET lastRecordedContact=?  WHERE SerialNumber=?"};
 
@@ -383,11 +382,9 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::CreateDevice(GWObjects::Device &DeviceDetails) {
+	bool Storage::CreateDevice(Poco::Data::Session &Sess, GWObjects::Device &DeviceDetails) {
 		std::string SerialNumber;
 		try {
-
-			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
 			std::string St{"SELECT SerialNumber FROM Devices WHERE SerialNumber=?"};
@@ -429,6 +426,16 @@ namespace OpenWifi {
 //				return false;
 //			}
 			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
+	bool Storage::CreateDevice(GWObjects::Device &DeviceDetails) {
+		try {
+			auto Session = StorageClass().Pool().get();
+			return CreateDevice(Session, DeviceDetails);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -560,9 +567,8 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::SetDevicePassword(std::string &SerialNumber, std::string &Password) {
+	bool Storage::SetDevicePassword(Poco::Data::Session &Sess, std::string &SerialNumber, std::string &Password) {
 		try {
-			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 			std::string St{"UPDATE Devices SET DevicePassword=?  WHERE SerialNumber=?"};
 
@@ -694,7 +700,16 @@ namespace OpenWifi {
 
 	bool Storage::GetDevice(std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
 		try {
-			Poco::Data::Session Sess = Pool_->get();
+			auto Sess = Pool_->get();
+			return GetDevice(Sess, SerialNumber, DeviceDetails);
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
+	bool Storage::GetDevice(Poco::Data::Session &Sess, std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
+		try {
 			Poco::Data::Statement Select(Sess);
 
 			std::string St{"SELECT " + DB_DeviceSelectFields +
@@ -741,6 +756,15 @@ namespace OpenWifi {
 	bool Storage::UpdateDevice(GWObjects::Device &NewDeviceDetails) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			return UpdateDevice(Sess, NewDeviceDetails);
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
+	bool Storage::UpdateDevice(Poco::Data::Session &Sess, GWObjects::Device &NewDeviceDetails) {
+		try {
 			Poco::Data::Statement Update(Sess);
 
 			DeviceRecordTuple R;

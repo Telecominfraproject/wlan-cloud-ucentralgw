@@ -90,7 +90,8 @@ namespace OpenWifi {
 
 		// typedef std::map<std::string,std::string>	DeviceCapabilitiesCache;
 
-		bool AddLog(const GWObjects::DeviceLog &Log);
+		bool AddLog(Poco::Data::Session &DbSession, const GWObjects::DeviceLog &Log);
+		bool AddStatisticsData(Poco::Data::Session &DbSession, const GWObjects::Statistics &Stats);
 		bool AddStatisticsData(const GWObjects::Statistics &Stats);
 		bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
 							   uint64_t Offset, uint64_t HowMany,
@@ -102,6 +103,7 @@ namespace OpenWifi {
 									 std::vector<GWObjects::Statistics> &Stats);
 
 		bool AddHealthCheckData(const GWObjects::HealthCheck &Check);
+		bool AddHealthCheckData(Poco::Data::Session &DbSession, const GWObjects::HealthCheck &Check);
 		bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
 								uint64_t Offset, uint64_t HowMany,
 								std::vector<GWObjects::HealthCheck> &Checks);
@@ -117,11 +119,13 @@ namespace OpenWifi {
 		bool RollbackDeviceConfigurationChange(std::string & SerialNumber);
 		bool CompleteDeviceConfigurationChange(std::string & SerialNumber);
 
+		bool CreateDevice(Poco::Data::Session &DbSession, GWObjects::Device &);
 		bool CreateDevice(GWObjects::Device &);
 		bool CreateDefaultDevice(std::string &SerialNumber, const Config::Capabilities &Caps,
 								 std::string &Firmware, const Poco::Net::IPAddress &IPAddress,
 								 bool simulated);
 
+		bool GetDevice(Poco::Data::Session &DbSession, std::string &SerialNumber, GWObjects::Device &);
 		bool GetDevice(std::string &SerialNumber, GWObjects::Device &);
 		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices,
 						const std::string &orderBy = "");
@@ -132,6 +136,7 @@ namespace OpenWifi {
 		bool DeleteDevices(std::uint64_t OlderContact, bool SimulatedOnly);
 
 		bool UpdateDevice(GWObjects::Device &);
+		bool UpdateDevice(Poco::Data::Session &Session, GWObjects::Device &);
 		bool DeviceExists(std::string &SerialNumber);
 		bool SetConnectInfo(std::string &SerialNumber, std::string &Firmware);
 		bool GetDeviceCount(uint64_t &Count);
@@ -139,7 +144,7 @@ namespace OpenWifi {
 									std::vector<std::string> &SerialNumbers,
 									const std::string &orderBy = "");
 		bool GetDeviceFWUpdatePolicy(std::string &SerialNumber, std::string &Policy);
-		bool SetDevicePassword(std::string &SerialNumber, std::string &Password);
+		bool SetDevicePassword(Poco::Data::Session &Session, std::string &SerialNumber, std::string &Password);
 		bool UpdateSerialNumberCache();
 		static void GetDeviceDbFieldList(Types::StringVec &Fields);
 
@@ -147,6 +152,8 @@ namespace OpenWifi {
 								   std::string &NewConfig, uint64_t &);
 
 		bool UpdateDeviceCapabilities(std::string &SerialNumber,
+									  const Config::Capabilities &Capabilities);
+		bool UpdateDeviceCapabilities(Poco::Data::Session &Session, std::string &SerialNumber,
 									  const Config::Capabilities &Capabilities);
 		bool GetDeviceCapabilities(std::string &SerialNumber, GWObjects::Capabilities &);
 		bool DeleteDeviceCapabilities(std::string &SerialNumber);
@@ -228,9 +235,9 @@ namespace OpenWifi {
 		bool AddBlackListDevice(GWObjects::BlackListedDevice &Device);
 		bool GetBlackListDevice(std::string &SerialNumber, GWObjects::BlackListedDevice &Device);
 		bool DeleteBlackListDevice(std::string &SerialNumber);
-		bool IsBlackListed(const std::string &SerialNumber, std::string &reason,
+		bool IsBlackListed(std::uint64_t SerialNumber, std::string &reason,
 						   std::string &author, std::uint64_t &created);
-		bool IsBlackListed(const std::string &SerialNumber);
+		bool IsBlackListed(std::uint64_t SerialNumber);
 		bool InitializeBlackListCache();
 		bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany,
 								 std::vector<GWObjects::BlackListedDevice> &Devices);
@@ -245,7 +252,7 @@ namespace OpenWifi {
 		bool RemoveCommandListRecordsOlderThan(uint64_t Date);
 		bool RemoveUploadedFilesRecordsOlderThan(uint64_t Date);
 
-		bool SetDeviceLastRecordedContact(std::string & SeialNumber, std::uint64_t lastRecordedContact);
+		bool SetDeviceLastRecordedContact(Poco::Data::Session &Session, std::string & SeialNumber, std::uint64_t lastRecordedContact);
 
 		int Create_Tables();
 		int Create_Statistics();

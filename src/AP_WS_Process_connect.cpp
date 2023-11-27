@@ -110,7 +110,7 @@ namespace OpenWifi {
 
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device DeviceInfo;
-			auto DeviceExists = StorageService()->GetDevice(SerialNumber_, DeviceInfo);
+			auto DeviceExists = StorageService()->GetDevice(*DbSession_,SerialNumber_, DeviceInfo);
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
 				//	check the firmware version. if this is too old, we cannot let that device connect yet, we must
 				//	force a firmware upgrade
@@ -166,7 +166,7 @@ namespace OpenWifi {
 				poco_warning(Logger(),fmt::format("Device {} is a {} from {} and cannot be provisioned.",SerialNumber_,Compatible_, CId_));
 				return EndConnection();
 			} else if (DeviceExists) {
-				StorageService()->UpdateDeviceCapabilities(SerialNumber_, Caps);
+				StorageService()->UpdateDeviceCapabilities(*DbSession_, SerialNumber_, Caps);
 				int Updated{0};
 				if (!Firmware.empty()) {
 					if (Firmware != DeviceInfo.Firmware) {
@@ -238,7 +238,7 @@ namespace OpenWifi {
 				}
 
 				if (Updated) {
-					StorageService()->UpdateDevice(DeviceInfo);
+					StorageService()->UpdateDevice(*DbSession_, DeviceInfo);
 				}
 
 				if(!Simulated_) {

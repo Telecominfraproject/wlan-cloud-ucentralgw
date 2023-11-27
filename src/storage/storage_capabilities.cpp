@@ -41,10 +41,9 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber,
+	bool Storage::UpdateDeviceCapabilities(Poco::Data::Session &Sess, std::string &SerialNumber,
 										   const Config::Capabilities &Caps) {
 		try {
-			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement UpSert(Sess);
 
 			uint64_t Now = Utils::Now();
@@ -62,6 +61,18 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Now);
 			UpSert.execute();
 			return true;
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+											   E.displayText()));
+		}
+		return false;
+	}
+
+	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber,
+										   const Config::Capabilities &Caps) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			return UpdateDeviceCapabilities(Sess, SerialNumber, Caps);
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
 											   E.displayText()));
