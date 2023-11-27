@@ -28,6 +28,7 @@ namespace OpenWifi {
 			Reactors_.reserve(NumberOfThreads_);
 			DbSessions_.reserve(NumberOfThreads_);
 			Threads_.reserve(NumberOfThreads_);
+			Logger_.information(fmt::format("WebSocket Processor: starting {} threads.", NumberOfThreads_));
 			for (uint64_t i = 0; i < NumberOfThreads_; ++i) {
 				auto NewReactor = std::make_unique<Poco::Net::SocketReactor>();
 				auto NewThread = std::make_unique<Poco::Thread>();
