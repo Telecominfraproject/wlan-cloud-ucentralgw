@@ -17,10 +17,9 @@
 
 namespace OpenWifi {
 
-	bool Storage::CreateDeviceCapabilities(std::string &SerialNumber,
+	bool Storage::CreateDeviceCapabilities(Poco::Data::Session &Sess, std::string &SerialNumber,
 										   const Config::Capabilities &Capabilities) {
 		try {
-			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement UpSert(Sess);
 
 			std::string TCaps{Capabilities.AsString()};

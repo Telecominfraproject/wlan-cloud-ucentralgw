@@ -496,7 +496,7 @@ namespace OpenWifi {
 
 #define __DBGLOG__ std::cout << __LINE__ << std::endl;
 
-	bool Storage::CreateDefaultDevice(std::string &SerialNumber, const Config::Capabilities &Caps,
+	bool Storage::CreateDefaultDevice(Poco::Data::Session &Sess, std::string &SerialNumber, const Config::Capabilities &Caps,
 									  std::string &Firmware,
 									  const Poco::Net::IPAddress &IPAddress,
 									  bool simulated) {
@@ -546,9 +546,8 @@ namespace OpenWifi {
 		D.Notes = SecurityObjects::NoteInfoVec{
 			SecurityObjects::NoteInfo{(uint64_t)Utils::Now(), "", "Auto-provisioned."}};
 
-		CreateDeviceCapabilities(SerialNumber, Caps);
-
-		return CreateDevice(D);
+		CreateDeviceCapabilities(Sess, SerialNumber, Caps);
+		return CreateDevice(Sess, D);
 	}
 
 	bool Storage::GetDeviceFWUpdatePolicy(std::string &SerialNumber, std::string &Policy) {

@@ -121,7 +121,8 @@ namespace OpenWifi {
 
 		bool CreateDevice(Poco::Data::Session &DbSession, GWObjects::Device &);
 		bool CreateDevice(GWObjects::Device &);
-		bool CreateDefaultDevice(std::string &SerialNumber, const Config::Capabilities &Caps,
+		bool CreateDefaultDevice(Poco::Data::Session &DbSession,std::string &SerialNumber,
+								 const Config::Capabilities &Caps,
 								 std::string &Firmware, const Poco::Net::IPAddress &IPAddress,
 								 bool simulated);
 
@@ -157,7 +158,7 @@ namespace OpenWifi {
 									  const Config::Capabilities &Capabilities);
 		bool GetDeviceCapabilities(std::string &SerialNumber, GWObjects::Capabilities &);
 		bool DeleteDeviceCapabilities(std::string &SerialNumber);
-		bool CreateDeviceCapabilities(std::string &SerialNumber,
+		bool CreateDeviceCapabilities(Poco::Data::Session &Session, std::string &SerialNumber,
 									  const Config::Capabilities &Capabilities);
 		bool InitCapabilitiesCache();
 

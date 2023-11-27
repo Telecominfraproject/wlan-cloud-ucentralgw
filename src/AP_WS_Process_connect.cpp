@@ -157,7 +157,7 @@ namespace OpenWifi {
 					}
 					return;
 				} else {
-					StorageService()->CreateDefaultDevice(
+					StorageService()->CreateDefaultDevice( *DbSession_,
 						SerialNumber_, Caps, Firmware, PeerAddress_,
 						State_.VerifiedCertificate == GWObjects::SIMULATED);
 				}
