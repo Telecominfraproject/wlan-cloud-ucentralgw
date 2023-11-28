@@ -178,7 +178,8 @@ namespace OpenWifi {
 				 last_zombie_run = 0;
 
 		while(Running_) {
-			if(Poco::Thread::trySleep(30000)) {
+
+			if(!Poco::Thread::trySleep(30000)) {
 				break;
 			}
 
