@@ -230,7 +230,7 @@ namespace OpenWifi {
 					}
 				}
 
-				if(SessionsToRemove.empty()) {
+				if(!SessionsToRemove.empty()) {
 					poco_information(Logger(), fmt::format("Removing {} sessions.", SessionsToRemove.size()));
 					std::lock_guard Lock(SessionMutex_);
 					for (const auto &Session : SessionsToRemove) {
@@ -273,7 +273,10 @@ namespace OpenWifi {
 			FullEvent.set("payload", KafkaNotification);
 
 			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
+			Logger().information(fmt::format("Garbage collection run finished run."	));
 		}
+
+		Logger().information(fmt::format("Garbage collector done for the day."	));
 	}
 
 /*	void AP_WS_Server::onGarbageCollecting([[maybe_unused]] Poco::Timer &timer) {
