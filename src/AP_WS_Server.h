@@ -232,6 +232,7 @@ namespace OpenWifi {
 	  private:
 		mutable std::mutex 			SessionMutex_;
 		mutable std::mutex			StatsMutex_;
+		mutable std::mutex			GarbageMutex_;
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>> WebServers_;
 		Poco::Net::SocketReactor Reactor_;

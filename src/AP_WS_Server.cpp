@@ -185,7 +185,7 @@ namespace OpenWifi {
 
 			Logger().information(fmt::format("Garbage collecting starting run."	));
 			{
-				std::lock_guard SessionLock(SessionMutex_);
+				std::lock_guard SessionLock(GarbageMutex_);
 				if (!GarbageSessions_.empty()) {
 					Logger().information(fmt::format("Garbage collecting removing {} stale connections.", GarbageSessions_.size()));
 					GarbageSessions_.clear();
@@ -217,6 +217,7 @@ namespace OpenWifi {
 									"{}: Session seems idle. Controller disconnecting device.",
 									hint->second.second->SerialNumber_));
 							SessionsToRemove.emplace_back(hint->second.first);
+							std::lock_guard	GarbageLock(GarbageMutex_);
 							GarbageSessions_.push_back(hint->second.second);
 							hint = SerialNumbers_[hashIndex].erase(hint);
 						} else if (hint->second.second->State_.Connected) {
@@ -273,7 +274,7 @@ namespace OpenWifi {
 			FullEvent.set("payload", KafkaNotification);
 
 			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
-			Logger().information(fmt::format("Garbage collection run finished run."	));
+			Logger().information(fmt::format("Garbage collection finished run."	));
 		}
 
 		Logger().information(fmt::format("Garbage collector done for the day."	));
@@ -451,7 +452,10 @@ namespace OpenWifi {
 		if (Session == end(Sessions_))
 			return false;
 
-		GarbageSessions_.push_back(Session->second);
+		{
+			std::lock_guard Lock(GarbageMutex_);
+			GarbageSessions_.push_back(Session->second);
+		}
 
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
