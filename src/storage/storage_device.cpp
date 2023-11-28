@@ -210,7 +210,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration,
+/*	bool Storage::UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration,
 											uint64_t &NewUUID) {
 		try {
 
@@ -255,7 +255,7 @@ namespace OpenWifi {
 		}
 		return false;
 	}
-
+*/
 	bool Storage::RollbackDeviceConfigurationChange(std::string & SerialNumber) {
 		try {
 			GWObjects::Device D;
@@ -268,6 +268,7 @@ namespace OpenWifi {
 			ConfigurationCache().Add(Utils::SerialNumberToInt(SerialNumber), D.UUID);
 
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			DeviceRecordTuple R;
@@ -277,6 +278,7 @@ namespace OpenWifi {
 			Update << ConvertParams(St2), Poco::Data::Keywords::use(R),
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -301,6 +303,7 @@ namespace OpenWifi {
 			ConfigurationCache().Add(Utils::SerialNumberToInt(SerialNumber), D.UUID);
 
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			DeviceRecordTuple R;
@@ -310,6 +313,7 @@ namespace OpenWifi {
 			Update << ConvertParams(St2), Poco::Data::Keywords::use(R),
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -328,12 +332,11 @@ namespace OpenWifi {
 				return false;
 			}
 
-			Poco::Data::Session Sess = Pool_->get();
-			Poco::Data::Statement Select(Sess);
 
 			GWObjects::Device D;
 			if (!GetDevice(SerialNumber, D))
 				return false;
+
 
 			uint64_t Now = time(nullptr);
 			if(NewUUID==0) {
@@ -343,6 +346,8 @@ namespace OpenWifi {
 			}
 
 			if (Cfg.SetUUID(NewUUID)) {
+				Poco::Data::Session Sess = Pool_->get();
+				Sess.begin();
 				Poco::Data::Statement Update(Sess);
 				D.pendingConfiguration = Cfg.get();
 
@@ -353,6 +358,7 @@ namespace OpenWifi {
 				Update << ConvertParams(St2), Poco::Data::Keywords::use(R),
 					Poco::Data::Keywords::use(SerialNumber);
 				Update.execute();
+				Sess.commit();
 				poco_information(Logger(),
 								 fmt::format("DEVICE-PENDING-CONFIGURATION-UPDATED({}): New UUID is {}",
 											 SerialNumber, NewUUID));
@@ -554,7 +560,7 @@ namespace OpenWifi {
 		return CreateDevice(Sess, D);
 	}
 
-	bool Storage::GetDeviceFWUpdatePolicy(std::string &SerialNumber, std::string &Policy) {
+/*	bool Storage::GetDeviceFWUpdatePolicy(std::string &SerialNumber, std::string &Policy) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
@@ -569,7 +575,7 @@ namespace OpenWifi {
 		}
 		return false;
 	}
-
+*/
 	bool Storage::SetDevicePassword(Poco::Data::Session &Sess, std::string &SerialNumber, std::string &Password) {
 		try {
 			Sess.begin();
@@ -587,7 +593,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::SetConnectInfo(std::string &SerialNumber, std::string &Firmware) {
+/*	bool Storage::SetConnectInfo(std::string &SerialNumber, std::string &Firmware) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
@@ -616,7 +622,7 @@ namespace OpenWifi {
 		}
 		return false;
 	}
-
+*/
 	bool Storage::DeleteDevice(std::string &SerialNumber) {
 		try {
 			std::vector<std::string> TableNames{"Devices",		"Statistics",	"CommandList",
@@ -625,12 +631,14 @@ namespace OpenWifi {
 			for (const auto &tableName : TableNames) {
 
 				Poco::Data::Session Sess = Pool_->get();
+				Sess.begin();
 				Poco::Data::Statement Delete(Sess);
 
 				std::string St = fmt::format("DELETE FROM {} WHERE SerialNumber='{}'", tableName, SerialNumber);
 				try {
 					Delete << St;
 					Delete.execute();
+					Sess.commit();
 				} catch (...) {
 				}
 			}
@@ -662,6 +670,7 @@ namespace OpenWifi {
 		try {
 			std::vector<std::string>	SerialNumbers;
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement GetSerialNumbers(Sess);
 
 			std::string SelectStatement = SimulatedOnly ?
@@ -674,6 +683,7 @@ namespace OpenWifi {
 
 			poco_information(Logger(),fmt::format("BATCH-DEVICE_DELETE: Found {} devices that match the criteria {} to delete.", SerialNumbers.size(), SerialPattern));
 			DeleteDeviceList(SerialNumbers, Logger());
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -685,6 +695,7 @@ namespace OpenWifi {
 		try {
 			std::vector<std::string>	SerialNumbers;
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement GetSerialNumbers(Sess);
 
 			std::string SelectStatement = SimulatedOnly ?
@@ -696,6 +707,7 @@ namespace OpenWifi {
 
 			poco_information(Logger(),fmt::format("BATCH-DEVICE_DELETE: Found {} devices that match with lastRecordedContact older than {} to delete.", SerialNumbers.size(), OlderContact));
 			DeleteDeviceList(SerialNumbers, Logger());
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);

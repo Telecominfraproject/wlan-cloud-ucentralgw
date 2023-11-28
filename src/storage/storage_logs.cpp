@@ -41,6 +41,7 @@ namespace OpenWifi {
 
 	bool Storage::AddLog(Poco::Data::Session &Sess, const GWObjects::DeviceLog &Log) {
 		try {
+			Sess.begin();
 			Poco::Data::Statement Insert(Sess);
 
 			std::string St{"INSERT INTO DeviceLogs (" + DB_LogsSelectFields + ") values( " +
@@ -51,6 +52,7 @@ namespace OpenWifi {
 
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -112,7 +114,7 @@ namespace OpenWifi {
 								uint64_t Type) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-
+			Sess.begin();
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 			bool HasWhere = DatesIncluded || !SerialNumber.empty();
 
@@ -139,7 +141,7 @@ namespace OpenWifi {
 			Delete << StatementStr + DateSelector + TypeSelector;
 
 			Delete.execute();
-			Delete.reset(Sess);
+			Sess.commit();
 
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -181,11 +183,13 @@ namespace OpenWifi {
 	bool Storage::RemoveDeviceLogsRecordsOlderThan(uint64_t Date) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St1{"delete from DeviceLogs where recorded<?"};
 			Delete << ConvertParams(St1), Poco::Data::Keywords::use(Date);
 			Delete.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

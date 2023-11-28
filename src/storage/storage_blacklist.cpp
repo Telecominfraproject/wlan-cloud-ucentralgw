@@ -56,7 +56,7 @@ namespace OpenWifi {
 	struct DeviceDetails {
 		std::string reason;
 		std::string author;
-		std::uint64_t created;
+		std::uint64_t created=Utils::Now();
 	};
 
 	static std::map<std::uint64_t , DeviceDetails> BlackListDevices;
@@ -93,6 +93,7 @@ namespace OpenWifi {
 	bool Storage::AddBlackListDevice(GWObjects::BlackListedDevice &Device) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Insert(Sess);
 
 			std::string St{"INSERT INTO BlackList (" + DB_BlackListDeviceSelectFields + ") " +
@@ -102,7 +103,7 @@ namespace OpenWifi {
 			ConvertBlackListDeviceRecord(Device, T);
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(T);
 			Insert.execute();
-
+			Sess.commit();
 			std::lock_guard G(BlackListMutex);
 			BlackListDevices[Utils::MACToInt(Device.serialNumber)] = DeviceDetails{
 				.reason = Device.reason, .author = Device.author, .created = Device.created};
@@ -130,6 +131,7 @@ namespace OpenWifi {
 	bool Storage::DeleteBlackListDevice(std::string &SerialNumber) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St{"DELETE FROM BlackList WHERE SerialNumber=?"};
@@ -137,7 +139,7 @@ namespace OpenWifi {
 			Poco::toLowerInPlace(SerialNumber);
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber);
 			Delete.execute();
-
+			Sess.commit();
 			std::lock_guard G(BlackListMutex);
 			BlackListDevices.erase(Utils::MACToInt(SerialNumber));
 			return true;
@@ -177,6 +179,7 @@ namespace OpenWifi {
 										GWObjects::BlackListedDevice &Device) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			std::string St{"UPDATE BlackList SET " + DB_BlackListDeviceUpdateFields +
@@ -187,7 +190,7 @@ namespace OpenWifi {
 			Update << ConvertParams(St), Poco::Data::Keywords::use(T),
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
-
+			Sess.commit();
 			std::lock_guard G(BlackListMutex);
 			BlackListDevices[Utils::MACToInt(Device.serialNumber)] = DeviceDetails{
 				.reason = Device.reason, .author = Device.author, .created = Device.created};

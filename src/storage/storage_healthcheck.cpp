@@ -35,17 +35,6 @@ namespace OpenWifi {
 		R.set<4>(H.Recorded);
 	}
 
-	bool Storage::AddHealthCheckData(const GWObjects::HealthCheck &Check) {
-		try {
-			Poco::Data::Session Sess = Pool_->get();
-			return Storage::AddHealthCheckData(Sess, Check);
-		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
-											   E.displayText()));
-		}
-		return false;
-	}
-
 	bool Storage::AddHealthCheckData(Poco::Data::Session &Sess, const GWObjects::HealthCheck &Check) {
 		try {
 			Sess.begin();
@@ -146,7 +135,7 @@ namespace OpenWifi {
 										uint64_t ToDate) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-
+			Sess.begin();
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
 			std::string Prefix{"DELETE FROM HealthChecks "};
@@ -170,7 +159,7 @@ namespace OpenWifi {
 			Delete << Statement + DateSelector;
 
 			Delete.execute();
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -182,11 +171,13 @@ namespace OpenWifi {
 	bool Storage::RemoveHealthChecksRecordsOlderThan(uint64_t Date) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St1{"delete from HealthChecks where recorded<?"};
 			Delete << ConvertParams(St1), Poco::Data::Keywords::use(Date);
 			Delete.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

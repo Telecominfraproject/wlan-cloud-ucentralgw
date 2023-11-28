@@ -55,17 +55,6 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::AddStatisticsData(const GWObjects::Statistics &Stats) {
-		try {
-			auto Session = StorageClass().Pool().get();
-			return Storage::AddStatisticsData(Session, Stats);
-		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
-											   E.displayText()));
-		}
-		return false;
-	}
-
 	bool Storage::GetNumberOfStatisticsDataRecords(std::string &SerialNumber, uint64_t FromDate,
 												   uint64_t ToDate, std::uint64_t &Count) {
 		try {
@@ -179,7 +168,7 @@ namespace OpenWifi {
 									   uint64_t ToDate) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-
+			Sess.begin();
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
 			std::string Prefix{"DELETE FROM Statistics "};
@@ -201,7 +190,7 @@ namespace OpenWifi {
 			Poco::Data::Statement Select(Sess);
 			Select << Statement + DateSelector;
 			Select.execute();
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), (fmt::format("{}: Failed with: {}", std::string(__func__),
