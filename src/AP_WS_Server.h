@@ -63,7 +63,7 @@ namespace OpenWifi {
 		inline static uint64_t id_ = 1;
 	};
 
-	class AP_WS_Server : public SubSystemServer {
+	class AP_WS_Server : public SubSystemServer, public Poco::Runnable {
 	  public:
 		static auto instance() {
 			static auto instance_ = new AP_WS_Server;
@@ -84,6 +84,8 @@ namespace OpenWifi {
 		inline static bool IsSim(const std::string &SerialNumber) {
 			return SerialNumber.substr(0, 6) == "53494d";
 		}
+
+		void run() override;
 
 		inline bool IsSimEnabled() const { return SimulatorEnabled_; }
 
@@ -259,11 +261,12 @@ namespace OpenWifi {
 
 		std::atomic_uint64_t 	TX_=0,RX_=0;
 
-		std::vector<std::shared_ptr<AP_WS_Connection>> Garbage_;
+		std::vector<std::shared_ptr<AP_WS_Connection>> GarbageSessions_;
 
-		std::unique_ptr<Poco::TimerCallback<AP_WS_Server>> GarbageCollectorCallback_;
-		Poco::Timer Timer_;
-		Poco::Thread GarbageCollector_;
+//		std::unique_ptr<Poco::TimerCallback<AP_WS_Server>> GarbageCollectorCallback_;
+//		Poco::Timer Timer_;
+
+		Poco::Thread 			GarbageCollector_;
 
 		AP_WS_Server() noexcept
 			: SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {}

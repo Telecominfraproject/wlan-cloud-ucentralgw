@@ -160,18 +160,119 @@ namespace OpenWifi {
 		SimulatorEnabled_ = !SimulatorId_.empty();
 		Utils::SetThreadName(ReactorThread_, "dev:react:head");
 
+/*
 		GarbageCollectorCallback_ = std::make_unique<Poco::TimerCallback<AP_WS_Server>>(
 			*this, &AP_WS_Server::onGarbageCollecting);
 		Timer_.setStartInterval(10 * 1000);
 		Timer_.setPeriodicInterval(10 * 1000); // every minute
 		Timer_.start(*GarbageCollectorCallback_, MicroServiceTimerPool());
-
+*/
 		Running_ = true;
+		GarbageCollector_.setName("ws:garbage");
+		GarbageCollector_.start(*this);
 		return 0;
 	}
 
-	void AP_WS_Server::onGarbageCollecting([[maybe_unused]] Poco::Timer &timer) {
-		static uint64_t last_log = Utils::Now(), last_zombie_run = 0;
+	void AP_WS_Server::run() {
+		uint64_t last_log = Utils::Now(),
+				 last_zombie_run = 0;
+
+		while(Running_) {
+			if(Poco::Thread::trySleep(30000)) {
+				break;
+			}
+
+			{
+				std::lock_guard SessionLock(SessionMutex_);
+				if (!GarbageSessions_.empty()) {
+					GarbageSessions_.clear();
+				}
+			}
+
+			uint64_t total_connected_time = 0, now = Utils::Now();
+
+			if(now-last_zombie_run > 20) {
+				poco_information(Logger(), fmt::format("Garbage collecting..."));
+				std::vector<std::uint64_t> SessionsToRemove;
+				NumberOfConnectedDevices_ = 0;
+				NumberOfConnectingDevices_ = 0;
+				AverageDeviceConnectionTime_ = 0;
+				last_zombie_run = now;
+				for(int hashIndex=0;hashIndex<256;hashIndex++) {
+					std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
+					auto hint = SerialNumbers_[hashIndex].begin();
+					while (hint != end(SerialNumbers_[hashIndex])) {
+						if (hint->second.second == nullptr) {
+							hint = SerialNumbers_[hashIndex].erase(hint);
+						} else if ((now - hint->second.second->State_.LastContact) >
+								   SessionTimeOut_) {
+							hint->second.second->EndConnection(false);
+							poco_information(
+								Logger(),
+								fmt::format(
+									"{}: Session seems idle. Controller disconnecting device.",
+									hint->second.second->SerialNumber_));
+							SessionsToRemove.emplace_back(hint->second.first);
+							GarbageSessions_.push_back(hint->second.second);
+							hint = SerialNumbers_[hashIndex].erase(hint);
+						} else if (hint->second.second->State_.Connected) {
+							NumberOfConnectedDevices_++;
+							total_connected_time += (now - hint->second.second->State_.started);
+							hint++;
+						} else {
+							NumberOfConnectingDevices_++;
+							hint++;
+						}
+					}
+				}
+
+				if(SessionsToRemove.empty()) {
+					poco_information(Logger(), fmt::format("Removing {} sessions.", SessionsToRemove.size()));
+					std::lock_guard Lock(SessionMutex_);
+					for (const auto &Session : SessionsToRemove) {
+						Sessions_.erase(Session);
+					}
+				}
+
+				AverageDeviceConnectionTime_ =
+					NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_
+												  : 0;
+
+				poco_information(Logger(), fmt::format("Garbage collecting done..."));
+			} else {
+				std::lock_guard SessionLock(SessionMutex_);
+				NumberOfConnectedDevices_ = Sessions_.size();
+				AverageDeviceConnectionTime_ += 10;
+			}
+
+			if ((now - last_log) > 120) {
+				last_log = now;
+				poco_information(Logger(),
+								 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds",
+											 NumberOfConnectedDevices_, NumberOfConnectingDevices_,
+											 AverageDeviceConnectionTime_));
+			}
+
+			GWWebSocketNotifications::NumberOfConnection_t Notification;
+			Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
+			Notification.content.numberOfDevices = NumberOfConnectedDevices_;
+			Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
+			GetTotalDataStatistics(Notification.content.tx,Notification.content.rx);
+			GWWebSocketNotifications::NumberOfConnections(Notification);
+
+			Poco::JSON::Object	KafkaNotification;
+			Notification.to_json(KafkaNotification);
+
+			Poco::JSON::Object FullEvent;
+			FullEvent.set("type", "load-update");
+			FullEvent.set("timestamp", now);
+			FullEvent.set("payload", KafkaNotification);
+
+			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
+		}
+	}
+
+/*	void AP_WS_Server::onGarbageCollecting([[maybe_unused]] Poco::Timer &timer) {
 		auto now = Utils::Now();
 
 		{
@@ -264,12 +365,15 @@ namespace OpenWifi {
 
 		KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
 	}
-
+*/
 	void AP_WS_Server::Stop() {
 		poco_information(Logger(), "Stopping...");
 		Running_ = false;
 
-		Timer_.stop();
+		GarbageCollector_.wakeUp();
+		GarbageCollector_.join();
+
+		// Timer_.stop();
 
 		for (auto &server : WebServers_) {
 			server->stopAll();
@@ -340,7 +444,7 @@ namespace OpenWifi {
 		if (Session == end(Sessions_))
 			return false;
 
-		Garbage_.push_back(Session->second);
+		GarbageSessions_.push_back(Session->second);
 
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
