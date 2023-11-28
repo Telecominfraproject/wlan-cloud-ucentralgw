@@ -217,8 +217,10 @@ namespace OpenWifi {
 									"{}: Session seems idle. Controller disconnecting device.",
 									hint->second.second->SerialNumber_));
 							SessionsToRemove.emplace_back(hint->second.first);
-							std::lock_guard	GarbageLock(GarbageMutex_);
-							GarbageSessions_.push_back(hint->second.second);
+							{
+								std::lock_guard GarbageLock(GarbageMutex_);
+								GarbageSessions_.push_back(hint->second.second);
+							}
 							hint = SerialNumbers_[hashIndex].erase(hint);
 						} else if (hint->second.second->State_.Connected) {
 							NumberOfConnectedDevices_++;

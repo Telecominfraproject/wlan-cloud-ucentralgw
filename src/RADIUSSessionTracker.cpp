@@ -423,14 +423,14 @@ namespace OpenWifi {
 	}
 
 	void RADIUSSessionTracker::DisconnectSession(const std::string &SerialNumber) {
-		poco_information(Logger(),fmt::format("{}: Disconnecting.", SerialNumber));
 
 		std::lock_guard		Guard(Mutex_);
-
 		auto hint = AccountingSessions_.find(SerialNumber);
 		if(hint==end(AccountingSessions_)) {
 			return;
 		}
+
+		poco_information(Logger(),fmt::format("{}: Disconnecting.", SerialNumber));
 
 		//	we need to go through all sessions and send an accounting stop
 		for(const auto &session:hint->second) {
