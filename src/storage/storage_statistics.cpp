@@ -34,6 +34,7 @@ namespace OpenWifi {
 
 	bool Storage::AddStatisticsData(Poco::Data::Session &Sess, const GWObjects::Statistics &Stats) {
 		try {
+			Sess.begin();
 			Poco::Data::Statement Insert(Sess);
 
 			poco_trace(Logger(), fmt::format("{}: Adding stats. Size={}", Stats.SerialNumber,
@@ -44,6 +45,8 @@ namespace OpenWifi {
 			ConvertStatsRecord(Stats, R);
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
+			Sess.commit();
+
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

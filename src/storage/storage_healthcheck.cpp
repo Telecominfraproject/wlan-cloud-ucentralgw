@@ -48,6 +48,7 @@ namespace OpenWifi {
 
 	bool Storage::AddHealthCheckData(Poco::Data::Session &Sess, const GWObjects::HealthCheck &Check) {
 		try {
+			Sess.begin();
 			Poco::Data::Statement Insert(Sess);
 
 			std::string St{"INSERT INTO HealthChecks ( " + DB_HealthCheckSelectFields +
@@ -57,6 +58,7 @@ namespace OpenWifi {
 			ConvertHealthCheckRecord(Check, R);
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
