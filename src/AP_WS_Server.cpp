@@ -182,17 +182,20 @@ namespace OpenWifi {
 				break;
 			}
 
+			Logger().information(fmt::format("Garbage collecting starting run."	));
 			{
 				std::lock_guard SessionLock(SessionMutex_);
 				if (!GarbageSessions_.empty()) {
+					Logger().information(fmt::format("Garbage collecting removing {} stale connections.", GarbageSessions_.size()));
 					GarbageSessions_.clear();
+					Logger().information(fmt::format("Garbage collecting removed stale connections."));
 				}
 			}
 
 			uint64_t total_connected_time = 0, now = Utils::Now();
 
-			if(now-last_zombie_run > 20) {
-				poco_information(Logger(), fmt::format("Garbage collecting..."));
+			if(now-last_zombie_run > 30) {
+				poco_information(Logger(), fmt::format("Garbage collecting zombies..."));
 				std::vector<std::uint64_t> SessionsToRemove;
 				NumberOfConnectedDevices_ = 0;
 				NumberOfConnectingDevices_ = 0;
@@ -238,7 +241,7 @@ namespace OpenWifi {
 					NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_
 												  : 0;
 
-				poco_information(Logger(), fmt::format("Garbage collecting done..."));
+				poco_information(Logger(), fmt::format("Garbage collecting zombies done..."));
 			} else {
 				std::lock_guard SessionLock(SessionMutex_);
 				NumberOfConnectedDevices_ = Sessions_.size();
