@@ -195,7 +195,7 @@ namespace OpenWifi {
 
 			uint64_t total_connected_time = 0, now = Utils::Now();
 
-			if(now-last_zombie_run > 30) {
+			if(now-last_zombie_run > 60) {
 				poco_information(Logger(), fmt::format("Garbage collecting zombies..."));
 				std::vector<std::uint64_t> SessionsToRemove;
 				NumberOfConnectedDevices_ = 0;
