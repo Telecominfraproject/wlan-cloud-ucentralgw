@@ -450,17 +450,21 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber) {
-		std::lock_guard SessionLock(SessionMutex_[connection_id % 256]);
-		auto Conn = Sessions_[connection_id %256].find(connection_id);
-		if (Conn == end(Sessions_[connection_id % 256]))
-			return;
+		std::shared_ptr<AP_WS_Connection> Connection;
+		{
+			std::lock_guard SessionLock(SessionMutex_[connection_id % 256]);
+			auto Conn = Sessions_[connection_id % 256].find(connection_id);
+			if (Conn == end(Sessions_[connection_id % 256]))
+				return;
+			Connection = Conn->second;
+		}
 
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto CurrentSerialNumber = SerialNumbers_[hashIndex].find(SerialNumber);
 		if ((CurrentSerialNumber == SerialNumbers_[hashIndex].end()) ||
 			(CurrentSerialNumber->second.first < connection_id)) {
-			SerialNumbers_[hashIndex][SerialNumber] = std::make_pair(connection_id, Conn->second);
+			SerialNumbers_[hashIndex][SerialNumber] = std::make_pair(connection_id, Connection);
 			return;
 		}
 	}

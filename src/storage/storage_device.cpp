@@ -501,7 +501,7 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool Storage::CreateDefaultDevice(LockedDbSession &Session, std::string &SerialNumber, const Config::Capabilities &Caps,
+	bool Storage::CreateDefaultDevice(Poco::Data::Session &Session, std::string &SerialNumber, const Config::Capabilities &Caps,
 									  std::string &Firmware,
 									  const Poco::Net::IPAddress &IPAddress,
 									  bool simulated) {
@@ -552,9 +552,8 @@ namespace OpenWifi {
 		D.Notes = SecurityObjects::NoteInfoVec{
 			SecurityObjects::NoteInfo{(uint64_t)Utils::Now(), "", "Auto-provisioned."}};
 
-		std::lock_guard	Lock(*Session.Mutex);
-		CreateDeviceCapabilities(*Session.Session, SerialNumber, Caps);
-		auto Result = CreateDevice(*Session.Session, D);
+		CreateDeviceCapabilities(Session, SerialNumber, Caps);
+		auto Result = CreateDevice(Session, D);
 		poco_information(Logger(), fmt::format("AUTO-CREATION({}): Done, Result={}", SerialNumber, Result));
 		return Result;
 	}
