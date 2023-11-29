@@ -176,7 +176,7 @@ namespace OpenWifi {
 	void AP_WS_Server::run() {
 		uint64_t last_log = Utils::Now(),
 				 last_zombie_run = 0,
-				 last_garbage_run = 0
+				 last_garbage_run = 0;
 
 		while(Running_) {
 
