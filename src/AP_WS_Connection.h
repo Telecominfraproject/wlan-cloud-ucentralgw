@@ -17,6 +17,7 @@
 #include <Poco/Data/Session.h>
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
+#include <AP_WS_Reactor_Pool.h>
 
 namespace OpenWifi {
 
@@ -26,7 +27,7 @@ namespace OpenWifi {
 	  public:
 		explicit AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
 								  Poco::Net::HTTPServerResponse &response, uint64_t connection_id,
-								  Poco::Logger &L, std::pair<Poco::Net::SocketReactor *, Poco::Data::Session *> R);
+								  Poco::Logger &L, std::pair<Poco::Net::SocketReactor *, LockedDbSession *> R);
 		~AP_WS_Connection();
 
 		void EndConnection(bool DeleteSession=true);
@@ -165,8 +166,8 @@ namespace OpenWifi {
 		mutable std::mutex ConnectionMutex_;
 		std::mutex TelemetryMutex_;
 		Poco::Logger &Logger_;
-		Poco::Net::SocketReactor *Reactor_{nullptr};
-		Poco::Data::Session *DbSession_{nullptr};
+		Poco::Net::SocketReactor 	*Reactor_{nullptr};
+		LockedDbSession 			*DbSession_{nullptr};
 		std::unique_ptr<Poco::Net::WebSocket> WS_;
 		std::string SerialNumber_;
 		uint64_t SerialNumberInt_ = 0;

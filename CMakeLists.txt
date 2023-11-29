@@ -211,7 +211,8 @@ add_executable( owgw
         src/RegulatoryInfo.cpp src/RegulatoryInfo.h
         src/RADIUSSessionTracker.cpp src/RADIUSSessionTracker.h
         src/libs/Scheduler.h src/libs/InterruptableSleep.h src/libs/ctpl_stl.h src/libs/Cron.h
-        src/GenericScheduler.cpp src/GenericScheduler.h src/framework/default_device_types.h src/AP_WS_Process_rebootLog.cpp src/AP_WS_ConfigAutoUpgrader.cpp src/AP_WS_ConfigAutoUpgrader.h src/RESTAPI/RESTAPI_default_firmwares.cpp src/RESTAPI/RESTAPI_default_firmwares.h src/RESTAPI/RESTAPI_default_firmware.cpp src/RESTAPI/RESTAPI_default_firmware.h src/storage/storage_def_firmware.cpp src/firmware_revision_cache.h src/sdks/sdk_fms.h)
+        src/GenericScheduler.cpp src/GenericScheduler.h src/framework/default_device_types.h src/AP_WS_Process_rebootLog.cpp src/AP_WS_ConfigAutoUpgrader.cpp src/AP_WS_ConfigAutoUpgrader.h src/RESTAPI/RESTAPI_default_firmwares.cpp src/RESTAPI/RESTAPI_default_firmwares.h src/RESTAPI/RESTAPI_default_firmware.cpp src/RESTAPI/RESTAPI_default_firmware.h src/storage/storage_def_firmware.cpp src/firmware_revision_cache.h src/sdks/sdk_fms.h
+        src/AP_WS_Locked_Session.h)
 
 if(NOT SMALL_BUILD)
 

@@ -17,11 +17,12 @@
 
 namespace OpenWifi {
 
-	bool Storage::CreateDeviceCapabilities(Poco::Data::Session &Sess, std::string &SerialNumber,
+	bool Storage::CreateDeviceCapabilities(LockedDbSession &Session, std::string &SerialNumber,
 										   const Config::Capabilities &Capabilities) {
 		try {
-			Sess.begin();
-			Poco::Data::Statement UpSert(Sess);
+			std::lock_guard Guard(*Session.Mutex);
+			Session.Session->begin();
+			Poco::Data::Statement UpSert(*Session.Session);
 
 			std::string TCaps{Capabilities.AsString()};
 			uint64_t Now = Utils::Now();
@@ -33,7 +34,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(TCaps),
 				Poco::Data::Keywords::use(Now);
 			UpSert.execute();
-			Sess.commit();
+			Session.Session->commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -42,11 +43,12 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::UpdateDeviceCapabilities(Poco::Data::Session &Sess, std::string &SerialNumber,
+	bool Storage::UpdateDeviceCapabilities(LockedDbSession &Session, std::string &SerialNumber,
 										   const Config::Capabilities &Caps) {
 		try {
-			Sess.begin();
-			Poco::Data::Statement UpSert(Sess);
+			std::lock_guard Guard(*Session.Mutex);
+			Session.Session->begin();
+			Poco::Data::Statement UpSert(*Session.Session);
 
 			uint64_t Now = Utils::Now();
 			if (!Caps.Compatible().empty() && !Caps.Platform().empty())
@@ -62,7 +64,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(TCaps),
 				Poco::Data::Keywords::use(Now);
 			UpSert.execute();
-			Sess.commit();
+			Session.Session->commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

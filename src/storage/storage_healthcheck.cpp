@@ -35,10 +35,11 @@ namespace OpenWifi {
 		R.set<4>(H.Recorded);
 	}
 
-	bool Storage::AddHealthCheckData(Poco::Data::Session &Sess, const GWObjects::HealthCheck &Check) {
+	bool Storage::AddHealthCheckData(LockedDbSession &Session, const GWObjects::HealthCheck &Check) {
 		try {
-			Sess.begin();
-			Poco::Data::Statement Insert(Sess);
+			std::lock_guard Guard(*Session.Mutex);
+			Session.Session->begin();
+			Poco::Data::Statement Insert(*Session.Session);
 
 			std::string St{"INSERT INTO HealthChecks ( " + DB_HealthCheckSelectFields +
 						   " ) VALUES( " + DB_HealthCheckInsertValues + " )"};
@@ -47,7 +48,7 @@ namespace OpenWifi {
 			ConvertHealthCheckRecord(Check, R);
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
-			Sess.commit();
+			Session.Session->commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

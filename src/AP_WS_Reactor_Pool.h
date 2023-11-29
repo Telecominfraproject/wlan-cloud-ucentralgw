@@ -12,8 +12,10 @@
 #include <Poco/Data/SessionPool.h>
 #include "framework/utils.h"
 #include <StorageService.h>
+#include <AP_WS_Locked_Session.h>
 
 namespace OpenWifi {
+
 	class AP_WS_ReactorThreadPool {
 	  public:
 		explicit AP_WS_ReactorThreadPool(Poco::Logger &Logger) : Logger_(Logger) {
@@ -37,7 +39,9 @@ namespace OpenWifi {
 				Utils::SetThreadName(*NewThread, ThreadName.c_str());
 				Reactors_.emplace_back(std::move(NewReactor));
 				Threads_.emplace_back(std::move(NewThread));
-				DbSessions_.emplace_back(std::make_unique<Poco::Data::Session>(StorageService()->Pool().get()));
+				LockedDbSession	S{ 	.Session = std::make_unique<Poco::Data::Session>(Poco::Data::Session(StorageService()->Pool().get())),
+								  	.Mutex = std::make_unique<std::mutex>()	};
+				DbSessions_.emplace_back(std::move(S));
 			}
 			Logger_.information(fmt::format("WebSocket Processor: {} threads started.", NumberOfThreads_));
 		}
@@ -53,20 +57,20 @@ namespace OpenWifi {
 			DbSessions_.clear();
 		}
 
-		std::pair<Poco::Net::SocketReactor *, Poco::Data::Session *> NextReactor() {
+		std::pair<Poco::Net::SocketReactor *, LockedDbSession *> NextReactor() {
 			std::lock_guard Lock(Mutex_);
 			NextReactor_++;
 			NextReactor_ %= NumberOfThreads_;
-			return std::make_pair(Reactors_[NextReactor_].get(), DbSessions_[NextReactor_].get());
+			return std::make_pair(Reactors_[NextReactor_].get(), &DbSessions_[NextReactor_]);
 		}
 
 	  private:
 		std::mutex Mutex_;
 		uint64_t NumberOfThreads_;
 		uint64_t NextReactor_ = 0;
-		std::vector<std::unique_ptr<Poco::Net::SocketReactor>> Reactors_;
-		std::vector<std::unique_ptr<Poco::Thread>> Threads_;
-		std::vector<std::unique_ptr<Poco::Data::Session>> 	DbSessions_;
+		std::vector<std::unique_ptr<Poco::Net::SocketReactor>> 	Reactors_;
+		std::vector<std::unique_ptr<Poco::Thread>> 				Threads_;
+		std::vector<LockedDbSession> 							DbSessions_;
 		Poco::Logger &Logger_;
 
 	};

@@ -43,7 +43,7 @@ namespace OpenWifi {
 	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
 									   Poco::Net::HTTPServerResponse &response,
 									   uint64_t connection_id, Poco::Logger &L,
-									   std::pair<Poco::Net::SocketReactor *, Poco::Data::Session *> R)
+									   std::pair<Poco::Net::SocketReactor *, LockedDbSession *> R)
 		: Logger_(L) {
 		Reactor_ = R.first;
 		DbSession_ = R.second;

@@ -658,14 +658,14 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(Size),
 				Poco::Data::Keywords::use(UUID);
 			Statement.execute();
-
+			Sess.commit();
 			if (Size < FileUploader()->MaxSize()) {
 
 				Poco::Data::BLOB TheBlob;
 
 				TheBlob.appendRaw((const unsigned char *)FileContent.str().c_str(),
 								  FileContent.str().size());
-
+				Sess.begin();
 				Poco::Data::Statement Insert(Sess);
 				std::string FileType{Type};
 
@@ -676,6 +676,7 @@ namespace OpenWifi {
 					Poco::Data::Keywords::use(FileType), Poco::Data::Keywords::use(Now),
 					Poco::Data::Keywords::use(TheBlob);
 				Insert.execute();
+				Sess.commit();
 			} else {
 				poco_warning(Logger(), fmt::format("File {} is too large.", UUID));
 			}
