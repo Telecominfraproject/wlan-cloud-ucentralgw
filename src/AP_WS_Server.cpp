@@ -210,12 +210,12 @@ namespace OpenWifi {
 							hint = SerialNumbers_[hashIndex].erase(hint);
 						} else if ((now - hint->second.second->State_.LastContact) >
 								   SessionTimeOut_) {
-							hint->second.second->EndConnection(false);
-							poco_debug(
+							poco_information(
 								Logger(),
 								fmt::format(
 									"{}: Session seems idle. Controller disconnecting device.",
 									hint->second.second->SerialNumber_));
+							hint->second.second->EndConnection(false);
 							SessionsToRemove.emplace_back(hint->second.first);
 							{
 								std::lock_guard GarbageLock(GarbageMutex_);
