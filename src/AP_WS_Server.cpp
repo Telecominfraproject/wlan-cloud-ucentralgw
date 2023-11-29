@@ -216,7 +216,7 @@ namespace OpenWifi {
 								fmt::format(
 									"{}: Session seems idle. Controller disconnecting device.",
 									hint->second.second->SerialNumber_));
-							hint->second.second->EndConnection(false);
+							// hint->second.second->EndConnection(false);
 							SessionsToRemove.emplace_back(hint->second.first);
 							{
 								std::lock_guard GarbageLock(GarbageMutex_);

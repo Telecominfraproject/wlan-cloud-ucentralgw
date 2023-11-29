@@ -46,9 +46,6 @@ namespace OpenWifi {
 		void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 		bool LookForUpgrade(uint64_t UUID, uint64_t &UpgradedUUID);
-		static bool ExtractBase64CompressedData(const std::string &CompressedData,
-												std::string &UnCompressedData,
-												uint64_t compress_sz);
 		void LogException(const Poco::Exception &E);
 		inline Poco::Logger &Logger() { return Logger_; }
 		bool SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t interval,
@@ -63,43 +60,6 @@ namespace OpenWifi {
 		inline void GetLastStats(std::string &LastStats) {
 			std::lock_guard G(ConnectionMutex_);
 			LastStats = RawLastStats_;
-		}
-
-		inline void SetLastStats(const std::string &LastStats) {
-			std::lock_guard G(ConnectionMutex_);
-			RawLastStats_ = LastStats;
-			try {
-				Poco::JSON::Parser P;
-				auto Stats = P.parse(LastStats).extract<Poco::JSON::Object::Ptr>();
-				hasGPS = Stats->isObject("gps");
-				auto Unit = Stats->getObject("unit");
-				auto Memory = Unit->getObject("memory");
-				std::uint64_t TotalMemory = Memory->get("total");
-				std::uint64_t FreeMemory = Memory->get("free");
-				if(TotalMemory>0) {
-					memory_used_ =
-						(100.0 * ((double)TotalMemory - (double)FreeMemory)) / (double)TotalMemory;
-				}
-				if(Unit->isArray("load")) {
-					Poco::JSON::Array::Ptr Load = Unit->getArray("load");
-					if(Load->size()>1) {
-						cpu_load_ = Load->get(1);
-					}
-				}
-				if(Unit->isArray("temperature")) {
-					Poco::JSON::Array::Ptr Temperature = Unit->getArray("temperature");
-					if(Temperature->size()>1) {
-						temperature_ = Temperature->get(0);
-					}
-				}
-			} catch (...) {
-
-			}
-		}
-
-		inline void SetLastHealthCheck(const GWObjects::HealthCheck &H) {
-			std::lock_guard G(ConnectionMutex_);
-			RawLastHealthcheck_ = H;
 		}
 
 		inline void GetLastHealthCheck(GWObjects::HealthCheck &H) {
@@ -206,6 +166,42 @@ namespace OpenWifi {
 		std::double_t 	memory_used_=0.0, cpu_load_ = 0.0, temperature_ = 0.0;
 		std::uint64_t 	uuid_=0;
 		bool	Simulated_=false;
+
+		inline void SetLastStats(const std::string &LastStats) {
+			RawLastStats_ = LastStats;
+			try {
+				Poco::JSON::Parser P;
+				auto Stats = P.parse(LastStats).extract<Poco::JSON::Object::Ptr>();
+				hasGPS = Stats->isObject("gps");
+				auto Unit = Stats->getObject("unit");
+				auto Memory = Unit->getObject("memory");
+				std::uint64_t TotalMemory = Memory->get("total");
+				std::uint64_t FreeMemory = Memory->get("free");
+				if(TotalMemory>0) {
+					memory_used_ =
+						(100.0 * ((double)TotalMemory - (double)FreeMemory)) / (double)TotalMemory;
+				}
+				if(Unit->isArray("load")) {
+					Poco::JSON::Array::Ptr Load = Unit->getArray("load");
+					if(Load->size()>1) {
+						cpu_load_ = Load->get(1);
+					}
+				}
+				if(Unit->isArray("temperature")) {
+					Poco::JSON::Array::Ptr Temperature = Unit->getArray("temperature");
+					if(Temperature->size()>1) {
+						temperature_ = Temperature->get(0);
+					}
+				}
+			} catch (const Poco::Exception &E) {
+				poco_error(Logger_, "Failed to parse last stats: " + E.displayText());
+			}
+		}
+
+		inline void SetLastHealthCheck(const GWObjects::HealthCheck &H) {
+			RawLastHealthcheck_ = H;
+		}
+
 	};
 
 } // namespace OpenWifi

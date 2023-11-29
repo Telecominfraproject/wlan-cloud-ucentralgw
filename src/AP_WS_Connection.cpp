@@ -80,7 +80,6 @@ namespace OpenWifi {
 		if (!Valid_)
 			return false;
 
-		std::lock_guard Lock(ConnectionMutex_);
 		try {
 			auto SockImpl = dynamic_cast<Poco::Net::WebSocketImpl *>(WS_->impl());
 			auto SS =
@@ -243,8 +242,10 @@ namespace OpenWifi {
 	}
 
 	AP_WS_Connection::~AP_WS_Connection() {
-		Valid_ = false;
-		EndConnection();
+		if(Valid_) {
+			Valid_ = false;
+			EndConnection();
+		}
 	}
 
 	void DeviceDisconnectionCleanup(const std::string &SerialNumber, std::uint64_t uuid) {
@@ -273,6 +274,7 @@ namespace OpenWifi {
 				Reactor_->removeEventHandler(
 					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 							  *this, &AP_WS_Connection::OnSocketError));
+				Registered_=false;
 			}
 			WS_->close();
 
@@ -666,6 +668,8 @@ namespace OpenWifi {
 
 		if (!AP_WS_Server()->Running())
 			return EndConnection();
+
+		std::lock_guard	DeviceLock(ConnectionMutex_);
 
 		if (!ValidatedDevice())
 			return;

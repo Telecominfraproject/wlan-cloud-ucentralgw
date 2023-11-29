@@ -74,7 +74,6 @@ namespace OpenWifi {
 			AP_WS_Server()->SetSessionDetails(State_.sessionId, SerialNumberInt_);
 
 			std::lock_guard DbSessionLock(*DbSession_->Mutex);
-			std::lock_guard Lock(ConnectionMutex_);
 
 			Config::Capabilities Caps(Capabilities);
 
