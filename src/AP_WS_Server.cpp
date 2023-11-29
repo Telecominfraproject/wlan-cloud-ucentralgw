@@ -247,8 +247,11 @@ namespace OpenWifi {
 
 				poco_information(Logger(), fmt::format("Garbage collecting zombies done..."));
 			} else {
-				// std::lock_guard SessionLock(SessionMutex_);
-				// NumberOfConnectedDevices_ = Sessions_.size();
+				NumberOfConnectedDevices_=0;
+				for(int i=0;i<256;i++) {
+					std::lock_guard Lock(SerialNumbersMutex_[i]);
+					NumberOfConnectedDevices_ += SerialNumbers_[i].size();
+				}
 				AverageDeviceConnectionTime_ += 10;
 			}
 

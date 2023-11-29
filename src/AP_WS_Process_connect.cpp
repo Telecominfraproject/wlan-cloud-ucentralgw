@@ -110,26 +110,12 @@ namespace OpenWifi {
 
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device DeviceInfo;
-			auto DeviceExists = StorageService()->GetDevice(*DbSession_,SerialNumber_, DeviceInfo);
+			auto DeviceExists = StorageService()->GetDevice(SerialNumber_, DeviceInfo);
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
 				//	check the firmware version. if this is too old, we cannot let that device connect yet, we must
 				//	force a firmware upgrade
 				GWObjects::DefaultFirmware	MinimumFirmware;
 				if(FirmwareRevisionCache()->DeviceMustUpgrade(Compatible_, Firmware, MinimumFirmware)) {
-/*
-
-					{    "jsonrpc" : "2.0" ,
-						 "method" : "upgrade" ,
-						 "params" : {
-								"serial" : <serial number> ,
-								"when"  : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
-								"uri"   : <URI to download the firmware>,
-								"FWsignature" : <string representation of the signature for the FW> (optional)
-						 },
-						 "id" : <some number>
-					}
-
- */
 					Poco::JSON::Object	UpgradeCommand, Params;
 					UpgradeCommand.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
 					UpgradeCommand.set(uCentralProtocol::METHOD,uCentralProtocol::UPGRADE);

@@ -507,6 +507,7 @@ namespace OpenWifi {
 									  bool simulated) {
 
 		GWObjects::Device D;
+
 		poco_information(Logger(), fmt::format("AUTO-CREATION({})", SerialNumber));
 		uint64_t Now = Utils::Now();
 		GWObjects::DefaultConfiguration DefConfig;
@@ -712,7 +713,6 @@ namespace OpenWifi {
 	bool Storage::GetDevice(Poco::Data::Session &Session, std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
 		try {
 			Poco::Data::Statement Select(Session);
-
 			std::string St{"SELECT " + DB_DeviceSelectFields +
 						   " FROM Devices WHERE SerialNumber=?"};
 
