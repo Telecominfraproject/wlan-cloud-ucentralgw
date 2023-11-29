@@ -103,8 +103,8 @@ namespace OpenWifi {
 
 		inline void AddConnection(uint64_t session_id,
 								  std::shared_ptr<AP_WS_Connection> Connection) {
-			std::lock_guard Lock(SessionMutex_);
-			Sessions_[session_id] = std::move(Connection);
+			std::lock_guard Lock(SessionMutex_[session_id % 256]);
+			Sessions_[session_id % 256][session_id] = std::move(Connection);
 		}
 
 		inline bool DeviceRequiresSecureRtty(uint64_t serialNumber) const {
@@ -193,17 +193,7 @@ namespace OpenWifi {
 			RX = RX_;
 		}
 
-		//	TOD: move to hash based map.
-		inline bool GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers) {
-			std::lock_guard Lock(SessionMutex_);
-			for(const auto &connection:Sessions_) {
-				if(	connection.second->RawLastHealthcheck_.Sanity>=lowLimit 	&&
-					connection.second->RawLastHealthcheck_.Sanity<=highLimit) {
-					SerialNumbers.push_back(connection.second->SerialNumber_);
-				}
-			}
-			return true;
-		}
+		bool GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers);
 
 		inline bool ExtendedAttributes(const std::string &serialNumber,
 			bool & hasGPS,
@@ -229,9 +219,9 @@ namespace OpenWifi {
 		}
 
 	  private:
-		mutable std::mutex 			SessionMutex_;
-		mutable std::mutex			StatsMutex_;
-		mutable std::mutex			GarbageMutex_;
+		mutable std::array<std::mutex,256> 		SessionMutex_;
+		mutable std::mutex						StatsMutex_;
+		mutable std::mutex						GarbageMutex_;
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>> WebServers_;
 		Poco::Net::SocketReactor Reactor_;
@@ -243,7 +233,7 @@ namespace OpenWifi {
 		bool SimulatorEnabled_ = false;
 		std::unique_ptr<AP_WS_ReactorThreadPool> Reactor_pool_;
 		std::atomic_bool Running_ = false;
-		std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>> Sessions_;
+		std::array<std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>,256> Sessions_;
 
 		using SerialNumberMap = std::map<uint64_t /* serial number */, std::pair<uint64_t /* session id*/,
 									 std::shared_ptr<AP_WS_Connection>>>;

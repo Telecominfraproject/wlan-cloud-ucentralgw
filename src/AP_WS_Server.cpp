@@ -235,9 +235,9 @@ namespace OpenWifi {
 
 				if(!SessionsToRemove.empty()) {
 					poco_information(Logger(), fmt::format("Removing {} sessions.", SessionsToRemove.size()));
-					std::lock_guard Lock(SessionMutex_);
 					for (const auto &Session : SessionsToRemove) {
-						Sessions_.erase(Session);
+						std::lock_guard Lock(SessionMutex_[Session % 256]);
+						Sessions_[Session % 256].erase(Session);
 					}
 				}
 
@@ -247,8 +247,8 @@ namespace OpenWifi {
 
 				poco_information(Logger(), fmt::format("Garbage collecting zombies done..."));
 			} else {
-				std::lock_guard SessionLock(SessionMutex_);
-				NumberOfConnectedDevices_ = Sessions_.size();
+				// std::lock_guard SessionLock(SessionMutex_);
+				// NumberOfConnectedDevices_ = Sessions_.size();
 				AverageDeviceConnectionTime_ += 10;
 			}
 
@@ -394,6 +394,20 @@ namespace OpenWifi {
 		poco_information(Logger(), "Stopped...");
 	}
 
+	bool AP_WS_Server::GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers) {
+		SerialNumbers.clear();
+		for(int i=0;i<256;i++) {
+			std::lock_guard Lock(SessionMutex_[i]);
+			for (const auto &connection : Sessions_[i]) {
+				if (connection.second->RawLastHealthcheck_.Sanity >= lowLimit &&
+					connection.second->RawLastHealthcheck_.Sanity <= highLimit) {
+					SerialNumbers.push_back(connection.second->SerialNumber_);
+				}
+			}
+		}
+		return true;
+	}
+
 	bool AP_WS_Server::GetStatistics(uint64_t SerialNumber, std::string &Statistics) const {
 
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
@@ -433,9 +447,9 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber) {
-		std::lock_guard SessionLock(SessionMutex_);
-		auto Conn = Sessions_.find(connection_id);
-		if (Conn == end(Sessions_))
+		std::lock_guard SessionLock(SessionMutex_[connection_id % 256]);
+		auto Conn = Sessions_[connection_id %256].find(connection_id);
+		if (Conn == end(Sessions_[connection_id % 256]))
 			return;
 
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
@@ -449,9 +463,9 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
-		std::lock_guard SessionLock(SessionMutex_);
-		auto Session = Sessions_.find(session_id);
-		if (Session == end(Sessions_))
+		std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
+		auto Session = Sessions_[session_id % 256].find(session_id);
+		if (Session == end(Sessions_[session_id % 256]))
 			return false;
 
 		{
@@ -463,17 +477,17 @@ namespace OpenWifi {
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (Device == end(SerialNumbers_[hashIndex])) {
-			Sessions_.erase(Session);
+			Sessions_[session_id % 256].erase(Session);
 			return false;
 		}
 
 		if (Device->second.first == session_id) {
-			Sessions_.erase(Session);
+			Sessions_[session_id % 256].erase(Session);
 			SerialNumbers_[hashIndex].erase(Device);
 			return true;
 		}
 
-		Sessions_.erase(Session);
+		Sessions_[session_id % 256].erase(Session);
 
 		return false;
 	}
