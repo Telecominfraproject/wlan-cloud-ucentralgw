@@ -17,12 +17,11 @@
 
 namespace OpenWifi {
 
-	bool Storage::CreateDeviceCapabilities(LockedDbSession &Session, std::string &SerialNumber,
+	bool Storage::CreateDeviceCapabilities(Poco::Data::Session &Session, std::string &SerialNumber,
 										   const Config::Capabilities &Capabilities) {
 		try {
-			std::lock_guard Guard(*Session.Mutex);
-			Session.Session->begin();
-			Poco::Data::Statement UpSert(*Session.Session);
+			Session.begin();
+			Poco::Data::Statement UpSert(Session);
 
 			std::string TCaps{Capabilities.AsString()};
 			uint64_t Now = Utils::Now();
@@ -34,7 +33,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(TCaps),
 				Poco::Data::Keywords::use(Now);
 			UpSert.execute();
-			Session.Session->commit();
+			Session.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

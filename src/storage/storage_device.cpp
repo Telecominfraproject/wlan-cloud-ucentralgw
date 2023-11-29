@@ -508,7 +508,7 @@ namespace OpenWifi {
 
 		GWObjects::Device D;
 		poco_information(Logger(), fmt::format("AUTO-CREATION({})", SerialNumber));
-		uint64_t Now = time(nullptr);
+		uint64_t Now = Utils::Now();
 		GWObjects::DefaultConfiguration DefConfig;
 
 		if (!Caps.Platform().empty() && !Caps.Compatible().empty()) {
@@ -551,8 +551,8 @@ namespace OpenWifi {
 		D.Notes = SecurityObjects::NoteInfoVec{
 			SecurityObjects::NoteInfo{(uint64_t)Utils::Now(), "", "Auto-provisioned."}};
 
-		CreateDeviceCapabilities(Session, SerialNumber, Caps);
-		std::lock_guard		Lock(*Session.Mutex);
+		std::lock_guard	Lock(*Session.Mutex);
+		CreateDeviceCapabilities(*Session.Session, SerialNumber, Caps);
 		return CreateDevice(*Session.Session, D);
 	}
 

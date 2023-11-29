@@ -162,7 +162,7 @@ namespace OpenWifi {
 									  const Config::Capabilities &Capabilities);
 		bool GetDeviceCapabilities(std::string &SerialNumber, GWObjects::Capabilities &);
 		bool DeleteDeviceCapabilities(std::string &SerialNumber);
-		bool CreateDeviceCapabilities(LockedDbSession &Session, std::string &SerialNumber,
+		bool CreateDeviceCapabilities(Poco::Data::Session &Session, std::string &SerialNumber,
 									  const Config::Capabilities &Capabilities);
 		bool InitCapabilitiesCache();
 
