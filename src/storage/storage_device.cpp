@@ -508,7 +508,7 @@ namespace OpenWifi {
 
 		GWObjects::Device D;
 
-		poco_information(Logger(), fmt::format("AUTO-CREATION({})", SerialNumber));
+		poco_information(Logger(), fmt::format("AUTO-CREATION({}): Start.", SerialNumber));
 		uint64_t Now = Utils::Now();
 		GWObjects::DefaultConfiguration DefConfig;
 
@@ -554,7 +554,9 @@ namespace OpenWifi {
 
 		std::lock_guard	Lock(*Session.Mutex);
 		CreateDeviceCapabilities(*Session.Session, SerialNumber, Caps);
-		return CreateDevice(*Session.Session, D);
+		auto Result = CreateDevice(*Session.Session, D);
+		poco_information(Logger(), fmt::format("AUTO-CREATION({}): Done, Result={}", SerialNumber, Result));
+		return Result;
 	}
 
 /*	bool Storage::GetDeviceFWUpdatePolicy(std::string &SerialNumber, std::string &Policy) {
@@ -592,36 +594,6 @@ namespace OpenWifi {
 		return false;
 	}
 
-/*	bool Storage::SetConnectInfo(std::string &SerialNumber, std::string &Firmware) {
-		try {
-			Poco::Data::Session Sess = Pool_->get();
-			Poco::Data::Statement Select(Sess);
-
-			//	Get the old version and if they do not match, set the last date
-			std::string St{"SELECT Firmware FROM Devices  WHERE SerialNumber=?"};
-			std::string TmpFirmware;
-			Select << ConvertParams(St), Poco::Data::Keywords::into(TmpFirmware),
-				Poco::Data::Keywords::use(SerialNumber);
-			Select.execute();
-
-			if (TmpFirmware != Firmware) {
-				Poco::Data::Statement Update(Sess);
-				std::string St2{
-					"UPDATE Devices SET Firmware=?, LastFWUpdate=? WHERE SerialNumber=?"};
-				uint64_t Now = Utils::Now();
-
-				Update << ConvertParams(St2), Poco::Data::Keywords::use(Firmware),
-					Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(SerialNumber);
-				Update.execute();
-				return true;
-			}
-			return true;
-		} catch (const Poco::Exception &E) {
-			Logger().log(E);
-		}
-		return false;
-	}
-*/
 	bool Storage::DeleteDevice(std::string &SerialNumber) {
 		try {
 			std::vector<std::string> TableNames{"Devices",		"Statistics",	"CommandList",
