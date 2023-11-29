@@ -175,7 +175,8 @@ namespace OpenWifi {
 
 	void AP_WS_Server::run() {
 		uint64_t last_log = Utils::Now(),
-				 last_zombie_run = 0;
+				 last_zombie_run = 0,
+				 last_garbage_run = 0
 
 		while(Running_) {
 
@@ -252,7 +253,8 @@ namespace OpenWifi {
 					std::lock_guard Lock(SerialNumbersMutex_[i]);
 					NumberOfConnectedDevices_ += SerialNumbers_[i].size();
 				}
-				AverageDeviceConnectionTime_ += 10;
+				if(last_garbage_run>0)
+					AverageDeviceConnectionTime_ += (now - last_garbage_run);
 			}
 
 			if ((now - last_log) > 120) {
@@ -280,6 +282,7 @@ namespace OpenWifi {
 
 			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
 			Logger().information(fmt::format("Garbage collection finished run."	));
+			last_garbage_run = now;
 		}
 
 		Logger().information(fmt::format("Garbage collector done for the day."	));
