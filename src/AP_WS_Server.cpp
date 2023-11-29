@@ -211,7 +211,7 @@ namespace OpenWifi {
 						} else if ((now - hint->second.second->State_.LastContact) >
 								   SessionTimeOut_) {
 							hint->second.second->EndConnection(false);
-							poco_information(
+							poco_debug(
 								Logger(),
 								fmt::format(
 									"{}: Session seems idle. Controller disconnecting device.",
