@@ -46,7 +46,7 @@ namespace OpenWifi {
 									   std::pair<Poco::Net::SocketReactor *, LockedDbSession *> R)
 		: Logger_(L) {
 
-		std::lock_guard		Guard(ConnectionMutex_);
+//		std::lock_guard		Guard(ConnectionMutex_);
 
 		Reactor_ = R.first;
 		DbSession_ = R.second;
@@ -677,9 +677,9 @@ namespace OpenWifi {
 		if (!AP_WS_Server()->Running())
 			return EndConnection();
 
-		std::cout << __LINE__ << ": OnSocketReadable" << std::endl;
-		std::lock_guard	DeviceLock(ConnectionMutex_);
-		std::cout << __LINE__ << ": OnSocketReadable" << std::endl;
+//		std::cout << __LINE__ << ": OnSocketReadable" << std::endl;
+//		std::lock_guard	DeviceLock(ConnectionMutex_);
+//		std::cout << __LINE__ << ": OnSocketReadable" << std::endl;
 
 		if (!ValidatedDevice())
 			return;
