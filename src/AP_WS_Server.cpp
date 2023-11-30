@@ -395,9 +395,9 @@ namespace OpenWifi {
 		auto CurrentSerialNumber = SerialNumbers_[hashIndex].find(SerialNumber);
 		if ((CurrentSerialNumber == SerialNumbers_[hashIndex].end()) ||
 			(CurrentSerialNumber->second != nullptr && CurrentSerialNumber->second->State_.sessionId < connection_id)) {
-			SerialNumbers_[hashIndex][SerialNumber] = Connection;
-			Sessions_[connection_id % 256].erase(ConnHint);
 			std::cout << __LINE__ << ": " << connection_id << "  " << Connection->SerialNumber_ << "   SET Set connection details" << std::endl;
+			SerialNumbers_[hashIndex][SerialNumber] = std::move(Connection);
+			Sessions_[connection_id % 256].erase(ConnHint);
 			return;
 		}
 		std::cout << __LINE__ << ": " << connection_id << "  " << Connection->SerialNumber_ << "   FAIL(2) Set connection details" << std::endl;
