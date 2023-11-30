@@ -287,7 +287,9 @@ namespace OpenWifi {
 				Cleanup.detach();
 			}
 
+			std::cout << __LINE__ << ": EndConnection" << std::endl;
 			AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
+			std::cout << __LINE__ << ": EndConnection" << std::endl;
 		}
 	}
 
