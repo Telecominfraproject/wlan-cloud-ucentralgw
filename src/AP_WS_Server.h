@@ -246,7 +246,7 @@ namespace OpenWifi {
 		std::uint64_t 			AverageDeviceConnectionTime_ = 0;
 		std::uint64_t 			NumberOfConnectingDevices_ = 0;
 		std::uint64_t 			SessionTimeOut_ = 10*60;
-
+		std::uint64_t 			LeftOverSessions_ = 0;
 		std::atomic_uint64_t 	TX_=0,RX_=0;
 
 		std::vector<std::shared_ptr<AP_WS_Connection>> GarbageSessions_;

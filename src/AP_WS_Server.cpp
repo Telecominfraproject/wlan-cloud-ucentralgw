@@ -230,6 +230,7 @@ namespace OpenWifi {
 					}
 				}
 
+				LeftOverSessions_ = 0;
 				for(int i=0;i<256;i++) {
 					std::lock_guard Lock(SessionMutex_[i]);
 					auto hint = Sessions_[i].begin();
@@ -242,6 +243,7 @@ namespace OpenWifi {
 									hint->second->SerialNumber_));
 							hint = Sessions_[i].erase(hint);
 						} else {
+							LeftOverSessions_++;
 							hint++;
 						}
 					}
@@ -265,9 +267,9 @@ namespace OpenWifi {
 			if ((now - last_log) > 120) {
 				last_log = now;
 				poco_information(Logger(),
-								 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds",
+								 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds. Left Over Sessions: {}",
 											 NumberOfConnectedDevices_, NumberOfConnectingDevices_,
-											 AverageDeviceConnectionTime_));
+											 AverageDeviceConnectionTime_, LeftOverSessions_));
 			}
 
 			GWWebSocketNotifications::NumberOfConnection_t Notification;
