@@ -59,6 +59,11 @@ namespace OpenWifi {
 		WS_->setKeepAlive(true);
 		WS_->setBlocking(false);
 
+		Registered_ = true;
+		Valid_ = true;
+		uuid_ = MicroServiceRandom(std::numeric_limits<std::uint64_t>::max()-1);
+		LastContact_ = Utils::Now();
+
 		Reactor_->addEventHandler(*WS_,
 								 Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
 									 *this, &AP_WS_Connection::OnSocketReadable));
@@ -68,10 +73,6 @@ namespace OpenWifi {
 		Reactor_->addEventHandler(*WS_,
 								 Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 									 *this, &AP_WS_Connection::OnSocketError));
-		Registered_ = true;
-		Valid_ = true;
-		uuid_ = MicroServiceRandom(std::numeric_limits<std::uint64_t>::max()-1);
-		LastContact_ = Utils::Now();
 	}
 
 	bool AP_WS_Connection::ValidatedDevice() {
