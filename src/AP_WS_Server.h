@@ -33,14 +33,14 @@ namespace OpenWifi {
 
 	class AP_WS_RequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit AP_WS_RequestHandler(Poco::Logger &L, uint64_t id) : Logger_(L), id_(id){};
+		explicit AP_WS_RequestHandler(Poco::Logger &L, std::uint64_t session_id) : Logger_(L), session_id_(session_id){};
 
 		void handleRequest(Poco::Net::HTTPServerRequest &request,
 						   Poco::Net::HTTPServerResponse &response) override;
 
 	  private:
 		Poco::Logger &Logger_;
-		uint64_t id_ = 0;
+		std::uint64_t session_id_;
 	};
 
 	class AP_WS_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
@@ -52,7 +52,7 @@ namespace OpenWifi {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
 				Utils::SetThreadName("ws:conn-init");
-				return new AP_WS_RequestHandler(Logger_, id_++);
+				return new AP_WS_RequestHandler(Logger_, session_id_++);
 			} else {
 				return nullptr;
 			}
@@ -60,7 +60,7 @@ namespace OpenWifi {
 
 	  private:
 		Poco::Logger &Logger_;
-		inline static uint64_t id_ = 1;
+		inline static uint64_t session_id_ = 1;
 	};
 
 	class AP_WS_Server : public SubSystemServer, public Poco::Runnable {
@@ -150,8 +150,8 @@ namespace OpenWifi {
 		bool SendRadiusCoAData(const std::string &SerialNumber, const unsigned char *buffer,
 							   std::size_t size);
 
-		void SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber);
-		bool EndSession(uint64_t connection_id, uint64_t SerialNumber);
+		void SetSessionDetails(uint64_t session_id, uint64_t SerialNumber);
+		bool EndSession(uint64_t session_id, uint64_t SerialNumber);
 		void SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber,
 											uint64_t Interval, uint64_t Lifetime,
 											const std::vector<std::string> &TelemetryTypes);

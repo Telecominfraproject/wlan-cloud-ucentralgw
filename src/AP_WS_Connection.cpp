@@ -42,15 +42,15 @@ namespace OpenWifi {
 
 	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
 									   Poco::Net::HTTPServerResponse &response,
-									   uint64_t connection_id, Poco::Logger &L,
+									   uint64_t session_id, Poco::Logger &L,
 									   std::pair<Poco::Net::SocketReactor *, LockedDbSession *> R)
 		: Logger_(L) {
 
-//		std::lock_guard		Guard(ConnectionMutex_);
+		std::lock_guard		Guard(ConnectionMutex_);
 
 		Reactor_ = R.first;
 		DbSession_ = R.second;
-		State_.sessionId = connection_id;
+		State_.sessionId = session_id;
 
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request, response);
 
@@ -677,9 +677,9 @@ namespace OpenWifi {
 		if (!AP_WS_Server()->Running())
 			return EndConnection();
 
-//		std::cout << __LINE__ << ": OnSocketReadable" << std::endl;
-//		std::lock_guard	DeviceLock(ConnectionMutex_);
-//		std::cout << __LINE__ << ": OnSocketReadable" << std::endl;
+		std::cout << __LINE__ << ": OnSocketReadable" << std::endl;
+		std::lock_guard	DeviceLock(ConnectionMutex_);
+		std::cout << __LINE__ << ": OnSocketReadable" << std::endl;
 
 		if (!ValidatedDevice())
 			return;
