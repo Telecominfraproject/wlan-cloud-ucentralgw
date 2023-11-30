@@ -134,7 +134,7 @@ namespace OpenWifi {
 		inline bool MustBeSecureRtty() const { return RttyMustBeSecure_; }
 
 	  private:
-		std::mutex ConnectionMutex_;
+		std::recursive_mutex ConnectionMutex_;
 		std::mutex TelemetryMutex_;
 		Poco::Logger &Logger_;
 		Poco::Net::SocketReactor 	*Reactor_{nullptr};
