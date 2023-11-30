@@ -118,8 +118,8 @@ namespace OpenWifi {
 									   uint64_t &NewUUID);
 
 		bool RollbackDeviceConfigurationChange(std::string & SerialNumber);
+		bool CompleteDeviceConfigurationChange(Poco::Data::Session &Session, std::string & SerialNumber);
 		bool CompleteDeviceConfigurationChange(std::string & SerialNumber);
-
 		bool CreateDevice(LockedDbSession &Session, GWObjects::Device &);
 		bool CreateDevice(GWObjects::Device &);
 		bool CreateDefaultDevice(Poco::Data::Session &Session,std::string &SerialNumber,

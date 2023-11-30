@@ -297,7 +297,7 @@ namespace OpenWifi {
 		}
 	}
 
-	bool AP_WS_Connection::LookForUpgrade(const uint64_t UUID, uint64_t &UpgradedUUID) {
+	bool AP_WS_Connection::LookForUpgrade(Poco::Data::Session &Session, const uint64_t UUID, uint64_t &UpgradedUUID) {
 
 		//	A UUID of zero means ignore updates for that connection.
 		if (UUID == 0)
@@ -310,12 +310,12 @@ namespace OpenWifi {
 		}
 
 		GWObjects::Device D;
-		if (StorageService()->GetDevice(*DbSession_,SerialNumber_, D)) {
+		if (StorageService()->GetDevice(Session,SerialNumber_, D)) {
 
 			if(D.pendingUUID!=0 && UUID==D.pendingUUID) {
 				//	so we sent an upgrade to a device, and now it is completing now...
 				UpgradedUUID = D.pendingUUID;
-				StorageService()->CompleteDeviceConfigurationChange(SerialNumber_);
+				StorageService()->CompleteDeviceConfigurationChange(Session, SerialNumber_);
 				return true;
 			}
 

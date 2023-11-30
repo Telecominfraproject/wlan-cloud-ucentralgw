@@ -45,7 +45,7 @@ namespace OpenWifi {
 		void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
-		bool LookForUpgrade(uint64_t UUID, uint64_t &UpgradedUUID);
+		bool LookForUpgrade(Poco::Data::Session &Session, uint64_t UUID, uint64_t &UpgradedUUID);
 		void LogException(const Poco::Exception &E);
 		inline Poco::Logger &Logger() { return Logger_; }
 		bool SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t interval,

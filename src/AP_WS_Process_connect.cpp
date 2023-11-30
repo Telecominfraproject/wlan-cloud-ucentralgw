@@ -250,7 +250,7 @@ namespace OpenWifi {
 				if(!Simulated_) {
 					uint64_t UpgradedUUID = 0;
 					std::cout << __LINE__ << ": set details" << std::endl;
-					LookForUpgrade(UUID, UpgradedUUID);
+					LookForUpgrade(*DbSession_->Session, UUID, UpgradedUUID);
 					std::cout << __LINE__ << ": set details" << std::endl;
 					State_.UUID = UpgradedUUID;
 				}

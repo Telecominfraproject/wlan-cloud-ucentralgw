@@ -288,6 +288,16 @@ namespace OpenWifi {
 
 	bool Storage::CompleteDeviceConfigurationChange(std::string & SerialNumber) {
 		try {
+			auto Session = Pool_->get();
+			return CompleteDeviceConfigurationChange(Session, SerialNumber);
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
+	bool Storage::CompleteDeviceConfigurationChange(Poco::Data::Session & Session, std::string & SerialNumber) {
+		try {
 			GWObjects::Device D;
 			if (!GetDevice(SerialNumber, D))
 				return false;
@@ -302,9 +312,8 @@ namespace OpenWifi {
 
 			ConfigurationCache().Add(Utils::SerialNumberToInt(SerialNumber), D.UUID);
 
-			Poco::Data::Session Sess = Pool_->get();
-			Sess.begin();
-			Poco::Data::Statement Update(Sess);
+			Session.begin();
+			Poco::Data::Statement Update(Session);
 
 			DeviceRecordTuple R;
 			ConvertDeviceRecord(D, R);
@@ -313,7 +322,7 @@ namespace OpenWifi {
 			Update << ConvertParams(St2), Poco::Data::Keywords::use(R),
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
-			Sess.commit();
+			Session.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);

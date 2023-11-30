@@ -41,9 +41,11 @@ namespace OpenWifi {
 
 			if(!Simulated_) {
 				uint64_t UpgradedUUID;
-				LookForUpgrade(UUID, UpgradedUUID);
+				std::lock_guard	Guard(*DbSession_->Mutex);
+				LookForUpgrade(*DbSession_->Session, UUID, UpgradedUUID);
 				State_.UUID = UpgradedUUID;
 			}
+
 			SetLastStats(StateStr);
 
 			GWObjects::Statistics Stats{
