@@ -340,16 +340,20 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::GetState(uint64_t SerialNumber, GWObjects::ConnectionState &State) const {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (DeviceHint == SerialNumbers_[hashIndex].end() || DeviceHint->second.second == nullptr) {
-			return false;
+		std::shared_ptr<AP_WS_Connection> Connection;
+		{
+			auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+			std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
+			auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+			if (DeviceHint == SerialNumbers_[hashIndex].end() ||
+				DeviceHint->second.second == nullptr) {
+				return false;
+			}
+			Connection = DeviceHint->second.second;
 		}
-		auto Device = DeviceHint->second.second;
-		std::cout << __LINE__ << " " << Device->State_.sessionId << std::endl;
-		Device->GetState(State);
-		std::cout << __LINE__ << " " << Device->State_.sessionId << std::endl;
+		std::cout << __LINE__ << " " << Connection->State_.sessionId << std::endl;
+		Connection->GetState(State);
+		std::cout << __LINE__ << " " << Connection->State_.sessionId << std::endl;
 		return true;
 	}
 
