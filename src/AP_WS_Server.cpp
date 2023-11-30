@@ -216,12 +216,8 @@ namespace OpenWifi {
 								fmt::format(
 									"{}: Session seems idle. Controller disconnecting device.",
 									hint->second.second->SerialNumber_));
-							// hint->second.second->EndConnection(false);
-							SessionsToRemove.emplace_back(hint->second.first);
-							{
-								std::lock_guard GarbageLock(GarbageMutex_);
-								GarbageSessions_.push_back(hint->second.second);
-							}
+							std::lock_guard ConnectionLock(hint->second.second->ConnectionMutex_);
+							hint->second.second->EndConnection();
 							hint = SerialNumbers_[hashIndex].erase(hint);
 						} else if (hint->second.second->State_.Connected) {
 							NumberOfConnectedDevices_++;
@@ -234,11 +230,20 @@ namespace OpenWifi {
 					}
 				}
 
-				if(!SessionsToRemove.empty()) {
-					poco_information(Logger(), fmt::format("Removing {} sessions.", SessionsToRemove.size()));
-					for (const auto &Session : SessionsToRemove) {
-						std::lock_guard Lock(SessionMutex_[Session % 256]);
-						Sessions_[Session % 256].erase(Session);
+				for(int i=0;i<256;i++) {
+					std::lock_guard Lock(SessionMutex_[i]);
+					auto hint = Sessions_[i].begin();
+					while (hint != end(Sessions_[i])) {
+						if ((now - hint->second->LastContact_) > SessionTimeOut_) {
+							poco_information(
+								Logger(),
+								fmt::format(
+									"{}: Session seems idle. Controller disconnecting device.",
+									hint->second->SerialNumber_));
+							hint = Sessions_[i].erase(hint);
+						} else {
+							hint++;
+						}
 					}
 				}
 
@@ -284,104 +289,9 @@ namespace OpenWifi {
 			Logger().information(fmt::format("Garbage collection finished run."	));
 			last_garbage_run = now;
 		}
-
 		Logger().information(fmt::format("Garbage collector done for the day."	));
 	}
 
-/*	void AP_WS_Server::onGarbageCollecting([[maybe_unused]] Poco::Timer &timer) {
-		auto now = Utils::Now();
-
-		{
-			{
-				std::lock_guard SessionLock(SessionMutex_);
-				if (!Garbage_.empty()) {
-					Garbage_.clear();
-				}
-			}
-
-			uint64_t total_connected_time = 0;
-
-			if(now-last_zombie_run > 20) {
-				poco_information(Logger(), fmt::format("Garbage collecting..."));
-				std::vector<std::uint64_t> SessionsToRemove;
-				NumberOfConnectedDevices_ = 0;
-				NumberOfConnectingDevices_ = 0;
-				AverageDeviceConnectionTime_ = 0;
-				last_zombie_run = now;
-				for(int hashIndex=0;hashIndex<256;hashIndex++) {
-					std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-					auto hint = SerialNumbers_[hashIndex].begin();
-					while (hint != end(SerialNumbers_[hashIndex])) {
-						if (hint->second.second == nullptr) {
-							hint = SerialNumbers_[hashIndex].erase(hint);
-						} else if ((now - hint->second.second->State_.LastContact) >
-								   SessionTimeOut_) {
-							hint->second.second->EndConnection(false);
-							poco_information(
-								Logger(),
-								fmt::format(
-									"{}: Session seems idle. Controller disconnecting device.",
-									hint->second.second->SerialNumber_));
-							SessionsToRemove.emplace_back(hint->second.first);
-							Garbage_.push_back(hint->second.second);
-							hint = SerialNumbers_[hashIndex].erase(hint);
-						} else if (hint->second.second->State_.Connected) {
-							NumberOfConnectedDevices_++;
-							total_connected_time += (now - hint->second.second->State_.started);
-							hint++;
-						} else {
-							NumberOfConnectingDevices_++;
-							hint++;
-						}
-					}
-				}
-
-				if(SessionsToRemove.empty()) {
-					poco_information(Logger(), fmt::format("Removing {} sessions.", SessionsToRemove.size()));
-					std::lock_guard Lock(SessionMutex_);
-					for (const auto &Session : SessionsToRemove) {
-						Sessions_.erase(Session);
-					}
-				}
-
-				AverageDeviceConnectionTime_ =
-				NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_
-											  : 0;
-
-				poco_information(Logger(), fmt::format("Garbage collecting done..."));
-			} else {
-				std::lock_guard SessionLock(SessionMutex_);
-				NumberOfConnectedDevices_ = Sessions_.size();
-				AverageDeviceConnectionTime_ += 10;
-			}
-
-			if ((now - last_log) > 120) {
-				last_log = now;
-				poco_information(Logger(),
-								 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds",
-											 NumberOfConnectedDevices_, NumberOfConnectingDevices_,
-											 AverageDeviceConnectionTime_));
-			}
-		}
-
-		GWWebSocketNotifications::NumberOfConnection_t Notification;
-		Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
-		Notification.content.numberOfDevices = NumberOfConnectedDevices_;
-		Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
-		GetTotalDataStatistics(Notification.content.tx,Notification.content.rx);
-		GWWebSocketNotifications::NumberOfConnections(Notification);
-
-		Poco::JSON::Object	KafkaNotification;
-		Notification.to_json(KafkaNotification);
-
-		Poco::JSON::Object FullEvent;
-		FullEvent.set("type", "load-update");
-		FullEvent.set("timestamp", now);
-		FullEvent.set("payload", KafkaNotification);
-
-		KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
-	}
-*/
 	void AP_WS_Server::Stop() {
 		poco_information(Logger(), "Stopping...");
 		Running_ = false;
@@ -389,11 +299,10 @@ namespace OpenWifi {
 		GarbageCollector_.wakeUp();
 		GarbageCollector_.join();
 
-		// Timer_.stop();
-
 		for (auto &server : WebServers_) {
 			server->stopAll();
 		}
+
 		Reactor_pool_->Stop();
 		Reactor_.stop();
 		ReactorThread_.join();
@@ -454,13 +363,12 @@ namespace OpenWifi {
 
 	void AP_WS_Server::SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber) {
 		std::shared_ptr<AP_WS_Connection> Connection;
-		{
-			std::lock_guard SessionLock(SessionMutex_[connection_id % 256]);
-			auto Conn = Sessions_[connection_id % 256].find(connection_id);
-			if (Conn == end(Sessions_[connection_id % 256]))
-				return;
-			Connection = Conn->second;
-		}
+
+		std::lock_guard SessionLock(SessionMutex_[connection_id % 256]);
+		auto ConnHint = Sessions_[connection_id % 256].find(connection_id);
+		if (ConnHint == end(Sessions_[connection_id % 256]))
+			return;
+		Connection = ConnHint->second;
 
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
@@ -468,39 +376,22 @@ namespace OpenWifi {
 		if ((CurrentSerialNumber == SerialNumbers_[hashIndex].end()) ||
 			(CurrentSerialNumber->second.first < connection_id)) {
 			SerialNumbers_[hashIndex][SerialNumber] = std::make_pair(connection_id, Connection);
+			Sessions_[connection_id % 256].erase(ConnHint);
 			return;
 		}
 	}
 
-	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
+	bool AP_WS_Server::EndSession(uint64_t session_id) {
+
 		std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
 		auto Session = Sessions_[session_id % 256].find(session_id);
 		if (Session == end(Sessions_[session_id % 256]))
 			return false;
 
-		{
-			std::lock_guard Lock(GarbageMutex_);
-			GarbageSessions_.push_back(Session->second);
-		}
-
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex])) {
-			Sessions_[session_id % 256].erase(Session);
-			return false;
-		}
-
-		if (Device->second.first == session_id) {
-			Sessions_[session_id % 256].erase(Session);
-			SerialNumbers_[hashIndex].erase(Device);
-			return true;
-		}
-
 		Sessions_[session_id % 256].erase(Session);
-
-		return false;
+		return true;
 	}
+
 
 	bool AP_WS_Server::Connected(uint64_t SerialNumber,
 								 GWObjects::DeviceRestrictions &Restrictions) const {

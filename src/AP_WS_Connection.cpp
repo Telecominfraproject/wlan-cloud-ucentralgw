@@ -71,6 +71,7 @@ namespace OpenWifi {
 		Registered_ = true;
 		Valid_ = true;
 		uuid_ = MicroServiceRandom(std::numeric_limits<std::uint64_t>::max()-1);
+		LastContact_ = Utils::Now();
 	}
 
 	bool AP_WS_Connection::ValidatedDevice() {
@@ -253,9 +254,12 @@ namespace OpenWifi {
 			NotifyKafkaDisconnect(SerialNumber, uuid);
 		}
 		RADIUSSessionTracker()->DeviceDisconnect(SerialNumber);
+		GWWebSocketNotifications::SingleDevice_t N;
+		N.content.serialNumber = SerialNumber;
+		GWWebSocketNotifications::DeviceDisconnected(N);
 	}
 
-	void AP_WS_Connection::EndConnection(bool DeleteSession) {
+	void AP_WS_Connection::EndConnection() {
     	Valid_ = false;
 		if (!Dead_.test_and_set()) {
 
@@ -283,15 +287,7 @@ namespace OpenWifi {
 				Cleanup.detach();
 			}
 
-			bool SessionDeleted = false;
-			if(DeleteSession)
-				SessionDeleted = AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
-
-			if (SessionDeleted || !DeleteSession) {
-				GWWebSocketNotifications::SingleDevice_t N;
-				N.content.serialNumber = SerialNumber_;
-				GWWebSocketNotifications::DeviceDisconnected(N);
-			}
+			AP_WS_Server()->EndSession(State_.sessionId);
 		}
 	}
 
@@ -651,12 +647,14 @@ namespace OpenWifi {
 	void AP_WS_Connection::OnSocketShutdown(
 		[[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		poco_trace(Logger_, fmt::format("SOCKET-SHUTDOWN({}): Closing.", CId_));
+		std::lock_guard	G(ConnectionMutex_);
 		return EndConnection();
 	}
 
 	void AP_WS_Connection::OnSocketError(
 		[[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
 		poco_trace(Logger_, fmt::format("SOCKET-ERROR({}): Closing.", CId_));
+		std::lock_guard	G(ConnectionMutex_);
 		return EndConnection();
 	}
 

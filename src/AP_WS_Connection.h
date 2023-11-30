@@ -30,7 +30,7 @@ namespace OpenWifi {
 								  Poco::Logger &L, std::pair<Poco::Net::SocketReactor *, LockedDbSession *> R);
 		~AP_WS_Connection();
 
-		void EndConnection(bool DeleteSession=true);
+		void EndConnection();
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc);
 		void ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc);
 		void ProcessIncomingFrame();
@@ -166,6 +166,7 @@ namespace OpenWifi {
 		std::double_t 	memory_used_=0.0, cpu_load_ = 0.0, temperature_ = 0.0;
 		std::uint64_t 	uuid_=0;
 		bool	Simulated_=false;
+		std::uint64_t 	LastContact_=0;
 
 		inline void SetLastStats(const std::string &LastStats) {
 			RawLastStats_ = LastStats;

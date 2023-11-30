@@ -151,7 +151,7 @@ namespace OpenWifi {
 							   std::size_t size);
 
 		void SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber);
-		bool EndSession(uint64_t connection_id, uint64_t serial_number);
+		bool EndSession(uint64_t connection_id);
 		void SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber,
 											uint64_t Interval, uint64_t Lifetime,
 											const std::vector<std::string> &TelemetryTypes);
@@ -167,8 +167,6 @@ namespace OpenWifi {
 									uint64_t &TelemetryKafkaCount,
 									uint64_t &TelemetryWebSocketPackets,
 									uint64_t &TelemetryKafkaPackets);
-
-		void onGarbageCollecting(Poco::Timer &timer);
 
 		inline void AverageDeviceStatistics(uint64_t &Connections, uint64_t &AverageConnectionTime,
 											uint64_t &NumberOfConnectingDevices) const {
