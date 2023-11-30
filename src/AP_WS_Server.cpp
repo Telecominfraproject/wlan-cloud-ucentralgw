@@ -380,8 +380,10 @@ namespace OpenWifi {
 
 		std::lock_guard SessionLock(SessionMutex_[connection_id % 256]);
 		auto ConnHint = Sessions_[connection_id % 256].find(connection_id);
-		if (ConnHint == end(Sessions_[connection_id % 256]))
+		if (ConnHint == end(Sessions_[connection_id % 256])) {
+			std::cout << __LINE__ << ": Failed (1) to set connection details" << std::endl;
 			return;
+		}
 		Connection = ConnHint->second;
 
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
