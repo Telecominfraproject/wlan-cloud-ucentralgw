@@ -71,7 +71,9 @@ namespace OpenWifi {
 
 			CommandManager()->ClearQueue(SerialNumberInt_);
 
+			std::cout << __LINE__ << ": set details" << std::endl;
 			AP_WS_Server()->SetSessionDetails(State_.sessionId, SerialNumberInt_);
+			std::cout << __LINE__ << ": set details" << std::endl;
 
 			std::lock_guard DbSessionLock(*DbSession_->Mutex);
 

@@ -376,6 +376,8 @@ namespace OpenWifi {
 	void AP_WS_Server::SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber) {
 		std::shared_ptr<AP_WS_Connection> Connection;
 
+		std::cout << __LINE__ << ": Attempting to set connection details" << std::endl;
+
 		std::lock_guard SessionLock(SessionMutex_[connection_id % 256]);
 		auto ConnHint = Sessions_[connection_id % 256].find(connection_id);
 		if (ConnHint == end(Sessions_[connection_id % 256]))
@@ -389,8 +391,10 @@ namespace OpenWifi {
 			(CurrentSerialNumber->second.first < connection_id)) {
 			SerialNumbers_[hashIndex][SerialNumber] = std::make_pair(connection_id, Connection);
 			Sessions_[connection_id % 256].erase(ConnHint);
+			std::cout << __LINE__ << ": Set connection details" << std::endl;
 			return;
 		}
+		std::cout << __LINE__ << ": Failed to set connection details" << std::endl;
 	}
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
