@@ -67,7 +67,7 @@ namespace OpenWifi {
 			H = RawLastHealthcheck_;
 		}
 
-		inline void GetState(GWObjects::ConnectionState &State) const {
+		inline void GetState(GWObjects::ConnectionState &State) {
 			std::cout << __LINE__ << ": GetState" << std::endl;
 			std::lock_guard G(ConnectionMutex_);
 			State = State_;
@@ -76,7 +76,7 @@ namespace OpenWifi {
 
 		inline bool HasGPS() { return hasGPS; }
 
-		inline void GetRestrictions(GWObjects::DeviceRestrictions &R) const {
+		inline void GetRestrictions(GWObjects::DeviceRestrictions &R) {
 			std::lock_guard G(ConnectionMutex_);
 			R = Restrictions_;
 		}
@@ -117,7 +117,7 @@ namespace OpenWifi {
 
 		friend class AP_WS_Server;
 
-		inline GWObjects::DeviceRestrictions Restrictions() const {
+		inline GWObjects::DeviceRestrictions Restrictions() {
 			std::lock_guard G(ConnectionMutex_);
 			return Restrictions_;
 		}
@@ -125,7 +125,7 @@ namespace OpenWifi {
 		inline bool MustBeSecureRtty() const { return RttyMustBeSecure_; }
 
 	  private:
-		mutable std::mutex ConnectionMutex_;
+		std::mutex ConnectionMutex_;
 		std::mutex TelemetryMutex_;
 		Poco::Logger &Logger_;
 		Poco::Net::SocketReactor 	*Reactor_{nullptr};
