@@ -112,9 +112,9 @@ namespace OpenWifi {
 			std::lock_guard	G(SerialNumbersMutex_[hashIndex]);
 
 			auto Connection = SerialNumbers_[hashIndex].find(serialNumber);
-			if (Connection==end(SerialNumbers_[hashIndex]) || Connection->second.second==nullptr)
+			if (Connection==end(SerialNumbers_[hashIndex]) || Connection->second==nullptr)
 				return false;
-			return Connection->second.second->RttyMustBeSecure_;
+			return Connection->second->RttyMustBeSecure_;
 		}
 
 		inline bool GetStatistics(const std::string &SerialNumber, std::string &Statistics) const {
@@ -208,11 +208,11 @@ namespace OpenWifi {
 			if(session_hint==end(SerialNumbers_[hashIndex])) {
 				return false;
 			}
-			hasGPS = session_hint->second.second->hasGPS;
-			Sanity = session_hint->second.second->RawLastHealthcheck_.Sanity;
-			MemoryUsed = session_hint->second.second->memory_used_;
-			Load = session_hint->second.second->cpu_load_;
-			Temperature = session_hint->second.second->temperature_;
+			hasGPS = session_hint->second->hasGPS;
+			Sanity = session_hint->second->RawLastHealthcheck_.Sanity;
+			MemoryUsed = session_hint->second->memory_used_;
+			Load = session_hint->second->cpu_load_;
+			Temperature = session_hint->second->temperature_;
 			return true;
 		}
 
@@ -233,8 +233,11 @@ namespace OpenWifi {
 		std::atomic_bool Running_ = false;
 		std::array<std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>,256> Sessions_;
 
-		using SerialNumberMap = std::map<uint64_t /* serial number */, std::pair<uint64_t /* session id*/,
-									 std::shared_ptr<AP_WS_Connection>>>;
+//		using SerialNumberMap = std::map<uint64_t /* serial number */, std::pair<uint64_t /* session id*/,
+//								 std::shared_ptr<AP_WS_Connection>>>;
+
+		using SerialNumberMap = std::map<uint64_t /* serial number */,
+								 std::shared_ptr<AP_WS_Connection>>;
 
 		std::array<SerialNumberMap,256>			SerialNumbers_;
 		mutable std::array<std::mutex,256>		SerialNumbersMutex_;
