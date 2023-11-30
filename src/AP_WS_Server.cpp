@@ -384,14 +384,27 @@ namespace OpenWifi {
 		}
 	}
 
-	bool AP_WS_Server::EndSession(uint64_t session_id) {
+	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
 
-		std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
-		auto Session = Sessions_[session_id % 256].find(session_id);
-		if (Session == end(Sessions_[session_id % 256]))
-			return false;
+		{
+			std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
+			auto Session = Sessions_[session_id % 256].find(session_id);
+			if (Session != end(Sessions_[session_id % 256])) {
+				Sessions_[session_id % 256].erase(Session);
+			}
+		}
 
-		Sessions_[session_id % 256].erase(Session);
+		{
+			auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+			std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
+			auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
+			if (Device == SerialNumbers_[hashIndex].end()
+				|| Device->second.second == nullptr
+				|| Device->second.second->State_.sessionId != session_id) {
+				return false;
+			}
+			SerialNumbers_[hashIndex].erase(Device);
+		}
 		return true;
 	}
 

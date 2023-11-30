@@ -287,7 +287,7 @@ namespace OpenWifi {
 				Cleanup.detach();
 			}
 
-			AP_WS_Server()->EndSession(State_.sessionId);
+			AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
 		}
 	}
 
