@@ -74,6 +74,7 @@ namespace OpenWifi {
 		inline void GetState(GWObjects::ConnectionState &State) {
 			std::cout << __LINE__ << ": GetState" << std::endl;
 			std::lock_guard G(ConnectionMutex_);
+			std::cout << __LINE__ << ": GetState" << std::endl;
 			State = State_;
 			std::cout << __LINE__ << ": GetState" << std::endl;
 		}
