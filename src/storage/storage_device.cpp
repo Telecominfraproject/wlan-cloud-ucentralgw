@@ -508,7 +508,7 @@ namespace OpenWifi {
 
 		GWObjects::Device D;
 
-		poco_information(Logger(), fmt::format("AUTO-CREATION({}): Start.", SerialNumber));
+		// poco_information(Logger(), fmt::format("AUTO-CREATION({}): Start.", SerialNumber));
 		uint64_t Now = Utils::Now();
 		GWObjects::DefaultConfiguration DefConfig;
 

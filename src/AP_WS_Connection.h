@@ -68,8 +68,10 @@ namespace OpenWifi {
 		}
 
 		inline void GetState(GWObjects::ConnectionState &State) const {
+			std::cout << __LINE__ << ": GetState" << std::endl;
 			std::lock_guard G(ConnectionMutex_);
 			State = State_;
+			std::cout << __LINE__ << ": GetState" << std::endl;
 		}
 
 		inline bool HasGPS() { return hasGPS; }
