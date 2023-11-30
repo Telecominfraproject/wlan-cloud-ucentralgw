@@ -353,9 +353,9 @@ namespace OpenWifi {
 			}
 			Connection = DeviceHint->second;
 		}
-		std::cout << __LINE__ << " " << Connection->State_.sessionId << ":" << Connection->SerialNumber_ << std::endl;
+		std::cout << __LINE__ << " Session" << Connection->State_.sessionId << "     " << Connection->SerialNumber_ << std::endl;
 		Connection->GetState(State);
-		std::cout << __LINE__ << " " << Connection->State_.sessionId << ":" << Connection->SerialNumber_ << std::endl;
+		std::cout << __LINE__ << " Session" << Connection->State_.sessionId << "     " << Connection->SerialNumber_ << std::endl;
 		return true;
 	}
 
@@ -381,7 +381,7 @@ namespace OpenWifi {
 		std::lock_guard SessionLock(SessionMutex_[connection_id % 256]);
 		auto ConnHint = Sessions_[connection_id % 256].find(connection_id);
 		if (ConnHint == end(Sessions_[connection_id % 256])) {
-			std::cout << __LINE__ << ": Failed (1) to set connection details" << std::endl;
+			std::cout << __LINE__ << ": " << connection_id << "  " << Connection->SerialNumber_ << "   FAIL Set connection details" << std::endl;
 			return;
 		}
 		Connection = ConnHint->second;
@@ -393,10 +393,10 @@ namespace OpenWifi {
 			(CurrentSerialNumber->second != nullptr && CurrentSerialNumber->second->State_.sessionId < connection_id)) {
 			SerialNumbers_[hashIndex][SerialNumber] = Connection;
 			Sessions_[connection_id % 256].erase(ConnHint);
-			std::cout << __LINE__ << ": Set connection details" << std::endl;
+			std::cout << __LINE__ << ": " << connection_id << "  " << Connection->SerialNumber_ << "   SET Set connection details" << std::endl;
 			return;
 		}
-		std::cout << __LINE__ << ": Failed to set connection details" << std::endl;
+		std::cout << __LINE__ << ": " << connection_id << "  " << Connection->SerialNumber_ << "   FAIL(2) Set connection details" << std::endl;
 	}
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
