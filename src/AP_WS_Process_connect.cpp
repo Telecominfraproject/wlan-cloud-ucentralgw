@@ -71,15 +71,11 @@ namespace OpenWifi {
 
 			CommandManager()->ClearQueue(SerialNumberInt_);
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			AP_WS_Server()->SetSessionDetails(State_.sessionId, SerialNumberInt_);
-			std::cout << __LINE__ << ": set details" << std::endl;
 
 			Config::Capabilities Caps(Capabilities);
 
 			Compatible_ = Caps.Compatible();
-
-			std::cout << __LINE__ << ": set details" << std::endl;
 
 			State_.UUID = UUID;
 			State_.Firmware = Firmware;
@@ -87,18 +83,15 @@ namespace OpenWifi {
 			State_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 			CId_ = SerialNumber_ + "@" + CId_;
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			if(ParamsObj->has("reason")) {
 				State_.connectReason = ParamsObj->get("reason").toString();
 			}
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			auto IP = PeerAddress_.toString();
 			if (IP.substr(0, 7) == "::ffff:") {
 				IP = IP.substr(7);
 			}
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			bool RestrictedDevice = false;
 			if (Capabilities->has("restrictions")) {
 				RestrictedDevice = true;
@@ -106,29 +99,22 @@ namespace OpenWifi {
 				Restrictions_.from_json(RestrictionObject);
 			}
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			if (Capabilities->has("developer")) {
 				Restrictions_.developer = Capabilities->getValue<bool>("developer");
 			}
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			if(Capabilities->has("secure-rtty")) {
 				RTTYMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
 			}
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device DeviceInfo;
-			std::cout << __LINE__ << ": set details" << std::endl;
 			std::lock_guard DbSessionLock(*DbSession_->Mutex);
-			std::cout << __LINE__ << ": set details" << std::endl;
 			auto DeviceExists = StorageService()->GetDevice(*DbSession_->Session, SerialNumber_, DeviceInfo);
-			std::cout << __LINE__ << ": set details" << std::endl;
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
 				//	check the firmware version. if this is too old, we cannot let that device connect yet, we must
 				//	force a firmware upgrade
 				GWObjects::DefaultFirmware	MinimumFirmware;
-				std::cout << __LINE__ << ": set details" << std::endl;
 				if(FirmwareRevisionCache()->DeviceMustUpgrade(Compatible_, Firmware, MinimumFirmware)) {
 					Poco::JSON::Object	UpgradeCommand, Params;
 					UpgradeCommand.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
@@ -162,12 +148,10 @@ namespace OpenWifi {
 						State_.VerifiedCertificate == GWObjects::SIMULATED);
 				}
 			} else if (!Daemon()->AutoProvisioning() && !DeviceExists) {
-				std::cout << __LINE__ << ": set details" << std::endl;
 				SendKafkaDeviceNotProvisioned(SerialNumber_, Firmware, Compatible_, CId_);
 				poco_warning(Logger(),fmt::format("Device {} is a {} from {} and cannot be provisioned.",SerialNumber_,Compatible_, CId_));
 				return EndConnection();
 			} else if (DeviceExists) {
-				std::cout << __LINE__ << ": set details" << std::endl;
 				StorageService()->UpdateDeviceCapabilities(*DbSession_->Session, SerialNumber_, Caps);
 				int Updated{0};
 				if (!Firmware.empty()) {
@@ -188,7 +172,6 @@ namespace OpenWifi {
 					}
 				}
 
-				std::cout << __LINE__ << ": set details" << std::endl;
 				if(ParamsObj->has("reason")) {
 					State_.connectReason = ParamsObj->get("reason").toString();
 					DeviceInfo.connectReason = State_.connectReason;
@@ -240,30 +223,23 @@ namespace OpenWifi {
 					++Updated;
 				}
 
-				std::cout << __LINE__ << ": set details" << std::endl;
 				if (Updated) {
-					std::cout << __LINE__ << ": set details" << std::endl;
 					StorageService()->UpdateDevice(*DbSession_->Session, DeviceInfo);
-					std::cout << __LINE__ << ": set details" << std::endl;
 				}
 
 				if(!Simulated_) {
 					uint64_t UpgradedUUID = 0;
-					std::cout << __LINE__ << ": set details" << std::endl;
 					LookForUpgrade(*DbSession_->Session, UUID, UpgradedUUID);
-					std::cout << __LINE__ << ": set details" << std::endl;
 					State_.UUID = UpgradedUUID;
 				}
 			}
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			State_.Compatible = Compatible_;
 			State_.Connected = true;
 			ConnectionCompletionTime_ =
 				std::chrono::high_resolution_clock::now() - ConnectionStart_;
 			State_.connectionCompletionTime = ConnectionCompletionTime_.count();
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			if (State_.VerifiedCertificate == GWObjects::VALID_CERTIFICATE) {
 				if ((Utils::SerialNumberMatch(CN_, SerialNumber_,
 											  (int)AP_WS_Server()->MismatchDepth())) ||
@@ -299,12 +275,10 @@ namespace OpenWifi {
 											 State_.connectionCompletionTime));
 			}
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			GWWebSocketNotifications::SingleDevice_t Notification;
 			Notification.content.serialNumber = SerialNumber_;
 			GWWebSocketNotifications::DeviceConnected(Notification);
 
-			std::cout << __LINE__ << ": set details" << std::endl;
 			if (KafkaManager()->Enabled()) {
 				ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
 				ParamsObj->set("locale", State_.locale);
