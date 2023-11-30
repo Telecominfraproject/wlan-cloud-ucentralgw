@@ -291,9 +291,7 @@ namespace OpenWifi {
 				Cleanup.detach();
 			}
 
-			std::cout << __LINE__ << ": EndConnection" << std::endl;
 			AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
-			std::cout << __LINE__ << ": EndConnection" << std::endl;
 		}
 	}
 
@@ -653,18 +651,14 @@ namespace OpenWifi {
 	void AP_WS_Connection::OnSocketShutdown(
 		[[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		poco_trace(Logger_, fmt::format("SOCKET-SHUTDOWN({}): Closing.", CId_));
-		std::cout << __LINE__ << ": OnSocketShutdown" << std::endl;
 		std::lock_guard	G(ConnectionMutex_);
-		std::cout << __LINE__ << ": OnSocketShutdown" << std::endl;
 		return EndConnection();
 	}
 
 	void AP_WS_Connection::OnSocketError(
 		[[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
 		poco_trace(Logger_, fmt::format("SOCKET-ERROR({}): Closing.", CId_));
-		std::cout << __LINE__ << ": OnSocketError" << std::endl;
 		std::lock_guard	G(ConnectionMutex_);
-		std::cout << __LINE__ << ": OnSocketError" << std::endl;
 		return EndConnection();
 	}
 
@@ -677,9 +671,7 @@ namespace OpenWifi {
 		if (!AP_WS_Server()->Running())
 			return EndConnection();
 
-		std::cout << __LINE__ << ": OnSocketReadable" << std::endl;
 		std::lock_guard	DeviceLock(ConnectionMutex_);
-		std::cout << __LINE__ << ": OnSocketReadable" << std::endl;
 
 		if (!ValidatedDevice())
 			return;

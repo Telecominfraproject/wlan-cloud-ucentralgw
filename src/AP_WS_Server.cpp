@@ -209,9 +209,7 @@ namespace OpenWifi {
 								fmt::format(
 									"{}: Session seems idle. Controller disconnecting device.",
 									hint->second->SerialNumber_));
-							std::cout << __LINE__ << ": AP_WS_Server" << std::endl;
 							std::lock_guard ConnectionLock(hint->second->ConnectionMutex_);
-							std::cout << __LINE__ << ": AP_WS_Server" << std::endl;
 							hint->second->EndConnection();
 							hint = SerialNumbers_[hashIndex].erase(hint);
 						} else if (hint->second->State_.Connected) {
@@ -346,13 +344,7 @@ namespace OpenWifi {
 			}
 			Connection = DeviceHint->second;
 		}
-
-		std::cout << __LINE__ << " Session" << Connection->State_.sessionId << "   STATS  " << Connection->SerialNumber_ << std::endl;
-		std::string S;
-		Connection->GetLastStats(S);
-		std::cout << __LINE__ << " Session" << Connection->State_.sessionId << "   STATE  " << Connection->SerialNumber_ << std::endl;
 		Connection->GetState(State);
-		std::cout << __LINE__ << " Session" << Connection->State_.sessionId << "   STATE  " << Connection->SerialNumber_ << std::endl;
 		return true;
 	}
 
@@ -373,12 +365,9 @@ namespace OpenWifi {
 	void AP_WS_Server::SetSessionDetails(uint64_t session_id, uint64_t SerialNumber) {
 		std::shared_ptr<AP_WS_Connection> Connection;
 
-		std::cout << __LINE__ << ": Attempting to set connection details" << std::endl;
-
 		std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
 		auto SessionHint = Sessions_[session_id % 256].find(session_id);
 		if (SessionHint == end(Sessions_[session_id % 256])) {
-			std::cout << __LINE__ << ": " << session_id << "  " << Connection->SerialNumber_ << "   FAIL Set connection details" << std::endl;
 			return;
 		}
 		Connection = SessionHint->second;
@@ -388,12 +377,10 @@ namespace OpenWifi {
 		auto CurrentSerialNumber = SerialNumbers_[hashIndex].find(SerialNumber);
 		if ((CurrentSerialNumber == SerialNumbers_[hashIndex].end()) ||
 			(CurrentSerialNumber->second != nullptr && CurrentSerialNumber->second->State_.sessionId < session_id)) {
-			std::cout << __LINE__ << ": " << session_id << "  " << Connection->SerialNumber_ << "   SET Set connection details" << std::endl;
 			SerialNumbers_[hashIndex][SerialNumber] = Connection;
 			Sessions_[session_id % 256].erase(SessionHint);
 			return;
 		}
-		std::cout << __LINE__ << ": " << session_id << "  " << Connection->SerialNumber_ << "   FAIL(2) Set connection details" << std::endl;
 	}
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
