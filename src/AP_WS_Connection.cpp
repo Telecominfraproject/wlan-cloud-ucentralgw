@@ -45,6 +45,9 @@ namespace OpenWifi {
 									   uint64_t connection_id, Poco::Logger &L,
 									   std::pair<Poco::Net::SocketReactor *, LockedDbSession *> R)
 		: Logger_(L) {
+
+		std::lock_guard		Guard(ConnectionMutex_);
+
 		Reactor_ = R.first;
 		DbSession_ = R.second;
 		State_.sessionId = connection_id;
