@@ -197,7 +197,7 @@ namespace OpenWifi {
 			uint64_t total_connected_time = 0, now = Utils::Now();
 
 			if(now-last_zombie_run > 60) {
-				poco_information(Logger(), fmt::format("Garbage collecting zombies..."));
+				poco_information(Logger(), fmt::format("Garbage collecting zombies... (step 1)"));
 				std::vector<std::uint64_t> SessionsToRemove;
 				NumberOfConnectedDevices_ = 0;
 				NumberOfConnectingDevices_ = 0;
@@ -230,6 +230,7 @@ namespace OpenWifi {
 					}
 				}
 
+				poco_information(Logger(), fmt::format("Garbage collecting zombies... (step 2)"));
 				LeftOverSessions_ = 0;
 				for(int i=0;i<256;i++) {
 					std::lock_guard Lock(SessionMutex_[i]);
@@ -252,8 +253,8 @@ namespace OpenWifi {
 				AverageDeviceConnectionTime_ =
 					NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_
 												  : 0;
-
 				poco_information(Logger(), fmt::format("Garbage collecting zombies done..."));
+
 			} else {
 				NumberOfConnectedDevices_=0;
 				for(int i=0;i<256;i++) {
@@ -264,7 +265,7 @@ namespace OpenWifi {
 					AverageDeviceConnectionTime_ += (now - last_garbage_run);
 			}
 
-			if ((now - last_log) > 120) {
+			if ((now - last_log) > 60) {
 				last_log = now;
 				poco_information(Logger(),
 								 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds. Left Over Sessions: {}",
