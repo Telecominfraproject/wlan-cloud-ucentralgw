@@ -92,7 +92,7 @@ namespace OpenWifi {
 		// typedef std::map<std::string,std::string>	DeviceCapabilitiesCache;
 
 		bool AddLog(LockedDbSession &Session, const GWObjects::DeviceLog &Log);
-		bool AddStatisticsData(LockedDbSession &Session, const GWObjects::Statistics &Stats);
+		bool AddStatisticsData(Poco::Data::Session &Session, const GWObjects::Statistics &Stats);
 		bool AddStatisticsData(const GWObjects::Statistics &Stats);
 		bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
 							   uint64_t Offset, uint64_t HowMany,

@@ -39,9 +39,9 @@ namespace OpenWifi {
 												UUID, request_uuid));
 			}
 
+			std::lock_guard	Guard(*DbSession_->Mutex);
 			if(!Simulated_) {
 				uint64_t UpgradedUUID;
-				std::lock_guard	Guard(*DbSession_->Mutex);
 				LookForUpgrade(*DbSession_->Session, UUID, UpgradedUUID);
 				State_.UUID = UpgradedUUID;
 			}
@@ -51,7 +51,7 @@ namespace OpenWifi {
 			GWObjects::Statistics Stats{
 				.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
 			Stats.Recorded = Utils::Now();
-			StorageService()->AddStatisticsData(*DbSession_,Stats);
+			StorageService()->AddStatisticsData(*DbSession_->Session,Stats);
 			if (!request_uuid.empty()) {
 				StorageService()->SetCommandResult(request_uuid, StateStr);
 			}

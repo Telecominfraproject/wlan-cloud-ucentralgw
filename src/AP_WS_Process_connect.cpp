@@ -110,6 +110,7 @@ namespace OpenWifi {
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device DeviceInfo;
 			std::lock_guard DbSessionLock(*DbSession_->Mutex);
+
 			auto DeviceExists = StorageService()->GetDevice(*DbSession_->Session, SerialNumber_, DeviceInfo);
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
 				//	check the firmware version. if this is too old, we cannot let that device connect yet, we must
