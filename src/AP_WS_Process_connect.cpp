@@ -108,7 +108,7 @@ namespace OpenWifi {
 			}
 
 			if(Capabilities->has("secure-rtty")) {
-				RttyMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
+				RTTYMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
 			}
 
 			State_.locale = FindCountryFromIP()->Get(IP);

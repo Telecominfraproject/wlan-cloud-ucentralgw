@@ -353,9 +353,13 @@ namespace OpenWifi {
 			}
 			Connection = DeviceHint->second;
 		}
-		std::cout << __LINE__ << " Session" << Connection->State_.sessionId << "     " << Connection->SerialNumber_ << std::endl;
+
+		std::cout << __LINE__ << " Session" << Connection->State_.sessionId << "   STATS  " << Connection->SerialNumber_ << std::endl;
+		std::string S;
+		Connection->GetLastStats(S);
+		std::cout << __LINE__ << " Session" << Connection->State_.sessionId << "   STATE  " << Connection->SerialNumber_ << std::endl;
 		Connection->GetState(State);
-		std::cout << __LINE__ << " Session" << Connection->State_.sessionId << "     " << Connection->SerialNumber_ << std::endl;
+		std::cout << __LINE__ << " Session" << Connection->State_.sessionId << "   STATE  " << Connection->SerialNumber_ << std::endl;
 		return true;
 	}
 

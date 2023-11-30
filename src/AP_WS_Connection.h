@@ -131,10 +131,10 @@ namespace OpenWifi {
 			return Restrictions_;
 		}
 
-		inline bool MustBeSecureRtty() const { return RttyMustBeSecure_; }
+		inline bool MustBeSecureRTTY() const { return RTTYMustBeSecure_; }
 
 	  private:
-		std::recursive_mutex ConnectionMutex_;
+		std::mutex ConnectionMutex_;
 		std::mutex TelemetryMutex_;
 		Poco::Logger &Logger_;
 		Poco::Net::SocketReactor 	*Reactor_{nullptr};
@@ -166,7 +166,7 @@ namespace OpenWifi {
 		std::atomic_bool DeviceValidated_ = false;
 		std::atomic_bool Valid_ = false;
 		OpenWifi::GWObjects::DeviceRestrictions Restrictions_;
-		bool 			RttyMustBeSecure_ = false;
+		bool 			RTTYMustBeSecure_ = false;
 
 		static inline std::atomic_uint64_t ConcurrentStartingDevices_ = 0;
 

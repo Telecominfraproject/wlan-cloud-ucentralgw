@@ -107,14 +107,14 @@ namespace OpenWifi {
 			Sessions_[session_id % 256][session_id] = std::move(Connection);
 		}
 
-		inline bool DeviceRequiresSecureRtty(uint64_t serialNumber) const {
+		inline bool DeviceRequiresSecureRTTY(uint64_t serialNumber) const {
 			auto hashIndex = Utils::CalculateMacAddressHash(serialNumber);
 			std::lock_guard	G(SerialNumbersMutex_[hashIndex]);
 
 			auto Connection = SerialNumbers_[hashIndex].find(serialNumber);
 			if (Connection==end(SerialNumbers_[hashIndex]) || Connection->second==nullptr)
 				return false;
-			return Connection->second->RttyMustBeSecure_;
+			return Connection->second->RTTYMustBeSecure_;
 		}
 
 		inline bool GetStatistics(const std::string &SerialNumber, std::string &Statistics) const {

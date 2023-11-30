@@ -87,7 +87,7 @@ namespace OpenWifi {
 			poco_debug(
 				Logger_,
 				fmt::format(
-					"Command rtty TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
+					"Command RTTY TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
 					TransactionId_, UUID, RPC, Poco::Thread::current()->id()));
 			return Rtty(UUID, RPC, 60000ms, Restrictions);
 		};
@@ -1169,7 +1169,7 @@ namespace OpenWifi {
 
 				if (RTTYS_server()->UseInternal()) {
 					std::uint64_t SN = Utils::SerialNumberToInt(SerialNumber_);
-					bool mTLS = AP_WS_Server()->DeviceRequiresSecureRtty(SN);
+					bool mTLS = AP_WS_Server()->DeviceRequiresSecureRTTY(SN);
 					auto Hash =  Utils::ComputeHash(UserInfo_.webtoken.refresh_token_, Utils::Now());
 					Rtty.Token = Hash.substr(0, RTTY_DEVICE_TOKEN_LENGTH);
 					if (!RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(),
