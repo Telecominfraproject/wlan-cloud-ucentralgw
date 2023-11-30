@@ -216,7 +216,9 @@ namespace OpenWifi {
 								fmt::format(
 									"{}: Session seems idle. Controller disconnecting device.",
 									hint->second.second->SerialNumber_));
+							std::cout << __LINE__ << ": AP_WS_Server" << std::endl;
 							std::lock_guard ConnectionLock(hint->second.second->ConnectionMutex_);
+							std::cout << __LINE__ << ": AP_WS_Server" << std::endl;
 							hint->second.second->EndConnection();
 							hint = SerialNumbers_[hashIndex].erase(hint);
 						} else if (hint->second.second->State_.Connected) {

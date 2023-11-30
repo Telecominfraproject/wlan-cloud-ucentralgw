@@ -58,12 +58,16 @@ namespace OpenWifi {
 		bool StopKafkaTelemetry(uint64_t RPCID);
 
 		inline void GetLastStats(std::string &LastStats) {
+			std::cout << __LINE__ << ": GetLastStats" << std::endl;
 			std::lock_guard G(ConnectionMutex_);
+			std::cout << __LINE__ << ": GetLastStats" << std::endl;
 			LastStats = RawLastStats_;
 		}
 
 		inline void GetLastHealthCheck(GWObjects::HealthCheck &H) {
+			std::cout << __LINE__ << ": GetLastHealthCheck" << std::endl;
 			std::lock_guard G(ConnectionMutex_);
+			std::cout << __LINE__ << ": GetLastHealthCheck" << std::endl;
 			H = RawLastHealthcheck_;
 		}
 
@@ -77,7 +81,9 @@ namespace OpenWifi {
 		inline bool HasGPS() { return hasGPS; }
 
 		inline void GetRestrictions(GWObjects::DeviceRestrictions &R) {
+			std::cout << __LINE__ << ": GetRestrictions" << std::endl;
 			std::lock_guard G(ConnectionMutex_);
+			std::cout << __LINE__ << ": GetRestrictions" << std::endl;
 			R = Restrictions_;
 		}
 
@@ -118,7 +124,9 @@ namespace OpenWifi {
 		friend class AP_WS_Server;
 
 		inline GWObjects::DeviceRestrictions Restrictions() {
+			std::cout << __LINE__ << ": Restrictions" << std::endl;
 			std::lock_guard G(ConnectionMutex_);
+			std::cout << __LINE__ << ": Restrictions" << std::endl;
 			return Restrictions_;
 		}
 
