@@ -268,7 +268,7 @@ namespace OpenWifi {
 		if (!Dead_.test_and_set()) {
 
 			if(!SerialNumber_.empty() && State_.LastContact!=0) {
-				StorageService()->SetDeviceLastRecordedContact(*DbSession_, SerialNumber_, State_.LastContact);
+				StorageService()->SetDeviceLastRecordedContact(SerialNumber_, State_.LastContact);
 			}
 
 			if (Registered_) {
@@ -681,18 +681,16 @@ namespace OpenWifi {
 			return ProcessIncomingFrame();
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);
-			return EndConnection();
 		} catch (const std::exception &E) {
 			std::string W = E.what();
 			poco_information(
 				Logger_,
 				fmt::format("std::exception caught: {}. Connection terminated with {}", W, CId_));
-			return EndConnection();
 		} catch (...) {
 			poco_information(Logger_,
 							 fmt::format("Unknown exception for {}. Connection terminated.", CId_));
-			return EndConnection();
 		}
+		return EndConnection();
 	}
 
 	void AP_WS_Connection::ProcessIncomingFrame() {

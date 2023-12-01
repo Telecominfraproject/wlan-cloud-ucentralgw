@@ -384,16 +384,34 @@ namespace OpenWifi {
 	bool Storage::SetDeviceLastRecordedContact(LockedDbSession &Session, std::string &SerialNumber, std::uint64_t lastRecordedContact) {
 		try {
 			std::lock_guard		Lock(*Session.Mutex);
-			Session.Session->begin();
-			Poco::Data::Statement 	Update(*Session.Session);
+			return SetDeviceLastRecordedContact(*Session.Session, SerialNumber, lastRecordedContact);
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
+	bool Storage::SetDeviceLastRecordedContact(Poco::Data::Session &Session, std::string &SerialNumber, std::uint64_t lastRecordedContact) {
+		try {
+			Session.begin();
+			Poco::Data::Statement 	Update(Session);
 			std::string St{"UPDATE Devices SET lastRecordedContact=?  WHERE SerialNumber=?"};
 
 			Update << ConvertParams(St), Poco::Data::Keywords::use(lastRecordedContact),
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
-			Session.Session->commit();
+			Session.commit();
 			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
 
+	bool Storage::SetDeviceLastRecordedContact(std::string &SerialNumber, std::uint64_t lastRecordedContact) {
+		try {
+			auto Session = Pool_->get();
+			return SetDeviceLastRecordedContact(Session, SerialNumber, lastRecordedContact);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}

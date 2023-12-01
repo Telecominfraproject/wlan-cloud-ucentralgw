@@ -257,7 +257,9 @@ namespace OpenWifi {
 		bool RemoveCommandListRecordsOlderThan(uint64_t Date);
 		bool RemoveUploadedFilesRecordsOlderThan(uint64_t Date);
 
-		bool SetDeviceLastRecordedContact(LockedDbSession &Session, std::string & SeialNumber, std::uint64_t lastRecordedContact);
+		bool SetDeviceLastRecordedContact(LockedDbSession &Session, std::string & SerialNumber, std::uint64_t lastRecordedContact);
+		bool SetDeviceLastRecordedContact(std::string & SerialNumber, std::uint64_t lastRecordedContact);
+		bool SetDeviceLastRecordedContact(Poco::Data::Session & Session, std::string & SerialNumber, std::uint64_t lastRecordedContact);
 
 		int Create_Tables();
 		int Create_Statistics();
