@@ -23,6 +23,39 @@
 
 namespace OpenWifi {
 
+	class AP_WS_RequestHandler : public Poco::Net::HTTPRequestHandler {
+	  public:
+		explicit AP_WS_RequestHandler(Poco::Logger &L, std::uint64_t session_id) : Logger_(L), session_id_(session_id){};
+
+		void handleRequest(Poco::Net::HTTPServerRequest &request,
+						   Poco::Net::HTTPServerResponse &response) override;
+
+	  private:
+		Poco::Logger &Logger_;
+		std::uint64_t session_id_;
+	};
+
+	class AP_WS_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
+	  public:
+		inline explicit AP_WS_RequestHandlerFactory(Poco::Logger &L) : Logger_(L) {}
+
+		inline Poco::Net::HTTPRequestHandler *
+		createRequestHandler(const Poco::Net::HTTPServerRequest &request) override {
+			if (request.find("Upgrade") != request.end() &&
+				Poco::icompare(request["Upgrade"], "websocket") == 0) {
+				Utils::SetThreadName("ws:conn-init");
+				return new AP_WS_RequestHandler(Logger_, session_id_++);
+			} else {
+				return nullptr;
+			}
+		}
+
+	  private:
+		Poco::Logger &Logger_;
+		inline static uint64_t session_id_ = 1;
+	};
+
+
 	void AP_WS_RequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 											 Poco::Net::HTTPServerResponse &response) {
 		try {
@@ -156,7 +189,7 @@ namespace OpenWifi {
 			UseDefaultConfig_ = true;
 		}
 
-		SimulatorId_ = MicroServiceConfigGetString("simulatorid", "");
+		SimulatorId_ = Poco::toLower(MicroServiceConfigGetString("simulatorid", ""));
 		SimulatorEnabled_ = !SimulatorId_.empty();
 		Utils::SetThreadName(ReactorThread_, "dev:react:head");
 
@@ -364,7 +397,7 @@ namespace OpenWifi {
 
 	}
 
-	void AP_WS_Server::SetSessionDetails(uint64_t session_id, uint64_t SerialNumber) {
+	void AP_WS_Server::StartSession(uint64_t session_id, uint64_t SerialNumber) {
 		std::shared_ptr<AP_WS_Connection> Connection;
 
 		std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
@@ -411,13 +444,17 @@ namespace OpenWifi {
 								 GWObjects::DeviceRestrictions &Restrictions) const {
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
 		std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second == nullptr) {
+		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return false;
 		}
-		Device->second->GetRestrictions(Restrictions);
-		return Device->second->State_.Connected;
+		if(!DeviceHint->second->Dead_.test()) {
+			DeviceHint->second->GetRestrictions(Restrictions);
+			return DeviceHint->second->State_.Connected;
+		}
+		return false;
 	}
+
 
 	bool AP_WS_Server::Connected(uint64_t SerialNumber) const {
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
@@ -426,19 +463,26 @@ namespace OpenWifi {
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return false;
 		}
-		return DeviceHint->second->State_.Connected;
+		if(!DeviceHint->second->Dead_.test()) {
+			return DeviceHint->second->State_.Connected;
+		}
+		return false;
 	}
 
 	bool AP_WS_Server::SendFrame(uint64_t SerialNumber, const std::string &Payload) const {
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second == nullptr) {
+		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
+			return false;
+		}
+
+		if(DeviceHint->second->Dead_.test()) {
 			return false;
 		}
 
 		try {
-			return Device->second->Send(Payload);
+			return DeviceHint->second->Send(Payload);
 		} catch (...) {
 			poco_debug(Logger(), fmt::format(": SendFrame: Could not send data to device '{}'",
 											 Utils::IntToSerialNumber(SerialNumber)));
@@ -474,16 +518,16 @@ namespace OpenWifi {
 												  const std::vector<std::string> &TelemetryTypes) {
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second == nullptr) {
+		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return;
 		}
-		Device->second->SetKafkaTelemetryReporting(RPCID, Interval, Lifetime, TelemetryTypes);
+		DeviceHint->second->SetKafkaTelemetryReporting(RPCID, Interval, Lifetime, TelemetryTypes);
 	}
 
 	void AP_WS_Server::StopKafkaTelemetry(uint64_t RPCID, uint64_t SerialNumber) {
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return;
@@ -498,7 +542,7 @@ namespace OpenWifi {
 		uint64_t &TelemetryWebSocketPackets, uint64_t &TelemetryKafkaPackets) {
 
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return;
@@ -515,9 +559,13 @@ namespace OpenWifi {
 
 		auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber);
 		auto hashIndex = Utils::CalculateMacAddressHash(IntSerialNumber);
-		std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(IntSerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
+			return false;
+		}
+
+		if(DeviceHint->second->Dead_.test()) {
 			return false;
 		}
 
@@ -536,9 +584,13 @@ namespace OpenWifi {
 													const unsigned char *buffer, std::size_t size) {
 		auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber);
 		auto hashIndex = Utils::CalculateMacAddressHash(IntSerialNumber);
-		std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(IntSerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
+			return false;
+		}
+
+		if(DeviceHint->second->Dead_.test()) {
 			return false;
 		}
 
@@ -557,12 +609,15 @@ namespace OpenWifi {
 										 const unsigned char *buffer, std::size_t size) {
 		auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber);
 		auto hashIndex = Utils::CalculateMacAddressHash(IntSerialNumber);
-		std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+		std::lock_guard DevicesGuard(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(IntSerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return false;
 		}
 
+		if(DeviceHint->second->Dead_.test()) {
+			return false;
+		}
 		try {
 			return DeviceHint->second->SendRadiusCoAData(buffer, size);
 		} catch (...) {
@@ -572,5 +627,33 @@ namespace OpenWifi {
 		}
 		return false;
 	}
+
+	bool AP_WS_Server::ExtendedAttributes(const std::string &serialNumber,
+								   bool & hasGPS,
+								   std::uint64_t &Sanity,
+								   std::double_t &MemoryUsed,
+								   std::double_t &Load,
+								   std::double_t &Temperature
+	) {
+
+		auto serialNumberInt = Utils::SerialNumberToInt(serialNumber);
+		auto hashIndex = Utils::CalculateMacAddressHash(serialNumberInt);
+		std::lock_guard	DevicesGuard(SerialNumbersMutex_[hashIndex]);
+		auto DeviceHint = SerialNumbers_[hashIndex].find(Utils::SerialNumberToInt(serialNumber));
+		if(DeviceHint==end(SerialNumbers_[hashIndex])) {
+			return false;
+		}
+		if(DeviceHint->second->Dead_.test()) {
+			return false;
+		}
+		std::lock_guard DeviceGuard(DeviceHint->second->ConnectionMutex_);
+		hasGPS = DeviceHint->second->hasGPS_;
+		Sanity = DeviceHint->second->RawLastHealthcheck_.Sanity;
+		MemoryUsed = DeviceHint->second->memory_used_;
+		Load = DeviceHint->second->cpu_load_;
+		Temperature = DeviceHint->second->temperature_;
+		return true;
+	}
+
 
 } // namespace OpenWifi

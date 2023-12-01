@@ -31,38 +31,6 @@
 
 namespace OpenWifi {
 
-	class AP_WS_RequestHandler : public Poco::Net::HTTPRequestHandler {
-	  public:
-		explicit AP_WS_RequestHandler(Poco::Logger &L, std::uint64_t session_id) : Logger_(L), session_id_(session_id){};
-
-		void handleRequest(Poco::Net::HTTPServerRequest &request,
-						   Poco::Net::HTTPServerResponse &response) override;
-
-	  private:
-		Poco::Logger &Logger_;
-		std::uint64_t session_id_;
-	};
-
-	class AP_WS_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
-	  public:
-		inline explicit AP_WS_RequestHandlerFactory(Poco::Logger &L) : Logger_(L) {}
-
-		inline Poco::Net::HTTPRequestHandler *
-		createRequestHandler(const Poco::Net::HTTPServerRequest &request) override {
-			if (request.find("Upgrade") != request.end() &&
-				Poco::icompare(request["Upgrade"], "websocket") == 0) {
-				Utils::SetThreadName("ws:conn-init");
-				return new AP_WS_RequestHandler(Logger_, session_id_++);
-			} else {
-				return nullptr;
-			}
-		}
-
-	  private:
-		Poco::Logger &Logger_;
-		inline static uint64_t session_id_ = 1;
-	};
-
 	class AP_WS_Server : public SubSystemServer, public Poco::Runnable {
 	  public:
 		static auto instance() {
@@ -77,29 +45,24 @@ namespace OpenWifi {
 								 const Poco::Crypto::X509Certificate &Certificate);
 
 		inline bool IsSimSerialNumber(const std::string &SerialNumber) const {
-			return IsSim(Poco::toLower(SerialNumber)) &&
-				   Poco::toLower(SerialNumber) == Poco::toLower(SimulatorId_);
+			return IsSim(SerialNumber) &&
+				   SerialNumber == SimulatorId_;
 		}
 
 		inline static bool IsSim(const std::string &SerialNumber) {
 			return SerialNumber.substr(0, 6) == "53494d";
 		}
 
-		void run() override;
-
-		inline bool IsSimEnabled() const { return SimulatorEnabled_; }
-
-		inline bool AllowSerialNumberMismatch() const { return AllowSerialNumberMismatch_; }
-
-		inline uint64_t MismatchDepth() const { return MismatchDepth_; }
-
-		inline bool UseProvisioning() const { return LookAtProvisioning_; }
-		inline bool UseDefaults() const { return UseDefaultConfig_; }
-
+		void run() override;		//	Garbage collector thread.
+		[[nodiscard]] inline bool IsSimEnabled() const { return SimulatorEnabled_; }
+		[[nodiscard]] inline bool AllowSerialNumberMismatch() const { return AllowSerialNumberMismatch_; }
+		[[nodiscard]] inline uint64_t MismatchDepth() const { return MismatchDepth_; }
+		[[nodiscard]] inline bool UseProvisioning() const { return LookAtProvisioning_; }
+		[[nodiscard]] inline bool UseDefaults() const { return UseDefaultConfig_; }
+		[[nodiscard]] inline bool Running() const { return Running_; }
 		[[nodiscard]] inline std::pair<Poco::Net::SocketReactor *, LockedDbSession *> NextReactor() {
 			return Reactor_pool_->NextReactor();
 		}
-		[[nodiscard]] inline bool Running() const { return Running_; }
 
 		inline void AddConnection(uint64_t session_id,
 								  std::shared_ptr<AP_WS_Connection> Connection) {
@@ -107,7 +70,7 @@ namespace OpenWifi {
 			Sessions_[session_id % 256][session_id] = std::move(Connection);
 		}
 
-		inline bool DeviceRequiresSecureRTTY(uint64_t serialNumber) const {
+		[[nodiscard]] inline bool DeviceRequiresSecureRTTY(uint64_t serialNumber) const {
 			auto hashIndex = Utils::CalculateMacAddressHash(serialNumber);
 			std::lock_guard	G(SerialNumbersMutex_[hashIndex]);
 
@@ -120,7 +83,7 @@ namespace OpenWifi {
 		inline bool GetStatistics(const std::string &SerialNumber, std::string &Statistics) const {
 			return GetStatistics(Utils::SerialNumberToInt(SerialNumber), Statistics);
 		}
-		bool GetStatistics(uint64_t SerialNumber, std::string &Statistics) const;
+		[[nodiscard]] bool GetStatistics(uint64_t SerialNumber, std::string &Statistics) const;
 
 		inline bool GetState(const std::string &SerialNumber,
 							 GWObjects::ConnectionState &State) const {
@@ -136,13 +99,7 @@ namespace OpenWifi {
 
 		bool Connected(uint64_t SerialNumber, GWObjects::DeviceRestrictions &Restrictions) const;
 		bool Connected(uint64_t SerialNumber) const;
-
-		inline bool SendFrame(const std::string &SerialNumber, const std::string &Payload) const {
-			return SendFrame(Utils::SerialNumberToInt(SerialNumber), Payload);
-		}
-
 		bool SendFrame(uint64_t SerialNumber, const std::string &Payload) const;
-
 		bool SendRadiusAuthenticationData(const std::string &SerialNumber,
 										  const unsigned char *buffer, std::size_t size);
 		bool SendRadiusAccountingData(const std::string &SerialNumber, const unsigned char *buffer,
@@ -150,7 +107,7 @@ namespace OpenWifi {
 		bool SendRadiusCoAData(const std::string &SerialNumber, const unsigned char *buffer,
 							   std::size_t size);
 
-		void SetSessionDetails(uint64_t session_id, uint64_t SerialNumber);
+		void StartSession(uint64_t session_id, uint64_t SerialNumber);
 		bool EndSession(uint64_t session_id, uint64_t SerialNumber);
 		void SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber,
 											uint64_t Interval, uint64_t Lifetime,
@@ -168,11 +125,19 @@ namespace OpenWifi {
 									uint64_t &TelemetryWebSocketPackets,
 									uint64_t &TelemetryKafkaPackets);
 
+		bool GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers);
+		bool ExtendedAttributes(const std::string &serialNumber, bool & hasGPS, std::uint64_t &Sanity,
+								std::double_t &MemoryUsed, std::double_t &Load, std::double_t &Temperature);
+
 		inline void AverageDeviceStatistics(uint64_t &Connections, uint64_t &AverageConnectionTime,
 											uint64_t &NumberOfConnectingDevices) const {
 			Connections = NumberOfConnectedDevices_;
 			AverageConnectionTime = AverageDeviceConnectionTime_;
 			NumberOfConnectingDevices = NumberOfConnectingDevices_;
+		}
+
+		inline bool SendFrame(const std::string &SerialNumber, const std::string &Payload) const {
+			return SendFrame(Utils::SerialNumberToInt(SerialNumber), Payload);
 		}
 
 		inline void AddRX(std::uint64_t bytes) {
@@ -191,30 +156,6 @@ namespace OpenWifi {
 			RX = RX_;
 		}
 
-		bool GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers);
-
-		inline bool ExtendedAttributes(const std::string &serialNumber,
-			bool & hasGPS,
-			std::uint64_t &Sanity,
-			std::double_t &MemoryUsed,
-			std::double_t &Load,
-			std::double_t &Temperature
-			) {
-
-			auto serialNumberInt = Utils::SerialNumberToInt(serialNumber);
-			auto hashIndex = Utils::CalculateMacAddressHash(serialNumberInt);
-			std::lock_guard	G(SerialNumbersMutex_[hashIndex]);
-			auto session_hint = SerialNumbers_[hashIndex].find(Utils::SerialNumberToInt(serialNumber));
-			if(session_hint==end(SerialNumbers_[hashIndex])) {
-				return false;
-			}
-			hasGPS = session_hint->second->hasGPS;
-			Sanity = session_hint->second->RawLastHealthcheck_.Sanity;
-			MemoryUsed = session_hint->second->memory_used_;
-			Load = session_hint->second->cpu_load_;
-			Temperature = session_hint->second->temperature_;
-			return true;
-		}
 
 	  private:
 		mutable std::array<std::mutex,256> 		SessionMutex_;

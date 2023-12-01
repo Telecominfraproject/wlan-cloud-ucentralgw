@@ -71,7 +71,7 @@ namespace OpenWifi {
 
 			CommandManager()->ClearQueue(SerialNumberInt_);
 
-			AP_WS_Server()->SetSessionDetails(State_.sessionId, SerialNumberInt_);
+			AP_WS_Server()->StartSession(State_.sessionId, SerialNumberInt_);
 
 			Config::Capabilities Caps(Capabilities);
 

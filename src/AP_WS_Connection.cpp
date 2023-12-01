@@ -46,8 +46,6 @@ namespace OpenWifi {
 									   std::pair<Poco::Net::SocketReactor *, LockedDbSession *> R)
 		: Logger_(L) {
 
-		std::lock_guard		Guard(ConnectionMutex_);
-
 		Reactor_ = R.first;
 		DbSession_ = R.second;
 		State_.sessionId = session_id;
@@ -63,7 +61,6 @@ namespace OpenWifi {
 		WS_->setBlocking(false);
 
 		Registered_ = true;
-		Valid_ = true;
 		uuid_ = MicroServiceRandom(std::numeric_limits<std::uint64_t>::max()-1);
 		LastContact_ = Utils::Now();
 
@@ -78,12 +75,50 @@ namespace OpenWifi {
 									 *this, &AP_WS_Connection::OnSocketError));
 	}
 
+	AP_WS_Connection::~AP_WS_Connection() {
+		poco_information(Logger_, fmt::format("DESTRUCTOR({}): Session={} Connection closed.", SerialNumber_,
+											  State_.sessionId));
+		EndConnection();
+	}
+
+	void AP_WS_Connection::EndConnection() {
+		if (!Dead_.test_and_set()) {
+
+			if(!SerialNumber_.empty() && State_.LastContact!=0) {
+				StorageService()->SetDeviceLastRecordedContact(SerialNumber_, State_.LastContact);
+			}
+
+			if (Registered_) {
+				Registered_ = false;
+				Reactor_->removeEventHandler(
+					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
+							  *this, &AP_WS_Connection::OnSocketReadable));
+				Reactor_->removeEventHandler(
+					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
+							  *this, &AP_WS_Connection::OnSocketShutdown));
+				Reactor_->removeEventHandler(
+					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
+							  *this, &AP_WS_Connection::OnSocketError));
+				Registered_=false;
+			}
+			WS_->close();
+
+			if(!SerialNumber_.empty()) {
+				std::thread	Cleanup(DeviceDisconnectionCleanup,SerialNumber_, uuid_);
+				Cleanup.detach();
+			}
+
+			AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
+		}
+	}
+
 	bool AP_WS_Connection::ValidatedDevice() {
+
+		if(Dead_.test())
+			return false;
+
 		if (DeviceValidated_)
 			return true;
-
-		if (!Valid_)
-			return false;
 
 		try {
 			auto SockImpl = dynamic_cast<Poco::Net::WebSocketImpl *>(WS_->impl());
@@ -246,14 +281,7 @@ namespace OpenWifi {
 		}
 	}
 
-	AP_WS_Connection::~AP_WS_Connection() {
-		if(Valid_) {
-			Valid_ = false;
-			EndConnection();
-		}
-	}
-
-	void DeviceDisconnectionCleanup(const std::string &SerialNumber, std::uint64_t uuid) {
+	void AP_WS_Connection::DeviceDisconnectionCleanup(const std::string &SerialNumber, std::uint64_t uuid) {
 		if (KafkaManager()->Enabled()) {
 			NotifyKafkaDisconnect(SerialNumber, uuid);
 		}
@@ -261,38 +289,6 @@ namespace OpenWifi {
 		GWWebSocketNotifications::SingleDevice_t N;
 		N.content.serialNumber = SerialNumber;
 		GWWebSocketNotifications::DeviceDisconnected(N);
-	}
-
-	void AP_WS_Connection::EndConnection() {
-    	Valid_ = false;
-		if (!Dead_.test_and_set()) {
-
-			if(!SerialNumber_.empty() && State_.LastContact!=0) {
-				StorageService()->SetDeviceLastRecordedContact(SerialNumber_, State_.LastContact);
-			}
-
-			if (Registered_) {
-				Registered_ = false;
-				Reactor_->removeEventHandler(
-					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
-							  *this, &AP_WS_Connection::OnSocketReadable));
-				Reactor_->removeEventHandler(
-					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
-							  *this, &AP_WS_Connection::OnSocketShutdown));
-				Reactor_->removeEventHandler(
-					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
-							  *this, &AP_WS_Connection::OnSocketError));
-				Registered_=false;
-			}
-			WS_->close();
-
-			if(!SerialNumber_.empty()) {
-				std::thread	Cleanup(DeviceDisconnectionCleanup,SerialNumber_, uuid_);
-				Cleanup.detach();
-			}
-
-			AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
-		}
 	}
 
 	bool AP_WS_Connection::LookForUpgrade(Poco::Data::Session &Session, const uint64_t UUID, uint64_t &UpgradedUUID) {
@@ -665,7 +661,7 @@ namespace OpenWifi {
 	void AP_WS_Connection::OnSocketReadable(
 		[[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
-		if (!Valid_)
+		if (Dead_.test()) //	we are dead, so we do not process anything.
 			return;
 
 		std::lock_guard	DeviceLock(ConnectionMutex_);
@@ -982,4 +978,36 @@ namespace OpenWifi {
 			}
 		}
 	}
+
+	void AP_WS_Connection::SetLastStats(const std::string &LastStats) {
+		RawLastStats_ = LastStats;
+		try {
+			Poco::JSON::Parser P;
+			auto Stats = P.parse(LastStats).extract<Poco::JSON::Object::Ptr>();
+			hasGPS_ = Stats->isObject("gps");
+			auto Unit = Stats->getObject("unit");
+			auto Memory = Unit->getObject("memory");
+			std::uint64_t TotalMemory = Memory->get("total");
+			std::uint64_t FreeMemory = Memory->get("free");
+			if (TotalMemory > 0) {
+				memory_used_ =
+					(100.0 * ((double)TotalMemory - (double)FreeMemory)) / (double)TotalMemory;
+			}
+			if (Unit->isArray("load")) {
+				Poco::JSON::Array::Ptr Load = Unit->getArray("load");
+				if (Load->size() > 1) {
+					cpu_load_ = Load->get(1);
+				}
+			}
+			if (Unit->isArray("temperature")) {
+				Poco::JSON::Array::Ptr Temperature = Unit->getArray("temperature");
+				if (Temperature->size() > 1) {
+					temperature_ = Temperature->get(0);
+				}
+			}
+		} catch (const Poco::Exception &E) {
+			poco_error(Logger_, "Failed to parse last stats: " + E.displayText());
+		}
+	}
+
 } // namespace OpenWifi

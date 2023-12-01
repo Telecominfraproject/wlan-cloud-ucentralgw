@@ -37,6 +37,7 @@ namespace OpenWifi {
 		void ProcessIncomingRadiusData(const Poco::JSON::Object::Ptr &Doc);
 
 		[[nodiscard]] bool Send(const std::string &Payload);
+		[[nodiscard]] inline bool MustBeSecureRTTY() const { return RTTYMustBeSecure_; }
 
 		bool SendRadiusAuthenticationData(const unsigned char *buffer, std::size_t size);
 		bool SendRadiusAccountingData(const unsigned char *buffer, std::size_t size);
@@ -58,44 +59,33 @@ namespace OpenWifi {
 		bool StopKafkaTelemetry(uint64_t RPCID);
 
 		inline void GetLastStats(std::string &LastStats) {
-			std::lock_guard G(ConnectionMutex_);
-			LastStats = RawLastStats_;
+			if(!Dead_.test()) {
+				std::lock_guard G(ConnectionMutex_);
+				LastStats = RawLastStats_;
+			}
 		}
 
 		inline void GetLastHealthCheck(GWObjects::HealthCheck &H) {
-			std::lock_guard G(ConnectionMutex_);
-			H = RawLastHealthcheck_;
+			if(!Dead_.test()) {
+				std::lock_guard G(ConnectionMutex_);
+				H = RawLastHealthcheck_;
+			}
 		}
 
 		inline void GetState(GWObjects::ConnectionState &State) {
-			std::lock_guard G(ConnectionMutex_);
-			State = State_;
+			if(!Dead_.test()) {
+				std::lock_guard G(ConnectionMutex_);
+				State = State_;
+			}
 		}
 
-		inline bool HasGPS() { return hasGPS; }
+		[[nodiscard]] inline bool HasGPS() const { return hasGPS_; }
+		[[nodiscard]] bool ValidatedDevice();
 
 		inline void GetRestrictions(GWObjects::DeviceRestrictions &R) {
 			std::lock_guard G(ConnectionMutex_);
 			R = Restrictions_;
 		}
-
-		void Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
-		void Process_state(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_log(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_crashlog(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_ping(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_cfgpending(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_recovery(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_deviceupdate(Poco::JSON::Object::Ptr ParamsObj, std::string &Serial);
-		void Process_telemetry(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_venuebroadcast(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_event(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_wifiscan(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_alarm(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_rebootLog(Poco::JSON::Object::Ptr ParamsObj);
-
-		bool ValidatedDevice();
 
 		inline bool GetTelemetryParameters(bool &Reporting, uint64_t &Interval,
 										   uint64_t &WebSocketTimer, uint64_t &KafkaTimer,
@@ -119,8 +109,6 @@ namespace OpenWifi {
 			std::lock_guard G(ConnectionMutex_);
 			return Restrictions_;
 		}
-
-		inline bool MustBeSecureRTTY() const { return RTTYMustBeSecure_; }
 
 	  private:
 		std::mutex ConnectionMutex_;
@@ -153,51 +141,36 @@ namespace OpenWifi {
 		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
 		std::atomic_flag Dead_ = false;
 		std::atomic_bool DeviceValidated_ = false;
-		std::atomic_bool Valid_ = false;
 		OpenWifi::GWObjects::DeviceRestrictions Restrictions_;
 		bool 			RTTYMustBeSecure_ = false;
+		bool hasGPS_=false;
+		std::double_t 	memory_used_=0.0, cpu_load_ = 0.0, temperature_ = 0.0;
+		std::uint64_t 	uuid_=0;
+		bool	Simulated_=false;
+		std::uint64_t 	LastContact_=0;
 
 		static inline std::atomic_uint64_t ConcurrentStartingDevices_ = 0;
 
 		bool StartTelemetry(uint64_t RPCID, const std::vector<std::string> &TelemetryTypes);
 		bool StopTelemetry(uint64_t RPCID);
 		void UpdateCounts();
-		bool hasGPS=false;
-		std::double_t 	memory_used_=0.0, cpu_load_ = 0.0, temperature_ = 0.0;
-		std::uint64_t 	uuid_=0;
-		bool	Simulated_=false;
-		std::uint64_t 	LastContact_=0;
-
-		inline void SetLastStats(const std::string &LastStats) {
-			RawLastStats_ = LastStats;
-			try {
-				Poco::JSON::Parser P;
-				auto Stats = P.parse(LastStats).extract<Poco::JSON::Object::Ptr>();
-				hasGPS = Stats->isObject("gps");
-				auto Unit = Stats->getObject("unit");
-				auto Memory = Unit->getObject("memory");
-				std::uint64_t TotalMemory = Memory->get("total");
-				std::uint64_t FreeMemory = Memory->get("free");
-				if(TotalMemory>0) {
-					memory_used_ =
-						(100.0 * ((double)TotalMemory - (double)FreeMemory)) / (double)TotalMemory;
-				}
-				if(Unit->isArray("load")) {
-					Poco::JSON::Array::Ptr Load = Unit->getArray("load");
-					if(Load->size()>1) {
-						cpu_load_ = Load->get(1);
-					}
-				}
-				if(Unit->isArray("temperature")) {
-					Poco::JSON::Array::Ptr Temperature = Unit->getArray("temperature");
-					if(Temperature->size()>1) {
-						temperature_ = Temperature->get(0);
-					}
-				}
-			} catch (const Poco::Exception &E) {
-				poco_error(Logger_, "Failed to parse last stats: " + E.displayText());
-			}
-		}
+		static void DeviceDisconnectionCleanup(const std::string &SerialNumber, std::uint64_t uuid);
+		void SetLastStats(const std::string &LastStats);
+		void Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
+		void Process_state(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_log(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_crashlog(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_ping(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_cfgpending(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_recovery(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_deviceupdate(Poco::JSON::Object::Ptr ParamsObj, std::string &Serial);
+		void Process_telemetry(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_venuebroadcast(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_event(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_wifiscan(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_alarm(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_rebootLog(Poco::JSON::Object::Ptr ParamsObj);
 
 		inline void SetLastHealthCheck(const GWObjects::HealthCheck &H) {
 			RawLastHealthcheck_ = H;
