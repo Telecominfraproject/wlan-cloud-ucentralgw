@@ -668,11 +668,12 @@ namespace OpenWifi {
 		if (!Valid_)
 			return;
 
+		std::lock_guard	DeviceLock(ConnectionMutex_);
+
 		if (!AP_WS_Server()->Running())
 			return EndConnection();
 
-		std::lock_guard	DeviceLock(ConnectionMutex_);
-
+		LastContact_ = Utils::Now();
 		if (!ValidatedDevice())
 			return;
 
