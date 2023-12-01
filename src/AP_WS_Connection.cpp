@@ -78,6 +78,7 @@ namespace OpenWifi {
 	AP_WS_Connection::~AP_WS_Connection() {
 		poco_information(Logger_, fmt::format("DESTRUCTOR({}): Session={} Connection closed.", SerialNumber_,
 											  State_.sessionId));
+		std::lock_guard G(ConnectionMutex_);
 		EndConnection();
 	}
 
