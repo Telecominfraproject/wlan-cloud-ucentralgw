@@ -202,7 +202,7 @@ namespace OpenWifi {
 					while (hint != end(SerialNumbers_[hashIndex])) {
 						if (hint->second == nullptr) {
 							hint = SerialNumbers_[hashIndex].erase(hint);
-						} else if ((now - hint->second->State_.LastContact) >
+						} else if ((now - hint->second->LastContact_) >
 								   SessionTimeOut_) {
 							poco_information(
 								Logger(),
