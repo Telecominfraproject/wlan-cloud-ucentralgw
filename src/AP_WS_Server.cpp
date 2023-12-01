@@ -231,15 +231,7 @@ namespace OpenWifi {
 					while (hint != end(Sessions_[i])) {
 						if(hint->second == nullptr) {
 							hint = Sessions_[i].erase(hint);
-						} else if (hint->second->State_.Connected) {
-							NumberOfConnectedDevices_++;
-							total_connected_time += (now - hint->second->State_.started);
-							++hint;
-						} else {
-							++NumberOfConnectingDevices_;
-							++hint;
-						}
-						if ((now - hint->second->LastContact_) > SessionTimeOut_) {
+						} else if ((now - hint->second->LastContact_) > SessionTimeOut_) {
 							poco_information(
 								Logger(),
 								fmt::format(
