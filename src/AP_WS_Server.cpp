@@ -448,7 +448,7 @@ namespace OpenWifi {
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return false;
 		}
-		if(!DeviceHint->second->Dead_.test()) {
+		if(!DeviceHint->second->Dead_) {
 			DeviceHint->second->GetRestrictions(Restrictions);
 			return DeviceHint->second->State_.Connected;
 		}
@@ -463,7 +463,7 @@ namespace OpenWifi {
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return false;
 		}
-		if(!DeviceHint->second->Dead_.test()) {
+		if(!DeviceHint->second->Dead_) {
 			return DeviceHint->second->State_.Connected;
 		}
 		return false;
@@ -477,7 +477,7 @@ namespace OpenWifi {
 			return false;
 		}
 
-		if(DeviceHint->second->Dead_.test()) {
+		if(DeviceHint->second->Dead_) {
 			return false;
 		}
 
@@ -565,7 +565,7 @@ namespace OpenWifi {
 			return false;
 		}
 
-		if(DeviceHint->second->Dead_.test()) {
+		if(DeviceHint->second->Dead_) {
 			return false;
 		}
 
@@ -590,7 +590,7 @@ namespace OpenWifi {
 			return false;
 		}
 
-		if(DeviceHint->second->Dead_.test()) {
+		if(DeviceHint->second->Dead_) {
 			return false;
 		}
 
@@ -615,7 +615,7 @@ namespace OpenWifi {
 			return false;
 		}
 
-		if(DeviceHint->second->Dead_.test()) {
+		if(DeviceHint->second->Dead_) {
 			return false;
 		}
 		try {
@@ -643,7 +643,7 @@ namespace OpenWifi {
 		if(DeviceHint==end(SerialNumbers_[hashIndex])) {
 			return false;
 		}
-		if(DeviceHint->second->Dead_.test()) {
+		if(DeviceHint->second->Dead_) {
 			return false;
 		}
 		std::lock_guard DeviceGuard(DeviceHint->second->ConnectionMutex_);

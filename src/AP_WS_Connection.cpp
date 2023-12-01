@@ -82,7 +82,8 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Connection::EndConnection() {
-		if (!Dead_.test_and_set()) {
+		bool expectedValue=false;
+		if (Dead_.compare_exchange_strong(expectedValue,true,std::memory_order_release,std::memory_order_relaxed)) {
 
 			if(!SerialNumber_.empty() && State_.LastContact!=0) {
 				StorageService()->SetDeviceLastRecordedContact(SerialNumber_, State_.LastContact);
@@ -114,7 +115,7 @@ namespace OpenWifi {
 
 	bool AP_WS_Connection::ValidatedDevice() {
 
-		if(Dead_.test())
+		if(Dead_)
 			return false;
 
 		if (DeviceValidated_)
@@ -661,7 +662,7 @@ namespace OpenWifi {
 	void AP_WS_Connection::OnSocketReadable(
 		[[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
-		if (Dead_.test()) //	we are dead, so we do not process anything.
+		if (Dead_) //	we are dead, so we do not process anything.
 			return;
 
 		std::lock_guard	DeviceLock(ConnectionMutex_);

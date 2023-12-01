@@ -59,21 +59,21 @@ namespace OpenWifi {
 		bool StopKafkaTelemetry(uint64_t RPCID);
 
 		inline void GetLastStats(std::string &LastStats) {
-			if(!Dead_.test()) {
+			if(!Dead_) {
 				std::lock_guard G(ConnectionMutex_);
 				LastStats = RawLastStats_;
 			}
 		}
 
 		inline void GetLastHealthCheck(GWObjects::HealthCheck &H) {
-			if(!Dead_.test()) {
+			if(!Dead_) {
 				std::lock_guard G(ConnectionMutex_);
 				H = RawLastHealthcheck_;
 			}
 		}
 
 		inline void GetState(GWObjects::ConnectionState &State) {
-			if(!Dead_.test()) {
+			if(!Dead_) {
 				std::lock_guard G(ConnectionMutex_);
 				State = State_;
 			}
@@ -139,7 +139,7 @@ namespace OpenWifi {
 		std::chrono::time_point<std::chrono::high_resolution_clock> ConnectionStart_ =
 			std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
-		std::atomic_flag Dead_ = false;
+		std::atomic<bool> 	Dead_ = false;
 		std::atomic_bool DeviceValidated_ = false;
 		OpenWifi::GWObjects::DeviceRestrictions Restrictions_;
 		bool 			RTTYMustBeSecure_ = false;
