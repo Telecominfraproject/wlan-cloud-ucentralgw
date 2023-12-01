@@ -215,10 +215,10 @@ namespace OpenWifi {
 						} else if (hint->second->State_.Connected) {
 							NumberOfConnectedDevices_++;
 							total_connected_time += (now - hint->second->State_.started);
-							hint++;
+							++hint;
 						} else {
-							NumberOfConnectingDevices_++;
-							hint++;
+							++NumberOfConnectingDevices_;
+							++hint;
 						}
 					}
 				}
@@ -229,6 +229,16 @@ namespace OpenWifi {
 					std::lock_guard Lock(SessionMutex_[i]);
 					auto hint = Sessions_[i].begin();
 					while (hint != end(Sessions_[i])) {
+						if(hint->second == nullptr) {
+							hint = Sessions_[i].erase(hint);
+						} else if (hint->second->State_.Connected) {
+							NumberOfConnectedDevices_++;
+							total_connected_time += (now - hint->second->State_.started);
+							++hint;
+						} else {
+							++NumberOfConnectingDevices_;
+							++hint;
+						}
 						if ((now - hint->second->LastContact_) > SessionTimeOut_) {
 							poco_information(
 								Logger(),
@@ -237,8 +247,8 @@ namespace OpenWifi {
 									hint->second->SerialNumber_));
 							hint = Sessions_[i].erase(hint);
 						} else {
-							LeftOverSessions_++;
-							hint++;
+							++LeftOverSessions_;
+							++hint;
 						}
 					}
 				}
