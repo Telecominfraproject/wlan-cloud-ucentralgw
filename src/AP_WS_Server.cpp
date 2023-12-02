@@ -240,6 +240,7 @@ namespace OpenWifi {
 									Device->SerialNumber_));
 							hint = SerialNumbers_[hashIndex].erase(hint);
 							continue;
+						}
 
 						if (Device->State_.Connected) {
 							NumberOfConnectedDevices_++;
