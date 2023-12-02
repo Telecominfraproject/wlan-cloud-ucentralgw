@@ -30,7 +30,7 @@ namespace OpenWifi {
 								  Poco::Logger &L, std::pair<Poco::Net::SocketReactor *, LockedDbSession *> R);
 		~AP_WS_Connection();
 
-		void EndConnection();
+		void EndConnection(bool Clean = true);
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc);
 		void ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc);
 		void ProcessIncomingFrame();
