@@ -141,7 +141,6 @@ namespace OpenWifi {
 				poco_warning(Logger_, fmt::format("TLS-CONNECTION({}): Session={} Connection is "
 												  "NOT secure. Device is not allowed.",
 												  CId_, State_.sessionId));
-				EndConnection();
 				return false;
 			}
 
@@ -154,7 +153,6 @@ namespace OpenWifi {
 					Logger_,
 					fmt::format("TLS-CONNECTION({}): Session={} No certificates available..", CId_,
 								State_.sessionId));
-				EndConnection();
 				return false;
 			}
 
@@ -165,7 +163,6 @@ namespace OpenWifi {
 							 fmt::format("TLS-CONNECTION({}): Session={} Device certificate is not "
 										 "valid. Device is not allowed.",
 										 CId_, State_.sessionId));
-				EndConnection();
 				return false;
 			}
 
@@ -174,7 +171,6 @@ namespace OpenWifi {
 				poco_trace(Logger_,
 						   fmt::format("TLS-CONNECTION({}): Session={} Invalid serial number: CN={}", CId_,
 									   State_.sessionId, CN_));
-				EndConnection();
 				return false;
 			}
 			SerialNumber_ = CN_;
@@ -189,7 +185,6 @@ namespace OpenWifi {
 				poco_warning(Logger_, fmt::format("TLS-CONNECTION({}): Session={} Sim Device {} is "
 												  "not allowed. Disconnecting.",
 												  CId_, State_.sessionId, CN_));
-				EndConnection();
 				return false;
 			}
 
@@ -207,7 +202,6 @@ namespace OpenWifi {
 					fmt::format(
 						"TLS-CONNECTION({}): Session={} Device {} is black listed. Disconnecting.",
 						CId_, State_.sessionId, CN_));
-				EndConnection();
 				return false;
 			}
 
@@ -673,33 +667,31 @@ namespace OpenWifi {
 
 		std::lock_guard	DeviceLock(ConnectionMutex_);
 
-		if (!AP_WS_Server()->Running())
-			return EndConnection();
-
 		LastContact_ = Utils::Now();
-		if (!ValidatedDevice())
-			return;
-
-		try {
-			return ProcessIncomingFrame();
-		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
-		} catch (const std::exception &E) {
-			std::string W = E.what();
-			poco_information(
-				Logger_,
-				fmt::format("std::exception caught: {}. Connection terminated with {}", W, CId_));
-		} catch (...) {
-			poco_information(Logger_,
-							 fmt::format("Unknown exception for {}. Connection terminated.", CId_));
+		if (AP_WS_Server()->Running() && (DeviceValidated_ || ValidatedDevice())) {
+			try {
+				return ProcessIncomingFrame();
+			} catch (const Poco::Exception &E) {
+				Logger_.log(E);
+			} catch (const std::exception &E) {
+				std::string W = E.what();
+				poco_information(
+					Logger_, fmt::format("std::exception caught: {}. Connection terminated with {}",
+										 W, CId_));
+			} catch (...) {
+				poco_information(
+					Logger_, fmt::format("Unknown exception for {}. Connection terminated.", CId_));
+			}
 		}
-		return EndConnection();
+		EndConnection();
 	}
 
 	void AP_WS_Connection::ProcessIncomingFrame() {
 		Poco::Buffer<char> IncomingFrame(0);
+
+		bool	KillConnection=false;
 		try {
-			int Op, flags;
+			int 	Op, flags;
 			auto IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
 
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
@@ -719,83 +711,82 @@ namespace OpenWifi {
 			State_.LastContact = Utils::Now();
 
 			switch (Op) {
-			case Poco::Net::WebSocket::FRAME_OP_PING: {
-				poco_trace(Logger_, fmt::format("WS-PING({}): received. PONG sent back.", CId_));
-				WS_->sendFrame("", 0,
-							   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
-								   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+				case Poco::Net::WebSocket::FRAME_OP_PING: {
+					poco_trace(Logger_, fmt::format("WS-PING({}): received. PONG sent back.", CId_));
+					WS_->sendFrame("", 0,
+								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
+									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 
-				if (KafkaManager()->Enabled()) {
-					Poco::JSON::Object PingObject;
-					Poco::JSON::Object PingDetails;
-					PingDetails.set(uCentralProtocol::FIRMWARE, State_.Firmware);
-					PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
-					PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
-					PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
-					PingDetails.set(uCentralProtocol::TIMESTAMP, Utils::Now());
-					PingDetails.set(uCentralProtocol::UUID, uuid_);
-					PingDetails.set("locale", State_.locale);
-					PingObject.set(uCentralProtocol::PING, PingDetails);
-					poco_trace(Logger_,fmt::format("Sending PING for {}", SerialNumber_));
-					KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_,PingObject);
-				}
-				return;
-			} break;
+					if (KafkaManager()->Enabled()) {
+						Poco::JSON::Object PingObject;
+						Poco::JSON::Object PingDetails;
+						PingDetails.set(uCentralProtocol::FIRMWARE, State_.Firmware);
+						PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
+						PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
+						PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
+						PingDetails.set(uCentralProtocol::TIMESTAMP, Utils::Now());
+						PingDetails.set(uCentralProtocol::UUID, uuid_);
+						PingDetails.set("locale", State_.locale);
+						PingObject.set(uCentralProtocol::PING, PingDetails);
+						poco_trace(Logger_,fmt::format("Sending PING for {}", SerialNumber_));
+						KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_,PingObject);
+					}
+				} break;
 
-			case Poco::Net::WebSocket::FRAME_OP_PONG: {
-				poco_trace(Logger_, fmt::format("PONG({}): received and ignored.", CId_));
-				return;
-			} break;
+				case Poco::Net::WebSocket::FRAME_OP_PONG: {
+					poco_trace(Logger_, fmt::format("PONG({}): received and ignored.", CId_));
+				} break;
 
-			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-				poco_trace(Logger_,
-						   fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
-									   CId_, IncomingSize, flags, IncomingFrame.begin()));
+				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
+					poco_trace(Logger_,
+							   fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
+										   CId_, IncomingSize, flags, IncomingFrame.begin()));
 
-				Poco::JSON::Parser parser;
-				auto ParsedMessage = parser.parse(IncomingFrame.begin());
-				auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
+					Poco::JSON::Parser parser;
+					auto ParsedMessage = parser.parse(IncomingFrame.begin());
+					auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
 
-				if (IncomingJSON->has(uCentralProtocol::JSONRPC)) {
-					if (IncomingJSON->has(uCentralProtocol::METHOD) &&
-						IncomingJSON->has(uCentralProtocol::PARAMS)) {
-						ProcessJSONRPCEvent(IncomingJSON);
-					} else if (IncomingJSON->has(uCentralProtocol::RESULT) &&
-							   IncomingJSON->has(uCentralProtocol::ID)) {
-						poco_trace(Logger_, fmt::format("RPC-RESULT({}): payload: {}", CId_,
-														IncomingFrame.begin()));
-						ProcessJSONRPCResult(IncomingJSON);
+					if (IncomingJSON->has(uCentralProtocol::JSONRPC)) {
+						if (IncomingJSON->has(uCentralProtocol::METHOD) &&
+							IncomingJSON->has(uCentralProtocol::PARAMS)) {
+							ProcessJSONRPCEvent(IncomingJSON);
+						} else if (IncomingJSON->has(uCentralProtocol::RESULT) &&
+								   IncomingJSON->has(uCentralProtocol::ID)) {
+							poco_trace(Logger_, fmt::format("RPC-RESULT({}): payload: {}", CId_,
+															IncomingFrame.begin()));
+							ProcessJSONRPCResult(IncomingJSON);
+						} else {
+							poco_warning(
+								Logger_,
+								fmt::format("INVALID-PAYLOAD({}): Payload is not JSON-RPC 2.0: {}",
+											CId_, IncomingFrame.begin()));
+						}
+					} else if (IncomingJSON->has(uCentralProtocol::RADIUS)) {
+						ProcessIncomingRadiusData(IncomingJSON);
 					} else {
+						std::ostringstream iS;
+						IncomingJSON->stringify(iS);
+						std::cout << iS.str() << std::endl;
 						poco_warning(
 							Logger_,
-							fmt::format("INVALID-PAYLOAD({}): Payload is not JSON-RPC 2.0: {}",
-										CId_, IncomingFrame.begin()));
+							fmt::format("FRAME({}): illegal transaction header, missing 'jsonrpc'",
+										CId_));
+						Errors_++;
 					}
-				} else if (IncomingJSON->has(uCentralProtocol::RADIUS)) {
-					ProcessIncomingRadiusData(IncomingJSON);
-				} else {
-					std::ostringstream iS;
-					IncomingJSON->stringify(iS);
-					std::cout << iS.str() << std::endl;
-					poco_warning(
-						Logger_,
-						fmt::format("FRAME({}): illegal transaction header, missing 'jsonrpc'",
-									CId_));
+				} break;
+
+				case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
+					poco_information(Logger_,
+									 fmt::format("CLOSE({}): Device is closing its connection.", CId_));
+					KillConnection=true;
+				} break;
+
+				default: {
+					poco_warning(Logger_, fmt::format("UNKNOWN({}): unknown WS Frame operation: {}",
+													  CId_, std::to_string(Op)));
 					Errors_++;
+					return;
 				}
-				return;
-			} break;
-
-			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-				poco_information(Logger_,
-								 fmt::format("CLOSE({}): Device is closing its connection.", CId_));
-				return EndConnection();
-			} break;
-
-			default: {
-				poco_warning(Logger_, fmt::format("UNKNOWN({}): unknown WS Frame operation: {}",
-												  CId_, std::to_string(Op)));
-			} break;
 			}
 		} catch (const Poco::Net::ConnectionResetException &E) {
 			poco_warning(Logger_,
@@ -803,21 +794,21 @@ namespace OpenWifi {
 									 CId_, E.displayText(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-			return EndConnection();
+			KillConnection=true;
 		} catch (const Poco::JSON::JSONException &E) {
 			poco_warning(Logger_,
 						 fmt::format("JSONException({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-			return EndConnection();
+			KillConnection=true;
 		} catch (const Poco::Net::WebSocketException &E) {
 			poco_warning(Logger_,
 						 fmt::format("WebSocketException({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-			return EndConnection();
+			KillConnection=true;
 		} catch (const Poco::Net::SSLConnectionUnexpectedlyClosedException &E) {
 			poco_warning(
 				Logger_,
@@ -826,54 +817,54 @@ namespace OpenWifi {
 					CId_, E.displayText(),
 					IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 					State_.sessionId));
-			return EndConnection();
+			KillConnection=true;
 		} catch (const Poco::Net::SSLException &E) {
 			poco_warning(Logger_,
 						 fmt::format("SSLException({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-			return EndConnection();
+			KillConnection=true;
 		} catch (const Poco::Net::NetException &E) {
 			poco_warning(Logger_,
 						 fmt::format("NetException({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-			return EndConnection();
+			KillConnection=true;
 		} catch (const Poco::IOException &E) {
 			poco_warning(Logger_,
 						 fmt::format("IOException({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-			return EndConnection();
+			KillConnection=true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger_,
 						 fmt::format("Exception({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-			return EndConnection();
+			KillConnection=true;
 		} catch (const std::exception &E) {
 			poco_warning(Logger_,
 						 fmt::format("std::exception({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.what(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-			return EndConnection();
+			KillConnection=true;
 		} catch (...) {
 			poco_error(Logger_, fmt::format("UnknownException({}): Device must be disconnected. "
 											"Unknown exception.  Session:{}",
 											CId_, State_.sessionId));
-			return EndConnection();
+			KillConnection=true;
 		}
 
-		if (Errors_ < 10)
+		if (!KillConnection && Errors_ < 10)
 			return;
 
-		poco_warning(Logger_, fmt::format("DISCONNECTING({}): Too many errors", CId_));
-		return EndConnection();
+		poco_warning(Logger_, fmt::format("DISCONNECTING({}): ConnectionException: {} Errors: {}", CId_, KillConnection, Errors_ ));
+		EndConnection();
 	}
 
 	bool AP_WS_Connection::Send(const std::string &Payload) {
