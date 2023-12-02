@@ -52,7 +52,7 @@ namespace OpenWifi {
 
 	  private:
 		Poco::Logger &Logger_;
-		inline static uint64_t session_id_ = 1;
+		inline static std::atomic_uint64_t session_id_ = 1;
 	};
 
 
