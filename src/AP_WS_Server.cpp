@@ -32,8 +32,10 @@ namespace OpenWifi {
 		void handleRequest(	Poco::Net::HTTPServerRequest &request,
 						 	Poco::Net::HTTPServerResponse &response) override {
 			try {
-				AP_WS_Server()->AddConnection(std::make_shared<AP_WS_Connection>(request, response, session_id_, Logger_,
-																				 AP_WS_Server()->NextReactor()));
+				auto NewConnection = std::make_shared<AP_WS_Connection>(request, response, session_id_, Logger_,
+																		AP_WS_Server()->NextReactor());
+				AP_WS_Server()->AddConnection(NewConnection);
+				NewConnection->Start();
 			} catch (...) {
 				poco_warning(Logger_, "Exception during WS creation");
 			}
@@ -394,7 +396,7 @@ namespace OpenWifi {
 		auto SessionHint = Sessions_[session_id % 256].find(session_id);
 		if (SessionHint != end(Sessions_[session_id % 256])) {
 			std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-			SerialNumbers_[hashIndex][SerialNumber] = Connection;
+			SerialNumbers_[hashIndex][SerialNumber] = SessionHint->second;
 			Sessions_[session_id % 256].erase(SessionHint);
 		} else {
 			poco_error(Logger(), fmt::format("StartSession: Could not find session '{}'", session_id));

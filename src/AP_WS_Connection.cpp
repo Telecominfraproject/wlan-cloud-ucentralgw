@@ -59,20 +59,23 @@ namespace OpenWifi {
 		WS_->setNoDelay(false);
 		WS_->setKeepAlive(true);
 		WS_->setBlocking(false);
-
-		Registered_ = true;
 		uuid_ = MicroServiceRandom(std::numeric_limits<std::uint64_t>::max()-1);
+	}
+
+	void AP_WS_Connection::Start() {
+		Registered_ = true;
 		LastContact_ = Utils::Now();
 
 		Reactor_->addEventHandler(*WS_,
-								 Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
-									 *this, &AP_WS_Connection::OnSocketReadable));
+								  Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
+									  *this, &AP_WS_Connection::OnSocketReadable));
 		Reactor_->addEventHandler(*WS_,
-								 Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
-									 *this, &AP_WS_Connection::OnSocketShutdown));
+								  Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
+									  *this, &AP_WS_Connection::OnSocketShutdown));
 		Reactor_->addEventHandler(*WS_,
-								 Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
-									 *this, &AP_WS_Connection::OnSocketError));
+								  Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
+									  *this, &AP_WS_Connection::OnSocketError));
+
 	}
 
 	AP_WS_Connection::~AP_WS_Connection() {

@@ -109,6 +109,7 @@ namespace OpenWifi {
 			std::lock_guard G(ConnectionMutex_);
 			return Restrictions_;
 		}
+		void Start();
 
 	  private:
 		std::recursive_mutex ConnectionMutex_;
