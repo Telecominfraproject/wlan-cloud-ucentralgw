@@ -137,6 +137,7 @@ namespace OpenWifi {
 			auto now = Utils::Now();
 			for (; i != Services_.end();) {
 				if ((now - i->second.LastUpdate) > 120) {
+					poco_warning(logger(), fmt::format("ZombieService: Removing service {}, ", i->second.PublicEndPoint));
 					i = Services_.erase(i);
 				} else
 					++i;
