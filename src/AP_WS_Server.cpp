@@ -229,19 +229,19 @@ namespace OpenWifi {
 							hint = SerialNumbers_[hashIndex].erase(hint);
 							continue;
 						}
-
-						std::lock_guard		DeviceGuard(hint->second->ConnectionMutex_);
-						if ((now - hint->second->LastContact_) >
+						auto Device = hint->second;
+						std::lock_guard		DeviceGuard(Device->ConnectionMutex_);
+						if ((now - Device->LastContact_) >
 								   SessionTimeOut_) {
 							poco_information(
 								Logger(),
 								fmt::format(
 									"{}: Session seems idle. Controller disconnecting device.",
-									hint->second->SerialNumber_));
+									Device->SerialNumber_));
 							hint = SerialNumbers_[hashIndex].erase(hint);
-						} else if (hint->second->State_.Connected) {
+						} else if (Device->State_.Connected) {
 							NumberOfConnectedDevices_++;
-							total_connected_time += (now - hint->second->State_.started);
+							total_connected_time += (now - Device->State_.started);
 							++hint;
 						} else {
 							++NumberOfConnectingDevices_;
