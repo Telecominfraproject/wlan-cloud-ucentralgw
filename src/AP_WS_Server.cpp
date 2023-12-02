@@ -219,9 +219,10 @@ namespace OpenWifi {
 				NumberOfConnectedDevices_ = 0;
 				NumberOfConnectingDevices_ = 0;
 				AverageDeviceConnectionTime_ = 0;
-				last_zombie_run = now;
 				for(int hashIndex=0;hashIndex<MACHash::HashMax();hashIndex++) {
+					last_zombie_run = now;
 					std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
+					auto RightNow = Utils::Now();
 					auto hint = SerialNumbers_[hashIndex].begin();
 					while (hint != end(SerialNumbers_[hashIndex])) {
 
@@ -231,7 +232,7 @@ namespace OpenWifi {
 						}
 						auto Device = hint->second;
 						std::lock_guard		DeviceGuard(Device->ConnectionMutex_);
-						if ((now - Device->LastContact_) >
+						if (RightNow>Device->LastContact_ && (RightNow - Device->LastContact_) >
 								   SessionTimeOut_) {
 							poco_information(
 								Logger(),
@@ -244,7 +245,7 @@ namespace OpenWifi {
 
 						if (Device->State_.Connected) {
 							NumberOfConnectedDevices_++;
-							total_connected_time += (now - Device->State_.started);
+							total_connected_time += (RightNow - Device->State_.started);
 							++hint;
 							continue;
 						}
@@ -259,10 +260,11 @@ namespace OpenWifi {
 				for(int i=0;i<256;i++) {
 					std::lock_guard Lock(SessionMutex_[i]);
 					auto hint = Sessions_[i].begin();
+					auto RightNow = Utils::Now();
 					while (hint != end(Sessions_[i])) {
 						if(hint->second == nullptr) {
 							hint = Sessions_[i].erase(hint);
-						} else if ((now - hint->second->LastContact_) > SessionTimeOut_) {
+						} else if (RightNow>hint->second->LastContact_ && (RightNow - hint->second->LastContact_) > SessionTimeOut_) {
 							poco_information(
 								Logger(),
 								fmt::format(
