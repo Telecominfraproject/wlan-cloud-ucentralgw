@@ -220,7 +220,7 @@ namespace OpenWifi {
 				NumberOfConnectingDevices_ = 0;
 				AverageDeviceConnectionTime_ = 0;
 				last_zombie_run = now;
-				for(int hashIndex=0;hashIndex<256;hashIndex++) {
+				for(int hashIndex=0;hashIndex<MACHash::HashMax();hashIndex++) {
 					std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 					auto hint = SerialNumbers_[hashIndex].begin();
 					while (hint != end(SerialNumbers_[hashIndex])) {
@@ -276,7 +276,7 @@ namespace OpenWifi {
 
 			} else {
 				NumberOfConnectedDevices_=0;
-				for(int i=0;i<256;i++) {
+				for(int i=0;i<MACHash::HashMax();i++) {
 					std::lock_guard Lock(SerialNumbersMutex_[i]);
 					NumberOfConnectedDevices_ += SerialNumbers_[i].size();
 				}
