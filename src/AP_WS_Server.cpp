@@ -290,8 +290,13 @@ namespace OpenWifi {
 					std::lock_guard Lock(SerialNumbersMutex_[i]);
 					NumberOfConnectedDevices_ += SerialNumbers_[i].size();
 				}
-				if(last_garbage_run>0)
-					AverageDeviceConnectionTime_ += (now - last_garbage_run);
+				if(NumberOfConnectedDevices_) {
+					if (last_garbage_run > 0) {
+						AverageDeviceConnectionTime_ += (now - last_garbage_run);
+					}
+				} else {
+					AverageDeviceConnectionTime_ = 0;
+				}
 			}
 
 			if ((now - last_log) > 60) {
