@@ -239,15 +239,17 @@ namespace OpenWifi {
 									"{}: Session seems idle. Controller disconnecting device.",
 									Device->SerialNumber_));
 							hint = SerialNumbers_[hashIndex].erase(hint);
-						} else if (Device->State_.Connected) {
+							continue;
+
+						if (Device->State_.Connected) {
 							NumberOfConnectedDevices_++;
 							total_connected_time += (now - Device->State_.started);
 							++hint;
-						} else {
-							++NumberOfConnectingDevices_;
-							++hint;
+							continue;
 						}
-
+						//	Device must be in connecting state: established a ws connection but has not sent in a connect message.
+						++NumberOfConnectingDevices_;
+						++hint;
 					}
 				}
 
