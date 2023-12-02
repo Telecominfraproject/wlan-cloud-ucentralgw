@@ -403,19 +403,32 @@ namespace OpenWifi {
 		std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
 		auto SessionHint = Sessions_[session_id % 256].find(session_id);
 		if (SessionHint == end(Sessions_[session_id % 256])) {
+			poco_error(Logger(), fmt::format("StartSession: Could not find session '{}'", session_id));
 			return;
 		}
 		Connection = SessionHint->second;
 
 		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto CurrentSerialNumber = SerialNumbers_[hashIndex].find(SerialNumber);
-		if ((CurrentSerialNumber == SerialNumbers_[hashIndex].end()) ||
+		SerialNumbers_[hashIndex][SerialNumber] = Connection;
+		Sessions_[session_id % 256].erase(SessionHint);
+
+/*		auto CurrentSerialNumber = SerialNumbers_[hashIndex].find(SerialNumber);
+		if ((CurrentSerialNumber == SerialNumbers_[hashIndex].end())) {
+			SerialNumbers_[hashIndex][SerialNumber] = Connection;
+			Sessions_[session_id % 256].erase(SessionHint);
+			return;
+		}
+
+
+
+			||
 			(CurrentSerialNumber->second != nullptr && CurrentSerialNumber->second->State_.sessionId < session_id)) {
 			SerialNumbers_[hashIndex][SerialNumber] = Connection;
 			Sessions_[session_id % 256].erase(SessionHint);
 			return;
 		}
+*/
 	}
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
