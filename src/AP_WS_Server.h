@@ -65,8 +65,11 @@ namespace OpenWifi {
 		}
 
 		inline void AddConnection(std::shared_ptr<AP_WS_Connection> Connection) {
-			std::lock_guard Lock(SessionMutex_[Connection->State_.sessionId % 256]);
-			Sessions_[Connection->State_.sessionId % 256][Connection->State_.sessionId] = std::move(Connection);
+			std::uint64_t hashIndex = Connection->State_.sessionId % 256;
+			std::lock_guard Lock(SessionMutex_[hashIndex]);
+			if(Sessions_[hashIndex].find(Connection->State_.sessionId)==end(Sessions_[hashIndex])) {
+				Sessions_[hashIndex][Connection->State_.sessionId] = std::move(Connection);
+			}
 		}
 
 		[[nodiscard]] inline bool DeviceRequiresSecureRTTY(uint64_t serialNumber) const {
@@ -140,17 +143,14 @@ namespace OpenWifi {
 		}
 
 		inline void AddRX(std::uint64_t bytes) {
-			std::lock_guard		G(StatsMutex_);
 			RX_ += bytes;
 		}
 
 		inline void AddTX(std::uint64_t bytes) {
-			std::lock_guard		G(StatsMutex_);
 			TX_ += bytes;
 		}
 
 		inline void GetTotalDataStatistics(std::uint64_t &TX, std::uint64_t &RX) const {
-			std::lock_guard		G(StatsMutex_);
 			TX = TX_;
 			RX = RX_;
 		}
@@ -158,17 +158,17 @@ namespace OpenWifi {
 
 	  private:
 		mutable std::array<std::mutex,256> 		SessionMutex_;
-		mutable std::mutex						StatsMutex_;
-		mutable std::mutex						GarbageMutex_;
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>> WebServers_;
+		Poco::ThreadPool DeviceConnectionPool_{"ws:dev-pool", 2, 64};
 		Poco::Net::SocketReactor Reactor_;
 		Poco::Thread ReactorThread_;
 		std::string SimulatorId_;
-		Poco::ThreadPool DeviceConnectionPool_{"ws:dev-pool", 2, 64};
 		bool LookAtProvisioning_ = false;
 		bool UseDefaultConfig_ = true;
 		bool SimulatorEnabled_ = false;
+		bool AllowSerialNumberMismatch_ = true;
+
 		std::unique_ptr<AP_WS_ReactorThreadPool> Reactor_pool_;
 		std::atomic_bool Running_ = false;
 		std::array<std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>,256> Sessions_;
@@ -182,17 +182,13 @@ namespace OpenWifi {
 		std::array<SerialNumberMap,256>			SerialNumbers_;
 		mutable std::array<std::mutex,256>		SerialNumbersMutex_;
 
-		std::atomic_bool AllowSerialNumberMismatch_ = true;
-		std::atomic_uint64_t MismatchDepth_ = 2;
-
+		std::uint64_t 			MismatchDepth_ = 2;
 		std::uint64_t 			NumberOfConnectedDevices_ = 0;
 		std::uint64_t 			AverageDeviceConnectionTime_ = 0;
 		std::uint64_t 			NumberOfConnectingDevices_ = 0;
 		std::uint64_t 			SessionTimeOut_ = 10*60;
 		std::uint64_t 			LeftOverSessions_ = 0;
 		std::atomic_uint64_t 	TX_=0,RX_=0;
-
-		std::vector<std::shared_ptr<AP_WS_Connection>> GarbageSessions_;
 
 //		std::unique_ptr<Poco::TimerCallback<AP_WS_Server>> GarbageCollectorCallback_;
 //		Poco::Timer Timer_;

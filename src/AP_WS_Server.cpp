@@ -208,14 +208,6 @@ namespace OpenWifi {
 			}
 
 			Logger().information(fmt::format("Garbage collecting starting run."	));
-			{
-				std::lock_guard SessionLock(GarbageMutex_);
-				if (!GarbageSessions_.empty()) {
-					Logger().information(fmt::format("Garbage collecting removing {} stale connections.", GarbageSessions_.size()));
-					GarbageSessions_.clear();
-					Logger().information(fmt::format("Garbage collecting removed stale connections."));
-				}
-			}
 
 			uint64_t total_connected_time = 0, now = Utils::Now();
 
@@ -397,18 +389,19 @@ namespace OpenWifi {
 	void AP_WS_Server::StartSession(uint64_t session_id, uint64_t SerialNumber) {
 		std::shared_ptr<AP_WS_Connection> Connection;
 
+		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
 		std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
 		auto SessionHint = Sessions_[session_id % 256].find(session_id);
-		if (SessionHint == end(Sessions_[session_id % 256])) {
+		if (SessionHint != end(Sessions_[session_id % 256])) {
+			std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
+			SerialNumbers_[hashIndex][SerialNumber] = Connection;
+			Sessions_[session_id % 256].erase(SessionHint);
+		} else {
 			poco_error(Logger(), fmt::format("StartSession: Could not find session '{}'", session_id));
-			return;
+			std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
+			SerialNumbers_[hashIndex][SerialNumber] = Connection;
 		}
-		Connection = SessionHint->second;
 
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		SerialNumbers_[hashIndex][SerialNumber] = Connection;
-		Sessions_[session_id % 256].erase(SessionHint);
 
 /*		auto CurrentSerialNumber = SerialNumbers_[hashIndex].find(SerialNumber);
 		if ((CurrentSerialNumber == SerialNumbers_[hashIndex].end())) {
