@@ -25,10 +25,19 @@ namespace OpenWifi {
 
 	class AP_WS_RequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit AP_WS_RequestHandler(Poco::Logger &L, std::uint64_t session_id) : Logger_(L), session_id_(session_id){};
+		explicit AP_WS_RequestHandler(Poco::Logger &L, std::uint64_t session_id) : Logger_(L),
+								   		session_id_(session_id) {
+		 };
 
-		void handleRequest(Poco::Net::HTTPServerRequest &request,
-						   Poco::Net::HTTPServerResponse &response) override;
+		void handleRequest(	Poco::Net::HTTPServerRequest &request,
+						 	Poco::Net::HTTPServerResponse &response) override {
+			try {
+				AP_WS_Server()->AddConnection(std::make_shared<AP_WS_Connection>(request, response, session_id_, Logger_,
+																				 AP_WS_Server()->NextReactor()));
+			} catch (...) {
+				poco_warning(Logger_, "Exception during WS creation");
+			}
+		};
 
 	  private:
 		Poco::Logger &Logger_;
@@ -44,27 +53,15 @@ namespace OpenWifi {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
 				Utils::SetThreadName("ws:conn-init");
-				return new AP_WS_RequestHandler(Logger_, session_id_++);
+				session_id_++;
+				return new AP_WS_RequestHandler(Logger_, session_id_);
 			} else {
 				return nullptr;
 			}
 		}
-
 	  private:
 		Poco::Logger &Logger_;
-		inline static std::atomic_uint64_t session_id_ = 1;
-	};
-
-
-	void AP_WS_RequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
-											 Poco::Net::HTTPServerResponse &response) {
-		try {
-			AP_WS_Server()->AddConnection(
-				session_id_, std::make_shared<AP_WS_Connection>(request, response, session_id_, Logger_,
-														AP_WS_Server()->NextReactor()));
-		} catch (...) {
-			poco_warning(Logger_, "Exception during WS creation");
-		}
+		inline static std::atomic_uint64_t session_id_ = 0;
 	};
 
 	bool AP_WS_Server::ValidateCertificate(const std::string &ConnectionId,

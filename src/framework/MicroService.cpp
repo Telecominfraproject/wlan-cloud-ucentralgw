@@ -136,7 +136,7 @@ namespace OpenWifi {
 			auto i = Services_.begin();
 			auto now = Utils::Now();
 			for (; i != Services_.end();) {
-				if ((now - i->second.LastUpdate) > 60) {
+				if ((now - i->second.LastUpdate) > 120) {
 					i = Services_.erase(i);
 				} else
 					++i;

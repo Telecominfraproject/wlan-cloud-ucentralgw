@@ -64,10 +64,9 @@ namespace OpenWifi {
 			return Reactor_pool_->NextReactor();
 		}
 
-		inline void AddConnection(uint64_t session_id,
-								  std::shared_ptr<AP_WS_Connection> Connection) {
-			std::lock_guard Lock(SessionMutex_[session_id % 256]);
-			Sessions_[session_id % 256][session_id] = std::move(Connection);
+		inline void AddConnection(std::shared_ptr<AP_WS_Connection> Connection) {
+			std::lock_guard Lock(SessionMutex_[Connection->State_.sessionId % 256]);
+			Sessions_[Connection->State_.sessionId % 256][Connection->State_.sessionId] = std::move(Connection);
 		}
 
 		[[nodiscard]] inline bool DeviceRequiresSecureRTTY(uint64_t serialNumber) const {
