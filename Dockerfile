@@ -17,8 +17,8 @@ FROM build-base AS poco-build
 
 ARG POCO_VERSION
 
-ADD https://api.github.com/repos/TelecomInfraProject/wlan-cloud-lib-poco/git/refs/tags/${POCO_VERSION} version.json
-RUN git clone https://github.com/TelecomInfraProject/wlan-cloud-lib-poco --branch ${POCO_VERSION} /poco
+ADD https://api.github.com/repos/AriliaWireless/poco/git/refs/tags/${POCO_VERSION} version.json
+RUN git clone https://github.com/AriliaWireless/poco --branch ${POCO_VERSION} /poco
 
 WORKDIR /poco
 RUN mkdir cmake-build
