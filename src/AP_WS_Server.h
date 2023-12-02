@@ -203,7 +203,7 @@ namespace OpenWifi {
 
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>> WebServers_;
-		Poco::ThreadPool DeviceConnectionPool_{"ws:dev-pool", 2, 64};
+		Poco::ThreadPool DeviceConnectionPool_{"ws:dev-pool", 4, 256};
 		Poco::Net::SocketReactor Reactor_;
 		Poco::Thread ReactorThread_;
 		std::string SimulatorId_;
