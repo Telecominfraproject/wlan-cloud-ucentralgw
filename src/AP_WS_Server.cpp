@@ -224,17 +224,20 @@ namespace OpenWifi {
 					std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 					auto hint = SerialNumbers_[hashIndex].begin();
 					while (hint != end(SerialNumbers_[hashIndex])) {
+
 						if (hint->second == nullptr) {
 							hint = SerialNumbers_[hashIndex].erase(hint);
-						} else if ((now - hint->second->LastContact_) >
+							continue;
+						}
+
+						std::lock_guard		DeviceGuard(hint->second->ConnectionMutex_);
+						if ((now - hint->second->LastContact_) >
 								   SessionTimeOut_) {
 							poco_information(
 								Logger(),
 								fmt::format(
 									"{}: Session seems idle. Controller disconnecting device.",
 									hint->second->SerialNumber_));
-//							std::lock_guard ConnectionLock(hint->second->ConnectionMutex_);
-//							hint->second->EndConnection();
 							hint = SerialNumbers_[hashIndex].erase(hint);
 						} else if (hint->second->State_.Connected) {
 							NumberOfConnectedDevices_++;
@@ -244,6 +247,7 @@ namespace OpenWifi {
 							++NumberOfConnectingDevices_;
 							++hint;
 						}
+
 					}
 				}
 
@@ -403,24 +407,6 @@ namespace OpenWifi {
 			std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 			SerialNumbers_[hashIndex][SerialNumber] = Connection;
 		}
-
-
-/*		auto CurrentSerialNumber = SerialNumbers_[hashIndex].find(SerialNumber);
-		if ((CurrentSerialNumber == SerialNumbers_[hashIndex].end())) {
-			SerialNumbers_[hashIndex][SerialNumber] = Connection;
-			Sessions_[session_id % 256].erase(SessionHint);
-			return;
-		}
-
-
-
-			||
-			(CurrentSerialNumber->second != nullptr && CurrentSerialNumber->second->State_.sessionId < session_id)) {
-			SerialNumbers_[hashIndex][SerialNumber] = Connection;
-			Sessions_[session_id % 256].erase(SessionHint);
-			return;
-		}
-*/
 	}
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
