@@ -54,6 +54,19 @@ namespace OpenWifi {
 		}
 	};
 
+	constexpr uint SessionHashMax = 256;
+	constexpr uint SessionHashMask = SessionHashMax-1;
+	class SessionHash {
+	  public:
+		[[nodiscard]] static inline uint16_t Hash(std::uint64_t value) {
+			return (value & SessionHashMask);
+		}
+
+		[[nodiscard]] static inline uint16_t HashMax() {
+			return SessionHashMax;
+		}
+	};
+
 
 	class AP_WS_Server : public SubSystemServer, public Poco::Runnable {
 	  public:
@@ -89,10 +102,10 @@ namespace OpenWifi {
 		}
 
 		inline void AddConnection(std::shared_ptr<AP_WS_Connection> Connection) {
-			std::uint64_t hashIndex = Connection->State_.sessionId % 256;
-			std::lock_guard Lock(SessionMutex_[hashIndex]);
-			if(Sessions_[hashIndex].find(Connection->State_.sessionId)==end(Sessions_[hashIndex])) {
-				Sessions_[hashIndex][Connection->State_.sessionId] = std::move(Connection);
+			std::uint64_t sessionHash = SessionHash::Hash(Connection->State_.sessionId);
+			std::lock_guard Lock(SessionMutex_[sessionHash]);
+			if(Sessions_[sessionHash].find(Connection->State_.sessionId)==end(Sessions_[sessionHash])) {
+				Sessions_[sessionHash][Connection->State_.sessionId] = std::move(Connection);
 			}
 		}
 
@@ -181,7 +194,13 @@ namespace OpenWifi {
 
 
 	  private:
-		mutable std::array<std::mutex,256> 		SessionMutex_;
+		std::array<std::mutex,SessionHashMax> 			SessionMutex_;
+		std::array<std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>,SessionHashMax> Sessions_;
+		using SerialNumberMap = std::map<uint64_t /* serial number */,
+										 std::shared_ptr<AP_WS_Connection>>;
+		std::array<SerialNumberMap,MACHashMax>			SerialNumbers_;
+		mutable std::array<std::mutex,MACHashMax>		SerialNumbersMutex_;
+
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>> WebServers_;
 		Poco::ThreadPool DeviceConnectionPool_{"ws:dev-pool", 2, 64};
@@ -195,16 +214,6 @@ namespace OpenWifi {
 
 		std::unique_ptr<AP_WS_ReactorThreadPool> Reactor_pool_;
 		std::atomic_bool Running_ = false;
-		std::array<std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>,256> Sessions_;
-
-//		using SerialNumberMap = std::map<uint64_t /* serial number */, std::pair<uint64_t /* session id*/,
-//								 std::shared_ptr<AP_WS_Connection>>>;
-
-		using SerialNumberMap = std::map<uint64_t /* serial number */,
-								 std::shared_ptr<AP_WS_Connection>>;
-
-		std::array<SerialNumberMap,MACHashMax>			SerialNumbers_;
-		mutable std::array<std::mutex,MACHashMax>		SerialNumbersMutex_;
 
 		std::uint64_t 			MismatchDepth_ = 2;
 		std::uint64_t 			NumberOfConnectedDevices_ = 0;
@@ -213,9 +222,6 @@ namespace OpenWifi {
 		std::uint64_t 			SessionTimeOut_ = 10*60;
 		std::uint64_t 			LeftOverSessions_ = 0;
 		std::atomic_uint64_t 	TX_=0,RX_=0;
-
-//		std::unique_ptr<Poco::TimerCallback<AP_WS_Server>> GarbageCollectorCallback_;
-//		Poco::Timer Timer_;
 
 		Poco::Thread 			GarbageCollector_;
 

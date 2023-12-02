@@ -253,11 +253,12 @@ namespace OpenWifi {
 						++NumberOfConnectingDevices_;
 						++hint;
 					}
+
 				}
 
 				poco_information(Logger(), fmt::format("Garbage collecting zombies... (step 2)"));
 				LeftOverSessions_ = 0;
-				for(int i=0;i<256;i++) {
+				for(int i=0;i<SessionHash::HashMax();i++) {
 					std::lock_guard Lock(SessionMutex_[i]);
 					auto hint = Sessions_[i].begin();
 					auto RightNow = Utils::Now();
@@ -342,7 +343,7 @@ namespace OpenWifi {
 
 	bool AP_WS_Server::GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers) {
 		SerialNumbers.clear();
-		for(int i=0;i<256;i++) {
+		for(int i=0;i<SessionHash::HashMax();i++) {
 			std::lock_guard Lock(SessionMutex_[i]);
 			for (const auto &connection : Sessions_[i]) {
 				if (connection.second->RawLastHealthcheck_.Sanity >= lowLimit &&
@@ -398,27 +399,24 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::StartSession(uint64_t session_id, uint64_t SerialNumber) {
-		std::shared_ptr<AP_WS_Connection> Connection;
-
-		auto hashIndex = MACHash::Hash(SerialNumber);
-		std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
-		auto SessionHint = Sessions_[session_id % 256].find(session_id);
-		if (SessionHint != end(Sessions_[session_id % 256])) {
-			std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-			SerialNumbers_[hashIndex][SerialNumber] = SessionHint->second;
-			Sessions_[session_id % 256].erase(SessionHint);
+		auto deviceHash = MACHash::Hash(SerialNumber);
+		auto sessionHash = SessionHash::Hash(session_id);
+		std::lock_guard SessionLock(SessionMutex_[sessionHash]);
+		auto SessionHint = Sessions_[sessionHash].find(session_id);
+		if (SessionHint != end(Sessions_[sessionHash])) {
+			std::lock_guard Lock(SerialNumbersMutex_[deviceHash]);
+			SerialNumbers_[deviceHash][SerialNumber] = SessionHint->second;
+			Sessions_[sessionHash].erase(SessionHint);
 		} else {
 			poco_error(Logger(), fmt::format("StartSession: Could not find session '{}'", session_id));
-			std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-			SerialNumbers_[hashIndex][SerialNumber] = Connection;
 		}
 	}
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
-
 		{
-			std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
-			Sessions_[session_id % 256].erase(session_id);
+			auto sessionHash = SessionHash::Hash(session_id);
+			std::lock_guard SessionLock(SessionMutex_[sessionHash]);
+			Sessions_[sessionHash].erase(session_id);
 		}
 
 		{
