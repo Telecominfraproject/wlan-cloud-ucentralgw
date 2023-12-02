@@ -79,13 +79,13 @@ namespace OpenWifi {
 	}
 
 	AP_WS_Connection::~AP_WS_Connection() {
-		poco_information(Logger_, fmt::format("DESTRUCTOR({}): 0 - Session={} Connection closed.", SerialNumber_,
-											  State_.sessionId));
+//		poco_information(Logger_, fmt::format("DESTRUCTOR({}): 0 - Session={} Connection closed.", SerialNumber_,
+//											  State_.sessionId));
 		std::lock_guard G(ConnectionMutex_);
 //		poco_information(Logger_, fmt::format("DESTRUCTOR({}): 1 - Session={} Connection closed.", SerialNumber_,
 //											  State_.sessionId));
 		EndConnection(false);
-		poco_information(Logger_, fmt::format("DESTRUCTOR({}): 2 - Session={} Connection closed.", SerialNumber_,
+		poco_debug(Logger_, fmt::format("TERMINATION({}): Session={}, Connection removed.", SerialNumber_,
 											  State_.sessionId));
 	}
 

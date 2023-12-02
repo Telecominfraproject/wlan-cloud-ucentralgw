@@ -347,7 +347,7 @@ namespace OpenWifi {
 
 	bool AP_WS_Server::GetStatistics(uint64_t SerialNumber, std::string &Statistics) const {
 
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (Device == SerialNumbers_[hashIndex].end() || Device->second == nullptr) {
@@ -361,7 +361,7 @@ namespace OpenWifi {
 	bool AP_WS_Server::GetState(uint64_t SerialNumber, GWObjects::ConnectionState &State) const {
 		std::shared_ptr<AP_WS_Connection> Connection;
 		{
-			auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+			auto hashIndex = MACHash::Hash(SerialNumber);
 			std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
 			auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 			if (DeviceHint == SerialNumbers_[hashIndex].end() ||
@@ -377,7 +377,7 @@ namespace OpenWifi {
 	bool AP_WS_Server::GetHealthcheck(uint64_t SerialNumber,
 									  GWObjects::HealthCheck &CheckData) const {
 
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (Device == SerialNumbers_[hashIndex].end() || Device->second == nullptr) {
@@ -391,7 +391,7 @@ namespace OpenWifi {
 	void AP_WS_Server::StartSession(uint64_t session_id, uint64_t SerialNumber) {
 		std::shared_ptr<AP_WS_Connection> Connection;
 
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard SessionLock(SessionMutex_[session_id % 256]);
 		auto SessionHint = Sessions_[session_id % 256].find(session_id);
 		if (SessionHint != end(Sessions_[session_id % 256])) {
@@ -431,7 +431,7 @@ namespace OpenWifi {
 		}
 
 		{
-			auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+			auto hashIndex = MACHash::Hash(SerialNumber);
 			std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
 			auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 			if (DeviceHint == SerialNumbers_[hashIndex].end()
@@ -447,7 +447,7 @@ namespace OpenWifi {
 
 	bool AP_WS_Server::Connected(uint64_t SerialNumber,
 								 GWObjects::DeviceRestrictions &Restrictions) const {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
@@ -462,7 +462,7 @@ namespace OpenWifi {
 
 
 	bool AP_WS_Server::Connected(uint64_t SerialNumber) const {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
@@ -475,7 +475,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::SendFrame(uint64_t SerialNumber, const std::string &Payload) const {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
@@ -496,7 +496,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::StopWebSocketTelemetry(uint64_t RPCID, uint64_t SerialNumber) {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (Device == end(SerialNumbers_[hashIndex]) || Device->second == nullptr) {
@@ -509,7 +509,7 @@ namespace OpenWifi {
 	AP_WS_Server::SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber,
 												 uint64_t Interval, uint64_t Lifetime,
 												 const std::vector<std::string> &TelemetryTypes) {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
@@ -521,7 +521,7 @@ namespace OpenWifi {
 	void AP_WS_Server::SetKafkaTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber,
 												  uint64_t Interval, uint64_t Lifetime,
 												  const std::vector<std::string> &TelemetryTypes) {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
@@ -531,7 +531,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::StopKafkaTelemetry(uint64_t RPCID, uint64_t SerialNumber) {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
@@ -546,7 +546,7 @@ namespace OpenWifi {
 		uint64_t &TelemetryWebSocketCount, uint64_t &TelemetryKafkaCount,
 		uint64_t &TelemetryWebSocketPackets, uint64_t &TelemetryKafkaPackets) {
 
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
@@ -563,7 +563,7 @@ namespace OpenWifi {
 												const unsigned char *buffer, std::size_t size) {
 
 		auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber);
-		auto hashIndex = Utils::CalculateMacAddressHash(IntSerialNumber);
+		auto hashIndex = MACHash::Hash(IntSerialNumber);
 		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(IntSerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
@@ -588,7 +588,7 @@ namespace OpenWifi {
 	bool AP_WS_Server::SendRadiusAuthenticationData(const std::string &SerialNumber,
 													const unsigned char *buffer, std::size_t size) {
 		auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber);
-		auto hashIndex = Utils::CalculateMacAddressHash(IntSerialNumber);
+		auto hashIndex = MACHash::Hash(IntSerialNumber);
 		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(IntSerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
@@ -613,7 +613,7 @@ namespace OpenWifi {
 	bool AP_WS_Server::SendRadiusCoAData(const std::string &SerialNumber,
 										 const unsigned char *buffer, std::size_t size) {
 		auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber);
-		auto hashIndex = Utils::CalculateMacAddressHash(IntSerialNumber);
+		auto hashIndex = MACHash::Hash(IntSerialNumber);
 		std::lock_guard DevicesGuard(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(IntSerialNumber);
 		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
@@ -642,7 +642,7 @@ namespace OpenWifi {
 	) {
 
 		auto serialNumberInt = Utils::SerialNumberToInt(serialNumber);
-		auto hashIndex = Utils::CalculateMacAddressHash(serialNumberInt);
+		auto hashIndex = MACHash::Hash(serialNumberInt);
 		std::lock_guard	DevicesGuard(SerialNumbersMutex_[hashIndex]);
 		auto DeviceHint = SerialNumbers_[hashIndex].find(Utils::SerialNumberToInt(serialNumber));
 		if(DeviceHint==end(SerialNumbers_[hashIndex])) {

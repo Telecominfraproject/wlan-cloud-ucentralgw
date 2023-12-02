@@ -31,6 +31,30 @@
 
 namespace OpenWifi {
 
+	constexpr uint MACHashMax = 256;
+	constexpr uint MACHashMask = MACHashMax-1;
+	class MACHash {
+	  public:
+		[[nodiscard]] static inline uint16_t Hash(std::uint64_t value) {
+			uint8_t hash = 0, i=6;
+			while(i) {
+				hash ^= (value & MACHashMask) + 1;
+				value >>= 8;
+				--i;
+			}
+			return hash;
+		}
+
+		[[nodiscard]] static inline uint16_t Hash(const std::string & value) {
+			return Hash(Utils::MACToInt(value));
+		}
+
+		[[nodiscard]] static inline uint16_t HashMax() {
+			return MACHashMax;
+		}
+	};
+
+
 	class AP_WS_Server : public SubSystemServer, public Poco::Runnable {
 	  public:
 		static auto instance() {
@@ -73,7 +97,7 @@ namespace OpenWifi {
 		}
 
 		[[nodiscard]] inline bool DeviceRequiresSecureRTTY(uint64_t serialNumber) const {
-			auto hashIndex = Utils::CalculateMacAddressHash(serialNumber);
+			auto hashIndex = MACHash::Hash(serialNumber);
 			std::lock_guard	G(SerialNumbersMutex_[hashIndex]);
 
 			auto Connection = SerialNumbers_[hashIndex].find(serialNumber);
@@ -179,8 +203,8 @@ namespace OpenWifi {
 		using SerialNumberMap = std::map<uint64_t /* serial number */,
 								 std::shared_ptr<AP_WS_Connection>>;
 
-		std::array<SerialNumberMap,256>			SerialNumbers_;
-		mutable std::array<std::mutex,256>		SerialNumbersMutex_;
+		std::array<SerialNumberMap,MACHashMax>			SerialNumbers_;
+		mutable std::array<std::mutex,MACHashMax>		SerialNumbersMutex_;
 
 		std::uint64_t 			MismatchDepth_ = 2;
 		std::uint64_t 			NumberOfConnectedDevices_ = 0;

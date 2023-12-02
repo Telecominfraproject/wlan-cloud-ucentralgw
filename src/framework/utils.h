@@ -126,20 +126,6 @@ namespace OpenWifi::Utils {
 
 	[[nodiscard]] std::uint64_t ConvertDate(const std::string &d);
 
-	[[nodiscard]] inline uint8_t CalculateMacAddressHash(std::uint64_t value) {
-		uint8_t hash = 0, i=6;
-		while(i) {
-			hash ^= (value & 0xFF) + 1;
-			value >>= 8;
-			--i;
-		}
-		return hash;
-	}
-
-	[[nodiscard]] inline uint8_t CalculateMacAddressHash(const std::string & value) {
-		return CalculateMacAddressHash(MACToInt(value));
-	}
-
 	template <typename T> std::string int_to_hex(T i) {
 		std::stringstream stream;
 		stream << std::setfill('0') << std::setw(12) << std::hex << i;
