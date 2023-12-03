@@ -22,6 +22,7 @@ namespace OpenWifi {
 			NumberOfThreads_ = Poco::Environment::processorCount() * 4;
 			if (NumberOfThreads_ == 0)
 				NumberOfThreads_ = 8;
+			NumberOfThreads_ = std::min(NumberOfThreads_, (std::uint64_t) 128);
 		}
 
 		~AP_WS_ReactorThreadPool() { Stop(); }
