@@ -19,9 +19,9 @@ namespace OpenWifi {
 	class AP_WS_ReactorThreadPool {
 	  public:
 		explicit AP_WS_ReactorThreadPool(Poco::Logger &Logger) : Logger_(Logger) {
-			NumberOfThreads_ = Poco::Environment::processorCount() * 2;
+			NumberOfThreads_ = Poco::Environment::processorCount() * 4;
 			if (NumberOfThreads_ == 0)
-				NumberOfThreads_ = 4;
+				NumberOfThreads_ = 8;
 		}
 
 		~AP_WS_ReactorThreadPool() { Stop(); }
