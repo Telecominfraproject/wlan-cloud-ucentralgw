@@ -47,6 +47,9 @@ namespace OpenWifi {
 	void MicroService::BusMessageReceived([[maybe_unused]] const std::string &Key,
 										  const std::string &Payload) {
 		std::lock_guard G(InfraMutex_);
+
+		Poco::Logger &BusLogger = Poco::Logger::create(
+			"BusMessageReceived", Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel());
 		try {
 			Poco::JSON::Parser P;
 			auto Object = P.parse(Payload).extract<Poco::JSON::Object::Ptr>();
@@ -69,7 +72,7 @@ namespace OpenWifi {
 							if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
 								Services_.erase(PrivateEndPoint);
 								poco_information(
-									Logger_,
+									BusLogger,
 									fmt::format(
 										"Service {} ID={} leaving system.",
 										Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
@@ -99,7 +102,7 @@ namespace OpenWifi {
 								Services_[PrivateEndPoint] = ServiceInfo;
 								if(Event == KafkaTopics::ServiceEvents::EVENT_JOIN) {
                                     poco_information(
-										Logger_,
+										BusLogger,
 										fmt::format(
 											"Service {} ID={} is joining the system. old={}",
 											Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
@@ -113,13 +116,13 @@ namespace OpenWifi {
 											SvcList += ", " + Svc.second.Type;
 									}
 									poco_information(
-										Logger_,
+										BusLogger,
 										fmt::format("Current list of microservices: {}", SvcList));
 								}
 							}
 						} else {
 							poco_information(
-								Logger_,
+								BusLogger,
 								fmt::format("KAFKA-MSG: invalid event '{}', missing a field.",
 											Event));
 						}
@@ -131,18 +134,18 @@ namespace OpenWifi {
 #endif
 						} else {
 							poco_information(
-								Logger_,
+								BusLogger,
 								fmt::format("KAFKA-MSG: invalid event '{}', missing token", Event));
 						}
 					} else {
-						poco_information(Logger_,
+						poco_information(BusLogger,
 								   fmt::format("Unknown Event: {} Source: {}", Event, ID));
 					}
 				}
 			} else {
 				std::ostringstream os;
 				Object->stringify(std::cout);
-				poco_error(Logger_, fmt::format("Bad bus message: {}", os.str()));
+				poco_error(BusLogger, fmt::format("Bad bus message: {}", os.str()));
 			}
 
 			auto ServiceHint = Services_.begin();
@@ -151,18 +154,18 @@ namespace OpenWifi {
             auto ss1 = MakeServiceListString(Services_);
 			while(ServiceHint!=Services_.end()) {
 				if ((now - ServiceHint->second.LastUpdate) > 120) {
-					poco_information(Logger_, fmt::format("ZombieService: Removing service {}, ", ServiceHint->second.PublicEndPoint));
+					poco_information(BusLogger, fmt::format("ZombieService: Removing service {}, ", ServiceHint->second.PublicEndPoint));
 					ServiceHint = Services_.erase(ServiceHint);
 				} else
 					++ServiceHint;
 			}
             if(Services_.size() != si1) {
                 auto ss2 = MakeServiceListString(Services_);
-                poco_information(Logger_, fmt::format("Current list of microservices: {} -> {}", ss1, ss2));
+                poco_information(BusLogger, fmt::format("Current list of microservices: {} -> {}", ss1, ss2));
             }
 
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			BusLogger.log(E);
 		}
 	}
 
