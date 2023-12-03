@@ -33,6 +33,17 @@ namespace OpenWifi {
 
 	void MicroService::Exit(int Reason) { std::exit(Reason); }
 
+    static std::string MakeServiceListString(const Types::MicroServiceMetaMap &Services) {
+        std::string SvcList;
+        for (const auto &Svc : Services) {
+            if (SvcList.empty())
+                SvcList = Svc.second.Type;
+            else
+                SvcList += ", " + Svc.second.Type;
+        }
+        return SvcList;
+    }
+
 	void MicroService::BusMessageReceived([[maybe_unused]] const std::string &Key,
 										  const std::string &Payload) {
 		std::lock_guard G(InfraMutex_);
@@ -58,7 +69,7 @@ namespace OpenWifi {
 							if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
 								Services_.erase(PrivateEndPoint);
 								poco_information(
-									logger(),
+									Logger_,
 									fmt::format(
 										"Service {} ID={} leaving system.",
 										Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
@@ -84,15 +95,16 @@ namespace OpenWifi {
 												   .toString(),
 									.LastUpdate = Utils::Now()};
 
+                                auto s1 = MakeServiceListString(Services_);
 								Services_[PrivateEndPoint] = ServiceInfo;
 								if(Event == KafkaTopics::ServiceEvents::EVENT_JOIN) {
-									poco_information(
-										logger(),
+                                    poco_information(
+										Logger_,
 										fmt::format(
-											"Service {} ID={} is joining the system.",
+											"Service {} ID={} is joining the system. old={}",
 											Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
 												.toString(),
-											ID));
+											ID, s1));
 									std::string SvcList;
 									for (const auto &Svc : Services_) {
 										if (SvcList.empty())
@@ -101,13 +113,13 @@ namespace OpenWifi {
 											SvcList += ", " + Svc.second.Type;
 									}
 									poco_information(
-										logger(),
+										Logger_,
 										fmt::format("Current list of microservices: {}", SvcList));
 								}
 							}
 						} else {
 							poco_information(
-								logger(),
+								Logger_,
 								fmt::format("KAFKA-MSG: invalid event '{}', missing a field.",
 											Event));
 						}
@@ -119,32 +131,38 @@ namespace OpenWifi {
 #endif
 						} else {
 							poco_information(
-								logger(),
+								Logger_,
 								fmt::format("KAFKA-MSG: invalid event '{}', missing token", Event));
 						}
 					} else {
-						poco_information(logger(),
+						poco_information(Logger_,
 								   fmt::format("Unknown Event: {} Source: {}", Event, ID));
 					}
 				}
 			} else {
 				std::ostringstream os;
 				Object->stringify(std::cout);
-				poco_error(logger(), fmt::format("Bad bus message: {}", os.str()));
+				poco_error(Logger_, fmt::format("Bad bus message: {}", os.str()));
 			}
 
 			auto ServiceHint = Services_.begin();
 			auto now = Utils::Now();
+            auto si1 = Services_.size();
+            auto ss1 = MakeServiceListString(Services_);
 			while(ServiceHint!=Services_.end()) {
 				if ((now - ServiceHint->second.LastUpdate) > 120) {
-					poco_information(logger(), fmt::format("ZombieService: Removing service {}, ", ServiceHint->second.PublicEndPoint));
+					poco_information(Logger_, fmt::format("ZombieService: Removing service {}, ", ServiceHint->second.PublicEndPoint));
 					ServiceHint = Services_.erase(ServiceHint);
 				} else
 					++ServiceHint;
 			}
+            if(Services_.size() != si1) {
+                auto ss2 = MakeServiceListString(Services_);
+                poco_information(Logger_, fmt::format("Current list of microservices: {} -> {}", ss1, ss2));
+            }
 
 		} catch (const Poco::Exception &E) {
-			logger().log(E);
+			Logger_.log(E);
 		}
 	}
 
@@ -413,7 +431,7 @@ namespace OpenWifi {
 			try {
 				DataDir.createDirectory();
 			} catch (const Poco::Exception &E) {
-				logger().log(E);
+				Logger_.log(E);
 			}
 		}
 		WWWAssetsDir_ = ConfigPath("openwifi.restapi.wwwassets", "");
@@ -698,7 +716,7 @@ namespace OpenWifi {
 			auto APIKEY = Request.get("X-API-KEY");
 			return APIKEY == MyHash_;
 		} catch (const Poco::Exception &E) {
-			logger().log(E);
+			Logger_.log(E);
 		}
 		return false;
 	}
