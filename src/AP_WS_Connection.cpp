@@ -670,7 +670,7 @@ namespace OpenWifi {
 
 		std::lock_guard	DeviceLock(ConnectionMutex_);
 
-		LastContact_ = Utils::Now();
+		State_.LastContact = LastContact_ = Utils::Now();
 		if (AP_WS_Server()->Running() && (DeviceValidated_ || ValidatedDevice())) {
 			try {
 				return ProcessIncomingFrame();

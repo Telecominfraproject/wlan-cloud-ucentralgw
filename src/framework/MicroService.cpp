@@ -55,12 +55,9 @@ namespace OpenWifi {
 							Object->has(KafkaTopics::ServiceEvents::Fields::KEY)) {
 							auto PrivateEndPoint =
 								Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString();
-							if (Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE &&
-								Services_.find(PrivateEndPoint) != Services_.end()) {
-								Services_[PrivateEndPoint].LastUpdate = Utils::Now();
-							} else if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
+							if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
 								Services_.erase(PrivateEndPoint);
-								poco_debug(
+								poco_information(
 									logger(),
 									fmt::format(
 										"Service {} ID={} leaving system.",
@@ -69,14 +66,7 @@ namespace OpenWifi {
 										ID));
 							} else if (Event == KafkaTopics::ServiceEvents::EVENT_JOIN ||
 									   Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE) {
-								poco_debug(
-									logger(),
-									fmt::format(
-										"Service {} ID={} joining system.",
-										Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
-											.toString(),
-										ID));
-								Services_[PrivateEndPoint] = Types::MicroServiceMeta{
+								auto ServiceInfo = Types::MicroServiceMeta{
 									.Id = ID,
 									.Type = Poco::toLower(
 										Object->get(KafkaTopics::ServiceEvents::Fields::TYPE)
@@ -94,19 +84,29 @@ namespace OpenWifi {
 												   .toString(),
 									.LastUpdate = Utils::Now()};
 
-								std::string SvcList;
-								for (const auto &Svc : Services_) {
-									if (SvcList.empty())
-										SvcList = Svc.second.Type;
-									else
-										SvcList += ", " + Svc.second.Type;
+								Services_[PrivateEndPoint] = ServiceInfo;
+								if(Event == KafkaTopics::ServiceEvents::EVENT_JOIN) {
+									poco_information(
+										logger(),
+										fmt::format(
+											"Service {} ID={} is joining the system.",
+											Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
+												.toString(),
+											ID));
+									std::string SvcList;
+									for (const auto &Svc : Services_) {
+										if (SvcList.empty())
+											SvcList = Svc.second.Type;
+										else
+											SvcList += ", " + Svc.second.Type;
+									}
+									poco_information(
+										logger(),
+										fmt::format("Current list of microservices: {}", SvcList));
 								}
-								poco_information(
-									logger(),
-									fmt::format("Current list of microservices: {}", SvcList));
 							}
 						} else {
-							poco_error(
+							poco_information(
 								logger(),
 								fmt::format("KAFKA-MSG: invalid event '{}', missing a field.",
 											Event));
@@ -118,29 +118,29 @@ namespace OpenWifi {
 								Object->get(KafkaTopics::ServiceEvents::Fields::TOKEN).toString());
 #endif
 						} else {
-							poco_error(
+							poco_information(
 								logger(),
 								fmt::format("KAFKA-MSG: invalid event '{}', missing token", Event));
 						}
 					} else {
-						poco_error(logger(),
+						poco_information(logger(),
 								   fmt::format("Unknown Event: {} Source: {}", Event, ID));
 					}
 				}
 			} else {
-				poco_error(logger(), "Bad bus message.");
-                std::ostringstream os;
-                Object->stringify(std::cout);
+				std::ostringstream os;
+				Object->stringify(std::cout);
+				poco_error(logger(), fmt::format("Bad bus message: {}", os.str()));
 			}
 
-			auto i = Services_.begin();
+			auto ServiceHint = Services_.begin();
 			auto now = Utils::Now();
-			for (; i != Services_.end();) {
-				if ((now - i->second.LastUpdate) > 120) {
-					poco_warning(logger(), fmt::format("ZombieService: Removing service {}, ", i->second.PublicEndPoint));
-					i = Services_.erase(i);
+			while(ServiceHint!=Services_.end()) {
+				if ((now - ServiceHint->second.LastUpdate) > 120) {
+					poco_information(logger(), fmt::format("ZombieService: Removing service {}, ", ServiceHint->second.PublicEndPoint));
+					ServiceHint = Services_.erase(ServiceHint);
 				} else
-					++i;
+					++ServiceHint;
 			}
 
 		} catch (const Poco::Exception &E) {
