@@ -99,15 +99,21 @@ namespace OpenWifi {
 									.LastUpdate = Utils::Now()};
 
                                 auto s1 = MakeServiceListString(Services_);
+								auto PreviousSize = Services_.size();
 								Services_[PrivateEndPoint] = ServiceInfo;
+								auto CurrentSize = Services_.size();
 								if(Event == KafkaTopics::ServiceEvents::EVENT_JOIN) {
-                                    poco_information(
-										BusLogger,
-										fmt::format(
-											"Service {} ID={} is joining the system. old={}",
-											Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
-												.toString(),
-											ID, s1));
+									if(!s1.empty()) {
+										poco_information(
+											BusLogger,
+											fmt::format(
+												"Service {} ID={} is joining the system.",
+												Object
+													->get(
+														KafkaTopics::ServiceEvents::Fields::PRIVATE)
+													.toString(),
+												ID));
+									}
 									std::string SvcList;
 									for (const auto &Svc : Services_) {
 										if (SvcList.empty())
@@ -118,6 +124,15 @@ namespace OpenWifi {
 									poco_information(
 										BusLogger,
 										fmt::format("Current list of microservices: {}", SvcList));
+								} else if(CurrentSize!=PreviousSize) {
+									poco_information(
+										BusLogger,
+										fmt::format(
+											"Service {} ID={} is being added back in.",
+											Object
+												->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
+												.toString(),
+											ID));
 								}
 							}
 						} else {
