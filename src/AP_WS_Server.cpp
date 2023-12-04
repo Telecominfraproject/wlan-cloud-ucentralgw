@@ -222,6 +222,7 @@ namespace OpenWifi {
 				int waits = 0;
 				for(int hashIndex=0;hashIndex<MACHash::HashMax();hashIndex++) {
 					last_zombie_run = now;
+					waits = 0;
 					while(true) {
 						if (SerialNumbersMutex_[hashIndex].try_lock()) {
 							waits = 0;
@@ -268,8 +269,8 @@ namespace OpenWifi {
 
 				poco_information(Logger(), fmt::format("Garbage collecting zombies... (step 2)"));
 				LeftOverSessions_ = 0;
-				waits = 0 ;
 				for(int i=0;i<SessionHash::HashMax();i++) {
+					waits = 0 ;
 					while (true) {
 						if (SessionMutex_[i].try_lock()) {
 							waits = 0;
