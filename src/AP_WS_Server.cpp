@@ -217,98 +217,110 @@ namespace OpenWifi {
 			uint64_t total_connected_time = 0, now = Utils::Now();
 
 			if(now-last_zombie_run > 60) {
-				poco_information(Logger(), fmt::format("Garbage collecting zombies... (step 1)"));
-				std::vector<std::uint64_t> SessionsToRemove;
-				NumberOfConnectedDevices_ = 0;
-				NumberOfConnectingDevices_ = 0;
-				AverageDeviceConnectionTime_ = 0;
-				int waits = 0;
-				for(int hashIndex=0;hashIndex<MACHash::HashMax();hashIndex++) {
-					last_zombie_run = now;
-					waits = 0;
-					while(true) {
-						if (SerialNumbersMutex_[hashIndex].try_lock()) {
-							waits = 0;
-							auto RightNow = Utils::Now();
-							auto hint = SerialNumbers_[hashIndex].begin();
-							while (hint != end(SerialNumbers_[hashIndex])) {
+				try {
+					poco_information(Logger(),
+									 fmt::format("Garbage collecting zombies... (step 1)"));
+					std::vector<std::uint64_t> SessionsToRemove;
+					NumberOfConnectedDevices_ = 0;
+					NumberOfConnectingDevices_ = 0;
+					AverageDeviceConnectionTime_ = 0;
+					int waits = 0;
+					for (int hashIndex = 0; hashIndex < MACHash::HashMax(); hashIndex++) {
+						last_zombie_run = now;
+						waits = 0;
+						while (true) {
+							if (SerialNumbersMutex_[hashIndex].try_lock()) {
+								waits = 0;
+								auto RightNow = Utils::Now();
+								auto hint = SerialNumbers_[hashIndex].begin();
+								while (hint != end(SerialNumbers_[hashIndex])) {
 
-								if (hint->second == nullptr) {
-									hint = SerialNumbers_[hashIndex].erase(hint);
-									continue;
-								}
-								auto Device = hint->second;
-								std::lock_guard DeviceGuard(Device->ConnectionMutex_);
-								if (RightNow > Device->LastContact_ &&
-									(RightNow - Device->LastContact_) > SessionTimeOut_) {
-									poco_information(Logger(),
-													 fmt::format("{}: Session seems idle. Controller disconnecting device.",
-																 Device->SerialNumber_));
-									hint = SerialNumbers_[hashIndex].erase(hint);
-									continue;
-								}
+									if (hint->second == nullptr) {
+										hint = SerialNumbers_[hashIndex].erase(hint);
+										continue;
+									}
+									auto Device = hint->second;
+									std::lock_guard DeviceGuard(Device->ConnectionMutex_);
+									if (RightNow > Device->LastContact_ &&
+										(RightNow - Device->LastContact_) > SessionTimeOut_) {
+										poco_information(
+											Logger(),
+											fmt::format("{}: Session seems idle. Controller disconnecting device.",
+														Device->SerialNumber_));
+										hint = SerialNumbers_[hashIndex].erase(hint);
+										continue;
+									}
 
-								if (Device->State_.Connected) {
-									NumberOfConnectedDevices_++;
-									total_connected_time += (RightNow - Device->State_.started);
+									if (Device->State_.Connected) {
+										NumberOfConnectedDevices_++;
+										total_connected_time += (RightNow - Device->State_.started);
+										++hint;
+										continue;
+									}
+									//	Device must be in connecting state: established a ws connection but has not sent in a connect message.
+									++NumberOfConnectingDevices_;
 									++hint;
-									continue;
 								}
-								//	Device must be in connecting state: established a ws connection but has not sent in a connect message.
-								++NumberOfConnectingDevices_;
-								++hint;
+								SerialNumbersMutex_[hashIndex].unlock();
+								break;
+							} else if (waits < 5) {
+								waits++;
+								std::this_thread::sleep_for(std::chrono::milliseconds(10));
+							} else {
+								break;
 							}
-							SerialNumbersMutex_[hashIndex].unlock();
-							break;
-						} else if (waits < 5) {
-							waits++;
-							std::this_thread::sleep_for(std::chrono::milliseconds(10));
-						} else {
-							break;
 						}
 					}
 
-				}
-
-				poco_information(Logger(), fmt::format("Garbage collecting zombies... (step 2)"));
-				LeftOverSessions_ = 0;
-				for(int i=0;i<SessionHash::HashMax();i++) {
-					waits = 0 ;
-					while (true) {
-						if (SessionMutex_[i].try_lock()) {
-							waits = 0;
-							auto hint = Sessions_[i].begin();
-							auto RightNow = Utils::Now();
-							while (hint != end(Sessions_[i])) {
-								if (hint->second == nullptr) {
-									hint = Sessions_[i].erase(hint);
-								} else if (RightNow > hint->second->LastContact_ &&
-										   (RightNow - hint->second->LastContact_) >
-											   SessionTimeOut_) {
-									poco_information(Logger(),
-													 fmt::format("{}: Session seems idle. Controller disconnecting device.",
-																 hint->second->SerialNumber_));
-									hint = Sessions_[i].erase(hint);
-								} else {
-									++LeftOverSessions_;
-									++hint;
+					poco_information(Logger(),
+									 fmt::format("Garbage collecting zombies... (step 2)"));
+					LeftOverSessions_ = 0;
+					for (int i = 0; i < SessionHash::HashMax(); i++) {
+						waits = 0;
+						while (true) {
+							if (SessionMutex_[i].try_lock()) {
+								waits = 0;
+								auto hint = Sessions_[i].begin();
+								auto RightNow = Utils::Now();
+								while (hint != end(Sessions_[i])) {
+									if (hint->second == nullptr) {
+										hint = Sessions_[i].erase(hint);
+									} else if (RightNow > hint->second->LastContact_ &&
+											   (RightNow - hint->second->LastContact_) >
+												   SessionTimeOut_) {
+										poco_information(
+											Logger(),
+											fmt::format("{}: Session seems idle. Controller disconnecting device.",
+														hint->second->SerialNumber_));
+										hint = Sessions_[i].erase(hint);
+									} else {
+										++LeftOverSessions_;
+										++hint;
+									}
 								}
+								SessionMutex_[i].unlock();
+								break;
+							} else if (waits < 5) {
+								std::this_thread::sleep_for(std::chrono::milliseconds(10));
+								waits++;
+							} else {
+								break;
 							}
-							SessionMutex_[i].unlock();
-							break;
-						}  else if (waits<5){
-							std::this_thread::sleep_for(std::chrono::milliseconds(10));
-							waits++;
-						} else {
-							break;
 						}
 					}
-				}
 
-				AverageDeviceConnectionTime_ =
-					NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_
-												  : 0;
-				poco_information(Logger(), fmt::format("Garbage collecting zombies done..."));
+					AverageDeviceConnectionTime_ =
+						NumberOfConnectedDevices_ > 0
+							? total_connected_time / NumberOfConnectedDevices_
+							: 0;
+					poco_information(Logger(), fmt::format("Garbage collecting zombies done..."));
+				} catch (const Poco::Exception &E) {
+					poco_error(Logger(), fmt::format("Poco::Exception: Garbage collecting zombies failed: {}", E.displayText()));
+				} catch (const std::exception &E) {
+					poco_error(Logger(), fmt::format("std::exception: Garbage collecting zombies failed: {}", E.what()));
+				} catch (...) {
+					poco_error(Logger(), fmt::format("exception:Garbage collecting zombies failed: {}", "unknown"));
+				}
 
 			} else {
 				NumberOfConnectedDevices_=0;
