@@ -201,7 +201,6 @@ namespace OpenWifi {
 		Poco::JWT::Signer Signer_;
 		Poco::Logger &Logger_;
 		Poco::ThreadPool TimerPool_{"timer:pool", 2, 32};
-		std::unique_ptr<EventBusManager> EventBusManager_;
 	};
 
 	inline MicroService *MicroService::instance_ = nullptr;

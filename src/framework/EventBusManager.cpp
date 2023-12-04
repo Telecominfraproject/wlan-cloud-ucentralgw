@@ -9,8 +9,6 @@
 
 namespace OpenWifi {
 
-	EventBusManager::EventBusManager(Poco::Logger &L) : Logger_(L) {}
-
 	void EventBusManager::run() {
 		Running_ = true;
 		Utils::SetThreadName("fmwk:EventMgr");

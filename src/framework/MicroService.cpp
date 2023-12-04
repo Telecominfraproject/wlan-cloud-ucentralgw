@@ -48,8 +48,8 @@ namespace OpenWifi {
 										  const std::string &Payload) {
 		std::lock_guard G(InfraMutex_);
 
-		Poco::Logger &BusLogger = Poco::Logger::create(
-			"BusMessageReceived", Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel());
+		Poco::Logger &BusLogger = EventBusManager()->Logger();
+
 		try {
 			Poco::JSON::Parser P;
 			auto Object = P.parse(Payload).extract<Poco::JSON::Object::Ptr>();
@@ -552,14 +552,12 @@ namespace OpenWifi {
 		for (auto i : SubSystems_) {
 			i->Start();
 		}
-		EventBusManager_ = std::make_unique<EventBusManager>(Poco::Logger::create(
-			"EventBusManager", Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
-		EventBusManager_->Start();
+		EventBusManager()->Start();
 	}
 
 	void MicroService::StopSubSystemServers() {
 		AddActivity("Stopping");
-		EventBusManager_->Stop();
+		EventBusManager()->Stop();
 		for (auto i = SubSystems_.rbegin(); i != SubSystems_.rend(); ++i) {
 			(*i)->Stop();
 		}
