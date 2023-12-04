@@ -167,6 +167,9 @@ namespace OpenWifi {
 					WebServerHttpParams);
 				WebServers_.push_back(std::move(NewWebServer));
 			}
+
+			KafkaDisableState_ = MicroServiceConfigGetBool("openwifi.kafka.disablestate", false);
+			KafkaDisableHealthChecks_ = MicroServiceConfigGetBool("openwifi.kafka.disablehealthchecks", false);
 		}
 
 		for (auto &server : WebServers_) {

@@ -3,6 +3,7 @@
 //
 
 #include "AP_WS_Connection.h"
+#include "AP_WS_Server.h"
 #include "StorageService.h"
 
 #include "fmt/format.h"
@@ -55,7 +56,7 @@ namespace OpenWifi {
 			}
 
 			SetLastHealthCheck(Check);
-			if (KafkaManager()->Enabled()) {
+			if (KafkaManager()->Enabled() && !AP_WS_Server()->KafkaDisableHealthChecks()) {
 				KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, *ParamsObj);
 			}
 		} else {

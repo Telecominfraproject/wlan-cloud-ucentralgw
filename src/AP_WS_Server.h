@@ -192,6 +192,8 @@ namespace OpenWifi {
 			RX = RX_;
 		}
 
+		bool KafkaDisableState() const { return KafkaDisableState_; }
+		bool KafkaDisableHealthChecks() const { return KafkaDisableHealthChecks_; }
 
 	  private:
 		std::array<std::mutex,SessionHashMax> 			SessionMutex_;
@@ -222,6 +224,9 @@ namespace OpenWifi {
 		std::uint64_t 			SessionTimeOut_ = 10*60;
 		std::uint64_t 			LeftOverSessions_ = 0;
 		std::atomic_uint64_t 	TX_=0,RX_=0;
+
+		std::atomic_bool 		KafkaDisableState_=false,
+						 		KafkaDisableHealthChecks_=false;
 
 		Poco::Thread 			GarbageCollector_;
 
