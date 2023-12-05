@@ -89,6 +89,19 @@ namespace OpenWifi {
 											  State_.sessionId));
 	}
 
+	static void NotifyKafkaDisconnect(const std::string &SerialNumber, std::uint64_t uuid) {
+		try {
+			Poco::JSON::Object Disconnect;
+			Poco::JSON::Object Details;
+			Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber);
+			Details.set(uCentralProtocol::TIMESTAMP, Utils::Now());
+			Details.set(uCentralProtocol::UUID,uuid);
+			Disconnect.set(uCentralProtocol::DISCONNECTION, Details);
+			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber, Disconnect);
+		} catch (...) {
+		}
+	}
+
 	void AP_WS_Connection::EndConnection(bool Clean) {
 		bool expectedValue=false;
 		if (Dead_.compare_exchange_strong(expectedValue,true,std::memory_order_release,std::memory_order_relaxed)) {
@@ -113,8 +126,15 @@ namespace OpenWifi {
 			WS_->close();
 
 			if(!SerialNumber_.empty()) {
-				std::thread	Cleanup(DeviceDisconnectionCleanup,SerialNumber_, uuid_);
-				Cleanup.detach();
+//				std::thread	Cleanup(DeviceDisconnectionCleanup,SerialNumber_, uuid_);
+//				Cleanup.detach();
+				if (KafkaManager()->Enabled()) {
+					NotifyKafkaDisconnect(SerialNumber_, uuid_);
+				}
+				RADIUSSessionTracker()->DeviceDisconnect(SerialNumber_);
+				GWWebSocketNotifications::SingleDevice_t N;
+				N.content.serialNumber = SerialNumber_;
+				GWWebSocketNotifications::DeviceDisconnected(N);
 			}
 
 			if(Clean)
@@ -270,19 +290,6 @@ namespace OpenWifi {
 		}
 		EndConnection();
 		return false;
-	}
-
-	static void NotifyKafkaDisconnect(const std::string &SerialNumber, std::uint64_t uuid) {
-		try {
-			Poco::JSON::Object Disconnect;
-			Poco::JSON::Object Details;
-			Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber);
-			Details.set(uCentralProtocol::TIMESTAMP, Utils::Now());
-			Details.set(uCentralProtocol::UUID,uuid);
-			Disconnect.set(uCentralProtocol::DISCONNECTION, Details);
-			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber, Disconnect);
-		} catch (...) {
-		}
 	}
 
 	void AP_WS_Connection::DeviceDisconnectionCleanup(const std::string &SerialNumber, std::uint64_t uuid) {
