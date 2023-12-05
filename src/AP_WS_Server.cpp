@@ -206,19 +206,22 @@ namespace OpenWifi {
 				 last_zombie_run = 0,
 				 last_garbage_run = 0;
 
+		Poco::Logger &LocalLogger = Poco::Logger::create(
+			"WS-Session-Janitor", Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel());
+
 		while(Running_) {
 
 			if(!Poco::Thread::trySleep(30000)) {
 				break;
 			}
 
-			Logger().information(fmt::format("Garbage collecting starting run."	));
+			LocalLogger.information(fmt::format("Garbage collecting starting run."	));
 
 			uint64_t total_connected_time = 0, now = Utils::Now();
 
 			if(now-last_zombie_run > 60) {
 				try {
-					poco_information(Logger(),
+					poco_information(LocalLogger,
 									 fmt::format("Garbage collecting zombies... (step 1)"));
 					std::vector<std::uint64_t> SessionsToRemove;
 					NumberOfConnectedDevices_ = 0;
@@ -244,7 +247,7 @@ namespace OpenWifi {
 									if (RightNow > Device->LastContact_ &&
 										(RightNow - Device->LastContact_) > SessionTimeOut_) {
 										poco_information(
-											Logger(),
+											LocalLogger,
 											fmt::format("{}: Session seems idle. Controller disconnecting device.",
 														Device->SerialNumber_));
 										hint = SerialNumbers_[hashIndex].erase(hint);
@@ -272,7 +275,7 @@ namespace OpenWifi {
 						}
 					}
 
-					poco_information(Logger(),
+					poco_information(LocalLogger,
 									 fmt::format("Garbage collecting zombies... (step 2)"));
 					LeftOverSessions_ = 0;
 					for (int i = 0; i < SessionHash::HashMax(); i++) {
@@ -289,7 +292,7 @@ namespace OpenWifi {
 											   (RightNow - hint->second->LastContact_) >
 												   SessionTimeOut_) {
 										poco_information(
-											Logger(),
+											LocalLogger,
 											fmt::format("{}: Session seems idle. Controller disconnecting device.",
 														hint->second->SerialNumber_));
 										hint = Sessions_[i].erase(hint);
@@ -313,13 +316,13 @@ namespace OpenWifi {
 						NumberOfConnectedDevices_ > 0
 							? total_connected_time / NumberOfConnectedDevices_
 							: 0;
-					poco_information(Logger(), fmt::format("Garbage collecting zombies done..."));
+					poco_information(LocalLogger, fmt::format("Garbage collecting zombies done..."));
 				} catch (const Poco::Exception &E) {
-					poco_error(Logger(), fmt::format("Poco::Exception: Garbage collecting zombies failed: {}", E.displayText()));
+					poco_error(LocalLogger, fmt::format("Poco::Exception: Garbage collecting zombies failed: {}", E.displayText()));
 				} catch (const std::exception &E) {
-					poco_error(Logger(), fmt::format("std::exception: Garbage collecting zombies failed: {}", E.what()));
+					poco_error(LocalLogger, fmt::format("std::exception: Garbage collecting zombies failed: {}", E.what()));
 				} catch (...) {
-					poco_error(Logger(), fmt::format("exception:Garbage collecting zombies failed: {}", "unknown"));
+					poco_error(LocalLogger, fmt::format("exception:Garbage collecting zombies failed: {}", "unknown"));
 				}
 
 			} else {
@@ -339,7 +342,7 @@ namespace OpenWifi {
 
 			if ((now - last_log) > 60) {
 				last_log = now;
-				poco_information(Logger(),
+				poco_information(LocalLogger,
 								 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds. Left Over Sessions: {}",
 											 NumberOfConnectedDevices_, NumberOfConnectingDevices_,
 											 AverageDeviceConnectionTime_, LeftOverSessions_));
@@ -361,10 +364,10 @@ namespace OpenWifi {
 			FullEvent.set("payload", KafkaNotification);
 
 			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
-			Logger().information(fmt::format("Garbage collection finished run."	));
+			LocalLogger.information(fmt::format("Garbage collection finished run."	));
 			last_garbage_run = now;
 		}
-		Logger().information(fmt::format("Garbage collector done for the day."	));
+		LocalLogger.information(fmt::format("Garbage collector done for the day."	));
 	}
 
 	void AP_WS_Server::Stop() {

@@ -201,7 +201,7 @@ namespace OpenWifi {
 		using SerialNumberMap = std::map<uint64_t /* serial number */,
 										 std::shared_ptr<AP_WS_Connection>>;
 		std::array<SerialNumberMap,MACHashMax>			SerialNumbers_;
-		mutable std::array<std::mutex,MACHashMax>		SerialNumbersMutex_;
+		mutable std::array<std::recursive_mutex,MACHashMax>		SerialNumbersMutex_;
 
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>> WebServers_;
