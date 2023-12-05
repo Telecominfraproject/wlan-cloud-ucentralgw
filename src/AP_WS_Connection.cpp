@@ -126,15 +126,7 @@ namespace OpenWifi {
 			WS_->close();
 
 			if(!SerialNumber_.empty()) {
-//				std::thread	Cleanup(DeviceDisconnectionCleanup,SerialNumber_, uuid_);
-//				Cleanup.detach();
-				if (KafkaManager()->Enabled()) {
-					NotifyKafkaDisconnect(SerialNumber_, uuid_);
-				}
-				RADIUSSessionTracker()->DeviceDisconnect(SerialNumber_);
-				GWWebSocketNotifications::SingleDevice_t N;
-				N.content.serialNumber = SerialNumber_;
-				GWWebSocketNotifications::DeviceDisconnected(N);
+				DeviceDisconnectionCleanup(SerialNumber_, uuid_);
 			}
 
 			if(Clean)
