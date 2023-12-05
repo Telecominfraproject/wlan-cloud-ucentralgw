@@ -223,7 +223,6 @@ namespace OpenWifi {
 				try {
 					poco_information(LocalLogger,
 									 fmt::format("Garbage collecting zombies... (step 1)"));
-					std::vector<std::uint64_t> SessionsToRemove;
 					NumberOfConnectedDevices_ = 0;
 					NumberOfConnectingDevices_ = 0;
 					AverageDeviceConnectionTime_ = 0;
@@ -234,7 +233,6 @@ namespace OpenWifi {
 						while (true) {
 							if (SerialNumbersMutex_[hashIndex].try_lock()) {
 								waits = 0;
-								auto RightNow = Utils::Now();
 								auto hint = SerialNumbers_[hashIndex].begin();
 								while (hint != end(SerialNumbers_[hashIndex])) {
 
@@ -244,24 +242,25 @@ namespace OpenWifi {
 										continue;
 									}
 									auto Device = hint->second;
-									std::lock_guard DeviceGuard(Device->ConnectionMutex_);
-									if (RightNow > Device->LastContact_ &&
-										(RightNow - Device->LastContact_) > SessionTimeOut_) {
-										poco_information(
-											LocalLogger,
-											fmt::format("{}: Session seems idle. Controller disconnecting device.",
-														Device->SerialNumber_));
-										hint = SerialNumbers_[hashIndex].erase(hint);
-										continue;
+									if(Device->ConnectionMutex_.try_lock()) {
+										auto RightNow = Utils::Now();
+										if (RightNow > Device->LastContact_ &&
+											(RightNow - Device->LastContact_) > SessionTimeOut_) {
+											poco_information(
+												LocalLogger,
+												fmt::format("{}: Session seems idle. Controller disconnecting device.",
+															Device->SerialNumber_));
+											hint = SerialNumbers_[hashIndex].erase(hint);
+										} else if (Device->State_.Connected) {
+											NumberOfConnectedDevices_++;
+											total_connected_time +=
+												(RightNow - Device->State_.started);
+											++hint;
+										} else {
+											++hint;
+										}
+										Device->ConnectionMutex_.unlock();
 									}
-
-									if (Device->State_.Connected) {
-										NumberOfConnectedDevices_++;
-										total_connected_time += (RightNow - Device->State_.started);
-										++hint;
-										continue;
-									}
-									//	Device must be in connecting state: established a ws connection but has not sent in a connect message.
 									++NumberOfConnectingDevices_;
 									++hint;
 								}
