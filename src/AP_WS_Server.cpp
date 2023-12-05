@@ -239,7 +239,8 @@ namespace OpenWifi {
 								while (hint != end(SerialNumbers_[hashIndex])) {
 
 									if (hint->second == nullptr) {
-										hint = SerialNumbers_[hashIndex].erase(hint);
+										// hint = SerialNumbers_[hashIndex].erase(hint);
+										hint++;
 										continue;
 									}
 									auto Device = hint->second;
