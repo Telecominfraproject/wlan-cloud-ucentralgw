@@ -260,6 +260,7 @@ namespace OpenWifi {
 											++hint;
 										}
 										Device->ConnectionMutex_.unlock();
+										continue;
 									} else {
 										poco_warning(LocalLogger, fmt::format("Could not lock device mutex for {}",
 																			   Device->SerialNumber_));
