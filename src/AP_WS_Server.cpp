@@ -237,6 +237,9 @@ namespace OpenWifi {
 								while (hint != end(SerialNumbers_[hashIndex])) {
 
 									if (hint->second == nullptr) {
+										poco_information(
+											LocalLogger,
+											fmt::format("Dead device found in hash index {}", hashIndex));
 										// hint = SerialNumbers_[hashIndex].erase(hint);
 										hint++;
 										continue;
