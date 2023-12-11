@@ -129,6 +129,9 @@ namespace OpenWifi {
 		return RetrieveApiKeyInformation(SessionToken, UInfo, TID, Expired, Contacted, Suspended);
 	}
 
+	/**
+	 * Given a role, remove the cached user info for any user with that role
+	*/
 	void AuthClient::EmptyCacheForRole(const std::string &role) {
 		SecurityObjects::USER_ROLE roleEnum = SecurityObjects::UserTypeFromString(role);
 		Poco::JSON::Object::ConstIterator it;
