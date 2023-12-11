@@ -61,6 +61,8 @@ namespace OpenWifi {
 						   SecurityObjects::UserInfoAndPolicy &UInfo, std::uint64_t TID,
 						   bool &Expired, bool &Contacted, bool &Suspended);
 
+		void EmptyCacheForRole(const std::string &role);
+
 	  private:
 		Poco::ExpireLRUCache<std::string, OpenWifi::SecurityObjects::UserInfoAndPolicy> Cache_{
 			512, 1200000};

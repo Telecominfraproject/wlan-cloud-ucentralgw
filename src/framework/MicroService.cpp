@@ -122,6 +122,15 @@ namespace OpenWifi {
 								logger(),
 								fmt::format("KAFKA-MSG: invalid event '{}', missing token", Event));
 						}
+					} else if (Event == KafkaTopics::ServiceEvents::EVENT_PERMISSIONS_UPDATE) {
+							if (Object->has(KafkaTopics::ServiceEvents::Fields::ROLE)) {
+								AuthClient()->EmptyCacheForRole(
+									Object->get(KafkaTopics::ServiceEvents::Fields::ROLE).toString());
+							} else {
+								poco_information(
+									logger(),
+									fmt::format("KAFKA-MSG: invalid event '{}', missing role", Event));
+							}
 					} else {
 						poco_error(logger(),
 								   fmt::format("Unknown Event: {} Source: {}", Event, ID));

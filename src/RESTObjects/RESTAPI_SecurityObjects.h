@@ -15,6 +15,8 @@
 #include "framework/utils.h"
 #include <string>
 #include <type_traits>
+#include <iostream>
+#include <fstream>
 
 namespace OpenWifi {
 	uint64_t Now();
@@ -125,6 +127,11 @@ namespace OpenWifi {
 			bool from_json(const Poco::JSON::Object::Ptr &Obj);
 		};
 
+		typedef std::map<std::string, bool> ModelPermissionMap;
+		typedef std::map<std::string, ModelPermissionMap> PermissionMap;
+		Poco::JSON::Object permissions_to_json(const SecurityObjects::PermissionMap &Map);
+		PermissionMap permissions_from_json(const Poco::JSON::Object::Ptr &Obj);
+
 		struct UserInfo {
 			std::string id;
 			std::string name;
@@ -149,6 +156,7 @@ namespace OpenWifi {
 			bool suspended = false;
 			bool blackListed = false;
 			USER_ROLE userRole;
+			PermissionMap userPermissions;
 			UserLoginLoginExtensions userTypeProprietaryInfo;
 			std::string securityPolicy;
 			uint64_t securityPolicyChange = 0;
