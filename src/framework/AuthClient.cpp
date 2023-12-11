@@ -129,4 +129,23 @@ namespace OpenWifi {
 		return RetrieveApiKeyInformation(SessionToken, UInfo, TID, Expired, Contacted, Suspended);
 	}
 
+	void AuthClient::EmptyCacheForRole(const std::string &role) {
+		SecurityObjects::USER_ROLE roleEnum = SecurityObjects::UserTypeFromString(role);
+		Poco::JSON::Object::ConstIterator it;
+		std::set<std::string> tokens = Cache_.getAllKeys();
+		for(const std::string &token : tokens) {
+			auto UInfo = Cache_.get(token);
+			if (UInfo->userinfo.userRole == roleEnum) {
+				Cache_.remove(token);
+			}
+		}
+
+		tokens = ApiKeyCache_.getAllKeys();
+		for(const std::string &token : tokens) {
+			auto UInfo = ApiKeyCache_.get(token);
+			if (UInfo->UserInfo.userinfo.userRole == roleEnum) {
+				ApiKeyCache_.remove(token);
+			}
+		}
+	}
 } // namespace OpenWifi

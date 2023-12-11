@@ -12,6 +12,8 @@
 #include "RESTAPI_SecurityObjects.h"
 #include "framework/RESTAPI_utils.h"
 
+#include <stdlib.h>
+
 using OpenWifi::RESTAPI_utils::field_from_json;
 using OpenWifi::RESTAPI_utils::field_to_json;
 
@@ -282,6 +284,7 @@ namespace OpenWifi::SecurityObjects {
 		field_to_json(Obj, "oauthUserInfo", oauthUserInfo);
 		field_to_json(Obj, "modified", modified);
 		field_to_json(Obj, "signingUp", signingUp);
+		Obj.set("userPermissions", permissions_to_json(userPermissions));
 	};
 
 	bool UserInfo::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -318,6 +321,7 @@ namespace OpenWifi::SecurityObjects {
 			field_from_json(Obj, "oauthUserInfo", oauthUserInfo);
 			field_from_json(Obj, "modified", modified);
 			field_from_json(Obj, "signingUp", signingUp);
+			userPermissions = permissions_from_json(Obj->getObject("userPermissions"));
 			return true;
 		} catch (const Poco::Exception &E) {
 			std::cout << "Cannot parse: UserInfo" << std::endl;
@@ -737,4 +741,34 @@ namespace OpenWifi::SecurityObjects {
         return false;
     }
 
+	Poco::JSON::Object permissions_to_json(const PermissionMap &Map) {
+		Poco::JSON::Object MapObj;
+		for (auto &[Model, Permissions] : Map) {
+			Poco::JSON::Object ModelObject;
+			for (auto &[Permission, Allowed] : Permissions) {
+				ModelObject.set(Permission, Allowed);
+			}
+			MapObj.set(Model, ModelObject);
+		}
+		return MapObj;
+	}
+
+	PermissionMap permissions_from_json(const Poco::JSON::Object::Ptr &Obj) {
+		PermissionMap permissions;
+		if (Obj == nullptr) {
+			return permissions;
+		}
+		Poco::JSON::Object::ConstIterator it1;
+		for(it1 = Obj->begin(); it1 != Obj->end(); it1++) {
+			std::string model = it1->first;
+			Poco::JSON::Object::Ptr modelObj = it1->second.extract<Poco::JSON::Object::Ptr>();
+			Poco::JSON::Object::ConstIterator it2;
+			for(it2 = modelObj->begin(); it2 != modelObj->end(); it2++) {
+				std::string permission = it2->first;
+				bool allowed = it2->second;
+				permissions[model][permission] = allowed;
+			}
+		}
+		return permissions;
+	}
 } // namespace OpenWifi::SecurityObjects
