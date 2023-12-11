@@ -124,6 +124,7 @@ namespace OpenWifi {
 						}
 					} else if (Event == KafkaTopics::ServiceEvents::EVENT_PERMISSIONS_UPDATE) {
 							if (Object->has(KafkaTopics::ServiceEvents::Fields::ROLE)) {
+								// Permissions of this role have updated, cached user info is now invalid
 								AuthClient()->EmptyCacheForRole(
 									Object->get(KafkaTopics::ServiceEvents::Fields::ROLE).toString());
 							} else {
