@@ -304,6 +304,7 @@ namespace OpenWifi {
 		uint64_t GoodConfig = ConfigurationCache().CurrentConfig(SerialNumberInt_);
 		if (GoodConfig && (GoodConfig == UUID || GoodConfig == State_.PendingUUID)) {
 			UpgradedUUID = UUID;
+			std::cout << "CFG: " << SerialNumber_ << ": " << __LINE__ << std::endl;
 			return false;
 		}
 
@@ -314,6 +315,7 @@ namespace OpenWifi {
 				//	so we sent an upgrade to a device, and now it is completing now...
 				UpgradedUUID = D.pendingUUID;
 				StorageService()->CompleteDeviceConfigurationChange(Session, SerialNumber_);
+				std::cout << "CFG: " << SerialNumber_ << ": " << __LINE__ << std::endl;
 				return true;
 			}
 
@@ -322,6 +324,7 @@ namespace OpenWifi {
 			if (D.UUID == UUID) {
 				UpgradedUUID = UUID;
 				ConfigurationCache().Add(SerialNumberInt_, UUID);
+				std::cout << "CFG: " << SerialNumber_ << ": " << __LINE__ << std::endl;
 				return false;
 			}
 
@@ -358,12 +361,14 @@ namespace OpenWifi {
 							 fmt::format("CFG-UPGRADE({}): Current ID: {}, newer configuration {}.",
 										 CId_, UUID, D.UUID));
 			bool Sent;
+			std::cout << "CFG: " << SerialNumber_ << ": " << __LINE__ << std::endl;
 
 			StorageService()->AddCommand(SerialNumber_, Cmd,
 										 Storage::CommandExecutionType::COMMAND_EXECUTED);
 			CommandManager()->PostCommand(
 				CommandManager()->Next_RPC_ID(), APCommands::to_apcommand(Cmd.Command.c_str()),
 				SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent, false, false);
+			std::cout << "CFG: " << SerialNumber_ << ": " << __LINE__ << std::endl;
 
 			GWWebSocketNotifications::SingleDeviceConfigurationChange_t Notification;
 			Notification.content.serialNumber = D.SerialNumber;
