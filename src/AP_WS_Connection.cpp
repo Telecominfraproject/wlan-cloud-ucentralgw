@@ -297,6 +297,7 @@ namespace OpenWifi {
 	bool AP_WS_Connection::LookForUpgrade(Poco::Data::Session &Session, const uint64_t UUID, uint64_t &UpgradedUUID) {
 
 		//	A UUID of zero means ignore updates for that connection.
+		std::cout << "CFG: " << SerialNumber_ << ": " << __LINE__ << std::endl;
 		if (UUID == 0)
 			return false;
 
