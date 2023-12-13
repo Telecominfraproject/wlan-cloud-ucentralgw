@@ -99,7 +99,7 @@ namespace OpenWifi {
 				Restrictions_.from_json(RestrictionObject);
 			}
 
-			if (Capabilities->has("developer")) {
+			if (Capabilities->has("developer") && !Capabilities->isNull("developer")) {
 				Restrictions_.developer = Capabilities->getValue<bool>("developer");
 			}
 
