@@ -177,15 +177,6 @@ namespace OpenWifi {
 		} else {
 			session_hint->second->lastTransaction = Utils::Now();
 		}
-
-/*
-		if(ap_hint!=AccountingSessions_.end()) {
-			std::cout << "Auth table:" << std::endl;
-			for(const auto &session:ap_hint->second) {
-				std::cout << Notification.SerialNumber_ << ":  Index: " << session.first << ": ID: " << session.second->accountingSessionId << "  MID:" << session.second->accountingMultiSessionId << std::endl;
-			}
-		}
-*/
 	}
 
 	std::uint32_t GetUiInt32(const std::uint8_t *buf) {

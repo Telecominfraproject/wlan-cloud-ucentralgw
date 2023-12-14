@@ -67,14 +67,12 @@ namespace OpenWifi {
 							 fmt::format("CFG-UPGRADE({}): Current ID: {}, newer configuration {}.",
 										 CId_, UUID, D.UUID));
 			bool Sent;
-			std::cout << "CFG: " << SerialNumber_ << ": " << __LINE__ << std::endl;
 
 			StorageService()->AddCommand(SerialNumber_, Cmd,
 										 Storage::CommandExecutionType::COMMAND_EXECUTED);
 			CommandManager()->PostCommand(
 				CommandManager()->Next_RPC_ID(), APCommands::to_apcommand(Cmd.Command.c_str()),
 				SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent, false, false);
-			std::cout << "CFG: " << SerialNumber_ << ": " << __LINE__ << std::endl;
 
 			GWWebSocketNotifications::SingleDeviceConfigurationChange_t Notification;
 			Notification.content.serialNumber = D.SerialNumber;

@@ -687,11 +687,10 @@ namespace OpenWifi {
 					} else {
 						std::ostringstream iS;
 						IncomingJSON->stringify(iS);
-						std::cout << iS.str() << std::endl;
 						poco_warning(
 							Logger_,
-							fmt::format("FRAME({}): illegal transaction header, missing 'jsonrpc'",
-										CId_));
+							fmt::format("FRAME({}): illegal transaction header, missing 'jsonrpc': {}",
+										CId_, iS.str()));
 						Errors_++;
 					}
 				} break;
