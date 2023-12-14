@@ -27,7 +27,7 @@ namespace OpenWifi {
 	  public:
 		explicit AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
 								  Poco::Net::HTTPServerResponse &response, uint64_t connection_id,
-								  Poco::Logger &L, std::pair<Poco::Net::SocketReactor *, LockedDbSession *> R);
+								  Poco::Logger &L, std::pair<std::shared_ptr<Poco::Net::SocketReactor>, std::shared_ptr<LockedDbSession>> R);
 		~AP_WS_Connection();
 
 		void EndConnection(bool Clean = true);
@@ -115,8 +115,8 @@ namespace OpenWifi {
 		std::recursive_mutex ConnectionMutex_;
 		std::mutex TelemetryMutex_;
 		Poco::Logger &Logger_;
-		Poco::Net::SocketReactor 	*Reactor_{nullptr};
-		LockedDbSession 			*DbSession_{nullptr};
+		std::shared_ptr<Poco::Net::SocketReactor> 	Reactor_;
+		std::shared_ptr<LockedDbSession> 	DbSession_;
 		std::unique_ptr<Poco::Net::WebSocket> WS_;
 		std::string SerialNumber_;
 		uint64_t SerialNumberInt_ = 0;

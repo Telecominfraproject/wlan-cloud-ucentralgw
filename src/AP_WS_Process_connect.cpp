@@ -109,9 +109,9 @@ namespace OpenWifi {
 
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device DeviceInfo;
-			std::lock_guard DbSessionLock(*DbSession_->Mutex);
+			std::lock_guard DbSessionLock(DbSession_->Mutex());
 
-			auto DeviceExists = StorageService()->GetDevice(*DbSession_->Session, SerialNumber_, DeviceInfo);
+			auto DeviceExists = StorageService()->GetDevice(DbSession_->Session(), SerialNumber_, DeviceInfo);
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
 				//	check the firmware version. if this is too old, we cannot let that device connect yet, we must
 				//	force a firmware upgrade
@@ -144,7 +144,7 @@ namespace OpenWifi {
 					}
 					return;
 				} else {
-					StorageService()->CreateDefaultDevice( *DbSession_->Session,
+					StorageService()->CreateDefaultDevice( DbSession_->Session(),
 						SerialNumber_, Caps, Firmware, PeerAddress_,
 						State_.VerifiedCertificate == GWObjects::SIMULATED);
 				}
@@ -153,7 +153,7 @@ namespace OpenWifi {
 				poco_warning(Logger(),fmt::format("Device {} is a {} from {} and cannot be provisioned.",SerialNumber_,Compatible_, CId_));
 				return EndConnection();
 			} else if (DeviceExists) {
-				StorageService()->UpdateDeviceCapabilities(*DbSession_->Session, SerialNumber_, Caps);
+				StorageService()->UpdateDeviceCapabilities(DbSession_->Session(), SerialNumber_, Caps);
 				int Updated{0};
 				if (!Firmware.empty()) {
 					if (Firmware != DeviceInfo.Firmware) {
@@ -225,12 +225,12 @@ namespace OpenWifi {
 				}
 
 				if (Updated) {
-					StorageService()->UpdateDevice(*DbSession_->Session, DeviceInfo);
+					StorageService()->UpdateDevice(DbSession_->Session(), DeviceInfo);
 				}
 
 				if(!Simulated_) {
 					uint64_t UpgradedUUID = 0;
-					LookForUpgrade(*DbSession_->Session, UUID, UpgradedUUID);
+					LookForUpgrade(DbSession_->Session(), UUID, UpgradedUUID);
 					State_.UUID = UpgradedUUID;
 				}
 			}

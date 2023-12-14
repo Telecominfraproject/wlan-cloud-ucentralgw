@@ -41,9 +41,9 @@ namespace OpenWifi {
 
 	bool Storage::AddLog(LockedDbSession &Session, const GWObjects::DeviceLog &Log) {
 		try {
-			std::lock_guard Guard(*Session.Mutex);
-			Session.Session->begin();
-			Poco::Data::Statement Insert(*Session.Session);
+			std::lock_guard Guard(Session.Mutex());
+			Session.Session().begin();
+			Poco::Data::Statement Insert(Session.Session());
 
 			std::string St{"INSERT INTO DeviceLogs (" + DB_LogsSelectFields + ") values( " +
 						   DB_LogsInsertValues + " )"};
@@ -53,7 +53,7 @@ namespace OpenWifi {
 
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
-			Session.Session->commit();
+			Session.Session().commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

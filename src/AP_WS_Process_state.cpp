@@ -40,13 +40,10 @@ namespace OpenWifi {
 												UUID, request_uuid));
 			}
 
-			std::cout << SerialNumber_ << ": " << __LINE__ << std::endl;
-			std::lock_guard	Guard(*DbSession_->Mutex);
+			std::lock_guard	Guard(DbSession_->Mutex());
 			if(!Simulated_) {
-				std::cout << SerialNumber_ << ": " << __LINE__ << std::endl;
 				uint64_t UpgradedUUID;
-				LookForUpgrade(*DbSession_->Session, UUID, UpgradedUUID);
-				std::cout << SerialNumber_ << ": " << __LINE__ << std::endl;
+				LookForUpgrade(DbSession_->Session(), UUID, UpgradedUUID);
 				State_.UUID = UpgradedUUID;
 			}
 
@@ -55,9 +52,7 @@ namespace OpenWifi {
 			GWObjects::Statistics Stats{
 				.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
 			Stats.Recorded = Utils::Now();
-			std::cout << SerialNumber_ << ": " << __LINE__ << std::endl;
-			StorageService()->AddStatisticsData(*DbSession_->Session,Stats);
-			std::cout << SerialNumber_ << ": " << __LINE__ << std::endl;
+			StorageService()->AddStatisticsData(DbSession_->Session(),Stats);
 			if (!request_uuid.empty()) {
 				StorageService()->SetCommandResult(request_uuid, StateStr);
 			}
@@ -66,9 +61,7 @@ namespace OpenWifi {
 											State_.Associations_5G, State_.Associations_6G);
 
 			if (KafkaManager()->Enabled() && !AP_WS_Server()->KafkaDisableState()) {
-				std::cout << SerialNumber_ << ": " << __LINE__ << std::endl;
 				KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, *ParamsObj);
-				std::cout << SerialNumber_ << ": " << __LINE__ << std::endl;
 			}
 
 			GWWebSocketNotifications::SingleDevice_t N;

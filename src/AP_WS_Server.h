@@ -97,7 +97,7 @@ namespace OpenWifi {
 		[[nodiscard]] inline bool UseProvisioning() const { return LookAtProvisioning_; }
 		[[nodiscard]] inline bool UseDefaults() const { return UseDefaultConfig_; }
 		[[nodiscard]] inline bool Running() const { return Running_; }
-		[[nodiscard]] inline std::pair<Poco::Net::SocketReactor *, LockedDbSession *> NextReactor() {
+		[[nodiscard]] inline std::pair<std::shared_ptr<Poco::Net::SocketReactor>, std::shared_ptr<LockedDbSession>> NextReactor() {
 			return Reactor_pool_->NextReactor();
 		}
 

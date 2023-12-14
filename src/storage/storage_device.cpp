@@ -383,8 +383,8 @@ namespace OpenWifi {
 
 	bool Storage::SetDeviceLastRecordedContact(LockedDbSession &Session, std::string &SerialNumber, std::uint64_t lastRecordedContact) {
 		try {
-			std::lock_guard		Lock(*Session.Mutex);
-			return SetDeviceLastRecordedContact(*Session.Session, SerialNumber, lastRecordedContact);
+			std::lock_guard		Lock(Session.Mutex());
+			return SetDeviceLastRecordedContact(Session.Session(), SerialNumber, lastRecordedContact);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -458,8 +458,8 @@ namespace OpenWifi {
 
 	bool Storage::CreateDevice(LockedDbSession &Session, GWObjects::Device &DeviceDetails) {
 		try {
-			std::lock_guard	Lock(*Session.Mutex);
-			return CreateDevice(*Session.Session, DeviceDetails);
+			std::lock_guard	Lock(Session.Mutex());
+			return CreateDevice(Session.Session(), DeviceDetails);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -603,16 +603,16 @@ namespace OpenWifi {
 */
 	bool Storage::SetDevicePassword(LockedDbSession &Sess, std::string &SerialNumber, std::string &Password) {
 		try {
-			std::lock_guard		Lock(*Sess.Mutex);
-			Sess.Session->begin();
+			std::lock_guard		Lock(Sess.Mutex());
+			Sess.Session().begin();
 
-			Poco::Data::Statement Update(*Sess.Session);
+			Poco::Data::Statement Update(Sess.Session());
 			std::string St{"UPDATE Devices SET DevicePassword=?  WHERE SerialNumber=?"};
 
 			Update << ConvertParams(St), Poco::Data::Keywords::use(Password),
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
-			Sess.Session->commit();
+			Sess.Session().commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -741,8 +741,8 @@ namespace OpenWifi {
 
 	bool Storage::GetDevice(LockedDbSession &Session, std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
 		try {
-			std::lock_guard		Lock(*Session.Mutex);
-			return GetDevice(*Session.Session, SerialNumber, DeviceDetails);
+			std::lock_guard		Lock(Session.Mutex());
+			return GetDevice(Session.Session(), SerialNumber, DeviceDetails);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -784,8 +784,8 @@ namespace OpenWifi {
 
 	bool Storage::UpdateDevice(LockedDbSession &Session, GWObjects::Device &NewDeviceDetails) {
 		try {
-			std::lock_guard Lock(*Session.Mutex);
-			return UpdateDevice(*Session.Session, NewDeviceDetails);
+			std::lock_guard Lock(Session.Mutex());
+			return UpdateDevice(Session.Session(), NewDeviceDetails);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}

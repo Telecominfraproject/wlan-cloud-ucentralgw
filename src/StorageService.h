@@ -13,9 +13,24 @@
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "framework/StorageClass.h"
 #include "storage/storage_scripts.h"
-#include <AP_WS_Locked_Session.h>
 
 namespace OpenWifi {
+
+	class LockedDbSession {
+	  public:
+		explicit LockedDbSession();
+		~LockedDbSession() = default;
+		inline std::mutex &Mutex() { return *Mutex_; };
+		inline Poco::Data::Session &Session() {
+			if(!Session_->isConnected()) {
+				Session_->reconnect();
+			}
+			return *Session_;
+		};
+	  private:
+		std::shared_ptr<Poco::Data::Session> 	Session_;
+		std::shared_ptr<std::mutex> 			Mutex_;
+	};
 
 	class Storage : public StorageClass {
 
@@ -279,10 +294,19 @@ namespace OpenWifi {
 		int Start() override;
 		void Stop() override;
 
+		inline Poco::Data::Session	StartSession() {
+			return Pool_->get();
+		}
+
 	  private:
 		std::unique_ptr<OpenWifi::ScriptDB> ScriptDB_;
 	};
 
 	inline auto StorageService() { return Storage::instance(); }
+
+	inline LockedDbSession::LockedDbSession() {
+		Session_ = std::make_shared<Poco::Data::Session>(Poco::Data::Session(StorageService()->StartSession()));
+		Mutex_ = std::make_shared<std::mutex>();
+	}
 
 } // namespace OpenWifi
