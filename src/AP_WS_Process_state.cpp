@@ -3,6 +3,7 @@
 //
 
 #include "AP_WS_Connection.h"
+#include "AP_WS_Server.h"
 #include "StateUtils.h"
 #include "StorageService.h"
 
@@ -39,17 +40,19 @@ namespace OpenWifi {
 												UUID, request_uuid));
 			}
 
+			std::lock_guard	Guard(DbSession_->Mutex());
 			if(!Simulated_) {
 				uint64_t UpgradedUUID;
-				LookForUpgrade(UUID, UpgradedUUID);
+				LookForUpgrade(DbSession_->Session(), UUID, UpgradedUUID);
 				State_.UUID = UpgradedUUID;
 			}
+
 			SetLastStats(StateStr);
 
 			GWObjects::Statistics Stats{
 				.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
 			Stats.Recorded = Utils::Now();
-			StorageService()->AddStatisticsData(Stats);
+			StorageService()->AddStatisticsData(DbSession_->Session(),Stats);
 			if (!request_uuid.empty()) {
 				StorageService()->SetCommandResult(request_uuid, StateStr);
 			}
@@ -57,7 +60,7 @@ namespace OpenWifi {
 			StateUtils::ComputeAssociations(StateObj, State_.Associations_2G,
 											State_.Associations_5G, State_.Associations_6G);
 
-			if (KafkaManager()->Enabled()) {
+			if (KafkaManager()->Enabled() && !AP_WS_Server()->KafkaDisableState()) {
 				KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, *ParamsObj);
 			}
 

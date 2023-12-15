@@ -175,10 +175,12 @@ namespace OpenWifi {
 		}
 
 		if(GetBoolParameter("simulatedDevices",false)) {
-			if(StorageService()->DeleteSimulatedDevice("")) {
-				return OK();
-			}
-			return NotFound();
+			auto F = []() ->void {
+				StorageService()->DeleteSimulatedDevice("");
+			};
+			std::thread T(F);
+			T.detach();
+			return OK();
 		}
 
 		if(!QB_.Select.empty() && !Utils::ValidSerialNumbers(QB_.Select)) {

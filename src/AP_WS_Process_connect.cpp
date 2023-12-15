@@ -71,9 +71,8 @@ namespace OpenWifi {
 
 			CommandManager()->ClearQueue(SerialNumberInt_);
 
-			AP_WS_Server()->SetSessionDetails(State_.sessionId, SerialNumberInt_);
+			AP_WS_Server()->StartSession(State_.sessionId, SerialNumberInt_);
 
-			std::lock_guard Lock(ConnectionMutex_);
 			Config::Capabilities Caps(Capabilities);
 
 			Compatible_ = Caps.Compatible();
@@ -100,36 +99,24 @@ namespace OpenWifi {
 				Restrictions_.from_json(RestrictionObject);
 			}
 
-			if (Capabilities->has("developer")) {
+			if (Capabilities->has("developer") && !Capabilities->isNull("developer")) {
 				Restrictions_.developer = Capabilities->getValue<bool>("developer");
 			}
 
 			if(Capabilities->has("secure-rtty")) {
-				RttyMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
+				RTTYMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
 			}
 
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device DeviceInfo;
-			auto DeviceExists = StorageService()->GetDevice(SerialNumber_, DeviceInfo);
+			std::lock_guard DbSessionLock(DbSession_->Mutex());
+
+			auto DeviceExists = StorageService()->GetDevice(DbSession_->Session(), SerialNumber_, DeviceInfo);
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
 				//	check the firmware version. if this is too old, we cannot let that device connect yet, we must
 				//	force a firmware upgrade
 				GWObjects::DefaultFirmware	MinimumFirmware;
 				if(FirmwareRevisionCache()->DeviceMustUpgrade(Compatible_, Firmware, MinimumFirmware)) {
-/*
-
-					{    "jsonrpc" : "2.0" ,
-						 "method" : "upgrade" ,
-						 "params" : {
-								"serial" : <serial number> ,
-								"when"  : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
-								"uri"   : <URI to download the firmware>,
-								"FWsignature" : <string representation of the signature for the FW> (optional)
-						 },
-						 "id" : <some number>
-					}
-
- */
 					Poco::JSON::Object	UpgradeCommand, Params;
 					UpgradeCommand.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
 					UpgradeCommand.set(uCentralProtocol::METHOD,uCentralProtocol::UPGRADE);
@@ -157,7 +144,7 @@ namespace OpenWifi {
 					}
 					return;
 				} else {
-					StorageService()->CreateDefaultDevice(
+					StorageService()->CreateDefaultDevice( DbSession_->Session(),
 						SerialNumber_, Caps, Firmware, PeerAddress_,
 						State_.VerifiedCertificate == GWObjects::SIMULATED);
 				}
@@ -166,7 +153,7 @@ namespace OpenWifi {
 				poco_warning(Logger(),fmt::format("Device {} is a {} from {} and cannot be provisioned.",SerialNumber_,Compatible_, CId_));
 				return EndConnection();
 			} else if (DeviceExists) {
-				StorageService()->UpdateDeviceCapabilities(SerialNumber_, Caps);
+				StorageService()->UpdateDeviceCapabilities(DbSession_->Session(), SerialNumber_, Caps);
 				int Updated{0};
 				if (!Firmware.empty()) {
 					if (Firmware != DeviceInfo.Firmware) {
@@ -238,12 +225,12 @@ namespace OpenWifi {
 				}
 
 				if (Updated) {
-					StorageService()->UpdateDevice(DeviceInfo);
+					StorageService()->UpdateDevice(DbSession_->Session(), DeviceInfo);
 				}
 
 				if(!Simulated_) {
 					uint64_t UpgradedUUID = 0;
-					LookForUpgrade(UUID, UpgradedUUID);
+					LookForUpgrade(DbSession_->Session(), UUID, UpgradedUUID);
 					State_.UUID = UpgradedUUID;
 				}
 			}

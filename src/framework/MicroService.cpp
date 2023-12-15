@@ -33,9 +33,23 @@ namespace OpenWifi {
 
 	void MicroService::Exit(int Reason) { std::exit(Reason); }
 
+    static std::string MakeServiceListString(const Types::MicroServiceMetaMap &Services) {
+        std::string SvcList;
+        for (const auto &Svc : Services) {
+            if (SvcList.empty())
+                SvcList = Svc.second.Type;
+            else
+                SvcList += ", " + Svc.second.Type;
+        }
+        return SvcList;
+    }
+
 	void MicroService::BusMessageReceived([[maybe_unused]] const std::string &Key,
 										  const std::string &Payload) {
 		std::lock_guard G(InfraMutex_);
+
+		Poco::Logger &BusLogger = EventBusManager()->Logger();
+
 		try {
 			Poco::JSON::Parser P;
 			auto Object = P.parse(Payload).extract<Poco::JSON::Object::Ptr>();
@@ -55,13 +69,10 @@ namespace OpenWifi {
 							Object->has(KafkaTopics::ServiceEvents::Fields::KEY)) {
 							auto PrivateEndPoint =
 								Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString();
-							if (Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE &&
-								Services_.find(PrivateEndPoint) != Services_.end()) {
-								Services_[PrivateEndPoint].LastUpdate = Utils::Now();
-							} else if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
+							if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
 								Services_.erase(PrivateEndPoint);
-								poco_debug(
-									logger(),
+								poco_information(
+									BusLogger,
 									fmt::format(
 										"Service {} ID={} leaving system.",
 										Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
@@ -69,14 +80,7 @@ namespace OpenWifi {
 										ID));
 							} else if (Event == KafkaTopics::ServiceEvents::EVENT_JOIN ||
 									   Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE) {
-								poco_debug(
-									logger(),
-									fmt::format(
-										"Service {} ID={} joining system.",
-										Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
-											.toString(),
-										ID));
-								Services_[PrivateEndPoint] = Types::MicroServiceMeta{
+								auto ServiceInfo = Types::MicroServiceMeta{
 									.Id = ID,
 									.Type = Poco::toLower(
 										Object->get(KafkaTopics::ServiceEvents::Fields::TYPE)
@@ -94,20 +98,46 @@ namespace OpenWifi {
 												   .toString(),
 									.LastUpdate = Utils::Now()};
 
-								std::string SvcList;
-								for (const auto &Svc : Services_) {
-									if (SvcList.empty())
-										SvcList = Svc.second.Type;
-									else
-										SvcList += ", " + Svc.second.Type;
+                                auto s1 = MakeServiceListString(Services_);
+								auto PreviousSize = Services_.size();
+								Services_[PrivateEndPoint] = ServiceInfo;
+								auto CurrentSize = Services_.size();
+								if(Event == KafkaTopics::ServiceEvents::EVENT_JOIN) {
+									if(!s1.empty()) {
+										poco_information(
+											BusLogger,
+											fmt::format(
+												"Service {} ID={} is joining the system.",
+												Object
+													->get(
+														KafkaTopics::ServiceEvents::Fields::PRIVATE)
+													.toString(),
+												ID));
+									}
+									std::string SvcList;
+									for (const auto &Svc : Services_) {
+										if (SvcList.empty())
+											SvcList = Svc.second.Type;
+										else
+											SvcList += ", " + Svc.second.Type;
+									}
+									poco_information(
+										BusLogger,
+										fmt::format("Current list of microservices: {}", SvcList));
+								} else if(CurrentSize!=PreviousSize) {
+									poco_information(
+										BusLogger,
+										fmt::format(
+											"Service {} ID={} is being added back in.",
+											Object
+												->get(KafkaTopics::ServiceEvents::Fields::PRIVATE)
+												.toString(),
+											ID));
 								}
-								poco_information(
-									logger(),
-									fmt::format("Current list of microservices: {}", SvcList));
 							}
 						} else {
-							poco_error(
-								logger(),
+							poco_information(
+								BusLogger,
 								fmt::format("KAFKA-MSG: invalid event '{}', missing a field.",
 											Event));
 						}
@@ -118,32 +148,39 @@ namespace OpenWifi {
 								Object->get(KafkaTopics::ServiceEvents::Fields::TOKEN).toString());
 #endif
 						} else {
-							poco_error(
-								logger(),
+							poco_information(
+								BusLogger,
 								fmt::format("KAFKA-MSG: invalid event '{}', missing token", Event));
 						}
 					} else {
-						poco_error(logger(),
+						poco_information(BusLogger,
 								   fmt::format("Unknown Event: {} Source: {}", Event, ID));
 					}
 				}
 			} else {
-				poco_error(logger(), "Bad bus message.");
-                std::ostringstream os;
-                Object->stringify(std::cout);
+				std::ostringstream os;
+				Object->stringify(std::cout);
+				poco_error(BusLogger, fmt::format("Bad bus message: {}", os.str()));
 			}
 
-			auto i = Services_.begin();
+			auto ServiceHint = Services_.begin();
 			auto now = Utils::Now();
-			for (; i != Services_.end();) {
-				if ((now - i->second.LastUpdate) > 60) {
-					i = Services_.erase(i);
+            auto si1 = Services_.size();
+            auto ss1 = MakeServiceListString(Services_);
+			while(ServiceHint!=Services_.end()) {
+				if ((now - ServiceHint->second.LastUpdate) > 120) {
+					poco_information(BusLogger, fmt::format("ZombieService: Removing service {}, ", ServiceHint->second.PublicEndPoint));
+					ServiceHint = Services_.erase(ServiceHint);
 				} else
-					++i;
+					++ServiceHint;
 			}
+            if(Services_.size() != si1) {
+                auto ss2 = MakeServiceListString(Services_);
+                poco_information(BusLogger, fmt::format("Current list of microservices: {} -> {}", ss1, ss2));
+            }
 
 		} catch (const Poco::Exception &E) {
-			logger().log(E);
+			BusLogger.log(E);
 		}
 	}
 
@@ -412,7 +449,7 @@ namespace OpenWifi {
 			try {
 				DataDir.createDirectory();
 			} catch (const Poco::Exception &E) {
-				logger().log(E);
+				Logger_.log(E);
 			}
 		}
 		WWWAssetsDir_ = ConfigPath("openwifi.restapi.wwwassets", "");
@@ -530,14 +567,12 @@ namespace OpenWifi {
 		for (auto i : SubSystems_) {
 			i->Start();
 		}
-		EventBusManager_ = std::make_unique<EventBusManager>(Poco::Logger::create(
-			"EventBusManager", Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
-		EventBusManager_->Start();
+		EventBusManager()->Start();
 	}
 
 	void MicroService::StopSubSystemServers() {
 		AddActivity("Stopping");
-		EventBusManager_->Stop();
+		EventBusManager()->Stop();
 		for (auto i = SubSystems_.rbegin(); i != SubSystems_.rend(); ++i) {
 			(*i)->Stop();
 		}
@@ -697,7 +732,7 @@ namespace OpenWifi {
 			auto APIKEY = Request.get("X-API-KEY");
 			return APIKEY == MyHash_;
 		} catch (const Poco::Exception &E) {
-			logger().log(E);
+			Logger_.log(E);
 		}
 		return false;
 	}

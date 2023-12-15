@@ -21,7 +21,7 @@ namespace OpenWifi {
 		if (ParamsObj->has("currentPassword")) {
 			auto Password = ParamsObj->get("currentPassword").toString();
 
-			StorageService()->SetDevicePassword(Serial, Password);
+			StorageService()->SetDevicePassword(*DbSession_,Serial, Password);
 			poco_trace(
 				Logger_,
 				fmt::format("DEVICE-UPDATE({}): Device is updating its login password.", Serial));

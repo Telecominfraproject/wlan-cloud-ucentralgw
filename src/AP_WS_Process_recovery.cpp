@@ -35,7 +35,7 @@ namespace OpenWifi {
 										   .LogType = 1,
 										   .UUID = 0};
 
-			StorageService()->AddLog(DeviceLog);
+			StorageService()->AddLog(*DbSession_, DeviceLog);
 
 			if (ParamsObj->get(uCentralProtocol::REBOOT).toString() == "true") {
 				GWObjects::CommandDetails Cmd;

@@ -82,6 +82,7 @@ namespace OpenWifi {
 			if (!TmpName.empty())
 				return false;
 
+			Sess.begin();
 			Poco::Data::Statement Insert(Sess);
 
 			std::string St2{"INSERT INTO DefaultFirmwares ( " + DB_DefFirmware_SelectFields +
@@ -94,6 +95,7 @@ namespace OpenWifi {
 			Insert << ConvertParams(St2),
 				Poco::Data::Keywords::use(R);
 			Insert.execute();
+			Sess.commit();
 			return true;
 
 		} catch (const Poco::Exception &E) {
@@ -107,6 +109,7 @@ namespace OpenWifi {
 		try {
 
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 			Poco::toLowerInPlace(deviceType);
 
@@ -114,7 +117,7 @@ namespace OpenWifi {
 
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(deviceType);
 			Delete.execute();
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -125,9 +128,9 @@ namespace OpenWifi {
 
 	bool Storage::UpdateDefaultFirmware(GWObjects::DefaultFirmware &DefFirmware) {
 		try {
+			uint64_t Now = Utils::Now();
 			Poco::Data::Session Sess = Pool_->get();
-
-			uint64_t Now = time(nullptr);
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 			DefFirmware.LastModified = Now;
 			Poco::toLowerInPlace(DefFirmware.deviceType);
@@ -143,7 +146,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(R),
 				Poco::Data::Keywords::use(DefFirmware.deviceType);
 			Update.execute();
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

@@ -17,11 +17,11 @@
 
 namespace OpenWifi {
 
-	bool Storage::CreateDeviceCapabilities(std::string &SerialNumber,
+	bool Storage::CreateDeviceCapabilities(Poco::Data::Session &Session, std::string &SerialNumber,
 										   const Config::Capabilities &Capabilities) {
 		try {
-			Poco::Data::Session Sess = Pool_->get();
-			Poco::Data::Statement UpSert(Sess);
+			Session.begin();
+			Poco::Data::Statement UpSert(Session);
 
 			std::string TCaps{Capabilities.AsString()};
 			uint64_t Now = Utils::Now();
@@ -33,6 +33,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(TCaps),
 				Poco::Data::Keywords::use(Now);
 			UpSert.execute();
+			Session.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -41,11 +42,11 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber,
+	bool Storage::UpdateDeviceCapabilities(Poco::Data::Session &Session, std::string &SerialNumber,
 										   const Config::Capabilities &Caps) {
 		try {
-			Poco::Data::Session Sess = Pool_->get();
-			Poco::Data::Statement UpSert(Sess);
+			Session.begin();
+			Poco::Data::Statement UpSert(Session);
 
 			uint64_t Now = Utils::Now();
 			if (!Caps.Compatible().empty() && !Caps.Platform().empty())
@@ -61,6 +62,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(TCaps),
 				Poco::Data::Keywords::use(Now);
 			UpSert.execute();
+			Session.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -99,13 +101,14 @@ namespace OpenWifi {
 	bool Storage::DeleteDeviceCapabilities(std::string &SerialNumber) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St{"DELETE FROM Capabilities WHERE SerialNumber=?"};
 
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber);
 			Delete.execute();
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

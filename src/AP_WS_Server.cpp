@@ -23,15 +23,47 @@
 
 namespace OpenWifi {
 
-	void AP_WS_RequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
-											 Poco::Net::HTTPServerResponse &response) {
-		try {
-			AP_WS_Server()->AddConnection(
-				id_, std::make_shared<AP_WS_Connection>(request, response, id_, Logger_,
-														AP_WS_Server()->NextReactor()));
-		} catch (...) {
-			poco_warning(Logger_, "Exception during WS creation");
+	class AP_WS_RequestHandler : public Poco::Net::HTTPRequestHandler {
+	  public:
+		explicit AP_WS_RequestHandler(Poco::Logger &L, std::uint64_t session_id) : Logger_(L),
+								   		session_id_(session_id) {
+		 };
+
+		void handleRequest(	Poco::Net::HTTPServerRequest &request,
+						 	Poco::Net::HTTPServerResponse &response) override {
+			try {
+				auto NewConnection = std::make_shared<AP_WS_Connection>(request, response, session_id_, Logger_,
+																		AP_WS_Server()->NextReactor());
+				AP_WS_Server()->AddConnection(NewConnection);
+				NewConnection->Start();
+			} catch (...) {
+				poco_warning(Logger_, "Exception during WS creation");
+			}
+		};
+
+	  private:
+		Poco::Logger &Logger_;
+		std::uint64_t session_id_;
+	};
+
+	class AP_WS_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
+	  public:
+		inline explicit AP_WS_RequestHandlerFactory(Poco::Logger &L) : Logger_(L) {}
+
+		inline Poco::Net::HTTPRequestHandler *
+		createRequestHandler(const Poco::Net::HTTPServerRequest &request) override {
+			if (request.find("Upgrade") != request.end() &&
+				Poco::icompare(request["Upgrade"], "websocket") == 0) {
+				Utils::SetThreadName("ws:conn-init");
+				session_id_++;
+				return new AP_WS_RequestHandler(Logger_, session_id_);
+			} else {
+				return nullptr;
+			}
 		}
+	  private:
+		Poco::Logger &Logger_;
+		inline static std::atomic_uint64_t session_id_ = 0;
 	};
 
 	bool AP_WS_Server::ValidateCertificate(const std::string &ConnectionId,
@@ -57,7 +89,7 @@ namespace OpenWifi {
 
 		SessionTimeOut_ = MicroServiceConfigGetInt("openwifi.session.timeout", 10*60);
 
-		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
+		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>(Logger());
 		Reactor_pool_->Start();
 
 		for (const auto &Svr : ConfigServersList_) {
@@ -135,6 +167,9 @@ namespace OpenWifi {
 					WebServerHttpParams);
 				WebServers_.push_back(std::move(NewWebServer));
 			}
+
+			KafkaDisableState_ = MicroServiceConfigGetBool("openwifi.kafka.disablestate", false);
+			KafkaDisableHealthChecks_ = MicroServiceConfigGetBool("openwifi.kafka.disablehealthchecks", false);
 		}
 
 		for (auto &server : WebServers_) {
@@ -156,243 +191,345 @@ namespace OpenWifi {
 			UseDefaultConfig_ = true;
 		}
 
-		SimulatorId_ = MicroServiceConfigGetString("simulatorid", "");
+		SimulatorId_ = Poco::toLower(MicroServiceConfigGetString("simulatorid", ""));
 		SimulatorEnabled_ = !SimulatorId_.empty();
 		Utils::SetThreadName(ReactorThread_, "dev:react:head");
 
-		GarbageCollectorCallback_ = std::make_unique<Poco::TimerCallback<AP_WS_Server>>(
-			*this, &AP_WS_Server::onGarbageCollecting);
-		Timer_.setStartInterval(10 * 1000);
-		Timer_.setPeriodicInterval(10 * 1000); // every minute
-		Timer_.start(*GarbageCollectorCallback_, MicroServiceTimerPool());
-
 		Running_ = true;
+		GarbageCollector_.setName("ws:garbage");
+		GarbageCollector_.start(*this);
 		return 0;
 	}
 
-	void AP_WS_Server::onGarbageCollecting([[maybe_unused]] Poco::Timer &timer) {
-		static uint64_t last_log = Utils::Now(), last_zombie_run = 0;
-		auto now = Utils::Now();
+	void AP_WS_Server::run() {
+		uint64_t last_log = Utils::Now(),
+				 last_zombie_run = 0,
+				 last_garbage_run = 0;
 
-		{
-			{
-				std::lock_guard SessionLock(SessionMutex_);
-				if (!Garbage_.empty()) {
-					Garbage_.clear();
-				}
+		Poco::Logger &LocalLogger = Poco::Logger::create(
+			"WS-Session-Janitor", Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel());
+
+		while(Running_) {
+
+			if(!Poco::Thread::trySleep(30000)) {
+				break;
 			}
 
-			uint64_t total_connected_time = 0;
+			LocalLogger.information(fmt::format("Garbage collecting starting run."	));
 
-			if(now-last_zombie_run > 20) {
-				poco_information(Logger(), fmt::format("Garbage collecting..."));
-				std::vector<std::uint64_t> SessionsToRemove;
-				NumberOfConnectedDevices_ = 0;
-				NumberOfConnectingDevices_ = 0;
-				AverageDeviceConnectionTime_ = 0;
-				last_zombie_run = now;
-				for(int hashIndex=0;hashIndex<256;hashIndex++) {
-					std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-					auto hint = SerialNumbers_[hashIndex].begin();
-					while (hint != end(SerialNumbers_[hashIndex])) {
-						if (hint->second.second == nullptr) {
-							hint = SerialNumbers_[hashIndex].erase(hint);
-						} else if ((now - hint->second.second->State_.LastContact) >
-								   SessionTimeOut_) {
-							hint->second.second->EndConnection(false);
-							poco_information(
-								Logger(),
-								fmt::format(
-									"{}: Session seems idle. Controller disconnecting device.",
-									hint->second.second->SerialNumber_));
-							SessionsToRemove.emplace_back(hint->second.first);
-							Garbage_.push_back(hint->second.second);
-							hint = SerialNumbers_[hashIndex].erase(hint);
-						} else if (hint->second.second->State_.Connected) {
-							NumberOfConnectedDevices_++;
-							total_connected_time += (now - hint->second.second->State_.started);
-							hint++;
-						} else {
-							NumberOfConnectingDevices_++;
-							hint++;
+			uint64_t total_connected_time = 0, now = Utils::Now();
+
+			if(now-last_zombie_run > 60) {
+				try {
+					poco_information(LocalLogger,
+									 fmt::format("Garbage collecting zombies... (step 1)"));
+					NumberOfConnectedDevices_ = 0;
+					NumberOfConnectingDevices_ = 0;
+					AverageDeviceConnectionTime_ = 0;
+					int waits = 0;
+					for (int hashIndex = 0; hashIndex < MACHash::HashMax(); hashIndex++) {
+						last_zombie_run = now;
+						waits = 0;
+						while (true) {
+							if (SerialNumbersMutex_[hashIndex].try_lock()) {
+								waits = 0;
+								auto hint = SerialNumbers_[hashIndex].begin();
+								while (hint != end(SerialNumbers_[hashIndex])) {
+
+									if (hint->second == nullptr) {
+										poco_information(
+											LocalLogger,
+											fmt::format("Dead device found in hash index {}", hashIndex));
+										// hint = SerialNumbers_[hashIndex].erase(hint);
+										hint++;
+										continue;
+									}
+									auto Device = hint->second;
+									if(Device->ConnectionMutex_.try_lock()) {
+										auto RightNow = Utils::Now();
+										if (RightNow > Device->LastContact_ &&
+											(RightNow - Device->LastContact_) > SessionTimeOut_) {
+											poco_information(
+												LocalLogger,
+												fmt::format("{}: Session seems idle. Controller disconnecting device.",
+															Device->SerialNumber_));
+											hint = SerialNumbers_[hashIndex].erase(hint);
+										} else if (Device->State_.Connected) {
+											NumberOfConnectedDevices_++;
+											total_connected_time +=
+												(RightNow - Device->State_.started);
+											++hint;
+										} else {
+											++hint;
+										}
+										Device->ConnectionMutex_.unlock();
+										continue;
+									} else {
+										poco_warning(LocalLogger, fmt::format("Could not lock device mutex for {}",
+																			   Device->SerialNumber_));
+									}
+									++NumberOfConnectingDevices_;
+									++hint;
+								}
+								SerialNumbersMutex_[hashIndex].unlock();
+								break;
+							} else if (waits < 5) {
+								waits++;
+								std::this_thread::sleep_for(std::chrono::milliseconds(10));
+							} else {
+								break;
+							}
 						}
 					}
-				}
 
-				if(SessionsToRemove.empty()) {
-					poco_information(Logger(), fmt::format("Removing {} sessions.", SessionsToRemove.size()));
-					std::lock_guard Lock(SessionMutex_);
-					for (const auto &Session : SessionsToRemove) {
-						Sessions_.erase(Session);
+					poco_information(LocalLogger,
+									 fmt::format("Garbage collecting zombies... (step 2)"));
+					LeftOverSessions_ = 0;
+					for (int i = 0; i < SessionHash::HashMax(); i++) {
+						waits = 0;
+						while (true) {
+							if (SessionMutex_[i].try_lock()) {
+								waits = 0;
+								auto hint = Sessions_[i].begin();
+								auto RightNow = Utils::Now();
+								while (hint != end(Sessions_[i])) {
+									if (hint->second == nullptr) {
+										hint = Sessions_[i].erase(hint);
+									} else if (RightNow > hint->second->LastContact_ &&
+											   (RightNow - hint->second->LastContact_) >
+												   SessionTimeOut_) {
+										poco_information(
+											LocalLogger,
+											fmt::format("{}: Session seems idle. Controller disconnecting device.",
+														hint->second->SerialNumber_));
+										hint = Sessions_[i].erase(hint);
+									} else {
+										++LeftOverSessions_;
+										++hint;
+									}
+								}
+								SessionMutex_[i].unlock();
+								break;
+							} else if (waits < 5) {
+								std::this_thread::sleep_for(std::chrono::milliseconds(10));
+								waits++;
+							} else {
+								break;
+							}
+						}
 					}
+
+					AverageDeviceConnectionTime_ =
+						NumberOfConnectedDevices_ > 0
+							? total_connected_time / NumberOfConnectedDevices_
+							: 0;
+					poco_information(LocalLogger, fmt::format("Garbage collecting zombies done..."));
+				} catch (const Poco::Exception &E) {
+					poco_error(LocalLogger, fmt::format("Poco::Exception: Garbage collecting zombies failed: {}", E.displayText()));
+				} catch (const std::exception &E) {
+					poco_error(LocalLogger, fmt::format("std::exception: Garbage collecting zombies failed: {}", E.what()));
+				} catch (...) {
+					poco_error(LocalLogger, fmt::format("exception:Garbage collecting zombies failed: {}", "unknown"));
 				}
 
-				AverageDeviceConnectionTime_ =
-				NumberOfConnectedDevices_ > 0 ? total_connected_time / NumberOfConnectedDevices_
-											  : 0;
-
-				poco_information(Logger(), fmt::format("Garbage collecting done..."));
 			} else {
-				std::lock_guard SessionLock(SessionMutex_);
-				NumberOfConnectedDevices_ = Sessions_.size();
-				AverageDeviceConnectionTime_ += 10;
+				NumberOfConnectedDevices_=0;
+				for(int i=0;i<MACHash::HashMax();i++) {
+					std::lock_guard Lock(SerialNumbersMutex_[i]);
+					NumberOfConnectedDevices_ += SerialNumbers_[i].size();
+				}
+				if(NumberOfConnectedDevices_) {
+					if (last_garbage_run > 0) {
+						AverageDeviceConnectionTime_ += (now - last_garbage_run);
+					}
+				} else {
+					AverageDeviceConnectionTime_ = 0;
+				}
 			}
 
-			if ((now - last_log) > 120) {
+			if ((now - last_log) > 60) {
 				last_log = now;
-				poco_information(Logger(),
-								 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds",
+				poco_information(LocalLogger,
+								 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds. Left Over Sessions: {}",
 											 NumberOfConnectedDevices_, NumberOfConnectingDevices_,
-											 AverageDeviceConnectionTime_));
+											 AverageDeviceConnectionTime_, LeftOverSessions_));
 			}
+
+			GWWebSocketNotifications::NumberOfConnection_t Notification;
+			Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
+			Notification.content.numberOfDevices = NumberOfConnectedDevices_;
+			Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
+			GetTotalDataStatistics(Notification.content.tx,Notification.content.rx);
+			GWWebSocketNotifications::NumberOfConnections(Notification);
+
+			Poco::JSON::Object	KafkaNotification;
+			Notification.to_json(KafkaNotification);
+
+			Poco::JSON::Object FullEvent;
+			FullEvent.set("type", "load-update");
+			FullEvent.set("timestamp", now);
+			FullEvent.set("payload", KafkaNotification);
+
+			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
+			LocalLogger.information(fmt::format("Garbage collection finished run."	));
+			last_garbage_run = now;
 		}
-
-		GWWebSocketNotifications::NumberOfConnection_t Notification;
-		Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
-		Notification.content.numberOfDevices = NumberOfConnectedDevices_;
-		Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
-		GetTotalDataStatistics(Notification.content.tx,Notification.content.rx);
-		GWWebSocketNotifications::NumberOfConnections(Notification);
-
-		Poco::JSON::Object	KafkaNotification;
-		Notification.to_json(KafkaNotification);
-
-		Poco::JSON::Object FullEvent;
-		FullEvent.set("type", "load-update");
-		FullEvent.set("timestamp", now);
-		FullEvent.set("payload", KafkaNotification);
-
-		KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
+		LocalLogger.information(fmt::format("Garbage collector done for the day."	));
 	}
 
 	void AP_WS_Server::Stop() {
 		poco_information(Logger(), "Stopping...");
 		Running_ = false;
 
-		Timer_.stop();
+		GarbageCollector_.wakeUp();
+		GarbageCollector_.join();
 
 		for (auto &server : WebServers_) {
 			server->stopAll();
 		}
+
 		Reactor_pool_->Stop();
 		Reactor_.stop();
 		ReactorThread_.join();
 		poco_information(Logger(), "Stopped...");
 	}
 
+	bool AP_WS_Server::GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers) {
+		SerialNumbers.clear();
+		for(int i=0;i<SessionHash::HashMax();i++) {
+			std::lock_guard Lock(SessionMutex_[i]);
+			for (const auto &connection : Sessions_[i]) {
+				if (connection.second->RawLastHealthcheck_.Sanity >= lowLimit &&
+					connection.second->RawLastHealthcheck_.Sanity <= highLimit) {
+					SerialNumbers.push_back(connection.second->SerialNumber_);
+				}
+			}
+		}
+		return true;
+	}
+
 	bool AP_WS_Server::GetStatistics(uint64_t SerialNumber, std::string &Statistics) const {
 
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == SerialNumbers_[hashIndex].end() || Device->second.second == nullptr) {
+		if (Device == SerialNumbers_[hashIndex].end() || Device->second == nullptr) {
 			return false;
 		}
-		Device->second.second->GetLastStats(Statistics);
+		Device->second->GetLastStats(Statistics);
 
 		return true;
 	}
 
 	bool AP_WS_Server::GetState(uint64_t SerialNumber, GWObjects::ConnectionState &State) const {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == SerialNumbers_[hashIndex].end() || Device->second.second == nullptr) {
-			return false;
+		std::shared_ptr<AP_WS_Connection> Connection;
+		{
+			auto hashIndex = MACHash::Hash(SerialNumber);
+			std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+			auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+			if (DeviceHint == SerialNumbers_[hashIndex].end() ||
+				DeviceHint->second == nullptr) {
+				return false;
+			}
+			Connection = DeviceHint->second;
 		}
-		Device->second.second->GetState(State);
+		Connection->GetState(State);
 		return true;
 	}
 
 	bool AP_WS_Server::GetHealthcheck(uint64_t SerialNumber,
 									  GWObjects::HealthCheck &CheckData) const {
 
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == SerialNumbers_[hashIndex].end() || Device->second.second == nullptr) {
+		if (Device == SerialNumbers_[hashIndex].end() || Device->second == nullptr) {
 			return false;
 		}
-		Device->second.second->GetLastHealthCheck(CheckData);
+		Device->second->GetLastHealthCheck(CheckData);
 		return true;
 
 	}
 
-	void AP_WS_Server::SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber) {
-		std::lock_guard SessionLock(SessionMutex_);
-		auto Conn = Sessions_.find(connection_id);
-		if (Conn == end(Sessions_))
-			return;
-
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto CurrentSerialNumber = SerialNumbers_[hashIndex].find(SerialNumber);
-		if ((CurrentSerialNumber == SerialNumbers_[hashIndex].end()) ||
-			(CurrentSerialNumber->second.first < connection_id)) {
-			SerialNumbers_[hashIndex][SerialNumber] = std::make_pair(connection_id, Conn->second);
-			return;
+	void AP_WS_Server::StartSession(uint64_t session_id, uint64_t SerialNumber) {
+		auto deviceHash = MACHash::Hash(SerialNumber);
+		auto sessionHash = SessionHash::Hash(session_id);
+		std::lock_guard SessionLock(SessionMutex_[sessionHash]);
+		auto SessionHint = Sessions_[sessionHash].find(session_id);
+		if (SessionHint != end(Sessions_[sessionHash])) {
+			std::lock_guard Lock(SerialNumbersMutex_[deviceHash]);
+			SerialNumbers_[deviceHash][SerialNumber] = SessionHint->second;
+			Sessions_[sessionHash].erase(SessionHint);
+		} else {
+			poco_error(Logger(), fmt::format("StartSession: Could not find session '{}'", session_id));
 		}
 	}
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
-		std::lock_guard SessionLock(SessionMutex_);
-		auto Session = Sessions_.find(session_id);
-		if (Session == end(Sessions_))
-			return false;
-
-		Garbage_.push_back(Session->second);
-
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex])) {
-			Sessions_.erase(Session);
-			return false;
+		{
+			auto sessionHash = SessionHash::Hash(session_id);
+			std::lock_guard SessionLock(SessionMutex_[sessionHash]);
+			Sessions_[sessionHash].erase(session_id);
 		}
 
-		if (Device->second.first == session_id) {
-			Sessions_.erase(Session);
-			SerialNumbers_[hashIndex].erase(Device);
-			return true;
+		{
+			auto hashIndex = MACHash::Hash(SerialNumber);
+			std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+			auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+			if (DeviceHint == SerialNumbers_[hashIndex].end()
+				|| DeviceHint->second == nullptr
+				|| DeviceHint->second->State_.sessionId != session_id) {
+				return false;
+			}
+			SerialNumbers_[hashIndex].erase(DeviceHint);
 		}
-
-		Sessions_.erase(Session);
-
-		return false;
+		return true;
 	}
+
 
 	bool AP_WS_Server::Connected(uint64_t SerialNumber,
 								 GWObjects::DeviceRestrictions &Restrictions) const {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		auto hashIndex = MACHash::Hash(SerialNumber);
+		std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return false;
 		}
-		Device->second.second->GetRestrictions(Restrictions);
-		return Device->second.second->State_.Connected;
+		if(!DeviceHint->second->Dead_) {
+			DeviceHint->second->GetRestrictions(Restrictions);
+			return DeviceHint->second->State_.Connected;
+		}
+		return false;
 	}
 
+
 	bool AP_WS_Server::Connected(uint64_t SerialNumber) const {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return false;
 		}
-		return Device->second.second->State_.Connected;
+		if(!DeviceHint->second->Dead_) {
+			return DeviceHint->second->State_.Connected;
+		}
+		return false;
 	}
 
 	bool AP_WS_Server::SendFrame(uint64_t SerialNumber, const std::string &Payload) const {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
+			return false;
+		}
+
+		if(DeviceHint->second->Dead_) {
 			return false;
 		}
 
 		try {
-			return Device->second.second->Send(Payload);
+			return DeviceHint->second->Send(Payload);
 		} catch (...) {
 			poco_debug(Logger(), fmt::format(": SendFrame: Could not send data to device '{}'",
 											 Utils::IntToSerialNumber(SerialNumber)));
@@ -401,48 +538,48 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::StopWebSocketTelemetry(uint64_t RPCID, uint64_t SerialNumber) {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
 		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		if (Device == end(SerialNumbers_[hashIndex]) || Device->second == nullptr) {
 			return;
 		}
-		Device->second.second->StopWebSocketTelemetry(RPCID);
+		Device->second->StopWebSocketTelemetry(RPCID);
 	}
 
 	void
 	AP_WS_Server::SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber,
 												 uint64_t Interval, uint64_t Lifetime,
 												 const std::vector<std::string> &TelemetryTypes) {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		auto hashIndex = MACHash::Hash(SerialNumber);
+		std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return;
 		}
-		Device->second.second->SetWebSocketTelemetryReporting(RPCID, Interval, Lifetime, TelemetryTypes);
+		DeviceHint->second->SetWebSocketTelemetryReporting(RPCID, Interval, Lifetime, TelemetryTypes);
 	}
 
 	void AP_WS_Server::SetKafkaTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber,
 												  uint64_t Interval, uint64_t Lifetime,
 												  const std::vector<std::string> &TelemetryTypes) {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
+		auto hashIndex = MACHash::Hash(SerialNumber);
 		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return;
 		}
-		Device->second.second->SetKafkaTelemetryReporting(RPCID, Interval, Lifetime, TelemetryTypes);
+		DeviceHint->second->SetKafkaTelemetryReporting(RPCID, Interval, Lifetime, TelemetryTypes);
 	}
 
 	void AP_WS_Server::StopKafkaTelemetry(uint64_t RPCID, uint64_t SerialNumber) {
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		auto hashIndex = MACHash::Hash(SerialNumber);
+		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
+		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return;
 		}
-		Device->second.second->StopKafkaTelemetry(RPCID);
+		DeviceHint->second->StopKafkaTelemetry(RPCID);
 	}
 
 	void AP_WS_Server::GetTelemetryParameters(
@@ -451,14 +588,14 @@ namespace OpenWifi {
 		uint64_t &TelemetryWebSocketCount, uint64_t &TelemetryKafkaCount,
 		uint64_t &TelemetryWebSocketPackets, uint64_t &TelemetryKafkaPackets) {
 
-		auto hashIndex = Utils::CalculateMacAddressHash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		auto hashIndex = MACHash::Hash(SerialNumber);
+		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
+		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return;
 		}
 
-		Device->second.second->GetTelemetryParameters(TelemetryRunning, TelemetryInterval,
+		DeviceHint->second->GetTelemetryParameters(TelemetryRunning, TelemetryInterval,
 										  TelemetryWebSocketTimer, TelemetryKafkaTimer,
 										  TelemetryWebSocketCount, TelemetryKafkaCount,
 										  TelemetryWebSocketPackets, TelemetryKafkaPackets);
@@ -468,15 +605,19 @@ namespace OpenWifi {
 												const unsigned char *buffer, std::size_t size) {
 
 		auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber);
-		auto hashIndex = Utils::CalculateMacAddressHash(IntSerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(IntSerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		auto hashIndex = MACHash::Hash(IntSerialNumber);
+		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
+		auto DeviceHint = SerialNumbers_[hashIndex].find(IntSerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
+			return false;
+		}
+
+		if(DeviceHint->second->Dead_) {
 			return false;
 		}
 
 		try {
-			return Device->second.second->SendRadiusAccountingData(buffer, size);
+			return DeviceHint->second->SendRadiusAccountingData(buffer, size);
 		} catch (...) {
 			poco_debug(
 				Logger(),
@@ -489,15 +630,19 @@ namespace OpenWifi {
 	bool AP_WS_Server::SendRadiusAuthenticationData(const std::string &SerialNumber,
 													const unsigned char *buffer, std::size_t size) {
 		auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber);
-		auto hashIndex = Utils::CalculateMacAddressHash(IntSerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(IntSerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		auto hashIndex = MACHash::Hash(IntSerialNumber);
+		std::lock_guard DevicesLock(SerialNumbersMutex_[hashIndex]);
+		auto DeviceHint = SerialNumbers_[hashIndex].find(IntSerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
+			return false;
+		}
+
+		if(DeviceHint->second->Dead_) {
 			return false;
 		}
 
 		try {
-			return Device->second.second->SendRadiusAuthenticationData(buffer, size);
+			return DeviceHint->second->SendRadiusAuthenticationData(buffer, size);
 		} catch (...) {
 			poco_debug(
 				Logger(),
@@ -510,15 +655,18 @@ namespace OpenWifi {
 	bool AP_WS_Server::SendRadiusCoAData(const std::string &SerialNumber,
 										 const unsigned char *buffer, std::size_t size) {
 		auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber);
-		auto hashIndex = Utils::CalculateMacAddressHash(IntSerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto Device = SerialNumbers_[hashIndex].find(IntSerialNumber);
-		if (Device == end(SerialNumbers_[hashIndex]) || Device->second.second == nullptr) {
+		auto hashIndex = MACHash::Hash(IntSerialNumber);
+		std::lock_guard DevicesGuard(SerialNumbersMutex_[hashIndex]);
+		auto DeviceHint = SerialNumbers_[hashIndex].find(IntSerialNumber);
+		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
 			return false;
 		}
 
+		if(DeviceHint->second->Dead_) {
+			return false;
+		}
 		try {
-			return Device->second.second->SendRadiusCoAData(buffer, size);
+			return DeviceHint->second->SendRadiusCoAData(buffer, size);
 		} catch (...) {
 			poco_debug(Logger(),
 					   fmt::format(": SendRadiusCoAData: Could not send data to device '{}'",
@@ -526,5 +674,33 @@ namespace OpenWifi {
 		}
 		return false;
 	}
+
+	bool AP_WS_Server::ExtendedAttributes(const std::string &serialNumber,
+								   bool & hasGPS,
+								   std::uint64_t &Sanity,
+								   std::double_t &MemoryUsed,
+								   std::double_t &Load,
+								   std::double_t &Temperature
+	) {
+
+		auto serialNumberInt = Utils::SerialNumberToInt(serialNumber);
+		auto hashIndex = MACHash::Hash(serialNumberInt);
+		std::lock_guard	DevicesGuard(SerialNumbersMutex_[hashIndex]);
+		auto DeviceHint = SerialNumbers_[hashIndex].find(Utils::SerialNumberToInt(serialNumber));
+		if(DeviceHint==end(SerialNumbers_[hashIndex])) {
+			return false;
+		}
+		if(DeviceHint->second->Dead_) {
+			return false;
+		}
+		std::lock_guard DeviceGuard(DeviceHint->second->ConnectionMutex_);
+		hasGPS = DeviceHint->second->hasGPS_;
+		Sanity = DeviceHint->second->RawLastHealthcheck_.Sanity;
+		MemoryUsed = DeviceHint->second->memory_used_;
+		Load = DeviceHint->second->cpu_load_;
+		Temperature = DeviceHint->second->temperature_;
+		return true;
+	}
+
 
 } // namespace OpenWifi

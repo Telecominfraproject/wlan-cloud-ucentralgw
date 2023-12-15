@@ -35,8 +35,7 @@ namespace OpenWifi {
 				}
 				if (TelemetryWebSocketRefCount_) {
 					if (now < TelemetryWebSocketTimer_) {
-						// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" <<
-						// std::endl;
+
 						TelemetryWebSocketPackets_++;
 						State_.websocketPackets = TelemetryWebSocketPackets_;
 						TelemetryStream()->NotifyEndPoint(SerialNumberInt_, KafkaPayload);
@@ -46,7 +45,6 @@ namespace OpenWifi {
 				}
 				if (TelemetryKafkaRefCount_) {
 					if (KafkaManager()->Enabled() && now < TelemetryKafkaTimer_) {
-						// std::cout << SerialNumber_ << ": Updating Kafka telemetry" << std::endl;
 						TelemetryKafkaPackets_++;
 						State_.kafkaPackets = TelemetryKafkaPackets_;
 						KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
