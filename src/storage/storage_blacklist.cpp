@@ -56,10 +56,10 @@ namespace OpenWifi {
 	struct DeviceDetails {
 		std::string reason;
 		std::string author;
-		std::uint64_t created;
+		std::uint64_t created=Utils::Now();
 	};
 
-	static std::map<std::string, DeviceDetails> BlackListDevices;
+	static std::map<std::uint64_t , DeviceDetails> BlackListDevices;
 	static std::recursive_mutex BlackListMutex;
 
 	bool Storage::InitializeBlackListCache() {
@@ -78,7 +78,7 @@ namespace OpenWifi {
 				auto Reason = RSet[1].convert<std::string>();
 				auto Author = RSet[2].convert<std::string>();
 				auto Created = RSet[3].convert<std::uint64_t>();
-				BlackListDevices[SerialNumber] =
+				BlackListDevices[Utils::MACToInt(SerialNumber)] =
 					DeviceDetails{.reason = Reason, .author = Author, .created = Created};
 				More = RSet.moveNext();
 			}
@@ -93,6 +93,7 @@ namespace OpenWifi {
 	bool Storage::AddBlackListDevice(GWObjects::BlackListedDevice &Device) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Insert(Sess);
 
 			std::string St{"INSERT INTO BlackList (" + DB_BlackListDeviceSelectFields + ") " +
@@ -102,9 +103,9 @@ namespace OpenWifi {
 			ConvertBlackListDeviceRecord(Device, T);
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(T);
 			Insert.execute();
-
+			Sess.commit();
 			std::lock_guard G(BlackListMutex);
-			BlackListDevices[Device.serialNumber] = DeviceDetails{
+			BlackListDevices[Utils::MACToInt(Device.serialNumber)] = DeviceDetails{
 				.reason = Device.reason, .author = Device.author, .created = Device.created};
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -130,6 +131,7 @@ namespace OpenWifi {
 	bool Storage::DeleteBlackListDevice(std::string &SerialNumber) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St{"DELETE FROM BlackList WHERE SerialNumber=?"};
@@ -137,9 +139,9 @@ namespace OpenWifi {
 			Poco::toLowerInPlace(SerialNumber);
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber);
 			Delete.execute();
-
+			Sess.commit();
 			std::lock_guard G(BlackListMutex);
-			BlackListDevices.erase(SerialNumber);
+			BlackListDevices.erase(Utils::MACToInt(SerialNumber));
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -177,6 +179,7 @@ namespace OpenWifi {
 										GWObjects::BlackListedDevice &Device) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			std::string St{"UPDATE BlackList SET " + DB_BlackListDeviceUpdateFields +
@@ -187,9 +190,9 @@ namespace OpenWifi {
 			Update << ConvertParams(St), Poco::Data::Keywords::use(T),
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
-
+			Sess.commit();
 			std::lock_guard G(BlackListMutex);
-			BlackListDevices[Device.serialNumber] = DeviceDetails{
+			BlackListDevices[Utils::MACToInt(Device.serialNumber)] = DeviceDetails{
 				.reason = Device.reason, .author = Device.author, .created = Device.created};
 
 			return true;
@@ -233,10 +236,10 @@ namespace OpenWifi {
 		return BlackListDevices.size();
 	}
 
-	bool Storage::IsBlackListed(const std::string &SerialNumber, std::string &reason,
+	bool Storage::IsBlackListed(std::uint64_t SerialNumber, std::string &reason,
 								std::string &author, std::uint64_t &created) {
 		std::lock_guard G(BlackListMutex);
-		auto DeviceHint = BlackListDevices.find(Poco::toLower(SerialNumber));
+		auto DeviceHint = BlackListDevices.find(SerialNumber);
 		if (DeviceHint == end(BlackListDevices))
 			return false;
 		reason = DeviceHint->second.reason;
@@ -245,9 +248,9 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool Storage::IsBlackListed(const std::string &SerialNumber) {
+	bool Storage::IsBlackListed(std::uint64_t SerialNumber) {
 		std::lock_guard G(BlackListMutex);
-		auto DeviceHint = BlackListDevices.find(Poco::toLower(SerialNumber));
+		auto DeviceHint = BlackListDevices.find(SerialNumber);
 		return DeviceHint != end(BlackListDevices);
 	}
 } // namespace OpenWifi

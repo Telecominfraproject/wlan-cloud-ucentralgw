@@ -12,6 +12,16 @@ namespace OpenWifi {
 
 	class EventBusManager : public Poco::Runnable {
 	  public:
+		EventBusManager() :
+			Logger_(Poco::Logger::create(
+				"EventBusManager", Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel())) {
+		}
+
+		static auto instance() {
+			static auto instance_ = new EventBusManager;
+			return instance_;
+		}
+
 		explicit EventBusManager(Poco::Logger &L);
 		void run() final;
 		void Start();
@@ -23,5 +33,7 @@ namespace OpenWifi {
 		Poco::Thread Thread_;
 		Poco::Logger &Logger_;
 	};
+
+	inline auto EventBusManager() { return EventBusManager::instance(); }
 
 } // namespace OpenWifi

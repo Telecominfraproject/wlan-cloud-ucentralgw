@@ -8,7 +8,6 @@
 
 #include "AP_WS_Server.h"
 #include "StorageService.h"
-
 #include "fmt/format.h"
 
 namespace OpenWifi {
@@ -33,10 +32,10 @@ namespace OpenWifi {
 		R.set<3>(Stats.Recorded);
 	}
 
-	bool Storage::AddStatisticsData(const GWObjects::Statistics &Stats) {
+	bool Storage::AddStatisticsData(Poco::Data::Session &Session, const GWObjects::Statistics &Stats) {
 		try {
-			Poco::Data::Session Sess(Pool_->get());
-			Poco::Data::Statement Insert(Sess);
+			Session.begin();
+			Poco::Data::Statement Insert(Session);
 
 			poco_trace(Logger(), fmt::format("{}: Adding stats. Size={}", Stats.SerialNumber,
 											 std::to_string(Stats.Data.size())));
@@ -46,6 +45,7 @@ namespace OpenWifi {
 			ConvertStatsRecord(Stats, R);
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
+			Session.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -167,7 +167,7 @@ namespace OpenWifi {
 									   uint64_t ToDate) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-
+			Sess.begin();
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
 			std::string Prefix{"DELETE FROM Statistics "};
@@ -189,7 +189,7 @@ namespace OpenWifi {
 			Poco::Data::Statement Select(Sess);
 			Select << Statement + DateSelector;
 			Select.execute();
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), (fmt::format("{}: Failed with: {}", std::string(__func__),
