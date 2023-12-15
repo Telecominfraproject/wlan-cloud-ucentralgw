@@ -1056,9 +1056,9 @@ namespace OpenWifi {
 							}
 						}
 
-						uint64_t Associations_2G, Associations_5G, Associations_6G;
+						uint64_t Associations_2G, Associations_5G, Associations_6G, uptime;
 						StateUtils::ComputeAssociations(RawObject, Associations_2G, Associations_5G,
-														Associations_6G);
+														Associations_6G, uptime);
 						UpdateCountedMap(Dashboard.associations, "2G", Associations_2G);
 						UpdateCountedMap(Dashboard.associations, "5G", Associations_5G);
 						UpdateCountedMap(Dashboard.associations, "6G", Associations_6G);

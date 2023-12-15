@@ -24,7 +24,7 @@ namespace OpenWifi::StateUtils {
 	}
 
 	bool ComputeAssociations(const Poco::JSON::Object::Ptr RawObject, uint64_t &Radios_2G,
-							 uint64_t &Radios_5G, uint64_t &Radios_6G) {
+							 uint64_t &Radios_5G, uint64_t &Radios_6G, uint64_t &UpTime	) {
 		Radios_2G = 0;
 		Radios_5G = 0;
 		Radios_6G = 0;
@@ -90,8 +90,14 @@ namespace OpenWifi::StateUtils {
 					}
 				}
 			}
-			//			std::cout << Radios_2G << " " << Radios_5G << " " << Radios_6G << std::endl;
 			return true;
+		}
+
+		if(RawObject->has("unit") && !RawObject->isNull("unit") && RawObject->isObject("unit")) {
+			auto unit = RawObject->getObject("unit");
+			if(unit->has("uptime")) {
+				UpTime = unit->get("uptime");
+			}
 		}
 		return false;
 	}
