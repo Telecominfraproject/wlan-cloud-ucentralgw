@@ -35,7 +35,7 @@ namespace OpenWifi {
 			if (D.UUID == UUID) {
 				UpgradedUUID = UUID;
 				ConfigurationCache().Add(SerialNumberInt_, UUID);
-				std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
+				std::cout << __LINE__ << ": " << SerialNumber_ << "  Set GoodConfig" << std::endl;
 				return false;
 			}
 
