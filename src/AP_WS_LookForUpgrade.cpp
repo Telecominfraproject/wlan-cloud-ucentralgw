@@ -40,6 +40,17 @@ namespace OpenWifi {
 			}
 
 			Config::Config Cfg(D.Configuration);
+			if(D.UUID==0 && UUID == Cfg.UUID()) {
+				D.UUID = UpgradedUUID = UUID;
+				Cfg.SetUUID(UUID);
+				D.Configuration = Cfg.get();
+				StorageService()->UpdateDevice(Session, D);
+				ConfigurationCache().Add(SerialNumberInt_, UUID);
+				std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
+				return false;
+			}
+
+
 			if (UUID > D.UUID) {
 				//	so we have a problem, the device has a newer config than we have. So we need to
 				// make sure our config 	is newer.
