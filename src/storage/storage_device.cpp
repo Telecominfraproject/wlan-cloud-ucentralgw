@@ -298,12 +298,15 @@ namespace OpenWifi {
 
 	bool Storage::CompleteDeviceConfigurationChange(Poco::Data::Session & Session, std::string & SerialNumber) {
 		try {
+
 			GWObjects::Device D;
 			if (!GetDevice(SerialNumber, D))
 				return false;
 
-			if(D.pendingConfiguration.empty())
+			if(D.pendingConfiguration.empty()) {
+				std::cout << "No pending configuration for " << SerialNumber << std::endl;
 				return true;
+			}
 			D.Configuration = D.pendingConfiguration;
 			D.pendingConfiguration.clear();
 			D.UUID = D.pendingUUID;
