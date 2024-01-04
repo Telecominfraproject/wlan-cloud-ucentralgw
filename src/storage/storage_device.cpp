@@ -303,16 +303,13 @@ namespace OpenWifi {
 			if (!GetDevice(SerialNumber, D))
 				return false;
 
-			if(D.pendingConfiguration.empty()) {
-				std::cout << "No pending configuration for " << SerialNumber << std::endl;
-				return true;
+			if(!D.pendingConfiguration.empty()) {
+				D.Configuration = D.pendingConfiguration;
+				D.pendingConfiguration.clear();
 			}
-			D.Configuration = D.pendingConfiguration;
-			D.pendingConfiguration.clear();
 			D.UUID = D.pendingUUID;
 			D.pendingUUID = 0;
 			D.LastConfigurationChange = Utils::Now();
-
 			ConfigurationCache().Add(Utils::SerialNumberToInt(SerialNumber), D.UUID);
 
 			Session.begin();
