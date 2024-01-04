@@ -307,8 +307,10 @@ namespace OpenWifi {
 				D.Configuration = D.pendingConfiguration;
 				D.pendingConfiguration.clear();
 			}
-			D.UUID = D.pendingUUID;
-			D.pendingUUID = 0;
+			if(D.pendingUUID!=0) {
+				D.UUID = D.pendingUUID;
+				D.pendingUUID = 0;
+			}
 			D.LastConfigurationChange = Utils::Now();
 			ConfigurationCache().Add(Utils::SerialNumberToInt(SerialNumber), D.UUID);
 
