@@ -27,7 +27,7 @@ namespace OpenWifi {
 				StorageService()->CompleteDeviceConfigurationChange(Session, SerialNumber_);
 				return true;
 			}
-			std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
+			std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << " Device:" << D.UUID << std::endl;
 
 			//	This is the case where the cache is empty after a restart. So GoodConfig will 0. If
 			// the device already 	has the right UUID, we just return.
