@@ -311,6 +311,15 @@ namespace OpenWifi {
 				D.UUID = D.pendingUUID;
 				D.pendingUUID = 0;
 			}
+
+			//	if this is a broken device, fix it...
+			if(D.UUID==0) {
+				Config::Config Cfg(D.Configuration);
+				if(Cfg.Valid()) {
+					D.UUID = Cfg.UUID();
+				}
+			}
+
 			D.LastConfigurationChange = Utils::Now();
 			ConfigurationCache().Add(Utils::SerialNumberToInt(SerialNumber), D.UUID);
 

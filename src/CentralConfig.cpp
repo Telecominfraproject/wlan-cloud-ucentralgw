@@ -204,6 +204,17 @@ namespace OpenWifi::Config {
 		return false;
 	}
 
+	std::uint64_t Config::UUID() {
+		try {
+			Poco::JSON::Parser Parser;
+			auto object = Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
+			if (object->has("uuid"))
+				return object->get("uuid");
+		} catch (...) {
+		}
+		return 0;
+	}
+
 	bool Config::Valid() {
 		try {
 			Poco::JSON::Parser Parser;
