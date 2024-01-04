@@ -9,14 +9,14 @@
 
 namespace OpenWifi {
 
-	int AP_WS_ConfigAutoUpgrader::Start() {
+	int AP_WS_ConfigAutoUpgradeAgent::Start() {
 		poco_notice(Logger(), "Starting...");
 		QueueManager_.start(*this);
 
 		return 0;
 	}
 
-	void AP_WS_ConfigAutoUpgrader::Stop() {
+	void AP_WS_ConfigAutoUpgradeAgent::Stop() {
 		poco_notice(Logger(), "Stopping...");
 		Running_ = false;
 		Queue_.wakeUpAll();
@@ -24,7 +24,7 @@ namespace OpenWifi {
 		poco_notice(Logger(), "Stopped...");
 	}
 
-	void AP_WS_ConfigAutoUpgrader::run() {
+	void AP_WS_ConfigAutoUpgradeAgent::run() {
 		Utils::SetThreadName("auto:cfgmgr");
 		Running_ = true;
 

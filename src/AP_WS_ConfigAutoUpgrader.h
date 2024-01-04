@@ -28,14 +28,14 @@ namespace OpenWifi {
 		std::uint64_t pending_config_=0;
 	};
 
-	class AP_WS_ConfigAutoUpgrader : public SubSystemServer, Poco::Runnable {
+	class AP_WS_ConfigAutoUpgradeAgent : public SubSystemServer, Poco::Runnable {
 	  public:
 		int Start() final;
 		void Stop() final;
 		void run() final;
 
 		static auto instance() {
-			static auto instance = new AP_WS_ConfigAutoUpgrader;
+			static auto instance = new AP_WS_ConfigAutoUpgradeAgent;
 			return instance;
 		}
 
@@ -126,12 +126,12 @@ namespace OpenWifi {
 		mutable std::mutex			CacheMutex_;
 		std::map<std::uint64_t, ConfigurationCacheEntry> Cache_;
 
-		AP_WS_ConfigAutoUpgrader() noexcept
+		AP_WS_ConfigAutoUpgradeAgent() noexcept
 			: SubSystemServer("AutoConfigUpgrade", "AUTO-CFG-MGR", "auto.config.updater") {
 		}
 	};
 
-	inline auto AP_WS_ConfigAutoUpgrader() { return AP_WS_ConfigAutoUpgrader::instance(); }
+	inline auto AP_WS_ConfigAutoUpgradeAgent() { return AP_WS_ConfigAutoUpgradeAgent::instance(); }
 
 } // namespace OpenWifi
 
