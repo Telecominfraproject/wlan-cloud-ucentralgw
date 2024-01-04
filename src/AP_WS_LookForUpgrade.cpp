@@ -20,6 +20,7 @@ namespace OpenWifi {
 
 		GWObjects::Device D;
 		if (StorageService()->GetDevice(Session,SerialNumber_, D)) {
+			std::cout << "D.pendingUUID: " << D.pendingUUID << "  UUID: " << D.UUID << " SerialNumber: " << D.SerialNumber << std::endl;
 			if(D.pendingUUID!=0 && UUID==D.pendingUUID) {
 				std::cout << __LINE__ << ": " << SerialNumber_  << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 				//	so we sent an upgrade to a device, and now it is completing now...
