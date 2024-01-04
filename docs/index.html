@@ -1226,6 +1226,10 @@ ul.nav-tabs {
     "lastRecordedContact" : {
       "type" : "integer",
       "format" : "int64"
+    },
+    "blackListed" : {
+      "type" : "boolean",
+      "readOnly" : true
     }
   },
   "description" : "Definition of uCentral device"
@@ -1712,6 +1716,10 @@ ul.nav-tabs {
     },
     "connectReason" : {
       "type" : "string"
+    },
+    "blackListed" : {
+      "type" : "boolean",
+      "readOnly" : true
     }
   },
   "description" : "Definition of uCentral device"
@@ -22197,6 +22205,7 @@ pub fn main() {
   &quot;createdTimestamp&quot; : 1,
   &quot;simulated&quot; : true,
   &quot;lastRecordedContact&quot; : 9,
+  &quot;blackListed&quot; : true,
   &quot;macAddress&quot; : &quot;macAddress&quot;,
   &quot;certificateExpiryDate&quot; : 7,
   &quot;pendingConfigurationCmd&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
@@ -25328,6 +25337,7 @@ highLimit for the health selection criteria
   &quot;createdTimestamp&quot; : 1,
   &quot;simulated&quot; : true,
   &quot;lastRecordedContact&quot; : 9,
+  &quot;blackListed&quot; : true,
   &quot;macAddress&quot; : &quot;macAddress&quot;,
   &quot;certificateExpiryDate&quot; : 7,
   &quot;pendingConfigurationCmd&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
