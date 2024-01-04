@@ -12,7 +12,7 @@ namespace OpenWifi {
 			return false;
 
 		uint64_t GoodConfig = ConfigurationCache().CurrentConfig(SerialNumberInt_);
-		std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
+		std::cout << __LINE__ << ": " << SerialNumber_ << "  INT:" << SerialNumberInt_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 		if (GoodConfig && (GoodConfig == UUID || GoodConfig == State_.PendingUUID)) {
 			UpgradedUUID = UUID;
 			return false;
@@ -40,16 +40,18 @@ namespace OpenWifi {
 			}
 
 			Config::Config Cfg(D.Configuration);
-			if(D.UUID==0 && UUID == Cfg.UUID()) {
+			//	if this is a broken device (UUID==0) just fix it
+			auto StoredConfigurationUUID = Cfg.UUID();
+			if(D.UUID==0 && UUID == StoredConfigurationUUID) {
 				D.UUID = UpgradedUUID = UUID;
-				Cfg.SetUUID(UUID);
-				D.Configuration = Cfg.get();
+				D.pendingUUID = 0;
+				D.pendingConfiguration.clear();
+				D.pendingConfigurationCmd.clear();
 				StorageService()->UpdateDevice(Session, D);
 				ConfigurationCache().Add(SerialNumberInt_, UUID);
 				std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 				return false;
 			}
-
 
 			if (UUID > D.UUID) {
 				//	so we have a problem, the device has a newer config than we have. So we need to
