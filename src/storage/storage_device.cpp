@@ -708,17 +708,14 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::GetDevice(Poco::Data::Session &Session, std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
+	bool Storage::GetDevice(Poco::Data::Session &Session, const std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
 		try {
 			Poco::Data::Statement Select(Session);
-			std::string St{"SELECT " + DB_DeviceSelectFields +
-						   " FROM Devices WHERE SerialNumber=?"};
+			std::string St = fmt::format("SELECT {} FROM Devices WHERE SerialNumber='{}'", DB_DeviceSelectFields, SerialNumber);
 
 			DeviceRecordTuple R;
-			Select << ConvertParams(St), Poco::Data::Keywords::into(R),
-				Poco::Data::Keywords::use(SerialNumber);
+			Select << St, Poco::Data::Keywords::into(R);
 			Select.execute();
-
 			if (Select.rowsExtracted() == 0)
 				return false;
 			ConvertDeviceRecord(R, DeviceDetails);
@@ -729,7 +726,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::GetDevice(std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
+	bool Storage::GetDevice(const std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
 		try {
 			auto Sess = Pool_->get();
 			return GetDevice(Sess, SerialNumber, DeviceDetails);
@@ -739,7 +736,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::GetDevice(LockedDbSession &Session, std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
+	bool Storage::GetDevice(LockedDbSession &Session, const std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
 		try {
 			std::lock_guard		Lock(Session.Mutex());
 			return GetDevice(Session.Session(), SerialNumber, DeviceDetails);

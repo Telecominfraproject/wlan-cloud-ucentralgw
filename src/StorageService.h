@@ -143,9 +143,9 @@ namespace OpenWifi {
 								 bool simulated);
 		bool CreateDevice(Poco::Data::Session &Sess, GWObjects::Device &DeviceDetails);
 
-		bool GetDevice(LockedDbSession &Session, std::string &SerialNumber, GWObjects::Device &);
-		bool GetDevice(Poco::Data::Session &Session, std::string &SerialNumber, GWObjects::Device &DeviceDetails);
-		bool GetDevice(std::string &SerialNumber, GWObjects::Device &);
+		bool GetDevice(LockedDbSession &Session, const std::string &SerialNumber, GWObjects::Device &);
+		bool GetDevice(Poco::Data::Session &Session, const std::string &SerialNumber, GWObjects::Device &DeviceDetails);
+		bool GetDevice(const std::string &SerialNumber, GWObjects::Device &);
 		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices,
 						const std::string &orderBy = "");
 		//		bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select,
