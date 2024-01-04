@@ -113,6 +113,7 @@ namespace OpenWifi::GWObjects {
 		std::uint64_t 	lastRecordedContact=0;
 		std::uint64_t 	certificateExpiryDate = 0;
 		std::string 	connectReason;
+		bool			blackListed=false;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		void to_json_with_status(Poco::JSON::Object &Obj) const;

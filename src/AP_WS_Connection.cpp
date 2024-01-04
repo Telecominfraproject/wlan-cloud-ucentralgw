@@ -2,6 +2,7 @@
 // Created by stephane bourque on 2022-02-03.
 //
 
+// #include <format>
 #include "AP_WS_Connection.h"
 
 #include "Poco/Base64Decoder.h"

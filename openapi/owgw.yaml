@@ -157,6 +157,9 @@ components:
         lastRecordedContact:
           type: integer
           format: int64
+        blackListed:
+          type: boolean
+          readOnly: true
 
     DeviceWithStatus:
       type: object
@@ -281,6 +284,9 @@ components:
           format: float
         connectReason:
           type: string
+        blackListed:
+          type: boolean
+          readOnly: true
 
     DeviceList:
       type: object
