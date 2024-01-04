@@ -265,7 +265,7 @@ namespace OpenWifi {
 			D.pendingUUID = 0;
 			D.LastConfigurationChange = Utils::Now();
 
-			ConfigurationCache().Add(Utils::SerialNumberToInt(SerialNumber), D.UUID);
+			SetCurrentConfigurationID(Utils::SerialNumberToInt(SerialNumber), D.UUID);
 
 			Poco::Data::Session Sess = Pool_->get();
 			Sess.begin();
@@ -321,7 +321,7 @@ namespace OpenWifi {
 			}
 
 			D.LastConfigurationChange = Utils::Now();
-			ConfigurationCache().Add(Utils::SerialNumberToInt(SerialNumber), D.UUID);
+			SetCurrentConfigurationID(Utils::SerialNumberToInt(SerialNumber), D.UUID);
 
 			Session.begin();
 			Poco::Data::Statement Update(Session);

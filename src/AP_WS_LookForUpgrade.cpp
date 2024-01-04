@@ -11,7 +11,7 @@ namespace OpenWifi {
 		if (UUID == 0)
 			return false;
 
-		uint64_t GoodConfig = ConfigurationCache().CurrentConfig(SerialNumberInt_);
+		uint64_t GoodConfig = GetCurrentConfigurationID(SerialNumberInt_);
 		std::cout << __LINE__ << ": " << SerialNumber_ << "  INT:" << SerialNumberInt_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 		if (GoodConfig && (GoodConfig == UUID || GoodConfig == State_.PendingUUID)) {
 			UpgradedUUID = UUID;
@@ -34,7 +34,7 @@ namespace OpenWifi {
 			// the device already 	has the right UUID, we just return.
 			if (D.UUID == UUID) {
 				UpgradedUUID = UUID;
-				ConfigurationCache().Add(SerialNumberInt_, UUID);
+				SetCurrentConfigurationID(SerialNumberInt_, UUID);
 				std::cout << __LINE__ << ": " << SerialNumber_ << "  Set GoodConfig" << std::endl;
 				return false;
 			}
@@ -48,7 +48,7 @@ namespace OpenWifi {
 				D.pendingConfiguration.clear();
 				D.pendingConfigurationCmd.clear();
 				StorageService()->UpdateDevice(Session, D);
-				ConfigurationCache().Add(SerialNumberInt_, UUID);
+				SetCurrentConfigurationID(SerialNumberInt_, UUID);
 				std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 				return false;
 			}
