@@ -24506,7 +24506,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/devices?offset=56&limit=56&filter=filter_example&select=serial1,serial2,serial3&serialOnly=true&countOnly=false&deviceWithStatus=true&orderBy=serialNumber:a,created:d&orderSpec=true&connectionStatistics=true&health=true&lowLimit=56&highLimits=56"
+ "https://localhost:16001/api/v1/devices?offset=56&limit=56&filter=filter_example&select=serial1,serial2,serial3&serialOnly=true&countOnly=false&deviceWithStatus=true&orderBy=serialNumber:a,created:d&orderSpec=true&connectionStatistics=true&health=true&lowLimit=56&highLimits=56&platform=platform_example"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Devices-getDeviceList-0-java">
@@ -24547,9 +24547,10 @@ public class DevicesApiExample {
         Boolean health = true; // Boolean | return devices with their health value in between lowLimit and highLimit
         Integer lowLimit = 56; // Integer | lowLimit for the health selection criteria
         Integer highLimits = 56; // Integer | highLimit for the health selection criteria
+        String platform = platform_example; // String | return only devices matching a certain platform of AP or SWITCH
 
         try {
-            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits);
+            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DevicesApi#getDeviceList");
@@ -24579,9 +24580,10 @@ public class DevicesApiExample {
         Boolean health = true; // Boolean | return devices with their health value in between lowLimit and highLimit
         Integer lowLimit = 56; // Integer | lowLimit for the health selection criteria
         Integer highLimits = 56; // Integer | highLimit for the health selection criteria
+        String platform = platform_example; // String | return only devices matching a certain platform of AP or SWITCH
 
         try {
-            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits);
+            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DevicesApi#getDeviceList");
@@ -24620,6 +24622,7 @@ Boolean *connectionStatistics = true; // return extended information (optional) 
 Boolean *health = true; // return devices with their health value in between lowLimit and highLimit (optional) (default to false)
 Integer *lowLimit = 56; // lowLimit for the health selection criteria (optional) (default to 30)
 Integer *highLimits = 56; // highLimit for the health selection criteria (optional) (default to 70)
+String *platform = platform_example; // return only devices matching a certain platform of AP or SWITCH (optional) (default to null)
 
 // Returns a list of devices.
 [apiInstance getDeviceListWith:offset
@@ -24635,6 +24638,7 @@ Integer *highLimits = 56; // highLimit for the health selection criteria (option
     health:health
     lowLimit:lowLimit
     highLimits:highLimits
+    platform:platform
               completionHandler: ^(getDeviceList_200_response output, NSError* error) {
     if (output) {
         NSLog(@"%@", output);
@@ -24675,7 +24679,8 @@ var opts = {
   'connectionStatistics': true, // {Boolean} return extended information
   'health': true, // {Boolean} return devices with their health value in between lowLimit and highLimit
   'lowLimit': 56, // {Integer} lowLimit for the health selection criteria
-  'highLimits': 56 // {Integer} highLimit for the health selection criteria
+  'highLimits': 56, // {Integer} highLimit for the health selection criteria
+  'platform': platform_example // {String} return only devices matching a certain platform of AP or SWITCH
 };
 
 var callback = function(error, data, response) {
@@ -24727,10 +24732,11 @@ namespace Example
             var health = true;  // Boolean | return devices with their health value in between lowLimit and highLimit (optional)  (default to false)
             var lowLimit = 56;  // Integer | lowLimit for the health selection criteria (optional)  (default to 30)
             var highLimits = 56;  // Integer | highLimit for the health selection criteria (optional)  (default to 70)
+            var platform = platform_example;  // String | return only devices matching a certain platform of AP or SWITCH (optional)  (default to null)
 
             try {
                 // Returns a list of devices.
-                getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits);
+                getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform);
                 Debug.WriteLine(result);
             } catch (Exception e) {
                 Debug.Print("Exception when calling DevicesApi.getDeviceList: " + e.Message );
@@ -24768,9 +24774,10 @@ $connectionStatistics = true; // Boolean | return extended information
 $health = true; // Boolean | return devices with their health value in between lowLimit and highLimit
 $lowLimit = 56; // Integer | lowLimit for the health selection criteria
 $highLimits = 56; // Integer | highLimit for the health selection criteria
+$platform = platform_example; // String | return only devices matching a certain platform of AP or SWITCH
 
 try {
-    $result = $api_instance->getDeviceList($offset, $limit, $filter, $select, $serialOnly, $countOnly, $deviceWithStatus, $orderBy, $orderSpec, $connectionStatistics, $health, $lowLimit, $highLimits);
+    $result = $api_instance->getDeviceList($offset, $limit, $filter, $select, $serialOnly, $countOnly, $deviceWithStatus, $orderBy, $orderSpec, $connectionStatistics, $health, $lowLimit, $highLimits, $platform);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling DevicesApi->getDeviceList: ', $e->getMessage(), PHP_EOL;
@@ -24806,9 +24813,10 @@ my $connectionStatistics = true; # Boolean | return extended information
 my $health = true; # Boolean | return devices with their health value in between lowLimit and highLimit
 my $lowLimit = 56; # Integer | lowLimit for the health selection criteria
 my $highLimits = 56; # Integer | highLimit for the health selection criteria
+my $platform = platform_example; # String | return only devices matching a certain platform of AP or SWITCH
 
 eval {
-    my $result = $api_instance->getDeviceList(offset => $offset, limit => $limit, filter => $filter, select => $select, serialOnly => $serialOnly, countOnly => $countOnly, deviceWithStatus => $deviceWithStatus, orderBy => $orderBy, orderSpec => $orderSpec, connectionStatistics => $connectionStatistics, health => $health, lowLimit => $lowLimit, highLimits => $highLimits);
+    my $result = $api_instance->getDeviceList(offset => $offset, limit => $limit, filter => $filter, select => $select, serialOnly => $serialOnly, countOnly => $countOnly, deviceWithStatus => $deviceWithStatus, orderBy => $orderBy, orderSpec => $orderSpec, connectionStatistics => $connectionStatistics, health => $health, lowLimit => $lowLimit, highLimits => $highLimits, platform => $platform);
     print Dumper($result);
 };
 if ($@) {
@@ -24846,10 +24854,11 @@ connectionStatistics = true # Boolean | return extended information (optional) (
 health = true # Boolean | return devices with their health value in between lowLimit and highLimit (optional) (default to false)
 lowLimit = 56 # Integer | lowLimit for the health selection criteria (optional) (default to 30)
 highLimits = 56 # Integer | highLimit for the health selection criteria (optional) (default to 70)
+platform = platform_example # String | return only devices matching a certain platform of AP or SWITCH (optional) (default to null)
 
 try:
     # Returns a list of devices.
-    api_response = api_instance.get_device_list(offset=offset, limit=limit, filter=filter, select=select, serialOnly=serialOnly, countOnly=countOnly, deviceWithStatus=deviceWithStatus, orderBy=orderBy, orderSpec=orderSpec, connectionStatistics=connectionStatistics, health=health, lowLimit=lowLimit, highLimits=highLimits)
+    api_response = api_instance.get_device_list(offset=offset, limit=limit, filter=filter, select=select, serialOnly=serialOnly, countOnly=countOnly, deviceWithStatus=deviceWithStatus, orderBy=orderBy, orderSpec=orderSpec, connectionStatistics=connectionStatistics, health=health, lowLimit=lowLimit, highLimits=highLimits, platform=platform)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling DevicesApi->getDeviceList: %s\n" % e)</code></pre>
@@ -24872,9 +24881,10 @@ pub fn main() {
     let health = true; // Boolean
     let lowLimit = 56; // Integer
     let highLimits = 56; // Integer
+    let platform = platform_example; // String
 
     let mut context = DevicesApi::Context::default();
-    let result = client.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, &context).wait();
+    let result = client.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform, &context).wait();
 
     println!("{:?}", result);
 }
@@ -25152,6 +25162,26 @@ lowLimit for the health selection criteria
 
                     <div class="inner description marked">
 highLimit for the health selection criteria
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">platform</td>
+<td>
+
+
+    <div id="d2e199_getDeviceList_platform">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+                    <div class="inner description marked">
+return only devices matching a certain platform of AP or SWITCH
                     </div>
             </div>
         </div>
