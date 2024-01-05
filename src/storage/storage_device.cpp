@@ -172,14 +172,18 @@ namespace OpenWifi {
 		R.set<30>(D.connectReason);
 	}
 
-	bool Storage::GetDeviceCount(uint64_t &Count) {
+	bool Storage::GetDeviceCount(uint64_t &Count, const std::string &platform) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			std::string st{"SELECT COUNT(*) FROM Devices"};
-
-			Select << st, Poco::Data::Keywords::into(Count);
+			if(!platform.empty()) {
+				std::string st{"SELECT COUNT(*) FROM Devices WHERE DeviceType='" + platform + "'"};
+				Select << st, Poco::Data::Keywords::into(Count);
+			} else {
+				std::string st{"SELECT COUNT(*) FROM Devices"};
+				Select << st, Poco::Data::Keywords::into(Count);
+			}
 			Select.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -190,16 +194,22 @@ namespace OpenWifi {
 
 	bool Storage::GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany,
 										 std::vector<std::string> &SerialNumbers,
-										 const std::string &orderBy) {
+										 const std::string &orderBy,
+										 const std::string &platform) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
 			std::string st;
+			if(!platform.empty()) {
+				st = "SELECT SerialNumber From Devices WHERE DeviceType='" + platform + "' ";
+			} else {
+				st = "SELECT SerialNumber From Devices ";
+			}
 			if (orderBy.empty())
-				st = "SELECT SerialNumber From Devices ORDER BY SerialNumber ASC ";
+				st += " ORDER BY SerialNumber ASC ";
 			else
-				st = "SELECT SerialNumber From Devices " + orderBy;
+				st += orderBy;
 
 			Select << st + ComputeRange(From, HowMany), Poco::Data::Keywords::into(SerialNumbers);
 			Select.execute();
@@ -536,7 +546,7 @@ namespace OpenWifi {
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
-		return true;
+		return false;
 	}
 
 	bool Storage::CreateDefaultDevice(Poco::Data::Session &Session, std::string &SerialNumber, const Config::Capabilities &Caps,
@@ -582,7 +592,7 @@ namespace OpenWifi {
 		D.locale = InsertRadiosCountyRegulation(D.Configuration, IPAddress);
 		D.SerialNumber = Poco::toLower(SerialNumber);
 		D.Compatible = Caps.Compatible();
-		D.DeviceType = Daemon()->IdentifyDevice(D.Compatible);
+		D.DeviceType = Caps.Platform();
 		D.MACAddress = Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
@@ -825,17 +835,24 @@ namespace OpenWifi {
 	}
 
 	bool Storage::GetDevices(uint64_t From, uint64_t HowMany,
-							 std::vector<GWObjects::Device> &Devices, const std::string &orderBy) {
+							 std::vector<GWObjects::Device> &Devices, const std::string &orderBy, const std::string &platform) {
 		DeviceRecordList Records;
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			// std::string st{"SELECT " + DB_DeviceSelectFields + " FROM Devices " + orderBy.empty()
-			// ? " ORDER BY SerialNumber ASC " + ComputeRange(From, HowMany)};
-			std::string st = fmt::format("SELECT {} FROM Devices {} {}", DB_DeviceSelectFields,
-										 orderBy.empty() ? " ORDER BY SerialNumber ASC " : orderBy,
-										 ComputeRange(From, HowMany));
+			std::string st;
+			if(platform.empty()) {
+				st =
+					fmt::format("SELECT {} FROM Devices {} {}", DB_DeviceSelectFields,
+								orderBy.empty() ? " ORDER BY SerialNumber ASC " : orderBy,
+								ComputeRange(From, HowMany));
+			} else {
+				st =
+					fmt::format("SELECT {} FROM Devices WHERE DeviceType='{}' {} {}", DB_DeviceSelectFields, platform,
+								orderBy.empty() ? " ORDER BY SerialNumber ASC " : orderBy,
+								ComputeRange(From, HowMany));
+			}
 
 			Select << ConvertParams(st), Poco::Data::Keywords::into(Records);
 			Select.execute();

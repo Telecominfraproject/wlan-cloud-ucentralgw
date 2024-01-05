@@ -147,7 +147,8 @@ namespace OpenWifi {
 		bool GetDevice(Poco::Data::Session &Session, const std::string &SerialNumber, GWObjects::Device &DeviceDetails);
 		bool GetDevice(const std::string &SerialNumber, GWObjects::Device &);
 		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices,
-						const std::string &orderBy = "");
+						const std::string &orderBy = "",
+						const std::string &platform = "");
 		//		bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select,
 		// std::vector<GWObjects::Device> &Devices, const std::string & orderBy="");
 		bool DeleteDevice(std::string &SerialNumber);
@@ -159,10 +160,11 @@ namespace OpenWifi {
 		bool UpdateDevice(Poco::Data::Session &Sess, GWObjects::Device &NewDeviceDetails);
 		bool DeviceExists(std::string &SerialNumber);
 		bool SetConnectInfo(std::string &SerialNumber, std::string &Firmware);
-		bool GetDeviceCount(uint64_t &Count);
+		bool GetDeviceCount(uint64_t &Count, const std::string &platform = "");
 		bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany,
 									std::vector<std::string> &SerialNumbers,
-									const std::string &orderBy = "");
+									const std::string &orderBy = "",
+									const std::string &platform = "");
 		bool GetDeviceFWUpdatePolicy(std::string &SerialNumber, std::string &Policy);
 		bool SetDevicePassword(LockedDbSession &Session, std::string &SerialNumber, std::string &Password);
 		bool UpdateSerialNumberCache();

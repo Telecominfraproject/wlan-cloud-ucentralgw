@@ -82,9 +82,14 @@ namespace OpenWifi {
 			}
 		}
 
+		auto platform = Poco::toLower(GetParameter("platform", ""));
 		auto serialOnly = GetBoolParameter(RESTAPI::Protocol::SERIALONLY, false);
 		auto deviceWithStatus = GetBoolParameter(RESTAPI::Protocol::DEVICEWITHSTATUS, false);
 		auto completeInfo = GetBoolParameter("completeInfo", false);
+
+		if(!platform.empty() && (platform!="ap" && platform!="switch")) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
 
 		Poco::JSON::Object RetObj;
 		if (!QB_.Select.empty()) {
@@ -116,9 +121,9 @@ namespace OpenWifi {
 			else
 				RetObj.set(RESTAPI::Protocol::DEVICES, Objects);
 
-		} else if (QB_.CountOnly == true) {
+		} else if (QB_.CountOnly) {
 			uint64_t Count = 0;
-			if (StorageService()->GetDeviceCount(Count)) {
+			if (StorageService()->GetDeviceCount(Count, platform)) {
 				return ReturnCountOnly(Count);
 			}
 		} else if (serialOnly) {
