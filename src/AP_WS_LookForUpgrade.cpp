@@ -15,6 +15,7 @@ namespace OpenWifi {
 		std::cout << __LINE__ << ": " << SerialNumber_ << "  INT:" << SerialNumberInt_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 		if (GoodConfig && (GoodConfig == UUID || GoodConfig == State_.PendingUUID)) {
 			UpgradedUUID = UUID;
+			State_.PendingUUID = 0;
 			return false;
 		}
 
@@ -22,6 +23,8 @@ namespace OpenWifi {
 		if (!StorageService()->GetDevice(Session,SerialNumber_, D)) {
 			return false;
 		}
+
+
 
 		std::cout << "D.pendingUUID: " << D.pendingUUID << "  UUID: " << D.UUID << " SerialNumber: " << D.SerialNumber << std::endl;
 		if(State_.PendingUUID!=0 && UUID==State_.PendingUUID) {
@@ -34,19 +37,15 @@ namespace OpenWifi {
 		}
 		std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << " Device:" << D.UUID << std::endl;
 
-		//	This is the case where the cache is empty after a restart. So GoodConfig will 0. If
-		// the device already 	has the right UUID, we just return.
-		if (D.UUID == UUID) {
-			UpgradedUUID = UUID;
-			SetCurrentConfigurationID(SerialNumberInt_, UUID);
-			std::cout << __LINE__ << ": " << SerialNumber_ << "  Set GoodConfig" << std::endl;
-			return false;
-		}
-
 		Config::Config Cfg(D.Configuration);
 		//	if this is a broken device (UUID==0) just fix it
 		auto StoredConfigurationUUID = Cfg.UUID();
-		if(D.UUID==0 && UUID == StoredConfigurationUUID) {
+		if(D.UUID==0) {
+			D.UUID = StoredConfigurationUUID;
+		}
+
+
+		if (D.UUID == UUID) {
 			D.UUID = UpgradedUUID = UUID;
 			State_.PendingUUID = D.pendingUUID = 0;
 			D.pendingConfiguration.clear();
@@ -67,7 +66,8 @@ namespace OpenWifi {
 
 		Cfg.SetUUID(D.UUID);
 		D.Configuration = Cfg.get();
-		State_.PendingUUID = UpgradedUUID = D.UUID;
+		D.pendingUUID = State_.PendingUUID = UpgradedUUID = D.UUID;
+		StorageService()->UpdateDevice(Session, D);
 
 		GWObjects::CommandDetails Cmd;
 		Cmd.SerialNumber = SerialNumber_;
