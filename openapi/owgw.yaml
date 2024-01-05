@@ -1663,6 +1663,17 @@ paths:
             type: integer
             default: 70
           required: false
+        - in: query
+          description: return only devices matching a certain platform of AP or SWITCH
+          name: platform
+          schema:
+              type: string
+              enum:
+                - ALL
+                - AP
+                - SWITCH
+          required: false
+          default: ALL
       responses:
         200:
           description: List devices

@@ -1,0 +1,85 @@
+{
+    "ethernet": [
+        {
+            "select-ports": [
+                "Ethernet0",
+                "Ethernet1",
+                "Ethernet2",
+                "Ethernet3",
+                "Ethernet4",
+                "Ethernet5",
+                "Ethernet6",
+                "Ethernet7"
+            ],
+            "speed": 2500,
+            "duplex": "full",
+            "enabled": true,
+            "poe": {
+                "admin-mode": true,
+                "power-limit": 60000
+            }
+        },
+        {
+            "select-ports": [
+                "Ethernet8",
+                "Ethernet9"
+            ],
+            "speed": 10000,
+            "duplex": "full",
+            "media": "sfp-forced-1000sfp"
+        }
+    ],
+    "interfaces": [
+        {
+            "name": "VLAN1",
+            "vlan": {
+                "id": 1
+            },
+            "ipv4": {
+                "addressing": "dynamic"
+            },
+            "ethernet": [
+                {
+                    "select-ports": [
+                        "Ethernet0",
+                        "Ethernet1",
+                        "Ethernet2",
+                        "Ethernet3",
+                        "Ethernet4",
+                        "Ethernet5",
+                        "Ethernet6",
+                        "Ethernet7",
+                        "Ethernet8",
+                        "Ethernet9"
+                    ],
+                    "vlan-tag": "un-tagged"
+                }
+            ]
+        }
+    ],
+    "metrics": {
+        "dhcp-snooping": {
+            "filters": [
+                "ack",
+                "discover",
+                "offer",
+                "request",
+                "solicit",
+                "reply",
+                "renew"
+            ]
+        },
+        "health": {
+            "interval": 60
+        },
+        "statistics": {
+            "interval": 120,
+            "types": []
+        }
+    },
+    "unit": {
+        "leds-active": true,
+        "usage-threshold": 95
+    },
+    "uuid": 1678263900
+}
