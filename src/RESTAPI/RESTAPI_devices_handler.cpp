@@ -131,7 +131,7 @@ namespace OpenWifi {
 			}
 		} else if (serialOnly) {
 			std::vector<std::string> SerialNumbers;
-			StorageService()->GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers, OrderBy);
+			StorageService()->GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers, OrderBy, platform);
 			Poco::JSON::Array Objects;
 			for (const auto &i : SerialNumbers) {
 				Objects.add(i);
@@ -149,7 +149,7 @@ namespace OpenWifi {
 			RetObj.set("serialNumbers", Objects);
 		} else {
 			std::vector<GWObjects::Device> Devices;
-			StorageService()->GetDevices(QB_.Offset, QB_.Limit, Devices, OrderBy);
+			StorageService()->GetDevices(QB_.Offset, QB_.Limit, Devices, OrderBy, platform);
 			Poco::JSON::Array Objects;
 			for (const auto &i : Devices) {
 				Poco::JSON::Object Obj;
