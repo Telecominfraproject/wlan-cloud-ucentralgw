@@ -68,7 +68,6 @@ namespace OpenWifi {
 									CompleteTelemetryCommand(RPC->second, Payload,
 															 rpc_execution_time);
 								} else if (RPC->second.Command == APCommands::Commands::configure && RPC->second.rpc_entry==nullptr) {
-									std::cout << "Complete configure command: " << SerialNumberStr << std::endl;
 									CompleteConfigureCommand(RPC->second, Payload,
 															 rpc_execution_time);
 								} else {

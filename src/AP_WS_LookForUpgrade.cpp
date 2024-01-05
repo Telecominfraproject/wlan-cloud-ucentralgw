@@ -12,7 +12,7 @@ namespace OpenWifi {
 			return false;
 
 		uint64_t GoodConfig = GetCurrentConfigurationID(SerialNumberInt_);
-		std::cout << __LINE__ << ": " << SerialNumber_ << "  INT:" << SerialNumberInt_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
+// 		std::cout << __LINE__ << ": " << SerialNumber_ << "  INT:" << SerialNumberInt_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 		if (GoodConfig && (GoodConfig == UUID || GoodConfig == State_.PendingUUID)) {
 			UpgradedUUID = UUID;
 			State_.PendingUUID = 0;
@@ -24,18 +24,16 @@ namespace OpenWifi {
 			return false;
 		}
 
-
-
-		std::cout << "D.pendingUUID: " << D.pendingUUID << "  UUID: " << D.UUID << " SerialNumber: " << D.SerialNumber << std::endl;
+//		std::cout << "D.pendingUUID: " << D.pendingUUID << "  UUID: " << D.UUID << " SerialNumber: " << D.SerialNumber << std::endl;
 		if(State_.PendingUUID!=0 && UUID==State_.PendingUUID) {
-			std::cout << __LINE__ << ": " << SerialNumber_  << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
+//			std::cout << __LINE__ << ": " << SerialNumber_  << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 			//	so we sent an upgrade to a device, and now it is completing now...
 			UpgradedUUID = UUID;
 			StorageService()->CompleteDeviceConfigurationChange(Session, SerialNumber_);
 			State_.PendingUUID = 0;
 			return true;
 		}
-		std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << " Device:" << D.UUID << std::endl;
+//		std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << " Device:" << D.UUID << std::endl;
 
 		Config::Config Cfg(D.Configuration);
 		//	if this is a broken device (UUID==0) just fix it
@@ -52,7 +50,7 @@ namespace OpenWifi {
 			D.pendingConfigurationCmd.clear();
 			StorageService()->UpdateDevice(Session, D);
 			SetCurrentConfigurationID(SerialNumberInt_, UUID);
-			std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
+//			std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 			return false;
 		}
 
@@ -61,7 +59,7 @@ namespace OpenWifi {
 			// 	make sure our config 	is newer.
 			D.UUID = UUID + 2;
 			UpgradedUUID = D.UUID;
-			std::cout << __LINE__ << ": " << SerialNumber_  << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
+//			std::cout << __LINE__ << ": " << SerialNumber_  << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 		}
 
 		Cfg.SetUUID(D.UUID);
@@ -103,8 +101,8 @@ namespace OpenWifi {
 		Notification.content.newUUID = UpgradedUUID;
 		GWWebSocketNotifications::DeviceConfigurationChange(Notification);
 
-		std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID <<
-			"  Pending:" << State_.PendingUUID << "  Upgraded:" << UpgradedUUID << std::endl;
+//		std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID <<
+//			"  Pending:" << State_.PendingUUID << "  Upgraded:" << UpgradedUUID << std::endl;
 
 		return true;
 	}
