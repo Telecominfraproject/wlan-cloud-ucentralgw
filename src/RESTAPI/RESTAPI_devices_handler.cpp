@@ -98,7 +98,7 @@ namespace OpenWifi {
 		if (!QB_.Select.empty()) {
 			Poco::JSON::Array Objects;
 			for (auto &i : SelectedRecords()) {
-				auto SerialNumber = i;
+				auto &SerialNumber = i;
 				if (!Utils::ValidSerialNumber(i))
 					continue;
 				GWObjects::Device D;

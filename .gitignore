@@ -28,3 +28,4 @@ test_scripts/curl/result.json
 *.swp
 helm/charts/*
 !helm/charts/.gitkeep
+/portal-test/
