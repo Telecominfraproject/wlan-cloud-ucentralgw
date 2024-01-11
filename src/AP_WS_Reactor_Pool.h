@@ -7,10 +7,12 @@
 #include <mutex>
 #include <string>
 
-#include "Poco/Environment.h"
-#include "Poco/Net/SocketAcceptor.h"
+#include <framework/utils.h>
+
+#include <Poco/Environment.h>
+#include <Poco/Net/SocketAcceptor.h>
 #include <Poco/Data/SessionPool.h>
-#include "framework/utils.h"
+
 #include <StorageService.h>
 
 namespace OpenWifi {
@@ -55,7 +57,7 @@ namespace OpenWifi {
 			DbSessions_.clear();
 		}
 
-		std::pair<std::shared_ptr<Poco::Net::SocketReactor>, std::shared_ptr<LockedDbSession> > NextReactor() {
+		auto NextReactor() {
 			std::lock_guard Lock(Mutex_);
 			NextReactor_++;
 			NextReactor_ %= NumberOfThreads_;

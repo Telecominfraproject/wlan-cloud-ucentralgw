@@ -2,38 +2,32 @@
 // Created by stephane bourque on 2022-02-03.
 //
 
-// #include <format>
-#include "AP_WS_Connection.h"
 
-#include "Poco/Base64Decoder.h"
-#include "Poco/Net/Context.h"
-#include "Poco/Net/HTTPServerRequestImpl.h"
-#include "Poco/Net/HTTPServerResponseImpl.h"
-#include "Poco/Net/NetException.h"
-#include "Poco/Net/SSLException.h"
-#include "Poco/Net/SecureStreamSocketImpl.h"
-#include "Poco/Net/WebSocketImpl.h"
-#include "Poco/zlib.h"
+#include <Poco/Base64Decoder.h>
+#include <Poco/Net/Context.h>
+#include <Poco/Net/HTTPServerRequestImpl.h>
+#include <Poco/Net/HTTPServerResponseImpl.h>
+#include <Poco/Net/NetException.h>
+#include <Poco/Net/SSLException.h>
+#include <Poco/Net/SecureStreamSocketImpl.h>
+#include <Poco/Net/WebSocketImpl.h>
 
-#include "AP_WS_Server.h"
-#include "CentralConfig.h"
-#include "CommandManager.h"
-#include "ConfigurationCache.h"
-#include "StorageService.h"
-#include "TelemetryStream.h"
+#include <framework/KafkaManager.h>
+#include <framework/MicroServiceFuncs.h>
+#include <framework/utils.h>
+#include <framework/ow_constants.h>
 
-#include "GWKafkaEvents.h"
-#include "UI_GW_WebSocketNotifications.h"
-#include "framework/KafkaManager.h"
-#include "framework/MicroServiceFuncs.h"
-#include "framework/utils.h"
+#include <fmt/format.h>
 
-#include "fmt/format.h"
-
-#include "framework/ow_constants.h"
-
-#include "RADIUSSessionTracker.h"
-#include "RADIUS_proxy_server.h"
+#include <AP_WS_Connection.h>
+#include <AP_WS_Server.h>
+#include <CentralConfig.h>
+#include <CommandManager.h>
+#include <StorageService.h>
+#include <RADIUSSessionTracker.h>
+#include <RADIUS_proxy_server.h>
+#include <GWKafkaEvents.h>
+#include <UI_GW_WebSocketNotifications.h>
 
 namespace OpenWifi {
 
