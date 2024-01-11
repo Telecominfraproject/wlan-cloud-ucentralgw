@@ -713,8 +713,29 @@ namespace OpenWifi::GWObjects {
 
 	bool DeviceCertificateUpdateRequest::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
-			field_from_json(Obj, "serialNumber", serialNumber);
+			field_from_json(Obj, "serial", serialNumber);
 			field_from_json(Obj, "encodedCertificate", encodedCertificate);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
+
+	bool PowerCyclePort::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "name", name);
+			field_from_json(Obj, "cycle", cycle);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
+
+	bool PowerCycleRequest::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serial", serialNumber);
+			field_from_json(Obj, "when", when);
+			field_from_json(Obj, "ports", ports);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
