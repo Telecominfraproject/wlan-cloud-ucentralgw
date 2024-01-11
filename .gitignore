@@ -29,3 +29,5 @@ test_scripts/curl/result.json
 helm/charts/*
 !helm/charts/.gitkeep
 /portal-test/
+/src/ow_version.h
+
