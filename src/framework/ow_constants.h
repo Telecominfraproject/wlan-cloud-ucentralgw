@@ -565,6 +565,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 
 	static const char *TRANSFER = "transfer";
 	static const char *CERTUPDATE = "certupdate";
+	static const char *POWERCYCLE = "powercycle";
 	static const char *RRM = "rrm";
 
 	static const char *REQUIREMENTS = "requirements";
@@ -687,6 +688,7 @@ namespace OpenWifi::uCentralProtocol {
 
 	static const char *TRANSFER = "transfer";
 	static const char *CERTUPDATE = "certupdate";
+	static const char *POWERCYCLE = "powercycle";
 	static const char *RRM = "rrm";
 	static const char *ACTIONS = "actions";
 
@@ -785,6 +787,7 @@ namespace OpenWifi::APCommands {
 		rrm,
 		certupdate,
 		transfer,
+		powercycle,
 		unknown
 	};
 
@@ -799,7 +802,7 @@ namespace OpenWifi::APCommands {
 		RESTAPI::Protocol::EVENTQUEUE,	 RESTAPI::Protocol::TELEMETRY,
 		RESTAPI::Protocol::PING,		 RESTAPI::Protocol::SCRIPT,
 		RESTAPI::Protocol::RRM,		 	 RESTAPI::Protocol::CERTUPDATE,
-		RESTAPI::Protocol::TRANSFER
+		RESTAPI::Protocol::TRANSFER,	 RESTAPI::Protocol::POWERCYCLE
 	};
 
 	inline const char *to_string(Commands Cmd) { return uCentralAPCommands[(uint8_t)Cmd]; }

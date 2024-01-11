@@ -355,6 +355,39 @@ The device should answer:
 - 1 : the device is busy but will reboot soon. `text` may indicate why.
 - 2 : the device will not reboot. `text` contains information as to why.
 
+#### Controller wants to power-cycle PoE port(s)
+Controller sends this command to power-cycle 1 or more PoE ports
+```json
+{    "jsonrpc" : "2.0" , 
+     "method" : "powercycle" , 
+     "params" : {
+	        "serial" : <serial number> ,
+            "ports" : [ { "name" :  "Ethernet1", "cycle" : 5000}, { "name" :  "Ethernet8", "cycle" : 10000 } ],
+	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>
+     },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```json
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+      "serial" : <serial number> ,
+      "status" : {
+	    "error" : 0 or an error number,
+	    "text" : [ "Error 1" , "Error 2" ],
+	    "when" : <time when this will be performed as UTC seconds>,
+  	},
+  "id" : <same id from request>
+}
+```
+
+###### Error codes
+- 0 : is rebooting at `when` seconds.
+- 1 : the device is busy but will reboot soon. `text` may indicate why.
+- 2 : the device will not reboot. `text` contains information as to why.
+
 #### Controller wants the device to upgrade its firmware
 Controller sends this command when it believes the device should upgrade its firmware.
 ```json

@@ -1572,6 +1572,30 @@ components:
           format: base64
           description: This is a base64 encoded string of the certificate bundle (the current bundle .tar.gz file from the PKI portal)
 
+    PowerCycleRequest:
+      type: object
+      properties:
+        serial:
+          type: string
+        when:
+          type: integer
+          format: int64
+        ports:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example:
+                  - Ethernet0
+              cycle:
+                type: integer
+                default: 10000
+                minimum: 1
+                maximum: 60000
+                description: off time in milliseconds
+
 paths:
   /devices:
     get:
@@ -1667,13 +1691,13 @@ paths:
           description: return only devices matching a certain platform of AP or SWITCH
           name: platform
           schema:
-              type: string
-              enum:
-                - ALL
-                - AP
-                - SWITCH
+            type: string
+            default: ALL
+            enum:
+              - ALL
+              - AP
+              - SWITCH
           required: false
-          default: ALL
       responses:
         200:
           description: List devices
@@ -3015,6 +3039,34 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/DeviceCertificateUpdateRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/powercycle:
+    post:
+      tags:
+        - Commands
+      summary: Perform PoE power cycle for some PoE ports.
+      operationId: performPowerCycle
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Certificate update details
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PowerCycleRequest'
       responses:
         200:
           $ref: '#/components/responses/Success'

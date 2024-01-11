@@ -515,4 +515,18 @@ namespace OpenWifi::GWObjects {
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
+	struct PowerCyclePort {
+		std::string 	name;
+		std::uint64_t 	cycle=10000;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
+	struct PowerCycleRequest {
+		std::string 	serialNumber;
+		std::uint64_t 	when;
+		std::vector<PowerCyclePort> ports;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
 } // namespace OpenWifi::GWObjects
