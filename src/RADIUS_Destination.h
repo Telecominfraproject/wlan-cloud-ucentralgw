@@ -62,29 +62,29 @@ namespace OpenWifi {
 			Poco::Thread::trySleep(5000);
 			std::uint64_t CurrentDelay = 10, maxDelay=300, LastTry=0, LastKeepAlive=0;
 			while (TryAgain_) {
-				std::cout << __LINE__ << std::endl;
+				std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 				if (!Connected_) {
-					std::cout << __LINE__ << std::endl;
+					std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 					if(!LastTry || (Utils::Now()-LastTry)>CurrentDelay) {
 						LastTry = Utils::Now();
-						std::cout << __LINE__ << std::endl;
+						std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 						if (!Connect()) {
-							std::cout << __LINE__ << std::endl;
+							std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 							CurrentDelay *= 2;
 							if(CurrentDelay>maxDelay) CurrentDelay=10;
 						} else {
-							std::cout << __LINE__ << std::endl;
+							std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 							CurrentDelay = 10;
 						}
 					}
-					std::cout << __LINE__ << std::endl;
+					std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 				} else if ((Utils::Now() - LastKeepAlive) > Pool_.radsecKeepAlive) {
 					RADIUS::RadiusOutputPacket P(Pool_.authConfig.servers[ServerIndex_].radsecSecret);
 					P.MakeStatusMessage(Pool_.authConfig.servers[ServerIndex_].name);
 					poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Pool_.authConfig.servers[ServerIndex_].name));
-					std::cout << __LINE__ << std::endl;
+					std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 					Socket_->sendBytes(P.Data(), P.Len());
-					std::cout << __LINE__ << std::endl;
+					std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 					LastKeepAlive = Utils::Now();
 				}
 				Poco::Thread::trySleep(2000);
@@ -506,10 +506,11 @@ namespace OpenWifi {
 
 		inline bool Connect_Generic() {
 			poco_information(Logger_, fmt::format("Connecting {}", Pool_.name));
+			std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 			if (TryAgain_ && !Connected_) {
 
 				std::lock_guard G(LocalMutex_);
-				std::cout << "Connect_Generic:" << Pool_.name << std::endl;
+				std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 
 				Poco::Net::SocketAddress AuthSockAddrV4(
 					Poco::Net::AddressFamily::IPv4,
@@ -577,6 +578,7 @@ namespace OpenWifi {
 */
 				Connected_ = true;
 			}
+			std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 			return true;
 		}
 
@@ -602,6 +604,8 @@ namespace OpenWifi {
 				std::lock_guard G(LocalMutex_);
 				if(Type_==GWObjects::RadiusEndpointType::generic) {
 					poco_information(Logger_, fmt::format("Disconnecting {} generic server. Releasing all UDP resources.", Pool_.name));
+					std::cout << Pool_.name << " : " << __LINE__ << std::endl;
+
 					if(AuthenticationSocketV4_) {
 						Reactor_.removeEventHandler(
 							*AuthenticationSocketV4_,
@@ -657,6 +661,7 @@ namespace OpenWifi {
 						CoASocketV6_.reset();
 					}
 */
+					std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 				} else {
 					if(Socket_!=nullptr) {
 						Reactor_.removeEventHandler(
