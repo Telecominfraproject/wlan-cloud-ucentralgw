@@ -522,7 +522,19 @@ namespace OpenWifi {
 					MicroServiceConfigGetInt("radius.proxy.coa.port", DEFAULT_RADIUS_CoA_PORT));
 				CoASocketV4_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV4, true, true);
 
+				Reactor_.addEventHandler(
+					*AuthenticationSocketV4_,
+					Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
+						*this, &RADIUS_Destination::OnAuthenticationSocketReadable));
+				Reactor_.addEventHandler(
+					*AccountingSocketV4_,
+					Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
+						*this, &RADIUS_Destination::OnAccountingSocketReadable));
+				Reactor_.addEventHandler(
+					*CoASocketV4_, Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
+									   *this, &RADIUS_Destination::OnCoASocketReadable));
 
+/*
 				Poco::Net::SocketAddress AuthSockAddrV6(
 					Poco::Net::AddressFamily::IPv6,
 					MicroServiceConfigGetInt("radius.proxy.authentication.port",
@@ -543,18 +555,6 @@ namespace OpenWifi {
 				CoASocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV6, true, true);
 
 				Reactor_.addEventHandler(
-					*AuthenticationSocketV4_,
-					Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
-						*this, &RADIUS_Destination::OnAuthenticationSocketReadable));
-				Reactor_.addEventHandler(
-					*AccountingSocketV4_,
-					Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
-						*this, &RADIUS_Destination::OnAccountingSocketReadable));
-				Reactor_.addEventHandler(
-					*CoASocketV4_, Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
-									   *this, &RADIUS_Destination::OnCoASocketReadable));
-
-				Reactor_.addEventHandler(
 					*AuthenticationSocketV6_,
 					Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
 						*this, &RADIUS_Destination::OnAuthenticationSocketReadable));
@@ -566,6 +566,7 @@ namespace OpenWifi {
 				Reactor_.addEventHandler(
 					*CoASocketV6_, Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
 									   *this, &RADIUS_Destination::OnCoASocketReadable));
+*/
 				Connected_ = true;
 			}
 			return true;
@@ -620,7 +621,8 @@ namespace OpenWifi {
 						CoASocketV4_.reset();
 					}
 
-					if(AuthenticationSocketV6_) {
+/*
+ 					if(AuthenticationSocketV6_) {
 						Reactor_.removeEventHandler(
 							*AuthenticationSocketV6_,
 							Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
@@ -646,7 +648,7 @@ namespace OpenWifi {
 						CoASocketV6_->close();
 						CoASocketV6_.reset();
 					}
-
+*/
 				} else {
 					if(Socket_!=nullptr) {
 						Reactor_.removeEventHandler(
@@ -726,9 +728,11 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::DatagramSocket> 		AuthenticationSocketV4_;
 		std::unique_ptr<Poco::Net::DatagramSocket> 		CoASocketV4_;
 
-		std::unique_ptr<Poco::Net::DatagramSocket> 		CoASocketV6_;
+/*
+ 		std::unique_ptr<Poco::Net::DatagramSocket> 		CoASocketV6_;
 		std::unique_ptr<Poco::Net::DatagramSocket> 		AccountingSocketV6_;
 		std::unique_ptr<Poco::Net::DatagramSocket> 		AuthenticationSocketV6_;
+*/
 
 		Poco::Thread 									ReconnectThread_;
 		std::unique_ptr<Poco::Crypto::X509Certificate> 	Peer_Cert_;
