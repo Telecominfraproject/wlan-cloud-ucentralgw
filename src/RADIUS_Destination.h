@@ -509,7 +509,7 @@ namespace OpenWifi {
 			if (TryAgain_ && !Connected_) {
 
 				std::lock_guard G(LocalMutex_);
-				std::cout << "Connect_Generic" << std::endl;
+				std::cout << "Connect_Generic:" << Pool_.name << std::endl;
 
 				Poco::Net::SocketAddress AuthSockAddrV4(
 					Poco::Net::AddressFamily::IPv4,
