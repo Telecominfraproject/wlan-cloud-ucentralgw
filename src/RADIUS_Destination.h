@@ -83,7 +83,9 @@ namespace OpenWifi {
 					P.MakeStatusMessage(Pool_.authConfig.servers[ServerIndex_].name);
 					poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Pool_.authConfig.servers[ServerIndex_].name));
 					std::cout << Pool_.name << " : " << __LINE__ << std::endl;
-					Socket_->sendBytes(P.Data(), P.Len());
+					if(Type_!=GWObjects::RadiusEndpointType::generic) {
+							Socket_->sendBytes(P.Data(), P.Len());
+					}
 					std::cout << Pool_.name << " : " << __LINE__ << std::endl;
 					LastKeepAlive = Utils::Now();
 				}
