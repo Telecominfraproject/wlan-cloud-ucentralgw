@@ -62,21 +62,29 @@ namespace OpenWifi {
 			Poco::Thread::trySleep(5000);
 			std::uint64_t CurrentDelay = 10, maxDelay=300, LastTry=0, LastKeepAlive=0;
 			while (TryAgain_) {
+				std::cout << __LINE__ << std::endl;
 				if (!Connected_) {
+					std::cout << __LINE__ << std::endl;
 					if(!LastTry || (Utils::Now()-LastTry)>CurrentDelay) {
 						LastTry = Utils::Now();
+						std::cout << __LINE__ << std::endl;
 						if (!Connect()) {
+							std::cout << __LINE__ << std::endl;
 							CurrentDelay *= 2;
 							if(CurrentDelay>maxDelay) CurrentDelay=10;
 						} else {
+							std::cout << __LINE__ << std::endl;
 							CurrentDelay = 10;
 						}
 					}
+					std::cout << __LINE__ << std::endl;
 				} else if ((Utils::Now() - LastKeepAlive) > Pool_.radsecKeepAlive) {
 					RADIUS::RadiusOutputPacket P(Pool_.authConfig.servers[ServerIndex_].radsecSecret);
 					P.MakeStatusMessage(Pool_.authConfig.servers[ServerIndex_].name);
 					poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Pool_.authConfig.servers[ServerIndex_].name));
+					std::cout << __LINE__ << std::endl;
 					Socket_->sendBytes(P.Data(), P.Len());
+					std::cout << __LINE__ << std::endl;
 					LastKeepAlive = Utils::Now();
 				}
 				Poco::Thread::trySleep(2000);
