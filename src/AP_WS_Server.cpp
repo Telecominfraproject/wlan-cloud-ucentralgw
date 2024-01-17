@@ -349,32 +349,41 @@ namespace OpenWifi {
 				}
 			}
 
-			if ((now - last_log) > 60) {
-				last_log = now;
-				poco_information(LocalLogger,
-								 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds. Left Over Sessions: {}",
-											 NumberOfConnectedDevices_, NumberOfConnectingDevices_,
-											 AverageDeviceConnectionTime_, LeftOverSessions_));
+			try {
+				if ((now - last_log) > 60) {
+					last_log = now;
+					poco_information(
+						LocalLogger,
+						fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds. Left Over Sessions: {}",
+									NumberOfConnectedDevices_, NumberOfConnectingDevices_,
+									AverageDeviceConnectionTime_, LeftOverSessions_));
+				}
+
+				GWWebSocketNotifications::NumberOfConnection_t Notification;
+				Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
+				Notification.content.numberOfDevices = NumberOfConnectedDevices_;
+				Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
+				GetTotalDataStatistics(Notification.content.tx, Notification.content.rx);
+				GWWebSocketNotifications::NumberOfConnections(Notification);
+
+				Poco::JSON::Object KafkaNotification;
+				Notification.to_json(KafkaNotification);
+
+				Poco::JSON::Object FullEvent;
+				FullEvent.set("type", "load-update");
+				FullEvent.set("timestamp", now);
+				FullEvent.set("payload", KafkaNotification);
+
+				KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
+				LocalLogger.information(fmt::format("Garbage collection finished run."));
+				last_garbage_run = now;
+			} catch (const Poco::Exception &E) {
+				LocalLogger.error(fmt::format("Poco::Exception: Garbage collecting failed: {}", E.displayText()));
+			} catch (const std::exception &E) {
+				LocalLogger.error(fmt::format("std::exception: Garbage collecting failed: {}", E.what()));
+			} catch (...) {
+				LocalLogger.error(fmt::format("exception:Garbage collecting failed: {}", "unknown"));
 			}
-
-			GWWebSocketNotifications::NumberOfConnection_t Notification;
-			Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
-			Notification.content.numberOfDevices = NumberOfConnectedDevices_;
-			Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
-			GetTotalDataStatistics(Notification.content.tx,Notification.content.rx);
-			GWWebSocketNotifications::NumberOfConnections(Notification);
-
-			Poco::JSON::Object	KafkaNotification;
-			Notification.to_json(KafkaNotification);
-
-			Poco::JSON::Object FullEvent;
-			FullEvent.set("type", "load-update");
-			FullEvent.set("timestamp", now);
-			FullEvent.set("payload", KafkaNotification);
-
-			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, "system", FullEvent);
-			LocalLogger.information(fmt::format("Garbage collection finished run."	));
-			last_garbage_run = now;
 		}
 		LocalLogger.information(fmt::format("Garbage collector done for the day."	));
 	}
