@@ -497,8 +497,11 @@ namespace OpenWifi {
 		}
 
 		inline bool Connect_Generic() {
-			if (TryAgain_) {
+			poco_information(Logger_, fmt::format("Connecting {}", Pool_.name));
+			if (TryAgain_ && !Connected_) {
+
 				std::lock_guard G(LocalMutex_);
+				std::cout << "Connect_Generic" << std::endl;
 
 				Poco::Net::SocketAddress AuthSockAddrV4(
 					Poco::Net::AddressFamily::IPv4,
@@ -563,7 +566,7 @@ namespace OpenWifi {
 				Reactor_.addEventHandler(
 					*CoASocketV6_, Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
 									   *this, &RADIUS_Destination::OnCoASocketReadable));
-
+				Connected_ = true;
 			}
 			return true;
 		}
@@ -589,6 +592,7 @@ namespace OpenWifi {
 			if (Connected_) {
 				std::lock_guard G(LocalMutex_);
 				if(Type_==GWObjects::RadiusEndpointType::generic) {
+					poco_information(Logger_, fmt::format("Disconnecting {} generic server. Releasing all UDP resources.", Pool_.name));
 					if(AuthenticationSocketV4_) {
 						Reactor_.removeEventHandler(
 							*AuthenticationSocketV4_,
@@ -658,9 +662,9 @@ namespace OpenWifi {
 						Socket_->close();
 					}
 				}
+				Connected_ = false;
 			}
-			Connected_ = false;
-			poco_information(Logger_, "Disconnecting.");
+			poco_information(Logger_, fmt::format("Disconnecting {}", Pool_.name));
 		}
 
 		static void DecodeFile(const std::string &filename, const std::string &s) {
