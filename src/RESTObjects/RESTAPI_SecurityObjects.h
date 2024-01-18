@@ -127,10 +127,31 @@ namespace OpenWifi {
 			bool from_json(const Poco::JSON::Object::Ptr &Obj);
 		};
 
+		// Represents particular permissions, i.e. what are you doing do the model
+		enum PERMISSION_TYPE {
+			PT_CREATE,
+			PT_DELETE,
+			PT_UPDATE,
+			PT_UNKNOWN
+		};
+		PERMISSION_TYPE PermTypeFromString(const std::string &U);
+		std::string PermTypeToString(PERMISSION_TYPE U);
+
+		// Represents a model that can be operated on
+		enum PERMISSION_MODEL {
+			PM_PERMISSIONS,
+			PM_VENUES,
+			PM_ENTITIES,
+			PM_SCRIPTS,
+			PM_UNKNOWN
+		};
+		PERMISSION_MODEL PermModelFromString(const std::string &U);
+		std::string PermModelToString(PERMISSION_MODEL U);
+
 		// Map a permission (e.g. create, delete) to true/false
-		typedef std::map<std::string, bool> ModelPermissionMap;
+		typedef std::map<PERMISSION_TYPE, bool> ModelPermissionMap;
 		// Map a model (e.g. venues, devices) to permissions
-		typedef std::map<std::string, ModelPermissionMap> PermissionMap;
+		typedef std::map<PERMISSION_MODEL, ModelPermissionMap> PermissionMap;
 		Poco::JSON::Object permissions_to_json(const SecurityObjects::PermissionMap &Map);
 		PermissionMap permissions_from_json(const Poco::JSON::Object::Ptr &Obj);
 
