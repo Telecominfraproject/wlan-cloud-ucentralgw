@@ -741,6 +741,58 @@ namespace OpenWifi::SecurityObjects {
         return false;
     }
 
+	PERMISSION_TYPE PermTypeFromString(const std::string &U) {
+		if (!Poco::icompare(U, "create"))
+			return PT_CREATE;
+		else if (!Poco::icompare(U, "update"))
+			return PT_UPDATE;
+		else if (!Poco::icompare(U, "delete"))
+			return PT_DELETE;
+		return PT_UNKNOWN;
+	}
+
+	std::string PermTypeToString(PERMISSION_TYPE U) {
+		switch (U) {
+		case PT_CREATE:
+			return "create";
+		case PT_UPDATE:
+			return "update";
+		case PT_DELETE:
+			return "delete";
+		case PT_UNKNOWN:
+		default:
+			return "unknown";
+		}
+	}
+
+	PERMISSION_MODEL PermModelFromString(const std::string &U) {
+		if (!Poco::icompare(U, "permissions"))
+			return PM_PERMISSIONS;
+		else if (!Poco::icompare(U, "venues"))
+			return PM_VENUES;
+		else if (!Poco::icompare(U, "entities"))
+			return PM_ENTITIES;
+		else if (!Poco::icompare(U, "scripts"))
+			return PM_SCRIPTS;
+		return PM_UNKNOWN;
+	}
+
+	std::string PermModelToString(PERMISSION_MODEL U) {
+		switch (U) {
+		case PM_PERMISSIONS:
+			return "permissions";
+		case PM_VENUES:
+			return "venues";
+		case PM_ENTITIES:
+			return "entities";
+		case PM_SCRIPTS:
+			return "scripts";
+		case PM_UNKNOWN:
+		default:
+			return "unknown";
+		}
+	}
+
 	/**
 	 * Convert PermissionMap into a JSON object and return it
 	*/
@@ -749,9 +801,9 @@ namespace OpenWifi::SecurityObjects {
 		for (auto &[Model, Permissions] : Map) {
 			Poco::JSON::Object ModelObject;
 			for (auto &[Permission, Allowed] : Permissions) {
-				ModelObject.set(Permission, Allowed);
+				ModelObject.set(PermTypeToString(Permission), Allowed);
 			}
-			MapObj.set(Model, ModelObject);
+			MapObj.set(PermModelToString(Model), ModelObject);
 		}
 		return MapObj;
 	}
@@ -772,7 +824,8 @@ namespace OpenWifi::SecurityObjects {
 			for(it2 = modelObj->begin(); it2 != modelObj->end(); it2++) {
 				std::string permission = it2->first;
 				bool allowed = it2->second;
-				permissions[model][permission] = allowed;
+				permissions[PermModelFromString(model)]
+				           [PermTypeFromString(permission)] = allowed;
 			}
 		}
 		return permissions;
