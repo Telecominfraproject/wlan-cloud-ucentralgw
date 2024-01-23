@@ -16,9 +16,9 @@ namespace OpenWifi {
 		KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS, MicroServicePrivateEndPoint(), Msg,
 									false);
 		while (Running_) {
-			Poco::Thread::trySleep((unsigned long)MicroServiceDaemonBusTimer());
-			if (!Running_)
-				break;
+			if(!Poco::Thread::trySleep((unsigned long)MicroServiceDaemonBusTimer())) {
+                break;
+            }
 			Msg = (MicroServiceMakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE));
 			KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS, MicroServicePrivateEndPoint(),
 										Msg, false);
@@ -29,7 +29,7 @@ namespace OpenWifi {
 	};
 
 	void EventBusManager::Start() {
-		poco_information(Logger(), "Starting...");
+		poco_information(Logger_, "Starting...");
 		if (KafkaManager()->Enabled()) {
 			Thread_.start(*this);
 		}
@@ -37,11 +37,11 @@ namespace OpenWifi {
 
 	void EventBusManager::Stop() {
 		if (KafkaManager()->Enabled()) {
-			poco_information(Logger(), "Stopping...");
+			poco_information(Logger_, "Stopping...");
 			Running_ = false;
 			Thread_.wakeUp();
 			Thread_.join();
-			poco_information(Logger(), "Stopped...");
+			poco_information(Logger_, "Stopped...");
 		}
 	}
 

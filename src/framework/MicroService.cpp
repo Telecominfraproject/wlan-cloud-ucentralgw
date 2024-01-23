@@ -29,11 +29,13 @@
 #include "framework/WebSocketLogger.h"
 #include "framework/utils.h"
 
+#ifdef  USE_MEDUSA_CLIENT
+#include <medusa/MedusaClient.h>
+#endif
+
 namespace OpenWifi {
 
-	void MicroService::Exit(int Reason) { std::exit(Reason); }
-
-    static std::string MakeServiceListString(const Types::MicroServiceMetaMap &Services) {
+	static std::string MakeServiceListString(const Types::MicroServiceMetaMap &Services) {
         std::string SvcList;
         for (const auto &Svc : Services) {
             if (SvcList.empty())
@@ -204,25 +206,29 @@ namespace OpenWifi {
 			Res.push_back(ServiceRec);
 		}
 		return Res;
+
 	}
 
 	void MicroService::LoadConfigurationFile() {
-		std::string Location = Poco::Environment::get(DAEMON_CONFIG_ENV_VAR, ".");
-		ConfigFileName_ =
-			ConfigFileName_.empty() ? Location + "/" + DAEMON_PROPERTIES_FILENAME : ConfigFileName_;
-		Poco::Path ConfigFile(ConfigFileName_);
+        if(ConfigContent_.empty()) {
+            std::string Location = Poco::Environment::get(DAEMON_CONFIG_ENV_VAR, ".");
+            ConfigFileName_ =
+                ConfigFileName_.empty() ? Location + "/" + DAEMON_PROPERTIES_FILENAME : ConfigFileName_;
+            Poco::Path ConfigFile(ConfigFileName_);
 
-		if (!ConfigFile.isFile()) {
-			std::cerr << DAEMON_APP_NAME << ": Configuration " << ConfigFile.toString()
-					  << " does not seem to exist. Please set " + DAEMON_CONFIG_ENV_VAR +
-							 " env variable the path of the " + DAEMON_PROPERTIES_FILENAME +
-							 " file."
-					  << std::endl;
-			std::exit(Poco::Util::Application::EXIT_CONFIG);
-		}
-
-		// 	    loadConfiguration(ConfigFile.toString());
-		PropConfigurationFile_ = new Poco::Util::PropertyFileConfiguration(ConfigFile.toString());
+            if (!ConfigFile.isFile()) {
+                std::cerr << DAEMON_APP_NAME << ": Configuration " << ConfigFile.toString()
+                          << " does not seem to exist. Please set " + DAEMON_CONFIG_ENV_VAR +
+                                 " env variable the path of the " + DAEMON_PROPERTIES_FILENAME +
+                                 " file."
+                          << std::endl;
+                std::exit(Poco::Util::Application::EXIT_CONFIG);
+            }
+            PropConfigurationFile_ = new Poco::Util::PropertyFileConfiguration(ConfigFile.toString());
+        } else {
+            std::istringstream is(ConfigContent_);
+            PropConfigurationFile_ = new Poco::Util::PropertyFileConfiguration(is);
+        }
 		configPtr()->addWriteable(PropConfigurationFile_, PRIO_DEFAULT);
 	}
 
@@ -425,49 +431,59 @@ namespace OpenWifi {
 
 	void DaemonPostInitialization(Poco::Util::Application &self);
 
-	void MicroService::initialize(Poco::Util::Application &self) {
-		// add the default services
-		LoadConfigurationFile();
-		InitializeLoggingSystem();
+    void MicroService::StartEverything(Poco::Util::Application &self) {
+        LoadConfigurationFile();
+        InitializeLoggingSystem();
 
-		SubSystems_.push_back(KafkaManager());
-		SubSystems_.push_back(ALBHealthCheckServer());
-		SubSystems_.push_back(RESTAPI_ExtServer());
-		SubSystems_.push_back(RESTAPI_IntServer());
+        static bool InitializedBaseService=false;
+        if(!InitializedBaseService) {
+            InitializedBaseService = true;
+            SubSystems_.push_back(KafkaManager());
+            SubSystems_.push_back(ALBHealthCheckServer());
+            SubSystems_.push_back(RESTAPI_ExtServer());
+            SubSystems_.push_back(RESTAPI_IntServer());
 #ifndef TIP_SECURITY_SERVICE
-		SubSystems_.push_back(AuthClient());
+            SubSystems_.push_back(AuthClient());
 #endif
-		Poco::Net::initializeSSL();
-		Poco::Net::HTTPStreamFactory::registerFactory();
-		Poco::Net::HTTPSStreamFactory::registerFactory();
-		Poco::Net::FTPStreamFactory::registerFactory();
-		Poco::Net::FTPSStreamFactory::registerFactory();
 
-		Poco::File DataDir(ConfigPath("openwifi.system.data"));
-		DataDir_ = DataDir.path();
-		if (!DataDir.exists()) {
-			try {
-				DataDir.createDirectory();
-			} catch (const Poco::Exception &E) {
-				Logger_.log(E);
-			}
-		}
-		WWWAssetsDir_ = ConfigPath("openwifi.restapi.wwwassets", "");
-		if (WWWAssetsDir_.empty())
-			WWWAssetsDir_ = DataDir_;
+            Poco::Net::initializeSSL();
+            Poco::Net::HTTPStreamFactory::registerFactory();
+            Poco::Net::HTTPSStreamFactory::registerFactory();
+            Poco::Net::FTPStreamFactory::registerFactory();
+            Poco::Net::FTPSStreamFactory::registerFactory();
+        }
 
-		LoadMyConfig();
+        Poco::File DataDir(ConfigPath("openwifi.system.data"));
+        DataDir_ = DataDir.path();
+        if (!DataDir.exists()) {
+            try {
+                DataDir.createDirectory();
+            } catch (const Poco::Exception &E) {
+                Logger_.log(E);
+            }
+        }
+        WWWAssetsDir_ = ConfigPath("openwifi.restapi.wwwassets", "");
+        if (WWWAssetsDir_.empty())
+            WWWAssetsDir_ = DataDir_;
 
-		AllowExternalMicroServices_ = ConfigGetBool("allowexternalmicroservices", true);
+        LoadMyConfig();
 
-		InitializeSubSystemServers();
-		ServerApplication::initialize(self);
-		DaemonPostInitialization(self);
+        AllowExternalMicroServices_ = ConfigGetBool("allowexternalmicroservices", true);
 
-		Types::TopicNotifyFunction F = [this](const std::string &Key, const std::string &Payload) {
-			this->BusMessageReceived(Key, Payload);
-		};
-		KafkaManager()->RegisterTopicWatcher(KafkaTopics::SERVICE_EVENTS, F);
+        InitializeSubSystemServers();
+        ServerApplication::initialize(self);
+        DaemonPostInitialization(self);
+
+        Types::TopicNotifyFunction F = [this](const std::string &Key, const std::string &Payload) {
+            this->BusMessageReceived(Key, Payload);
+        };
+        KafkaManager()->RegisterTopicWatcher(KafkaTopics::SERVICE_EVENTS, F);
+    }
+
+	void MicroService::initialize([[maybe_unused]] Poco::Util::Application &self) {
+#ifndef USE_MEDUSA_CLIENT
+        StartEverything(self);
+#endif
 	}
 
 	void MicroService::uninitialize() {
@@ -753,6 +769,8 @@ namespace OpenWifi {
 		MicroServiceErrorHandler ErrorHandler(*this);
 		Poco::ErrorHandler::set(&ErrorHandler);
 
+        Args_ = args;
+
 		if (!HelpRequested_) {
 			SavePID();
 
@@ -768,11 +786,18 @@ namespace OpenWifi {
 				poco_information(logger, "Starting as a daemon.");
 			}
 
+#ifdef USE_MEDUSA_CLIENT
+            MedusaClient::instance()->SetSubSystems(SubSystems_);
+            MedusaClient::instance()->Start();
+			waitForTerminationRequest();
+            MedusaClient::instance()->Stop();
+#else
 			poco_information(logger, fmt::format("System ID set to {}", ID_));
 			StartSubSystemServers();
 			waitForTerminationRequest();
 			StopSubSystemServers();
 			logger.notice(fmt::format("Stopped {}...", DAEMON_APP_NAME));
+#endif
 		}
 
 		return Application::EXIT_OK;

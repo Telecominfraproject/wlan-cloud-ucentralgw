@@ -58,11 +58,9 @@ namespace OpenWifi {
 	void UI_WebSocketClientServer::run() {
 		Running_ = true;
 		while (Running_) {
-			Poco::Thread::trySleep(2000);
-
-			if (!Running_)
-				break;
-
+			if(!Poco::Thread::trySleep(2000)) {
+                break;
+            }
 			std::lock_guard G(LocalMutex_);
 			for (const auto i : ToBeRemoved_) {
 				// std::cout << "Erasing old WS UI connection..." << std::endl;

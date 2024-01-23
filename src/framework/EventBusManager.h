@@ -22,7 +22,6 @@ namespace OpenWifi {
 			return instance_;
 		}
 
-		explicit EventBusManager(Poco::Logger &L);
 		void run() final;
 		void Start();
 		void Stop();

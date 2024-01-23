@@ -1402,9 +1402,9 @@ namespace OpenWifi {
 		Cmd.WaitingForFile = 0;
 		Cmd.Status= "completed";
 		if(CommandManager()->FireAndForget(SerialNumber_, uCentralProtocol::RRM, Params)) {
+			Cmd.Status= "completed";
 			StorageService()->AddCommand(SerialNumber_, Cmd,
 										 Storage::CommandExecutionType::COMMAND_COMPLETED);
-			Cmd.Status= "completed";
 			return OK();
 		}
 		Cmd.Status= "failed";	//	should never happen

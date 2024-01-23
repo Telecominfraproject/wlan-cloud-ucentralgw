@@ -55,9 +55,6 @@ namespace OpenWifi {
 #include "nlohmann/json.hpp"
 #include "ow_version.h"
 
-#define _OWDEBUG_ std::cout << __FILE__ << ":" << __LINE__ << std::endl;
-// #define _OWDEBUG_ Logger().debug(Poco::format("%s: %lu",__FILE__,__LINE__));
-
 namespace OpenWifi {
 
 	class MicroService : public Poco::Util::ServerApplication {
@@ -70,7 +67,6 @@ namespace OpenWifi {
 			  SubSystems_(std::move(Subsystems)), Logger_(Poco::Logger::get("FRAMEWORK")) {
 			instance_ = this;
 			RandomEngine_.seed(std::chrono::steady_clock::now().time_since_epoch().count());
-			// Logger_ = Poco::Logger::root().get("BASE-SVC");
 		}
 
 		inline static const char *ExtraConfigurationFilename = "/configuration_override.json";
@@ -92,7 +88,7 @@ namespace OpenWifi {
 		inline uint64_t DaemonBusTimer() const { return DAEMON_BUS_TIMER; };
 		[[nodiscard]] const std::string &AppName() { return DAEMON_APP_NAME; }
 		static inline uint64_t GetPID() { return Poco::Process::id(); };
-		[[nodiscard]] inline const std::string GetPublicAPIEndPoint() {
+		[[nodiscard]] inline std::string GetPublicAPIEndPoint() const {
 			return MyPublicEndPoint_ + "/api/v1";
 		};
 		[[nodiscard]] inline const std::string &GetUIURI() const { return UIURI_; };
@@ -107,7 +103,8 @@ namespace OpenWifi {
 		}
 		static MicroService &instance() { return *instance_; }
 
-		inline void Exit(int Reason);
+		inline void Exit(int Reason) { std::exit(Reason); }
+
 		void BusMessageReceived(const std::string &Key, const std::string &Payload);
 		Types::MicroServiceMetaVec GetServices(const std::string &Type);
 		Types::MicroServiceMetaVec GetServices();
@@ -115,6 +112,7 @@ namespace OpenWifi {
 		void Reload();
 		void LoadMyConfig();
 		void initialize(Poco::Util::Application &self) override;
+        void StartEverything(Poco::Util::Application &self);
 		void uninitialize() override;
 		void reinitialize(Poco::Util::Application &self) override;
 		void defineOptions(Poco::Util::OptionSet &options) override;
@@ -132,7 +130,7 @@ namespace OpenWifi {
 		void Reload(const std::string &Sub);
 		Types::StringVec GetSubSystems() const;
 		Types::StringPairVec GetLogLevels();
-		const Types::StringVec &GetLogLevelNames();
+		static const Types::StringVec &GetLogLevelNames();
 		uint64_t ConfigGetInt(const std::string &Key, uint64_t Default);
 		uint64_t ConfigGetInt(const std::string &Key);
 		uint64_t ConfigGetBool(const std::string &Key, bool Default);
@@ -166,12 +164,16 @@ namespace OpenWifi {
 								const std::string &FormatterPattern,
 								const std::string &root_env_var);
 		inline bool AllowExternalMicroServices() const { return AllowExternalMicroServices_; }
+        const ArgVec &Args() const { return Args_; }
+
+        inline void SetConfigContent(const std::string &Content) { ConfigContent_ = Content; }
 
 	  private:
 		static MicroService *instance_;
 		bool HelpRequested_ = false;
 		std::string LogDir_;
 		std::string ConfigFileName_;
+        std::string ConfigContent_;
 		uint64_t ID_ = 1;
 		Poco::SharedPtr<Poco::Crypto::RSAKey> AppKey_;
 		bool DebugMode_ = false;
@@ -201,6 +203,7 @@ namespace OpenWifi {
 		Poco::JWT::Signer Signer_;
 		Poco::Logger &Logger_;
 		Poco::ThreadPool TimerPool_{"timer:pool", 2, 32};
+        ArgVec Args_;
 	};
 
 	inline MicroService *MicroService::instance_ = nullptr;
