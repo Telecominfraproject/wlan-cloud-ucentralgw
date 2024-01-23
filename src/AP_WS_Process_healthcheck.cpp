@@ -26,6 +26,7 @@ namespace OpenWifi {
 
 			uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 			auto Sanity = ParamsObj->get(uCentralProtocol::SANITY);
+			State_.sanity = Sanity;
 			auto CheckData = ParamsObj->get(uCentralProtocol::DATA).toString();
 			if (CheckData.empty())
 				CheckData = uCentralProtocol::EMPTY_JSON_DOC;

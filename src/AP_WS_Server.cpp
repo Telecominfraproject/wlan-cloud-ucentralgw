@@ -686,7 +686,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool AP_WS_Server::ExtendedAttributes(const std::string &serialNumber,
+/*	bool AP_WS_Server::ExtendedAttributes(const std::string &serialNumber,
 								   bool & hasGPS,
 								   std::uint64_t &Sanity,
 								   std::double_t &MemoryUsed,
@@ -712,6 +712,6 @@ namespace OpenWifi {
 		Temperature = DeviceHint->second->temperature_;
 		return true;
 	}
-
+*/
 
 } // namespace OpenWifi

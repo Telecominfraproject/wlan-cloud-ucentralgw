@@ -11,7 +11,12 @@
 
 #include "Daemon.h"
 #ifdef TIP_GATEWAY_SERVICE
+#ifdef USE_MEDUSA_CLIENT
+#include <medusa/GlobalSystem.h>
+#else
 #include "AP_WS_Server.h"
+#endif
+#include "StorageService.h"
 #include "CapabilitiesCache.h"
 #include "RADIUSSessionTracker.h"
 #endif
@@ -69,8 +74,13 @@ namespace OpenWifi::GWObjects {
 
 #ifdef TIP_GATEWAY_SERVICE
 		ConnectionState ConState;
-
-		if (AP_WS_Server()->GetState(SerialNumber, ConState)) {
+#ifdef USE_MEDUSA_CLIENT
+        auto Res = GS()->GetState(SerialNumber);
+        if (Res.has_value()) {
+            Res.value().to_json(SerialNumber,Obj);
+#else
+        if (AP_WS_Server()->GetState(SerialNumber, ConState)) {
+#endif
 			ConState.to_json(SerialNumber,Obj);
 		} else {
 			field_to_json(Obj, "ipAddress", "");
@@ -280,11 +290,9 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "uptime", uptime);
 
 #ifdef TIP_GATEWAY_SERVICE
+#ifndef USE_MEDUSA_CLIENT
 		hasRADIUSSessions = RADIUSSessionTracker()->HasSessions(SerialNumber);
-		AP_WS_Server()->ExtendedAttributes(SerialNumber, hasGPS, sanity,
-										   memoryUsed,
-										   load,
-										   temperature);
+#endif
 #endif
 		field_to_json(Obj, "hasRADIUSSessions", hasRADIUSSessions );
 		field_to_json(Obj, "hasGPS", hasGPS);
@@ -315,6 +323,44 @@ namespace OpenWifi::GWObjects {
 			break;
 		}
 	}
+
+    bool ConnectionState::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "ipAddress", Address);
+            field_from_json(Obj, "txBytes", TX);
+            field_from_json(Obj, "rxBytes", RX);
+            field_from_json(Obj, "messageCount", MessageCount);
+            field_from_json(Obj, "UUID", UUID);
+            field_from_json(Obj, "connected", Connected);
+            field_from_json(Obj, "firmware", Firmware);
+            field_from_json(Obj, "lastContact", LastContact);
+            field_from_json(Obj, "associations_2G", Associations_2G);
+            field_from_json(Obj, "associations_5G", Associations_5G);
+            field_from_json(Obj, "associations_6G", Associations_6G);
+            field_from_json(Obj, "webSocketClients", webSocketClients);
+            field_from_json(Obj, "websocketPackets", websocketPackets);
+            field_from_json(Obj, "kafkaClients", kafkaClients);
+            field_from_json(Obj, "kafkaPackets", kafkaPackets);
+            field_from_json(Obj, "locale", locale);
+            field_from_json(Obj, "started", started);
+            field_from_json(Obj, "sessionId", sessionId);
+            field_from_json(Obj, "connectionCompletionTime", connectionCompletionTime);
+            field_from_json(Obj, "totalConnectionTime", totalConnectionTime);
+            field_from_json(Obj, "certificateExpiryDate", certificateExpiryDate);
+            field_from_json(Obj, "connectReason", connectReason);
+            field_from_json(Obj, "uptime", uptime);
+            field_from_json(Obj, "hasRADIUSSessions", hasRADIUSSessions );
+            field_from_json(Obj, "hasGPS", hasGPS);
+            field_from_json(Obj, "sanity", sanity);
+            field_from_json(Obj, "memoryUsed", memoryUsed);
+            field_from_json(Obj, "sanity", sanity);
+            field_from_json(Obj, "load", load);
+            field_from_json(Obj, "temperature", temperature);
+            return true;
+        } catch(const Poco::Exception &E) {
+        }
+        return false;
+    }
 
 	void DeviceConnectionStatistics::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj, "averageConnectionTime", averageConnectionTime);

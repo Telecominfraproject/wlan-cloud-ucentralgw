@@ -165,8 +165,8 @@ namespace OpenWifi {
 									uint64_t &TelemetryKafkaPackets);
 
 		bool GetHealthDevices(std::uint64_t lowLimit, std::uint64_t  highLimit, std::vector<std::string> & SerialNumbers);
-		bool ExtendedAttributes(const std::string &serialNumber, bool & hasGPS, std::uint64_t &Sanity,
-								std::double_t &MemoryUsed, std::double_t &Load, std::double_t &Temperature);
+//		bool ExtendedAttributes(const std::string &serialNumber, bool & hasGPS, std::uint64_t &Sanity,
+//								std::double_t &MemoryUsed, std::double_t &Load, std::double_t &Temperature);
 
 		inline void AverageDeviceStatistics(uint64_t &Connections, uint64_t &AverageConnectionTime,
 											uint64_t &NumberOfConnectingDevices) const {

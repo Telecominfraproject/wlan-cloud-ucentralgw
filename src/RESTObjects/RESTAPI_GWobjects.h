@@ -50,8 +50,10 @@ namespace OpenWifi::GWObjects {
 		std::double_t temperature=0.0;
 		std::string 	connectReason;
 		std::uint64_t 	uptime=0;
+        std::uint64_t 	totalConnectionTime=0;
 
 		void to_json(const std::string &SerialNumber, Poco::JSON::Object &Obj) ;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct DeviceRestrictionsKeyInfo {
