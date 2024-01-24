@@ -141,13 +141,15 @@ namespace OpenWifi::GWObjects {
 	};
 
 	struct HealthCheck {
-		std::string SerialNumber;
-		uint64_t UUID = 0;
-		std::string Data;
-		uint64_t Recorded = 0;
-		uint64_t Sanity = 0;
-		void to_json(Poco::JSON::Object &Obj) const;
-	};
+        std::string SerialNumber;
+        uint64_t UUID = 0;
+        std::string Data;
+        uint64_t Recorded = 0;
+        uint64_t Sanity = 0;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
 
 	struct Capabilities {
 		std::string Capabilities;

@@ -80,8 +80,8 @@ namespace OpenWifi::GWObjects {
             Res.value().to_json(SerialNumber,Obj);
 #else
         if (AP_WS_Server()->GetState(SerialNumber, ConState)) {
-#endif
 			ConState.to_json(SerialNumber,Obj);
+#endif
 		} else {
 			field_to_json(Obj, "ipAddress", "");
 			field_to_json(Obj, "txBytes", (uint64_t)0);
@@ -176,6 +176,18 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "sanity", Sanity);
 		field_to_json(Obj, "recorded", Recorded);
 	}
+
+    bool HealthCheck::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "UUID", UUID);
+            field_from_json(Obj, "sanity", Sanity);
+            field_from_json(Obj, "recorded", Recorded);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
 
 	void DefaultConfiguration::to_json(Poco::JSON::Object &Obj) const {
 		EmbedDocument("configuration", Obj, Configuration);

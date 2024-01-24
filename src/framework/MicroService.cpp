@@ -1,4 +1,5 @@
 //
+//
 // Created by stephane bourque on 2022-10-26.
 //
 
@@ -480,7 +481,17 @@ namespace OpenWifi {
         KafkaManager()->RegisterTopicWatcher(KafkaTopics::SERVICE_EVENTS, F);
     }
 
-	void MicroService::initialize([[maybe_unused]] Poco::Util::Application &self) {
+    void MicroService::StopEverything([[maybe_unused]] Poco::Util::Application &self) {
+        LoadConfigurationFile();
+        InitializeLoggingSystem();
+
+        Types::TopicNotifyFunction F = [this](const std::string &Key, const std::string &Payload) {
+            this->BusMessageReceived(Key, Payload);
+        };
+        KafkaManager()->RegisterTopicWatcher(KafkaTopics::SERVICE_EVENTS, F);
+    }
+
+    void MicroService::initialize([[maybe_unused]] Poco::Util::Application &self) {
 #ifndef USE_MEDUSA_CLIENT
         StartEverything(self);
 #endif

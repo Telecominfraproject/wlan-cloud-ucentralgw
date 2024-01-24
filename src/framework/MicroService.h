@@ -113,7 +113,8 @@ namespace OpenWifi {
 		void LoadMyConfig();
 		void initialize(Poco::Util::Application &self) override;
         void StartEverything(Poco::Util::Application &self);
-		void uninitialize() override;
+        void StopEverything(Poco::Util::Application &self);
+        void uninitialize() override;
 		void reinitialize(Poco::Util::Application &self) override;
 		void defineOptions(Poco::Util::OptionSet &options) override;
 		void handleHelp(const std::string &name, const std::string &value);
