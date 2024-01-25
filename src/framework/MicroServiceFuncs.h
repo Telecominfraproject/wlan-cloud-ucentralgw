@@ -23,7 +23,9 @@ namespace OpenWifi {
 	std::string MicroServiceConfigGetString(const std::string &Key,
 											const std::string &DefaultValue);
 	std::string MicroServiceAccessKey();
-	bool MicroServiceConfigGetBool(const std::string &Key, bool DefaultValue);
+    std::optional<OpenWifi::Types::MicroServiceMeta> MicroServicePrivateAccessKey(const std::string &servicePrivateEndPoint);
+
+    bool MicroServiceConfigGetBool(const std::string &Key, bool DefaultValue);
 	std::uint64_t MicroServiceConfigGetInt(const std::string &Key, std::uint64_t DefaultValue);
 	std::string MicroServicePrivateEndPoint();
 	std::uint64_t MicroServiceID();

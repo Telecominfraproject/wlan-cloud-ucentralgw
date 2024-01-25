@@ -300,6 +300,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "certificateExpiryDate", certificateExpiryDate);
 		field_to_json(Obj, "connectReason", connectReason);
 		field_to_json(Obj, "uptime", uptime);
+        field_to_json(Obj, "compatible", Compatible);
 
 #ifdef TIP_GATEWAY_SERVICE
 #ifndef USE_MEDUSA_CLIENT
@@ -338,6 +339,7 @@ namespace OpenWifi::GWObjects {
 
     bool ConnectionState::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
+            field_from_json(Obj, "compatible", Compatible);
             field_from_json(Obj, "ipAddress", Address);
             field_from_json(Obj, "txBytes", TX);
             field_from_json(Obj, "rxBytes", RX);

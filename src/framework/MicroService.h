@@ -169,6 +169,14 @@ namespace OpenWifi {
 
         inline void SetConfigContent(const std::string &Content) { ConfigContent_ = Content; }
 
+        inline std::optional<OpenWifi::Types::MicroServiceMeta> GetPrivateEndPointServiceKey( const std::string & ServicePrivateEndPoint ) {
+            auto K = Services_.find(ServicePrivateEndPoint);
+            if(K==end(Services_)) {
+                return std::nullopt;
+            }
+            return K->second;
+        }
+
 	  private:
 		static MicroService *instance_;
 		bool HelpRequested_ = false;
