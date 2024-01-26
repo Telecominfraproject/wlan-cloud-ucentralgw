@@ -170,6 +170,7 @@ namespace OpenWifi {
         inline void SetConfigContent(const std::string &Content) { ConfigContent_ = Content; }
 
         inline std::optional<OpenWifi::Types::MicroServiceMeta> GetPrivateEndPointServiceKey( const std::string & ServicePrivateEndPoint ) {
+            std::lock_guard   G(InfraMutex_);
             auto K = Services_.find(ServicePrivateEndPoint);
             if(K==end(Services_)) {
                 return std::nullopt;
