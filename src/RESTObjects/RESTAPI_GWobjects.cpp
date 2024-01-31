@@ -11,11 +11,7 @@
 
 #include "Daemon.h"
 #ifdef TIP_GATEWAY_SERVICE
-#ifdef USE_MEDUSA_CLIENT
-#include <medusa/GlobalSystem.h>
-#else
 #include "AP_WS_Server.h"
-#endif
 #include "StorageService.h"
 #include "CapabilitiesCache.h"
 #include "RADIUSSessionTracker.h"
@@ -35,7 +31,6 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "serialNumber", SerialNumber);
 #ifdef TIP_GATEWAY_SERVICE
 		field_to_json(Obj, "deviceType", CapabilitiesCache::instance()->GetPlatform(Compatible));
-		field_to_json(Obj, "hasRADIUSSessions", RADIUSSessionTracker()->HasSessions(SerialNumber));
 		field_to_json(Obj, "blackListed", StorageService()->IsBlackListed(Utils::MACToInt(SerialNumber)));
 #endif
 		field_to_json(Obj, "macAddress", MACAddress);
@@ -303,9 +298,7 @@ namespace OpenWifi::GWObjects {
         field_to_json(Obj, "compatible", Compatible);
 
 #ifdef TIP_GATEWAY_SERVICE
-#ifndef USE_MEDUSA_CLIENT
 		hasRADIUSSessions = RADIUSSessionTracker()->HasSessions(SerialNumber);
-#endif
 #endif
 		field_to_json(Obj, "hasRADIUSSessions", hasRADIUSSessions );
 		field_to_json(Obj, "hasGPS", hasGPS);
