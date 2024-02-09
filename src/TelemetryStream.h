@@ -23,7 +23,7 @@
 
 #include "framework/SubSystemServer.h"
 
-#include "AP_WS_ReactorPool.h"
+#include "AP_WS_Reactor_Pool.h"
 #include "TelemetryClient.h"
 
 namespace OpenWifi {

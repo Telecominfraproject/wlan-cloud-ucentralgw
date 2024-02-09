@@ -49,8 +49,11 @@ namespace OpenWifi::GWObjects {
 		std::double_t load=0.0;
 		std::double_t temperature=0.0;
 		std::string 	connectReason;
+		std::uint64_t 	uptime=0;
+        std::uint64_t 	totalConnectionTime=0;
 
 		void to_json(const std::string &SerialNumber, Poco::JSON::Object &Obj) ;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct DeviceRestrictionsKeyInfo {
@@ -112,6 +115,7 @@ namespace OpenWifi::GWObjects {
 		std::uint64_t 	lastRecordedContact=0;
 		std::uint64_t 	certificateExpiryDate = 0;
 		std::string 	connectReason;
+		bool			blackListed=false;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		void to_json_with_status(Poco::JSON::Object &Obj) const;
@@ -137,13 +141,15 @@ namespace OpenWifi::GWObjects {
 	};
 
 	struct HealthCheck {
-		std::string SerialNumber;
-		uint64_t UUID = 0;
-		std::string Data;
-		uint64_t Recorded = 0;
-		uint64_t Sanity = 0;
-		void to_json(Poco::JSON::Object &Obj) const;
-	};
+        std::string SerialNumber;
+        uint64_t UUID = 0;
+        std::string Data;
+        uint64_t Recorded = 0;
+        uint64_t Sanity = 0;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
 
 	struct Capabilities {
 		std::string Capabilities;
@@ -513,4 +519,18 @@ namespace OpenWifi::GWObjects {
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
+	struct PowerCyclePort {
+		std::string 	name;
+		std::uint64_t 	cycle=10000;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
+	struct PowerCycleRequest {
+		std::string 	serialNumber;
+		std::uint64_t 	when;
+		std::vector<PowerCyclePort> ports;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
 } // namespace OpenWifi::GWObjects

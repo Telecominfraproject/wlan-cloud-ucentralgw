@@ -72,6 +72,7 @@ namespace OpenWifi {
 			Config::Config Cfg(DefConfig.Configuration);
 
 			if (Cfg.Valid()) {
+				Sess.begin();
 				Poco::Data::Statement Insert(Sess);
 
 				std::string St{"INSERT INTO DefaultConfigs ( " + DB_DefConfig_SelectFields +
@@ -83,6 +84,7 @@ namespace OpenWifi {
 				Convert(DefConfig, R);
 				Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 				Insert.execute();
+				Sess.commit();
 				return true;
 			} else {
 				poco_warning(Logger(), "Cannot create device: invalid configuration.");
@@ -99,13 +101,14 @@ namespace OpenWifi {
 		try {
 
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St{"DELETE FROM DefaultConfigs WHERE Name=?"};
 
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(Name);
 			Delete.execute();
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -117,9 +120,9 @@ namespace OpenWifi {
 	bool Storage::UpdateDefaultConfiguration(std::string &Name,
 											 GWObjects::DefaultConfiguration &DefConfig) {
 		try {
+			uint64_t Now = Utils::Now();
 			Poco::Data::Session Sess = Pool_->get();
-
-			uint64_t Now = time(nullptr);
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 			DefConfig.LastModified = Now;
 
@@ -132,6 +135,7 @@ namespace OpenWifi {
 			Update << ConvertParams(St), Poco::Data::Keywords::use(R),
 				Poco::Data::Keywords::use(Name);
 			Update.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

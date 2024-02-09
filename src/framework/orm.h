@@ -576,8 +576,8 @@ namespace ORM {
 		bool UpdateRecord(field_name_t FieldName, const T &Value, const RecordType &R) {
 			try {
 				assert(ValidFieldName(FieldName));
-
 				Poco::Data::Session Session = Pool_.get();
+                Session.begin();
 				Poco::Data::Statement Update(Session);
 
 				RecordTuple RT;
@@ -593,6 +593,7 @@ namespace ORM {
 				Update.execute();
 				if (Cache_)
 					Cache_->UpdateCache(R);
+                Session.commit();
 				return true;
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
@@ -662,6 +663,7 @@ namespace ORM {
 				assert(ValidFieldName(FieldName));
 
 				Poco::Data::Session Session = Pool_.get();
+                Session.begin();
 				Poco::Data::Statement Delete(Session);
 
 				std::string St = "delete from " + TableName_ + " where " + FieldName + "=?";
@@ -671,6 +673,7 @@ namespace ORM {
 				Delete.execute();
 				if (Cache_)
 					Cache_->Delete(FieldName, Value);
+                Session.commit();
 				return true;
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
@@ -682,11 +685,13 @@ namespace ORM {
 			try {
 				assert(!WhereClause.empty());
 				Poco::Data::Session Session = Pool_.get();
+                Session.begin();
 				Poco::Data::Statement Delete(Session);
 
 				std::string St = "delete from " + TableName_ + " where " + WhereClause;
 				Delete << St;
 				Delete.execute();
+                Session.commit();
 				return true;
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);

@@ -146,7 +146,7 @@ namespace OpenWifi {
 
 				auto WebClientSecureContext =
 					new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName,
-										   CertFileName, "", Poco::Net::Context::VERIFY_RELAXED);
+										   CertFileName, "", Poco::Net::Context::VERIFY_NONE);
 				Poco::Crypto::X509Certificate WebRoot(RootCaFileName);
 				WebClientSecureContext->addCertificateAuthority(WebRoot);
 				WebClientSecureContext->disableStatelessSessionResumption();
