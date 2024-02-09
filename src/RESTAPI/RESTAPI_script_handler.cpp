@@ -23,7 +23,7 @@ namespace OpenWifi {
 	void RESTAPI_script_handler::DoDelete() {
 		std::string UUID = GetBinding("uuid", "");
 
-		if (!UserInfo_.userinfo.userPermissions[SecurityObjects::PM_SCRIPTS][SecurityObjects::PT_DELETE]) {
+		if (!UserInfo_.userinfo.userPermissions[SecurityObjects::PM_SCRIPTS_GW][SecurityObjects::PT_DELETE]) {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
@@ -40,7 +40,7 @@ namespace OpenWifi {
 	void RESTAPI_script_handler::DoPost() {
 		std::string UUID = GetBinding("uuid", "");
 
-		if (!UserInfo_.userinfo.userPermissions[SecurityObjects::PM_SCRIPTS][SecurityObjects::PT_CREATE]) {
+		if (!UserInfo_.userinfo.userPermissions[SecurityObjects::PM_SCRIPTS_GW][SecurityObjects::PT_CREATE]) {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
@@ -86,7 +86,7 @@ namespace OpenWifi {
 	void RESTAPI_script_handler::DoPut() {
 		std::string UUID = GetBinding("uuid", "");
 
-		if (!UserInfo_.userinfo.userPermissions[SecurityObjects::PM_SCRIPTS][SecurityObjects::PT_UPDATE]) {
+		if (!UserInfo_.userinfo.userPermissions[SecurityObjects::PM_SCRIPTS_GW][SecurityObjects::PT_UPDATE]) {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
