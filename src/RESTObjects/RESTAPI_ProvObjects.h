@@ -490,9 +490,11 @@ namespace OpenWifi::ProvObjects {
         std::string locale;
         std::string realMacAddress;
         bool doNotAllowOverrides = false;
+        std::uint64_t imported=0;
+        std::uint64_t connected=0;
+        std::string platform{"AP"};
 
         void to_json(Poco::JSON::Object &Obj) const;
-
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 

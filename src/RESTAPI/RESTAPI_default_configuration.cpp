@@ -60,8 +60,10 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::ModelIDListCannotBeEmpty);
 		}
 
+		auto DeviceType = GetParameter("deviceType", "AP");
 		std::vector<std::string> Error;
-		if (!ValidateUCentralConfiguration(DefConfig.Configuration, Error,
+		if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DeviceType),
+										   DefConfig.Configuration, Error,
 										   GetBoolParameter("strict", false))) {
 			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 		}
@@ -89,8 +91,10 @@ namespace OpenWifi {
 		}
 
 		if (!NewConfig.Configuration.empty()) {
+			auto DeviceType = GetParameter("deviceType", "AP");
 			std::vector<std::string> Error;
-			if (!ValidateUCentralConfiguration(NewConfig.Configuration, Error,
+			if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DeviceType),
+											   NewConfig.Configuration, Error,
 											   GetBoolParameter("strict", false))) {
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 			}
