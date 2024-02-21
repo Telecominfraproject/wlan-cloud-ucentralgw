@@ -25,7 +25,7 @@ namespace OpenWifi {
 			return instance_;
 		}
 
-		bool Validate(ConfigurationType Type, const std::string &C, std::vector<std::string> &Errors, bool Strict);
+		bool Validate(ConfigurationType Type, const std::string &C, std::string &Errors, bool Strict);
 		int Start() override;
 		void Stop() override;
 		void reinitialize(Poco::Util::Application &self) override;
@@ -43,10 +43,7 @@ namespace OpenWifi {
 		bool Initialized_ = false;
 		bool Working_ = false;
 		void Init();
-		std::array<std::unique_ptr<valijson::Schema>,2> 			RootSchema_;
-		std::array<std::unique_ptr<valijson::SchemaParser>,2> 	SchemaParser_;
-		std::array<std::unique_ptr<valijson::adapters::PocoJsonAdapter>,2> PocoJsonAdapter_;
-		std::array<Poco::JSON::Object::Ptr,2> 					SchemaDocPtr_;
+		std::array<valijson::Schema,2> 			RootSchema_;
 		bool SetSchema(ConfigurationType Type, const std::string &SchemaStr);
 
 		ConfigurationValidator()
@@ -54,8 +51,8 @@ namespace OpenWifi {
 	};
 
 	inline auto ConfigurationValidator() { return ConfigurationValidator::instance(); }
-	inline bool ValidateUCentralConfiguration(ConfigurationValidator::ConfigurationType Type, const std::string &C, std::vector<std::string> &Error,
+	inline bool ValidateUCentralConfiguration(ConfigurationValidator::ConfigurationType Type, const std::string &C, std::string &Errors,
 											  bool strict) {
-		return ConfigurationValidator::instance()->Validate(Type, C, Error, strict);
+		return ConfigurationValidator::instance()->Validate(Type, C, Errors, strict);
 	}
 } // namespace OpenWifi

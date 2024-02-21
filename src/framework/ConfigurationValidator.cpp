@@ -3,7 +3,6 @@
 //
 
 #include <fstream>
-#include <iostream>
 #include <regex>
 
 #include "ConfigurationValidator.h"
@@ -8114,11 +8113,10 @@ namespace OpenWifi {
 	bool ConfigurationValidator::SetSchema(ConfigurationType Type, const std::string &SchemaStr) {
 		try {
 			Poco::JSON::Parser P;
-			SchemaDocPtr_[static_cast<int>(Type)] = P.parse(SchemaStr).extract<Poco::JSON::Object::Ptr>();
-			RootSchema_[static_cast<int>(Type)] = std::make_unique<valijson::Schema>();
-			SchemaParser_[static_cast<int>(Type)] = std::make_unique<valijson::SchemaParser>();
-			PocoJsonAdapter_[static_cast<int>(Type)] = std::make_unique<valijson::adapters::PocoJsonAdapter>(SchemaDocPtr_);
-			SchemaParser_[static_cast<int>(Type)]->populateSchema(*PocoJsonAdapter_[static_cast<int>(Type)], *RootSchema_[static_cast<int>(Type)]);
+			auto SchemaDocPtr = P.parse(SchemaStr).extract<Poco::JSON::Object::Ptr>();
+            valijson::SchemaParser    SchemaParser;
+			valijson::adapters::PocoJsonAdapter     Adaptor(SchemaDocPtr);
+			SchemaParser.populateSchema(Adaptor, RootSchema_[static_cast<int>(Type)]);
 			Initialized_ = Working_ = true;
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -8140,7 +8138,8 @@ namespace OpenWifi {
 	};
 
 	void ConfigurationValidator::Init() {
-		if (Initialized_)
+
+        if (Initialized_)
 			return;
 
 		std::string GitSchema;
@@ -8175,7 +8174,7 @@ namespace OpenWifi {
 				}
 			}
 		} catch (const Poco::Exception &E) {
-
+            Logger().log(E);
 		} catch (...) {
 		}
 		SetSchema(ConfigurationType::AP, DefaultAPSchema);
@@ -8184,7 +8183,7 @@ namespace OpenWifi {
 						 "Using uCentral data model validation schema from built-in default.");
 	}
 
-	bool ConfigurationValidator::Validate(ConfigurationType Type, const std::string &C, std::vector<std::string> &Errors,
+	bool ConfigurationValidator::Validate(ConfigurationType Type, const std::string &C, std::string &Errors,
 										  bool Strict) {
 		if (Working_) {
 			try {
@@ -8193,12 +8192,24 @@ namespace OpenWifi {
 				valijson::adapters::PocoJsonAdapter Tester(Doc);
 				valijson::Validator Validator;
 				valijson::ValidationResults Results;
-				if (Validator.validate(*RootSchema_[static_cast<int>(Type)], Tester, &Results)) {
+				if (Validator.validate(RootSchema_[static_cast<int>(Type)], Tester, &Results)) {
 					return true;
 				}
+
+                Poco::JSON::Array ErrorArray;
 				for (const auto &error : Results) {
-					Errors.push_back(error.description);
+                    Poco::JSON::Array   ContextArray;
+                    for(const auto &context : error.context) {
+                        ContextArray.add(context);
+                    }
+                    Poco::JSON::Object  ErrorObject;
+                    ErrorObject.set("context", ContextArray);
+                    ErrorObject.set("description", error.description);
+                    ErrorArray.add(ErrorObject);
 				}
+                std::stringstream os;
+                ErrorArray.stringify(os);
+                Errors = os.str();
 				return false;
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);

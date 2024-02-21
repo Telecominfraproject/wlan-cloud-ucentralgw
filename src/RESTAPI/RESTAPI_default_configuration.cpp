@@ -61,11 +61,11 @@ namespace OpenWifi {
 		}
 
 		auto DeviceType = GetParameter("deviceType", "AP");
-		std::vector<std::string> Error;
+		std::string Error;
 		if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DeviceType),
 										   DefConfig.Configuration, Error,
 										   GetBoolParameter("strict", false))) {
-			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
+			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid, Error);
 		}
 
 		DefConfig.Created = DefConfig.LastModified = Utils::Now();
@@ -92,11 +92,11 @@ namespace OpenWifi {
 
 		if (!NewConfig.Configuration.empty()) {
 			auto DeviceType = GetParameter("deviceType", "AP");
-			std::vector<std::string> Error;
+			std::string Error;
 			if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DeviceType),
 											   NewConfig.Configuration, Error,
 											   GetBoolParameter("strict", false))) {
-				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
+				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid, Error);
 			}
 			Existing.Configuration = NewConfig.Configuration;
 		}
