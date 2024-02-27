@@ -15,6 +15,8 @@
 #include "framework/utils.h"
 #include <string>
 #include <type_traits>
+#include <iostream>
+#include <fstream>
 
 namespace OpenWifi {
 	uint64_t Now();
@@ -125,6 +127,72 @@ namespace OpenWifi {
 			bool from_json(const Poco::JSON::Object::Ptr &Obj);
 		};
 
+		// Represents particular permissions, i.e. what are you doing do the model
+		enum PERMISSION_TYPE {
+			PT_CREATE,
+			PT_DELETE,
+			PT_UPDATE,
+			PT_READ_ONLY,
+			PT_UNKNOWN
+		};
+		PERMISSION_TYPE PermTypeFromString(const std::string &U);
+		std::string PermTypeToString(PERMISSION_TYPE U);
+
+		// Represents a model that can be operated on
+		enum PERMISSION_MODEL {
+			//Security
+			PM_PERMISSIONS,
+
+			//Provisioning
+			PM_VENUES_PROV,
+			PM_VENUES_LIST_PROV,
+			PM_ENTITIES_PROV,
+			PM_ENTITIES_LIST_PROV,
+			PM_INVENTORY_PROV,
+			PM_INVENTORY_LIST_PROV,
+			PM_MANAGEMENTPOLICY_PROV,
+			PM_MANAGEMENTPOLICY_LIST_PROV,
+			PM_MANAGEMENTROLE_PROV,
+			PM_MANAGEMENTROLE_LIST_PROV,
+
+			//Gateway
+			PM_DEVICE_CONFIGURE_GW,
+			PM_DEVICE_UPGRADE_GW,
+			PM_DEVICE_REBOOT_GW,
+			PM_DEVICE_FACTORY_GW,
+			PM_DEVICE_LEDS_GW,
+			PM_DEVICE_TRACE_GW,
+			PM_DEVICE_REQUEST_GW,
+			PM_DEVICE_WIFISCAN_GW,
+			PM_DEVICE_EVENTQUEUE_GW,
+			PM_DEVICE_TELEMETRY_GW,
+			PM_DEVICE_PING_GW,
+			PM_DEVICE_SCRIPT_GW,
+			PM_DEVICE_RRM_GW,
+			PM_DEVICE_TRANSFER_GW,
+			PM_DEVICE_CERTUPDATE_GW,
+			PM_DEVICE_POWERCYCLE_GW,
+			PM_DEVICE_LOGS_GW,
+			PM_DEVICE_HEALTHCHECKS_GW,
+			PM_DEVICE_CAPABILITIES_GW,
+			PM_DEVICE_STATISTICS_GW,
+			PM_DEVICE_STATUS_GW,
+			PM_DEVICE_RTTY_GW,
+
+			PM_SCRIPTS_GW,
+
+			PM_UNKNOWN
+		};
+		PERMISSION_MODEL PermModelFromString(const std::string &U);
+		std::string PermModelToString(PERMISSION_MODEL U);
+
+		// Map a permission (e.g. create, delete) to true/false
+		typedef std::map<PERMISSION_TYPE, bool> ModelPermissionMap;
+		// Map a model (e.g. venues, devices) to permissions
+		typedef std::map<PERMISSION_MODEL, ModelPermissionMap> PermissionMap;
+		Poco::JSON::Object permissions_to_json(const SecurityObjects::PermissionMap &Map);
+		PermissionMap permissions_from_json(const Poco::JSON::Object::Ptr &Obj);
+
 		struct UserInfo {
 			std::string id;
 			std::string name;
@@ -149,6 +217,7 @@ namespace OpenWifi {
 			bool suspended = false;
 			bool blackListed = false;
 			USER_ROLE userRole;
+			PermissionMap userPermissions;
 			UserLoginLoginExtensions userTypeProprietaryInfo;
 			std::string securityPolicy;
 			uint64_t securityPolicyChange = 0;

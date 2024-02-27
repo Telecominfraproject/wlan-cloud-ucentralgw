@@ -12,6 +12,8 @@
 #include "RESTAPI_SecurityObjects.h"
 #include "framework/RESTAPI_utils.h"
 
+#include <stdlib.h>
+
 using OpenWifi::RESTAPI_utils::field_from_json;
 using OpenWifi::RESTAPI_utils::field_to_json;
 
@@ -282,6 +284,7 @@ namespace OpenWifi::SecurityObjects {
 		field_to_json(Obj, "oauthUserInfo", oauthUserInfo);
 		field_to_json(Obj, "modified", modified);
 		field_to_json(Obj, "signingUp", signingUp);
+		Obj.set("userPermissions", permissions_to_json(userPermissions));
 	};
 
 	bool UserInfo::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -318,6 +321,7 @@ namespace OpenWifi::SecurityObjects {
 			field_from_json(Obj, "oauthUserInfo", oauthUserInfo);
 			field_from_json(Obj, "modified", modified);
 			field_from_json(Obj, "signingUp", signingUp);
+			userPermissions = permissions_from_json(Obj->getObject("userPermissions"));
 			return true;
 		} catch (const Poco::Exception &E) {
 			std::cout << "Cannot parse: UserInfo" << std::endl;
@@ -737,4 +741,218 @@ namespace OpenWifi::SecurityObjects {
         return false;
     }
 
+	PERMISSION_TYPE PermTypeFromString(const std::string &U) {
+		if (!Poco::icompare(U, "create"))
+			return PT_CREATE;
+		else if (!Poco::icompare(U, "update"))
+			return PT_UPDATE;
+		else if (!Poco::icompare(U, "delete"))
+			return PT_DELETE;
+		else if (!Poco::icompare(U, "readonly"))
+			return PT_READ_ONLY;
+		return PT_UNKNOWN;
+	}
+
+	std::string PermTypeToString(PERMISSION_TYPE U) {
+		switch (U) {
+		case PT_CREATE:
+			return "create";
+		case PT_UPDATE:
+			return "update";
+		case PT_DELETE:
+			return "delete";
+		case PT_READ_ONLY:
+			return "readonly";
+		case PT_UNKNOWN:
+		default:
+			return "unknown";
+		}
+	}
+
+
+	PERMISSION_MODEL PermModelFromString(const std::string &U) {
+		if (!Poco::icompare(U, "permissions"))
+			return PM_PERMISSIONS;
+		else if (!Poco::icompare(U, "venues"))
+			return PM_VENUES_PROV;
+		else if (!Poco::icompare(U, "venues_list"))
+			return PM_VENUES_LIST_PROV;
+		else if (!Poco::icompare(U, "entities"))
+			return PM_ENTITIES_PROV;
+		else if (!Poco::icompare(U, "entities_list"))
+			return PM_ENTITIES_LIST_PROV;
+		else if (!Poco::icompare(U, "inventory"))
+			return PM_INVENTORY_PROV;			
+		else if (!Poco::icompare(U, "inventory_list"))
+			return PM_INVENTORY_LIST_PROV;	
+		else if (!Poco::icompare(U, "managementpolicy"))
+			return PM_MANAGEMENTPOLICY_PROV;			
+		else if (!Poco::icompare(U, "managementpolicy_list"))
+			return PM_MANAGEMENTPOLICY_LIST_PROV;	
+		else if (!Poco::icompare(U, "managementrole"))
+			return PM_MANAGEMENTROLE_PROV;			
+		else if (!Poco::icompare(U, "managementrole_list"))
+			return PM_MANAGEMENTROLE_LIST_PROV;
+		//GW
+		else if (!Poco::icompare(U, "scripts"))
+			return PM_SCRIPTS_GW;
+		else if (!Poco::icompare(U, "configure"))
+			return PM_DEVICE_CONFIGURE_GW;
+		else if (!Poco::icompare(U, "upgrade"))
+			return PM_DEVICE_UPGRADE_GW;
+		else if (!Poco::icompare(U, "factoryreset"))
+			return PM_DEVICE_FACTORY_GW;
+		else if (!Poco::icompare(U, "leds"))
+			return PM_DEVICE_LEDS_GW;
+		else if (!Poco::icompare(U, "trace"))
+			return PM_DEVICE_TRACE_GW;
+		else if (!Poco::icompare(U, "request"))
+			return PM_DEVICE_REQUEST_GW;
+		else if (!Poco::icompare(U, "wifiscan"))
+			return PM_DEVICE_WIFISCAN_GW;
+		else if (!Poco::icompare(U, "eventqueue"))
+			return PM_DEVICE_EVENTQUEUE_GW;
+		else if (!Poco::icompare(U, "telemetry"))
+			return PM_DEVICE_TELEMETRY_GW;
+		else if (!Poco::icompare(U, "ping"))
+			return PM_DEVICE_PING_GW;
+		else if (!Poco::icompare(U, "ap_script"))
+			return PM_DEVICE_SCRIPT_GW;
+		else if (!Poco::icompare(U, "rrm"))
+			return PM_DEVICE_RRM_GW;
+		else if (!Poco::icompare(U, "transfer"))
+			return PM_DEVICE_TRANSFER_GW;
+		else if (!Poco::icompare(U, "certupdate"))
+			return PM_DEVICE_CERTUPDATE_GW;
+		else if (!Poco::icompare(U, "powercycle"))
+			return PM_DEVICE_POWERCYCLE_GW;
+		else if (!Poco::icompare(U, "ap_logs"))
+			return PM_DEVICE_LOGS_GW;
+		else if (!Poco::icompare(U, "healthchecks"))
+			return PM_DEVICE_HEALTHCHECKS_GW;
+		else if (!Poco::icompare(U, "ap_capabilities"))
+			return PM_DEVICE_CAPABILITIES_GW;
+		else if (!Poco::icompare(U, "ap_statistics"))
+			return PM_DEVICE_STATISTICS_GW;
+		else if (!Poco::icompare(U, "ap_status"))
+			return PM_DEVICE_STATUS_GW;
+		else if (!Poco::icompare(U, "ap_rtty"))
+			return PM_DEVICE_RTTY_GW;
+			
+		return PM_UNKNOWN;
+	}
+
+	std::string PermModelToString(PERMISSION_MODEL U) {
+		switch (U) {
+		case PM_PERMISSIONS:
+			return "permissions";
+		case PM_VENUES_PROV:
+			return "venues";
+		case PM_VENUES_LIST_PROV:
+			return "venues_list";
+		case PM_ENTITIES_PROV:
+			return "entities";
+		case PM_ENTITIES_LIST_PROV:
+			return "entities_list";
+		case PM_INVENTORY_PROV:
+			return "inventory";
+		case PM_INVENTORY_LIST_PROV:
+			return "inventory_list";
+		case PM_MANAGEMENTPOLICY_PROV:
+			return "managementpolicy";
+		case PM_MANAGEMENTPOLICY_LIST_PROV:
+			return "managementpolicy_list";
+		case PM_MANAGEMENTROLE_PROV:
+			return "managementrole";
+		case PM_MANAGEMENTROLE_LIST_PROV:
+			return "managementrole_list";
+
+		//Gateway
+		case PM_SCRIPTS_GW:
+			return "scripts";
+		case PM_DEVICE_CONFIGURE_GW:
+			return "configure";
+		case PM_DEVICE_UPGRADE_GW:
+			return "upgrade";
+		case PM_DEVICE_FACTORY_GW:
+			return "factoryreset";
+		case PM_DEVICE_LEDS_GW:
+			return "leds";
+		case PM_DEVICE_TRACE_GW:
+			return "trace";
+		case PM_DEVICE_REQUEST_GW:
+			return "request";
+		case PM_DEVICE_WIFISCAN_GW:
+			return "wifiscan";
+		case PM_DEVICE_EVENTQUEUE_GW:
+			return "eventqueue";
+		case PM_DEVICE_TELEMETRY_GW:
+			return "telemetry";
+		case PM_DEVICE_PING_GW:
+			return "ping";
+		case PM_DEVICE_SCRIPT_GW:
+			return "ap_script";
+		case PM_DEVICE_RRM_GW:
+			return "rrm";
+		case PM_DEVICE_TRANSFER_GW:
+			return "transfer";
+		case PM_DEVICE_CERTUPDATE_GW:
+			return "certupdate";
+		case PM_DEVICE_POWERCYCLE_GW:
+			return "powercycle";
+		case PM_DEVICE_LOGS_GW:
+			return "ap_logs";
+		case PM_DEVICE_HEALTHCHECKS_GW:
+			return "healthchecks";
+		case PM_DEVICE_CAPABILITIES_GW:
+			return "ap_capabilities";
+		case PM_DEVICE_STATISTICS_GW:
+			return "ap_statistics";
+		case PM_DEVICE_STATUS_GW:
+			return "ap_status";
+		case PM_DEVICE_RTTY_GW:
+			return "ap_rtty";
+		case PM_UNKNOWN:
+		default:
+			return "unknown";
+		}
+	}
+
+	/**
+	 * Convert PermissionMap into a JSON object and return it
+	*/
+	Poco::JSON::Object permissions_to_json(const PermissionMap &Map) {
+		Poco::JSON::Object MapObj;
+		for (auto &[Model, Permissions] : Map) {
+			Poco::JSON::Object ModelObject;
+			for (auto &[Permission, Allowed] : Permissions) {
+				ModelObject.set(PermTypeToString(Permission), Allowed);
+			}
+			MapObj.set(PermModelToString(Model), ModelObject);
+		}
+		return MapObj;
+	}
+
+	/**
+	 * Convert JSON object into a PermissionMap and return it
+	*/
+	PermissionMap permissions_from_json(const Poco::JSON::Object::Ptr &Obj) {
+		PermissionMap permissions;
+		if (Obj == nullptr) {
+			return permissions;
+		}
+		Poco::JSON::Object::ConstIterator it1;
+		for(it1 = Obj->begin(); it1 != Obj->end(); it1++) {
+			std::string model = it1->first;
+			Poco::JSON::Object::Ptr modelObj = it1->second.extract<Poco::JSON::Object::Ptr>();
+			Poco::JSON::Object::ConstIterator it2;
+			for(it2 = modelObj->begin(); it2 != modelObj->end(); it2++) {
+				std::string permission = it2->first;
+				bool allowed = it2->second;
+				permissions[PermModelFromString(model)]
+				           [PermTypeFromString(permission)] = allowed;
+			}
+		}
+		return permissions;
+	}
 } // namespace OpenWifi::SecurityObjects
