@@ -341,6 +341,7 @@ namespace OpenWifi {
 					if(SerialNumbersMutex_[i].try_lock()) {
 						wait=0;
 						NumberOfConnectedDevices_ += SerialNumbers_[i].size();
+						SerialNumbersMutex_[i].unlock();
 					} else if (wait<5) {
 						++wait;
 						Poco::Thread::sleep(10);
