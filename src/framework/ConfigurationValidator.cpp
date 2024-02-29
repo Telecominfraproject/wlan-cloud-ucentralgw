@@ -8037,26 +8037,31 @@ bool ExternalValijsonFormatChecker(const std::string &format, const std::string 
 			return true;
 		if (results)
 			results->pushError(context, fmt::format("{} is not a valid CIDR IPv4 block", value));
+        return false;
 	} else if (format == "uc-cidr6") {
 		if (IsCIDRv6(value))
 			return true;
 		if (results)
 			results->pushError(context, fmt::format("{} is not a valid CIDR IPv6 block", value));
+        return false;
 	} else if (format == "uc-cidr") {
 		if (IsCIDR(value))
 			return true;
 		if (results)
 			results->pushError(context, fmt::format("{} is not a valid CIDR block", value));
+        return false;
 	} else if (format == "uc-mac") {
 		if (std::regex_match(value, mac_regex))
 			return true;
 		if (results)
 			results->pushError(context, fmt::format("{} is not a valid MAC address", value));
+        return false;
 	} else if (format == "uc-timeout") {
 		if (std::regex_match(value, uc_timeout_regex))
 			return true;
 		if (results)
 			results->pushError(context, fmt::format("{} is not a valid timeout value", value));
+        return false;
 	} else if (format == "uc-host") {
 		if (IsIP(value))
 			return true;
@@ -8064,18 +8069,22 @@ bool ExternalValijsonFormatChecker(const std::string &format, const std::string 
 			return true;
 		if (results)
 			results->pushError(context, fmt::format("{} is not a valid hostname", value));
+        return false;
 	} else if (format == "fqdn" || format == "uc-fqdn") {
 		if (std::regex_match(value, host_regex))
 			return true;
 		if (results)
 			results->pushError(context, fmt::format("{} is not a valid FQDN", value));
+        return false;
 	} else if (format == "uc-base64") {
-		std::string s{value};
-		Poco::trimInPlace(s);
-		if ((s.size() % 4 == 0) && std::regex_match(s, b64_regex))
-			return true;
+        bool valid =  value.size() % 4 == 0 && std::all_of(value.begin(), value.end(), [](char c) {
+            return std::isalnum(c) || c == '+' || c == '/' || c == '=';
+        });
+        if (valid)
+            return true;
 		if (results)
-			results->pushError(context, fmt::format("{} is not a valid base 64 value", value));
+			results->pushError(context, fmt::format("{} is not a valid base 64 value", "..."));
+        return false;
 	} else if (format == "uri") {
 		try {
 			Poco::URI uri(value);
@@ -8084,6 +8093,7 @@ bool ExternalValijsonFormatChecker(const std::string &format, const std::string 
 		}
 		if (results)
 			results->pushError(context, fmt::format("{} is not a valid URL", value));
+        return false;
 	} else if (format == "uc-portrange") {
 		try {
 			if (IsPortRangeIsValid(value))
@@ -8092,11 +8102,13 @@ bool ExternalValijsonFormatChecker(const std::string &format, const std::string 
 		}
 		if (results)
 			results->pushError(context, fmt::format("{} is not a valid post range", value));
+        return false;
 	} else if (format == "ip") {
 		if (IsIP(value))
 			return true;
 		if (results)
 			results->pushError(context, fmt::format("{} is not a valid IP address", value));
+        return false;
 	}
 	return true;
 }
