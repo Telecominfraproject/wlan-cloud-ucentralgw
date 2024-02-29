@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+repo="owgw"
+[ -z "$REMOTE_DOCKER_HOST" ] && echo "Please set DOCKER_HOST" && exit 1
+[ -z "$REMOTE_DOCKER_PASSWORD" ] && echo "Please set DOCKER_PASSWORD" && exit 1
+img="$REMOTE_DOCKER_HOST/kinara/$repo"
+if [ -n "$1" ] ; then
+    version="$1"
+else
+    version="latest"
+fi
+#date > about.txt
+#id=$(git rev-parse HEAD)
+#br=$(git branch --show-current)
+#echo "$br" >> about.txt
+#echo "$id" >> about.txt
+#echo "Built manually via $0" >> about.txt
+#docker build --no-cache -t $img:$version .
+docker build -t $img:$version .
+docker push $img:$version
