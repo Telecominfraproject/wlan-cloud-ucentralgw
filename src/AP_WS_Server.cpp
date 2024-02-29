@@ -277,7 +277,7 @@ namespace OpenWifi {
 								break;
 							} else if (waits < 5) {
 								waits++;
-								std::this_thread::sleep_for(std::chrono::milliseconds(10));
+								Poco::Thread::trySleep(10);
 							} else {
 								break;
 							}
@@ -313,7 +313,7 @@ namespace OpenWifi {
 								SessionMutex_[i].unlock();
 								break;
 							} else if (waits < 5) {
-								std::this_thread::sleep_for(std::chrono::milliseconds(10));
+								Poco::Thread::trySleep(10);
 								waits++;
 							} else {
 								break;
@@ -336,9 +336,17 @@ namespace OpenWifi {
 
 			} else {
 				NumberOfConnectedDevices_=0;
+				int wait=0;
 				for(int i=0;i<MACHash::HashMax();i++) {
-					std::lock_guard Lock(SerialNumbersMutex_[i]);
-					NumberOfConnectedDevices_ += SerialNumbers_[i].size();
+					if(SerialNumbersMutex_[i].try_lock()) {
+						wait=0;
+						NumberOfConnectedDevices_ += SerialNumbers_[i].size();
+					} else if (wait<5) {
+						++wait;
+						Poco::Thread::sleep(10);
+					} else {
+						continue;
+					}
 				}
 				if(NumberOfConnectedDevices_) {
 					if (last_garbage_run > 0) {
