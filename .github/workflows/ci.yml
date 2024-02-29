@@ -1,4 +1,4 @@
-name: CI
+name: Build Docker image
 
 on:
   push:
@@ -6,13 +6,13 @@ on:
       - 'openapi/**'
       - '**.md'
     branches:
-      - master
+      - kinara
       - 'release/*'
     tags:
       - 'v*'
   pull_request:
     branches:
-      - master
+      - kinara
       - 'release/*'
 
 defaults:
@@ -21,81 +21,83 @@ defaults:
 
 jobs:
   docker:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
-      DOCKER_REGISTRY_URL: tip-tip-wlan-cloud-ucentral.jfrog.io
-      DOCKER_REGISTRY_USERNAME: ucentral
+      ECR_REGISTRY: 471112855615.dkr.ecr.us-east-1.amazonaws.com
+      ECR_REPOSITORY: owgw
+      AWS_REGION: us-east-1
+
     steps:
-    - name: Checkout actions repo
-      uses: actions/checkout@v3
-      with:
-        repository: Telecominfraproject/.github
-        path: github
+      # may attempt to put the following code in common area.
+      # not really that useful if I have to have secrets in every repo anyways
+      #- name: Checkout actions repo
+      #  uses: actions/checkout@v3
+      #  with:
+      #    repository: kinarasystems/.github
+      #    path: github
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          path: docker-image-build
 
-    - name: Build and push Docker image
-      uses: ./github/composite-actions/docker-image-build
-      with:
-        image_name: owgw
-        registry: tip-tip-wlan-cloud-ucentral.jfrog.io
-        registry_user: ucentral
-        registry_password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Notify on failure via Slack
-      if: failure() && github.ref == 'refs/heads/master'
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_USERNAME: GitHub Actions failure notifier
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_COLOR: "${{ job.status }}"
-        SLACK_ICON: https://raw.githubusercontent.com/quintessence/slack-icons/master/images/github-logo-slack-icon.png
-        SLACK_TITLE: Docker build failed for OWGW service
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-  trigger-testing:
-    if: startsWith(github.ref, 'refs/pull/')
-    runs-on: ubuntu-latest
-    needs: docker
-    steps:
-    - name: Get base branch name and set as output
-      id: get_base_branch
-      run: |
-        echo "branch=$(echo ${GITHUB_BASE_REF##*/} | sed 's/master/main/g')" >> $GITHUB_OUTPUT
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          # Build a docker container and push it to ECR so that it can be deployed to EKS.
+          cd docker-image-build
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          if [[ "$GITHUB_REF" == "refs/heads/kinara" ]] ; then
+            docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          fi
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-    - name: Checkout actions repo
-      uses: actions/checkout@v3
-      with:
-        repository: Telecominfraproject/.github
-        path: github
+      - name: Notify via Teams
+        #if: failure() && github.ref == 'refs/heads/kinara'
+        if: always()
+        uses: skitionek/notify-microsoft-teams@master
+        with:
+          webhook_url: ${{ secrets.MS_TEAMS_WEBHOOK }}
+          needs: ${{ toJson(needs) }}
+          job: ${{ toJson(job) }}
+          steps: ${{ toJson(steps) }}
+          dry_run: False
 
-    - name: Trigger testing of OpenWifi Docker Compose deployment and wait for result
-      uses: ./github/composite-actions/trigger-workflow-and-wait
-      env:
-        BASE_BRANCH: ${{ steps.get_base_branch.outputs.branch }}
-      with:
-        owner: Telecominfraproject
-        repo: wlan-testing
-        workflow: ow_docker-compose.yml
-        token: ${{ secrets.WLAN_TESTING_PAT }}
-        ref: master
-        inputs: '{"deployment_version": "${{ env.BASE_BRANCH }}", "owgw_version": "${{ github.sha }}", "owsec_version": "${{ env.BASE_BRANCH }}", "owfms_version": "${{ env.BASE_BRANCH }}", "owprov_version": "${{ env.BASE_BRANCH }}", "owanalytics_version": "${{ env.BASE_BRANCH }}", "owsub_version": "${{ env.BASE_BRANCH }}", "microservice": "owgw"}'
-
-  trigger-deploy-to-dev:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
-    needs:
-      - docker
-    steps:
-    - name: Checkout actions repo
-      uses: actions/checkout@v3
-      with:
-        repository: Telecominfraproject/.github
-        path: github
-
-    - name: Trigger deployment of the latest version to dev instance and wait for result
-      uses: ./github/composite-actions/trigger-workflow-and-wait
-      with:
-        owner: Telecominfraproject
-        repo: wlan-testing
-        workflow: ucentralgw-dev-deployment.yaml
-        token: ${{ secrets.WLAN_TESTING_PAT }}
-        ref: master
-        inputs: '{"force_latest": "true"}'
+#  trigger-deploy-to-dev:
+#    runs-on: ubuntu-latest
+#    if: github.ref == 'refs/heads/kinara'
+#    needs:
+#      - docker
+#    steps:
+#    - name: Checkout actions repo
+#      uses: actions/checkout@v3
+#      with:
+#        repository: Telecominfraproject/.github
+#        path: github
+#
+#    - name: Trigger deployment of the latest version to dev instance and wait for result
+#      uses: ./github/composite-actions/trigger-workflow-and-wait
+#      with:
+#        owner: Telecominfraproject
+#        repo: wlan-testing
+#        workflow: ucentralgw-dev-deployment.yaml
+#        token: ${{ secrets.WLAN_TESTING_PAT }}
+#        ref: master
+#        inputs: '{"force_latest": "true"}'
