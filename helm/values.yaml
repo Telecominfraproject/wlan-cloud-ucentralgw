@@ -8,16 +8,16 @@ fullnameOverride: ""
 
 images:
   owgw:
-    repository: tip-tip-wlan-cloud-ucentral.jfrog.io/owgw
-    tag: master
+    repository:  471112855615.dkr.ecr.us-east-1.amazonaws.com/owgw
+    tag: latest
     pullPolicy: Always
 #    regcred:
 #      registry: tip-tip-wlan-cloud-ucentral.jfrog.io
 #      username: username
 #      password: password
   dockerize:
-    repository: tip-tip-wlan-cloud-ucentral.jfrog.io/dockerize
-    tag: 0.16.0
+    repository: 471112855615.dkr.ecr.us-east-1.amazonaws.com/wait-ready
+    tag: latest
     pullPolicy: IfNotPresent
 
 services:
