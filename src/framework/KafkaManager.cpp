@@ -79,8 +79,8 @@ namespace OpenWifi {
 		Utils::SetThreadName("Kafka:Prod");
 		cppkafka::Configuration Config(
 			{{"client.id", MicroServiceConfigGetString("openwifi.kafka.client.id", "")},
-			 {"metadata.broker.list",MicroServiceConfigGetString("openwifi.kafka.brokerlist", "")},
-			 {"send.buffer.bytes", KafkaManager()->KafkaManagerMaximumPayloadSize() }
+			 {"metadata.broker.list",MicroServiceConfigGetString("openwifi.kafka.brokerlist", "")} // ,
+			 // {"send.buffer.bytes", KafkaManager()->KafkaManagerMaximumPayloadSize() }
 			}
  		);
 
@@ -277,7 +277,7 @@ namespace OpenWifi {
 	int KafkaManager::Start() {
 		if (!KafkaEnabled_)
 			return 0;
-		MaxPayloadSize_ = MicroServiceConfigGetInt("openwifi.kafka.max.payload", 2500000);
+		MaxPayloadSize_ = MicroServiceConfigGetInt("openwifi.kafka.max.payload", 250000);
 		ConsumerThr_.Start();
 		ProducerThr_.Start();
 		return 0;

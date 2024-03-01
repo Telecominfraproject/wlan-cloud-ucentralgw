@@ -101,7 +101,7 @@ namespace OpenWifi {
 		std::string SystemInfoWrapper_;
 		KafkaProducer ProducerThr_;
 		KafkaConsumer ConsumerThr_;
-		std::uint64_t MaxPayloadSize_ = 2500000;
+		std::uint64_t MaxPayloadSize_ = 250000;
 
 		void PartitionAssignment(const cppkafka::TopicPartitionList &partitions);
 		void PartitionRevocation(const cppkafka::TopicPartitionList &partitions);
