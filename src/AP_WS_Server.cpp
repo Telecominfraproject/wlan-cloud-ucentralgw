@@ -225,7 +225,6 @@ namespace OpenWifi {
 				try {
 					poco_information(LocalLogger,
 									 fmt::format("Garbage collecting zombies... (step 1)"));
-					NumberOfConnectedDevices_ = 0;
 					NumberOfConnectingDevices_ = 0;
 					AverageDeviceConnectionTime_ = 0;
 					int waits = 0;
@@ -242,36 +241,25 @@ namespace OpenWifi {
 										poco_information(
 											LocalLogger,
 											fmt::format("Dead device found in hash index {}", hashIndex));
-										// hint = SerialNumbers_[hashIndex].erase(hint);
-										hint++;
+										hint = SerialNumbers_[hashIndex].erase(hint);
 										continue;
 									}
 									auto Device = hint->second;
-									if(Device->ConnectionMutex_.try_lock()) {
-										auto RightNow = Utils::Now();
-										if (RightNow > Device->LastContact_ &&
-											(RightNow - Device->LastContact_) > SessionTimeOut_) {
-											poco_information(
-												LocalLogger,
-												fmt::format("{}: Session seems idle. Controller disconnecting device.",
-															Device->SerialNumber_));
-											hint = SerialNumbers_[hashIndex].erase(hint);
-										} else if (Device->State_.Connected) {
-											NumberOfConnectedDevices_++;
-											total_connected_time +=
-												(RightNow - Device->State_.started);
-											++hint;
-										} else {
-											++hint;
-										}
-										Device->ConnectionMutex_.unlock();
-										continue;
+									auto RightNow = Utils::Now();
+									if (RightNow > Device->LastContact_ &&
+										(RightNow - Device->LastContact_) > SessionTimeOut_) {
+										poco_information(
+											LocalLogger,
+											fmt::format("{}: Session seems idle. Controller disconnecting device.",
+														Device->SerialNumber_));
+										hint = SerialNumbers_[hashIndex].erase(hint);
+									} else if (Device->State_.Connected) {
+										total_connected_time +=
+											(RightNow - Device->State_.started);
+										++hint;
 									} else {
-										poco_warning(LocalLogger, fmt::format("Could not lock device mutex for {}",
-																			   Device->SerialNumber_));
+										++hint;
 									}
-									++NumberOfConnectingDevices_;
-									++hint;
 								}
 								SerialNumbersMutex_[hashIndex].unlock();
 								break;
@@ -334,28 +322,13 @@ namespace OpenWifi {
 					poco_error(LocalLogger, fmt::format("exception:Garbage collecting zombies failed: {}", "unknown"));
 				}
 
+			}
+			if(NumberOfConnectedDevices_) {
+				if (last_garbage_run > 0) {
+					AverageDeviceConnectionTime_ += (now - last_garbage_run);
+				}
 			} else {
-				NumberOfConnectedDevices_=0;
-				int wait=0;
-				for(int i=0;i<MACHash::HashMax();i++) {
-					if(SerialNumbersMutex_[i].try_lock()) {
-						wait=0;
-						NumberOfConnectedDevices_ += SerialNumbers_[i].size();
-						SerialNumbersMutex_[i].unlock();
-					} else if (wait<5) {
-						++wait;
-						Poco::Thread::sleep(10);
-					} else {
-						continue;
-					}
-				}
-				if(NumberOfConnectedDevices_) {
-					if (last_garbage_run > 0) {
-						AverageDeviceConnectionTime_ += (now - last_garbage_run);
-					}
-				} else {
-					AverageDeviceConnectionTime_ = 0;
-				}
+				AverageDeviceConnectionTime_ = 0;
 			}
 
 			try {
@@ -516,7 +489,7 @@ namespace OpenWifi {
 			return false;
 		}
 		if(!DeviceHint->second->Dead_) {
-			DeviceHint->second->GetRestrictions(Restrictions);
+			Restrictions = DeviceHint->second->GetRestrictions();
 			return DeviceHint->second->State_.Connected;
 		}
 		return false;
@@ -694,33 +667,5 @@ namespace OpenWifi {
 		}
 		return false;
 	}
-
-/*	bool AP_WS_Server::ExtendedAttributes(const std::string &serialNumber,
-								   bool & hasGPS,
-								   std::uint64_t &Sanity,
-								   std::double_t &MemoryUsed,
-								   std::double_t &Load,
-								   std::double_t &Temperature
-	) {
-
-		auto serialNumberInt = Utils::SerialNumberToInt(serialNumber);
-		auto hashIndex = MACHash::Hash(serialNumberInt);
-		std::lock_guard	DevicesGuard(SerialNumbersMutex_[hashIndex]);
-		auto DeviceHint = SerialNumbers_[hashIndex].find(Utils::SerialNumberToInt(serialNumber));
-		if(DeviceHint==end(SerialNumbers_[hashIndex])) {
-			return false;
-		}
-		if(DeviceHint->second->Dead_) {
-			return false;
-		}
-		std::lock_guard DeviceGuard(DeviceHint->second->ConnectionMutex_);
-		hasGPS = DeviceHint->second->hasGPS_;
-		Sanity = DeviceHint->second->RawLastHealthcheck_.Sanity;
-		MemoryUsed = DeviceHint->second->memory_used_;
-		Load = DeviceHint->second->cpu_load_;
-		Temperature = DeviceHint->second->temperature_;
-		return true;
-	}
-*/
 
 } // namespace OpenWifi

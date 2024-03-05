@@ -79,13 +79,13 @@ namespace OpenWifi {
 			}
 		}
 
+		inline GWObjects::DeviceRestrictions GetRestrictions() {
+			std::lock_guard G(ConnectionMutex_);
+			return Restrictions_;
+		}
+
 		[[nodiscard]] inline bool HasGPS() const { return hasGPS_; }
 		[[nodiscard]] bool ValidatedDevice();
-
-		inline void GetRestrictions(GWObjects::DeviceRestrictions &R) {
-			std::lock_guard G(ConnectionMutex_);
-			R = Restrictions_;
-		}
 
 		inline bool GetTelemetryParameters(bool &Reporting, uint64_t &Interval,
 										   uint64_t &WebSocketTimer, uint64_t &KafkaTimer,
@@ -105,10 +105,6 @@ namespace OpenWifi {
 
 		friend class AP_WS_Server;
 
-		inline GWObjects::DeviceRestrictions Restrictions() {
-			std::lock_guard G(ConnectionMutex_);
-			return Restrictions_;
-		}
 		void Start();
 
 	  private:
@@ -148,7 +144,7 @@ namespace OpenWifi {
 		std::double_t 	memory_used_=0.0, cpu_load_ = 0.0, temperature_ = 0.0;
 		std::uint64_t 	uuid_=0;
 		bool	Simulated_=false;
-		std::uint64_t 	LastContact_=0;
+		std::atomic_uint64_t 	LastContact_=0;
 
 		static inline std::atomic_uint64_t ConcurrentStartingDevices_ = 0;
 
