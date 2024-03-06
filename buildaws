@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+[ -z "$AWS_PROFILE" ] && echo "Please set AWS_PROFILE" && exit 1
+registry="471112855615.dkr.ecr.us-east-1.amazonaws.com"
+repo="owgw"
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin "$registry"
+img="$registry/$repo"
+if [ -n "$1" ] ; then
+    version="$1"
+else
+    version="latest"
+fi
+#date > about.txt
+#id=$(git rev-parse HEAD)
+#br=$(git branch --show-current)
+#echo "$br" >> about.txt
+#echo "$id" >> about.txt
+#echo "Built manually via $0" >> about.txt
+#docker build --no-cache -t $img:$version .
+docker build -t $img:$version .
+docker push $img:$version

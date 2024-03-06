@@ -23,8 +23,8 @@ namespace OpenWifi {
 	void RESTAPI_script_handler::DoDelete() {
 		std::string UUID = GetBinding("uuid", "");
 
-		if (UserInfo_.userinfo.userRole != SecurityObjects::ROOT) {
-			return BadRequest(RESTAPI::Errors::ACCESS_DENIED);
+		if (!UserInfo_.userinfo.userPermissions[SecurityObjects::PM_SCRIPTS_GW][SecurityObjects::PT_DELETE]) {
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
 		if (UUID.empty()) {
@@ -40,8 +40,8 @@ namespace OpenWifi {
 	void RESTAPI_script_handler::DoPost() {
 		std::string UUID = GetBinding("uuid", "");
 
-		if (UserInfo_.userinfo.userRole != SecurityObjects::ROOT) {
-			return BadRequest(RESTAPI::Errors::ACCESS_DENIED);
+		if (!UserInfo_.userinfo.userPermissions[SecurityObjects::PM_SCRIPTS_GW][SecurityObjects::PT_CREATE]) {
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
 		if (UUID.empty()) {
@@ -86,8 +86,8 @@ namespace OpenWifi {
 	void RESTAPI_script_handler::DoPut() {
 		std::string UUID = GetBinding("uuid", "");
 
-		if (UserInfo_.userinfo.userRole != SecurityObjects::ROOT) {
-			return BadRequest(RESTAPI::Errors::ACCESS_DENIED);
+		if (!UserInfo_.userinfo.userPermissions[SecurityObjects::PM_SCRIPTS_GW][SecurityObjects::PT_UPDATE]) {
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
 		if (UUID.empty()) {
