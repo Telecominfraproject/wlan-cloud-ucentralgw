@@ -195,13 +195,21 @@ namespace OpenWifi {
 		bool KafkaDisableState() const { return KafkaDisableState_; }
 		bool KafkaDisableHealthChecks() const { return KafkaDisableHealthChecks_; }
 
+		inline void IncrementConnectionCount() {
+			++NumberOfConnectedDevices_;
+		}
+
+		inline void DecrementConnectionCount() {
+			--NumberOfConnectedDevices_;
+		}
+
 	  private:
 		std::array<std::mutex,SessionHashMax> 			SessionMutex_;
 		std::array<std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>,SessionHashMax> Sessions_;
 		using SerialNumberMap = std::map<uint64_t /* serial number */,
 										 std::shared_ptr<AP_WS_Connection>>;
 		std::array<SerialNumberMap,MACHashMax>			SerialNumbers_;
-		mutable std::array<std::recursive_mutex,MACHashMax>		SerialNumbersMutex_;
+		mutable std::array<std::mutex,MACHashMax>		SerialNumbersMutex_;
 
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>> WebServers_;
@@ -218,8 +226,9 @@ namespace OpenWifi {
 		std::atomic_bool Running_ = false;
 
 		std::uint64_t 			MismatchDepth_ = 2;
-		std::uint64_t 			NumberOfConnectedDevices_ = 0;
-		std::uint64_t 			AverageDeviceConnectionTime_ = 0;
+
+		std::atomic_uint64_t 	NumberOfConnectedDevices_ = 0;
+		std::atomic_uint64_t 	AverageDeviceConnectionTime_ = 0;
 		std::uint64_t 			NumberOfConnectingDevices_ = 0;
 		std::uint64_t 			SessionTimeOut_ = 10*60;
 		std::uint64_t 			LeftOverSessions_ = 0;
