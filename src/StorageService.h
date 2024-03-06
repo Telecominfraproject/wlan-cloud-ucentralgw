@@ -149,7 +149,7 @@ namespace OpenWifi {
 		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices,
 						const std::string &orderBy = "",
 						const std::string &platform = "",
-						bool nonProvisioned = false);
+						bool includeProvisioned = true);
 		//		bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select,
 		// std::vector<GWObjects::Device> &Devices, const std::string & orderBy="");
 		bool DeleteDevice(std::string &SerialNumber);
@@ -166,7 +166,7 @@ namespace OpenWifi {
 									std::vector<std::string> &SerialNumbers,
 									const std::string &orderBy = "",
 									const std::string &platform = "",
-									bool nonProvisioned = false);									
+									bool includeProvisioned = true);									
 		bool GetDeviceFWUpdatePolicy(std::string &SerialNumber, std::string &Policy);
 		bool SetDevicePassword(LockedDbSession &Session, std::string &SerialNumber, std::string &Password);
 		bool UpdateSerialNumberCache();
