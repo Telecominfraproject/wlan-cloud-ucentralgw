@@ -195,7 +195,7 @@ namespace OpenWifi {
 	bool Storage::GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany,
 										 std::vector<std::string> &SerialNumbers,
 										 const std::string &orderBy,
-										 const std::string &platform, bool nonProvisioned) {
+										 const std::string &platform, bool includeProvisioned) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
@@ -203,7 +203,7 @@ namespace OpenWifi {
 			std::string st;
 			std::string whereClause = "";
 			if(!platform.empty()) {
-				if (nonProvisioned) {
+				if (includeProvisioned == false) {
 
 					whereClause = fmt::format("WHERE entity='' and venue='' and DeviceType='" + platform + "'");
 				} else {
@@ -213,7 +213,7 @@ namespace OpenWifi {
 
 				//st = "SELECT SerialNumber From Devices WHERE DeviceType='" + platform + "' ";
 			} else {
-				if (nonProvisioned) {
+				if (includeProvisioned == false) {
 					whereClause = fmt::format("WHERE entity='' and venue=''");
 				}
 				//st = "SELECT SerialNumber From Devices ";
@@ -851,7 +851,7 @@ namespace OpenWifi {
 
 	bool Storage::GetDevices(uint64_t From, uint64_t HowMany,
 							 std::vector<GWObjects::Device> &Devices, const std::string &orderBy, const std::string &platform,
-							 bool nonProvisioned) {
+							 bool includeProvisioned) {
 		DeviceRecordList Records;
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -861,13 +861,13 @@ namespace OpenWifi {
 			std::string whereClause = "";
 			if(platform.empty()) {
 
-				if (nonProvisioned) {
+				if (includeProvisioned == false) {
 					whereClause = fmt::format("WHERE entity='' and venue=''");
 				}
 
 			} else {
 
-				if (nonProvisioned) {
+				if (includeProvisioned == false) {
 					whereClause = fmt::format("WHERE DeviceType='{}' and entity='' and venue=''",platform);
 				} else {
 					whereClause = fmt::format("WHERE DeviceType='{}'", platform);				
