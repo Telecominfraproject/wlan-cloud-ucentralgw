@@ -195,17 +195,32 @@ namespace OpenWifi {
 	bool Storage::GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany,
 										 std::vector<std::string> &SerialNumbers,
 										 const std::string &orderBy,
-										 const std::string &platform) {
+										 const std::string &platform, bool includeProvisioned) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
 			std::string st;
+			std::string whereClause = "";
 			if(!platform.empty()) {
-				st = "SELECT SerialNumber From Devices WHERE DeviceType='" + platform + "' ";
+				if (includeProvisioned == false) {
+
+					whereClause = fmt::format("WHERE entity='' and venue='' and DeviceType='" + platform + "'");
+				} else {
+					whereClause = fmt::format("WHERE DeviceType='" + platform + "'");
+				}
+			
+
+				//st = "SELECT SerialNumber From Devices WHERE DeviceType='" + platform + "' ";
 			} else {
-				st = "SELECT SerialNumber From Devices ";
+				if (includeProvisioned == false) {
+					whereClause = fmt::format("WHERE entity='' and venue=''");
+				}
+				//st = "SELECT SerialNumber From Devices ";
 			}
+			
+			st = fmt::format("SELECT SerialNumber From Devices {}", whereClause);
+
 			if (orderBy.empty())
 				st += " ORDER BY SerialNumber ASC ";
 			else
@@ -835,25 +850,38 @@ namespace OpenWifi {
 	}
 
 	bool Storage::GetDevices(uint64_t From, uint64_t HowMany,
-							 std::vector<GWObjects::Device> &Devices, const std::string &orderBy, const std::string &platform) {
+							 std::vector<GWObjects::Device> &Devices, const std::string &orderBy, const std::string &platform,
+							 bool includeProvisioned) {
 		DeviceRecordList Records;
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
 			std::string st;
+			std::string whereClause = "";
 			if(platform.empty()) {
-				st =
-					fmt::format("SELECT {} FROM Devices {} {}", DB_DeviceSelectFields,
-								orderBy.empty() ? " ORDER BY SerialNumber ASC " : orderBy,
-								ComputeRange(From, HowMany));
+
+				if (includeProvisioned == false) {
+					whereClause = fmt::format("WHERE entity='' and venue=''");
+				}
+
 			} else {
-				st =
-					fmt::format("SELECT {} FROM Devices WHERE DeviceType='{}' {} {}", DB_DeviceSelectFields, platform,
-								orderBy.empty() ? " ORDER BY SerialNumber ASC " : orderBy,
-								ComputeRange(From, HowMany));
+
+				if (includeProvisioned == false) {
+					whereClause = fmt::format("WHERE DeviceType='{}' and entity='' and venue=''",platform);
+				} else {
+					whereClause = fmt::format("WHERE DeviceType='{}'", platform);				
+				}
+		
 			}
 
+			st =
+				fmt::format("SELECT {} FROM Devices {} {} {}", DB_DeviceSelectFields, whereClause,
+							orderBy.empty() ? " ORDER BY SerialNumber ASC " : orderBy,
+							ComputeRange(From, HowMany));
+
+			//Logger().information(fmt::format(" GetDevices st is {} ", st));
+			
 			Select << ConvertParams(st), Poco::Data::Keywords::into(Records);
 			Select.execute();
 
