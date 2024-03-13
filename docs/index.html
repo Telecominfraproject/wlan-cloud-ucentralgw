@@ -1073,6 +1073,11 @@ ul.nav-tabs {
     "lastModified" : {
       "type" : "integer",
       "format" : "int64"
+    },
+    "platform" : {
+      "type" : "string",
+      "default" : "AP",
+      "enum" : [ "AP", "SWITCH" ]
     }
   }
 };
@@ -20170,14 +20175,15 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/default_configuration/{name}?deviceType=deviceType_example" \
+ "https://localhost:16001/api/v1/default_configuration/{name}" \
  -d '{
   &quot;configuration&quot; : &quot;configuration&quot;,
   &quot;modelIds&quot; : [ &quot;modelIds&quot;, &quot;modelIds&quot; ],
   &quot;created&quot; : 0,
   &quot;name&quot; : &quot;name&quot;,
   &quot;description&quot; : &quot;description&quot;,
-  &quot;lastModified&quot; : 6
+  &quot;lastModified&quot; : 6,
+  &quot;platform&quot; : &quot;AP&quot;
 }'
 </code></pre>
                           </div>
@@ -20207,11 +20213,10 @@ public class ConfigurationsApiExample {
         // Create an instance of the API class
         ConfigurationsApi apiInstance = new ConfigurationsApi();
         String name = name_example; // String | 
-        String deviceType = deviceType_example; // String | 
         DefaultConfiguration defaultConfiguration = ; // DefaultConfiguration | 
 
         try {
-            apiInstance.createDefaultConfiguration(name, deviceType, defaultConfiguration);
+            apiInstance.createDefaultConfiguration(name, defaultConfiguration);
         } catch (ApiException e) {
             System.err.println("Exception when calling ConfigurationsApi#createDefaultConfiguration");
             e.printStackTrace();
@@ -20228,11 +20233,10 @@ public class ConfigurationsApiExample {
     public static void main(String[] args) {
         ConfigurationsApi apiInstance = new ConfigurationsApi();
         String name = name_example; // String | 
-        String deviceType = deviceType_example; // String | 
         DefaultConfiguration defaultConfiguration = ; // DefaultConfiguration | 
 
         try {
-            apiInstance.createDefaultConfiguration(name, deviceType, defaultConfiguration);
+            apiInstance.createDefaultConfiguration(name, defaultConfiguration);
         } catch (ApiException e) {
             System.err.println("Exception when calling ConfigurationsApi#createDefaultConfiguration");
             e.printStackTrace();
@@ -20258,12 +20262,10 @@ public class ConfigurationsApiExample {
 // Create an instance of the API class
 ConfigurationsApi *apiInstance = [[ConfigurationsApi alloc] init];
 String *name = name_example; //  (default to null)
-String *deviceType = deviceType_example; //  (optional) (default to null)
 DefaultConfiguration *defaultConfiguration = ; //  (optional)
 
 // Create a default configuration.
 [apiInstance createDefaultConfigurationWith:name
-    deviceType:deviceType
     defaultConfiguration:defaultConfiguration
               completionHandler: ^(NSError* error) {
     if (error) {
@@ -20291,7 +20293,6 @@ bearerAuth.accessToken = "YOUR ACCESS TOKEN";
 var api = new UCentralGatewayApi.ConfigurationsApi()
 var name = name_example; // {String} 
 var opts = {
-  'deviceType': deviceType_example, // {String} 
   'defaultConfiguration':  // {DefaultConfiguration} 
 };
 
@@ -20332,12 +20333,11 @@ namespace Example
             // Create an instance of the API class
             var apiInstance = new ConfigurationsApi();
             var name = name_example;  // String |  (default to null)
-            var deviceType = deviceType_example;  // String |  (optional)  (default to null)
             var defaultConfiguration = new DefaultConfiguration(); // DefaultConfiguration |  (optional) 
 
             try {
                 // Create a default configuration.
-                apiInstance.createDefaultConfiguration(name, deviceType, defaultConfiguration);
+                apiInstance.createDefaultConfiguration(name, defaultConfiguration);
             } catch (Exception e) {
                 Debug.Print("Exception when calling ConfigurationsApi.createDefaultConfiguration: " + e.Message );
             }
@@ -20362,11 +20362,10 @@ OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('',
 // Create an instance of the API class
 $api_instance = new OpenAPITools\Client\Api\ConfigurationsApi();
 $name = name_example; // String | 
-$deviceType = deviceType_example; // String | 
 $defaultConfiguration = ; // DefaultConfiguration | 
 
 try {
-    $api_instance->createDefaultConfiguration($name, $deviceType, $defaultConfiguration);
+    $api_instance->createDefaultConfiguration($name, $defaultConfiguration);
 } catch (Exception $e) {
     echo 'Exception when calling ConfigurationsApi->createDefaultConfiguration: ', $e->getMessage(), PHP_EOL;
 }
@@ -20389,11 +20388,10 @@ $WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
 # Create an instance of the API class
 my $api_instance = WWW::OPenAPIClient::ConfigurationsApi->new();
 my $name = name_example; # String | 
-my $deviceType = deviceType_example; # String | 
 my $defaultConfiguration = WWW::OPenAPIClient::Object::DefaultConfiguration->new(); # DefaultConfiguration | 
 
 eval {
-    $api_instance->createDefaultConfiguration(name => $name, deviceType => $deviceType, defaultConfiguration => $defaultConfiguration);
+    $api_instance->createDefaultConfiguration(name => $name, defaultConfiguration => $defaultConfiguration);
 };
 if ($@) {
     warn "Exception when calling ConfigurationsApi->createDefaultConfiguration: $@\n";
@@ -20418,12 +20416,11 @@ openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
 # Create an instance of the API class
 api_instance = openapi_client.ConfigurationsApi()
 name = name_example # String |  (default to null)
-deviceType = deviceType_example # String |  (optional) (default to null)
 defaultConfiguration =  # DefaultConfiguration |  (optional)
 
 try:
     # Create a default configuration.
-    api_instance.create_default_configuration(name, deviceType=deviceType, defaultConfiguration=defaultConfiguration)
+    api_instance.create_default_configuration(name, defaultConfiguration=defaultConfiguration)
 except ApiException as e:
     print("Exception when calling ConfigurationsApi->createDefaultConfiguration: %s\n" % e)</code></pre>
                             </div>
@@ -20433,11 +20430,10 @@ except ApiException as e:
 
 pub fn main() {
     let name = name_example; // String
-    let deviceType = deviceType_example; // String
     let defaultConfiguration = ; // DefaultConfiguration
 
     let mut context = ConfigurationsApi::Context::default();
-    let result = client.createDefaultConfiguration(name, deviceType, defaultConfiguration, &context).wait();
+    let result = client.createDefaultConfiguration(name, defaultConfiguration, &context).wait();
 
     println!("{:?}", result);
 }
@@ -20529,30 +20525,6 @@ $(document).ready(function() {
                             </table>
 
 
-                            <div class="methodsubtabletitle">Query parameters</div>
-                            <table id="methodsubtable">
-                              <tr>
-                                <th width="150px">Name</th>
-                                <th>Description</th>
-                              </tr>
-                                <tr><td style="width:150px;">deviceType</td>
-<td>
-
-
-    <div id="d2e199_createDefaultConfiguration_deviceType">
-        <div class="json-schema-view">
-            <div class="primitive">
-                <span class="type">
-                    String
-                </span>
-
-            </div>
-        </div>
-    </div>
-</td>
-</tr>
-
-                            </table>
 
                           <h2>Responses</h2>
                             <h3 id="examples-Configurations-createDefaultConfiguration-title-200"></h3>
@@ -21894,14 +21866,15 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/default_configuration/{name}?deviceType=deviceType_example" \
+ "https://localhost:16001/api/v1/default_configuration/{name}" \
  -d '{
   &quot;configuration&quot; : &quot;configuration&quot;,
   &quot;modelIds&quot; : [ &quot;modelIds&quot;, &quot;modelIds&quot; ],
   &quot;created&quot; : 0,
   &quot;name&quot; : &quot;name&quot;,
   &quot;description&quot; : &quot;description&quot;,
-  &quot;lastModified&quot; : 6
+  &quot;lastModified&quot; : 6,
+  &quot;platform&quot; : &quot;AP&quot;
 }'
 </code></pre>
                           </div>
@@ -21931,11 +21904,10 @@ public class ConfigurationsApiExample {
         // Create an instance of the API class
         ConfigurationsApi apiInstance = new ConfigurationsApi();
         String name = name_example; // String | 
-        String deviceType = deviceType_example; // String | 
         DefaultConfiguration defaultConfiguration = ; // DefaultConfiguration | 
 
         try {
-            apiInstance.updateDefaultConfiguration(name, deviceType, defaultConfiguration);
+            apiInstance.updateDefaultConfiguration(name, defaultConfiguration);
         } catch (ApiException e) {
             System.err.println("Exception when calling ConfigurationsApi#updateDefaultConfiguration");
             e.printStackTrace();
@@ -21952,11 +21924,10 @@ public class ConfigurationsApiExample {
     public static void main(String[] args) {
         ConfigurationsApi apiInstance = new ConfigurationsApi();
         String name = name_example; // String | 
-        String deviceType = deviceType_example; // String | 
         DefaultConfiguration defaultConfiguration = ; // DefaultConfiguration | 
 
         try {
-            apiInstance.updateDefaultConfiguration(name, deviceType, defaultConfiguration);
+            apiInstance.updateDefaultConfiguration(name, defaultConfiguration);
         } catch (ApiException e) {
             System.err.println("Exception when calling ConfigurationsApi#updateDefaultConfiguration");
             e.printStackTrace();
@@ -21982,12 +21953,10 @@ public class ConfigurationsApiExample {
 // Create an instance of the API class
 ConfigurationsApi *apiInstance = [[ConfigurationsApi alloc] init];
 String *name = name_example; //  (default to null)
-String *deviceType = deviceType_example; //  (optional) (default to null)
 DefaultConfiguration *defaultConfiguration = ; //  (optional)
 
 // Update a default configuration
 [apiInstance updateDefaultConfigurationWith:name
-    deviceType:deviceType
     defaultConfiguration:defaultConfiguration
               completionHandler: ^(NSError* error) {
     if (error) {
@@ -22015,7 +21984,6 @@ bearerAuth.accessToken = "YOUR ACCESS TOKEN";
 var api = new UCentralGatewayApi.ConfigurationsApi()
 var name = name_example; // {String} 
 var opts = {
-  'deviceType': deviceType_example, // {String} 
   'defaultConfiguration':  // {DefaultConfiguration} 
 };
 
@@ -22056,12 +22024,11 @@ namespace Example
             // Create an instance of the API class
             var apiInstance = new ConfigurationsApi();
             var name = name_example;  // String |  (default to null)
-            var deviceType = deviceType_example;  // String |  (optional)  (default to null)
             var defaultConfiguration = new DefaultConfiguration(); // DefaultConfiguration |  (optional) 
 
             try {
                 // Update a default configuration
-                apiInstance.updateDefaultConfiguration(name, deviceType, defaultConfiguration);
+                apiInstance.updateDefaultConfiguration(name, defaultConfiguration);
             } catch (Exception e) {
                 Debug.Print("Exception when calling ConfigurationsApi.updateDefaultConfiguration: " + e.Message );
             }
@@ -22086,11 +22053,10 @@ OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('',
 // Create an instance of the API class
 $api_instance = new OpenAPITools\Client\Api\ConfigurationsApi();
 $name = name_example; // String | 
-$deviceType = deviceType_example; // String | 
 $defaultConfiguration = ; // DefaultConfiguration | 
 
 try {
-    $api_instance->updateDefaultConfiguration($name, $deviceType, $defaultConfiguration);
+    $api_instance->updateDefaultConfiguration($name, $defaultConfiguration);
 } catch (Exception $e) {
     echo 'Exception when calling ConfigurationsApi->updateDefaultConfiguration: ', $e->getMessage(), PHP_EOL;
 }
@@ -22113,11 +22079,10 @@ $WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
 # Create an instance of the API class
 my $api_instance = WWW::OPenAPIClient::ConfigurationsApi->new();
 my $name = name_example; # String | 
-my $deviceType = deviceType_example; # String | 
 my $defaultConfiguration = WWW::OPenAPIClient::Object::DefaultConfiguration->new(); # DefaultConfiguration | 
 
 eval {
-    $api_instance->updateDefaultConfiguration(name => $name, deviceType => $deviceType, defaultConfiguration => $defaultConfiguration);
+    $api_instance->updateDefaultConfiguration(name => $name, defaultConfiguration => $defaultConfiguration);
 };
 if ($@) {
     warn "Exception when calling ConfigurationsApi->updateDefaultConfiguration: $@\n";
@@ -22142,12 +22107,11 @@ openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
 # Create an instance of the API class
 api_instance = openapi_client.ConfigurationsApi()
 name = name_example # String |  (default to null)
-deviceType = deviceType_example # String |  (optional) (default to null)
 defaultConfiguration =  # DefaultConfiguration |  (optional)
 
 try:
     # Update a default configuration
-    api_instance.update_default_configuration(name, deviceType=deviceType, defaultConfiguration=defaultConfiguration)
+    api_instance.update_default_configuration(name, defaultConfiguration=defaultConfiguration)
 except ApiException as e:
     print("Exception when calling ConfigurationsApi->updateDefaultConfiguration: %s\n" % e)</code></pre>
                             </div>
@@ -22157,11 +22121,10 @@ except ApiException as e:
 
 pub fn main() {
     let name = name_example; // String
-    let deviceType = deviceType_example; // String
     let defaultConfiguration = ; // DefaultConfiguration
 
     let mut context = ConfigurationsApi::Context::default();
-    let result = client.updateDefaultConfiguration(name, deviceType, defaultConfiguration, &context).wait();
+    let result = client.updateDefaultConfiguration(name, defaultConfiguration, &context).wait();
 
     println!("{:?}", result);
 }
@@ -22253,30 +22216,6 @@ $(document).ready(function() {
                             </table>
 
 
-                            <div class="methodsubtabletitle">Query parameters</div>
-                            <table id="methodsubtable">
-                              <tr>
-                                <th width="150px">Name</th>
-                                <th>Description</th>
-                              </tr>
-                                <tr><td style="width:150px;">deviceType</td>
-<td>
-
-
-    <div id="d2e199_updateDefaultConfiguration_deviceType">
-        <div class="json-schema-view">
-            <div class="primitive">
-                <span class="type">
-                    String
-                </span>
-
-            </div>
-        </div>
-    </div>
-</td>
-</tr>
-
-                            </table>
 
                           <h2>Responses</h2>
                             <h3 id="examples-Configurations-updateDefaultConfiguration-title-200"></h3>
