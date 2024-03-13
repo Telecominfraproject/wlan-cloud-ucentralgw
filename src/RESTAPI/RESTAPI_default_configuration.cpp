@@ -60,9 +60,13 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::ModelIDListCannotBeEmpty);
 		}
 
-		auto DeviceType = GetParameter("deviceType", "AP");
+		DefConfig.Platform = DefConfig.Platform.empty() ? "AP" : DefConfig.Platform;
+		if(DefConfig.Platform != "AP" && DefConfig.Platform != "SWITCH") {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
 		std::string Error;
-		if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DeviceType),
+		if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DefConfig.Platform),
 										   DefConfig.Configuration, Error,
 										   GetBoolParameter("strict", false))) {
 			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid, Error);
@@ -90,10 +94,20 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
+		if(Existing.Platform.empty()) {
+			Existing.Platform = "AP";
+		}
+
+		if(ParsedBody_->has("platform")) {
+			if(NewConfig.Platform.empty() || (NewConfig.Platform != "AP" && NewConfig.Platform != "SWITCH")) {
+				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
+			Existing.Platform = NewConfig.Platform;
+		}
+
 		if (!NewConfig.Configuration.empty()) {
-			auto DeviceType = GetParameter("deviceType", "AP");
 			std::string Error;
-			if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DeviceType),
+			if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(Existing.Platform),
 											   NewConfig.Configuration, Error,
 											   GetBoolParameter("strict", false))) {
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid, Error);

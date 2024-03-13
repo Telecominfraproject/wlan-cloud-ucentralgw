@@ -203,6 +203,13 @@ namespace OpenWifi {
 			--NumberOfConnectedDevices_;
 		}
 
+		inline void AddCleanupSession(uint64_t session_id, uint64_t SerialNumber) {
+			std::lock_guard G(CleanupMutex_);
+			CleanupSessions_.emplace_back(session_id, SerialNumber);
+		}
+
+		void CleanupSessions();
+
 	  private:
 		std::array<std::mutex,SessionHashMax> 			SessionMutex_;
 		std::array<std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>,SessionHashMax> Sessions_;
@@ -221,6 +228,10 @@ namespace OpenWifi {
 		bool UseDefaultConfig_ = true;
 		bool SimulatorEnabled_ = false;
 		bool AllowSerialNumberMismatch_ = true;
+
+		Poco::Thread            CleanupThread_;
+		std::mutex              CleanupMutex_;
+		std::deque<std::pair<uint64_t, uint64_t>> CleanupSessions_;
 
 		std::unique_ptr<AP_WS_ReactorThreadPool> Reactor_pool_;
 		std::atomic_bool Running_ = false;
