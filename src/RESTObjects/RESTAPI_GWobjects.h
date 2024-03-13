@@ -186,6 +186,7 @@ namespace OpenWifi::GWObjects {
 		std::string Description;
 		uint64_t Created;
 		uint64_t LastModified;
+		std::string Platform;
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};

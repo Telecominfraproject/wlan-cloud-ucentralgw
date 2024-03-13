@@ -578,11 +578,11 @@ namespace OpenWifi {
 		}
 
 		if (!Found && AP_WS_Server()->UseDefaults() &&
-			FindDefaultConfigurationForModel(Caps.Compatible(), DefConfig)) {
+			FindDefaultConfigurationForModel(Caps.Compatible(), Caps.Platform(), DefConfig)) {
 			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
-		} else if (!Found) {
+		} else if (!Found && Caps.Platform()=="AP") {
 			Config::Config NewConfig;
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();

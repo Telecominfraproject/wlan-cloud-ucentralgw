@@ -551,6 +551,12 @@ components:
         lastModified:
           type: integer
           format: int64
+        platform:
+          type: string
+          enum:
+            - AP
+            - SWITCH
+          default: AP
 
     DefaultConfigurationList:
       properties:
@@ -1963,15 +1969,6 @@ paths:
           schema:
             type: string
           required: true
-        - in: query
-          name: deviceType
-          schema:
-            type: string
-            enum:
-              - AP
-              - SWITCH
-          required: false
-          default: AP
       requestBody:
         description: Information used to create the new device
         content:
@@ -2018,15 +2015,6 @@ paths:
           schema:
             type: string
           required: true
-        - in: query
-          name: deviceType
-          schema:
-            type: string
-            enum:
-              - AP
-              - SWITCH
-          required: false
-          default: AP
       requestBody:
         description: Configuration details
         content:

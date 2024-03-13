@@ -76,15 +76,11 @@ namespace OpenWifi {
 	}
 
 	AP_WS_Connection::~AP_WS_Connection() {
-//		poco_information(Logger_, fmt::format("DESTRUCTOR({}): 0 - Session={} Connection closed.", SerialNumber_,
-//											  State_.sessionId));
-//		std::lock_guard G(ConnectionMutex_);
-//		poco_information(Logger_, fmt::format("DESTRUCTOR({}): 1 - Session={} Connection closed.", SerialNumber_,
-//											  State_.sessionId));
-		EndConnection(false);
-		poco_debug(Logger_, fmt::format("TERMINATION({}): Session={}, Connection removed.", SerialNumber_,
-											  State_.sessionId));
+		std::lock_guard G(ConnectionMutex_);
 		AP_WS_Server()->DecrementConnectionCount();
+		EndConnection();
+		poco_debug(Logger_, fmt::format("TERMINATION({}): Session={}, Connection removed.", SerialNumber_,
+										State_.sessionId));
 	}
 
 	static void NotifyKafkaDisconnect(const std::string &SerialNumber, std::uint64_t uuid) {
@@ -100,7 +96,7 @@ namespace OpenWifi {
 		}
 	}
 
-	void AP_WS_Connection::EndConnection(bool Clean) {
+	void AP_WS_Connection::EndConnection() {
 		bool expectedValue=false;
 		if (Dead_.compare_exchange_strong(expectedValue,true,std::memory_order_release,std::memory_order_relaxed)) {
 
@@ -126,9 +122,7 @@ namespace OpenWifi {
 			if(!SerialNumber_.empty()) {
 				DeviceDisconnectionCleanup(SerialNumber_, uuid_);
 			}
-
-			if(Clean)
-				AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
+			AP_WS_Server()->AddCleanupSession(State_.sessionId, SerialNumberInt_);
 		}
 	}
 

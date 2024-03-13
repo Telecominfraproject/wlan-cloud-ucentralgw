@@ -30,7 +30,7 @@ namespace OpenWifi {
 								  Poco::Logger &L, std::pair<std::shared_ptr<Poco::Net::SocketReactor>, std::shared_ptr<LockedDbSession>> R);
 		~AP_WS_Connection();
 
-		void EndConnection(bool Clean = true);
+		void EndConnection();
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc);
 		void ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc);
 		void ProcessIncomingFrame();
@@ -108,7 +108,7 @@ namespace OpenWifi {
 		void Start();
 
 	  private:
-		std::recursive_mutex ConnectionMutex_;
+		mutable std::recursive_mutex ConnectionMutex_;
 		std::mutex TelemetryMutex_;
 		Poco::Logger &Logger_;
 		std::shared_ptr<Poco::Net::SocketReactor> 	Reactor_;

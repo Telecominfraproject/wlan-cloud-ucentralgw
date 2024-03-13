@@ -19,18 +19,18 @@ namespace OpenWifi {
 																   "Models TEXT, "
 																   "Description TEXT, "
 																   "Created BIGINT , "
-																   "LastModified BIGINT)"};
+																   "LastModified BIGINT, Platform TEXT )"};
 
 	const static std::string DB_DefConfig_SelectFields{"Name, "
 													   "Configuration, "
 													   "Models, "
 													   "Description, "
 													   "Created, "
-													   "LastModified "};
+													   "LastModified, Platform "};
 
-	const static std::string DB_DefConfig_InsertValues{"?,?,?,?,?,?"};
+	const static std::string DB_DefConfig_InsertValues{"?,?,?,?,?,?,?"};
 
-	typedef Poco::Tuple<std::string, std::string, std::string, std::string, uint64_t, uint64_t>
+	typedef Poco::Tuple<std::string, std::string, std::string, std::string, uint64_t, uint64_t, std::string>
 		DefConfigRecordTuple;
 	typedef std::vector<DefConfigRecordTuple> DefConfigRecordList;
 
@@ -41,6 +41,7 @@ namespace OpenWifi {
 		T.Description = R.get<3>();
 		T.Created = R.get<4>();
 		T.LastModified = R.get<5>();
+		T.Platform = R.get<6>();
 	}
 
 	void Convert(const GWObjects::DefaultConfiguration &R, DefConfigRecordTuple &T) {
@@ -50,6 +51,7 @@ namespace OpenWifi {
 		T.set<3>(R.Description);
 		T.set<4>(R.Created);
 		T.set<5>(R.LastModified);
+		T.set<6>(R.Platform);
 	}
 
 	bool Storage::CreateDefaultConfiguration(std::string &Name,
@@ -127,7 +129,7 @@ namespace OpenWifi {
 			DefConfig.LastModified = Now;
 
 			std::string St{"UPDATE DefaultConfigs SET Name=?, Configuration=?,  Models=?,  "
-						   "Description=?,  Created=? , LastModified=?  WHERE Name=?"};
+						   "Description=?,  Created=? , LastModified=? , Platform=?  WHERE Name=?"};
 
 			DefConfigRecordTuple R;
 			Convert(DefConfig, R);
@@ -219,7 +221,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::FindDefaultConfigurationForModel(const std::string &Model,
+	bool Storage::FindDefaultConfigurationForModel(const std::string &Model, const std::string &Platform,
 												   GWObjects::DefaultConfiguration &DefConfig) {
 		try {
 			DefConfigRecordList Records;
@@ -235,7 +237,7 @@ namespace OpenWifi {
 				GWObjects::DefaultConfiguration Config;
 				Convert(i, Config);
 				for (const auto &j : Config.Models) {
-					if (j == "*" || j == Model) {
+					if ((j == "*" || j == Model) && (Poco::toUpper(Config.Platform) == Poco::toUpper(Platform))){
 						DefConfig = Config;
 						return true;
 					}
