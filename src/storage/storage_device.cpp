@@ -1115,4 +1115,25 @@ namespace OpenWifi {
 			FieldList.push_back(field);
 	}
 
+	void Storage::FixDeviceTypeBug() {
+		try {
+			std::vector<std::string> ScriptLines{
+				"update devices set devicetype='ap' where devicetype='AP';",
+				"update devices set devicetype='switch' where devicetype='SWITCH';",
+				"update devices set devicetype='ap' where devicetype!='ap' and devicetype!='switch';"
+			};
+
+			for (const auto &ScriptLine : ScriptLines) {
+				try {
+					Poco::Data::Session Sess = Pool_->get();
+					Poco::Data::Statement SqlStatement(Sess);
+					SqlStatement << ScriptLine, Poco::Data::Keywords::now;
+				} catch (...) {
+				}
+			}
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+	}
+
 } // namespace OpenWifi
