@@ -552,8 +552,8 @@ components:
         platform:
           type: string
           enum:
-            - AP
-            - SWITCH
+            - ap
+            - switch
           default: AP
 
     DefaultConfigurationList:
@@ -1698,9 +1698,9 @@ paths:
             type: string
             default: ALL
             enum:
-              - ALL
-              - AP
-              - SWITCH
+              - all
+              - ap
+              - switch
           required: false
       responses:
         200:
