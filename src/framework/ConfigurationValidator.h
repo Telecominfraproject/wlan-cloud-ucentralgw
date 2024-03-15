@@ -5,7 +5,7 @@
 #pragma once
 
 #include "framework/SubSystemServer.h"
-
+#include "framework/ow_constants.h"
 #include <valijson/adapters/poco_json_adapter.hpp>
 #include <valijson/constraints/constraint.hpp>
 #include <valijson/constraints/constraint_visitor.hpp>
@@ -32,9 +32,9 @@ namespace OpenWifi {
 
 		inline static ConfigurationType GetType(const std::string &type) {
 			std::string Type = Poco::toUpper(type);
-			if (Type == "AP")
+			if (Type == Platforms::AP)
 				return ConfigurationType::AP;
-			if (Type == "SWITCH")
+			if (Type == Platforms::SWITCH)
 				return ConfigurationType::SWITCH;
 			return ConfigurationType::AP;
 		}

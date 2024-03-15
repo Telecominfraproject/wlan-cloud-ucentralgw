@@ -78,7 +78,7 @@ namespace OpenWifi {
 			if (Id == DeviceType)
 				return Type;
 		}
-		return "AP";
+		return Platforms::AP;
 	}
 
 	void DaemonPostInitialization(Poco::Util::Application &self) {

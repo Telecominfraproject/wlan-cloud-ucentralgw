@@ -60,8 +60,8 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::ModelIDListCannotBeEmpty);
 		}
 
-		DefConfig.Platform = DefConfig.Platform.empty() ? "AP" : DefConfig.Platform;
-		if(DefConfig.Platform != "AP" && DefConfig.Platform != "SWITCH") {
+		DefConfig.Platform = DefConfig.Platform.empty() ? Platforms::AP : DefConfig.Platform;
+		if(DefConfig.Platform != Platforms::AP && DefConfig.Platform != Platforms::SWITCH) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
@@ -95,11 +95,11 @@ namespace OpenWifi {
 		}
 
 		if(Existing.Platform.empty()) {
-			Existing.Platform = "AP";
+			Existing.Platform = Platforms::AP;
 		}
 
 		if(ParsedBody_->has("platform")) {
-			if(NewConfig.Platform.empty() || (NewConfig.Platform != "AP" && NewConfig.Platform != "SWITCH")) {
+			if(NewConfig.Platform.empty() || (NewConfig.Platform != Platforms::AP && NewConfig.Platform != Platforms::SWITCH)) {
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			}
 			Existing.Platform = NewConfig.Platform;

@@ -221,31 +221,30 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::FindDefaultConfigurationForModel(const std::string &Model, const std::string &Platform,
-												   GWObjects::DefaultConfiguration &DefConfig) {
+	bool Storage::FindDefaultConfigurationForModel(const std::string &DeviceModel, const std::string &Platform,
+												   GWObjects::DefaultConfiguration &Config) {
 		try {
-			DefConfigRecordList Records;
+			DefConfigRecordList DefConfigs;
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
 			Select << "SELECT " + DB_DefConfig_SelectFields + " FROM DefaultConfigs",
-				Poco::Data::Keywords::into(Records);
+				Poco::Data::Keywords::into(DefConfigs);
 			Select.execute();
 
-			for (const auto &i : Records) {
-				GWObjects::DefaultConfiguration Config;
-				Convert(i, Config);
-				for (const auto &j : Config.Models) {
-					if ((j == "*" || j == Model) && (Poco::toUpper(Config.Platform) == Poco::toUpper(Platform))){
-						DefConfig = Config;
+			for (const auto &DefConfig : DefConfigs) {
+				GWObjects::DefaultConfiguration C;
+				Convert(DefConfig, C);
+				for (const auto &Model : C.Models) {
+					if ((Model == "*" || Model == DeviceModel) && (Config.Platform == Platform)){
+						Config = C;
 						return true;
 					}
 				}
 			}
 			Logger().information(
-				fmt::format("AUTO-PROVISIONING: no default configuration for model:{}", Model));
-			return false;
+				fmt::format("AUTO-PROVISIONING: no default configuration for model:{}", DeviceModel));
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
 											   E.displayText()));

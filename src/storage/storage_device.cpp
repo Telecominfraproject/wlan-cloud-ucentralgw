@@ -582,7 +582,7 @@ namespace OpenWifi {
 			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
-		} else if (!Found && Caps.Platform()=="AP") {
+		} else if (!Found && Caps.Platform()==Platforms::AP) {
 			Config::Config NewConfig;
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();

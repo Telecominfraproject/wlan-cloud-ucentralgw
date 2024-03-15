@@ -42,12 +42,10 @@ components:
   schemas:
     DeviceType:
       type: string
-      default: AP
+      default: ap
       enum:
-        - AP
-        - SWITCH
-        - IOT
-        - MESH
+        - ap
+        - switch
 
     DeviceRestrictionsKeyInfo:
       type: object
