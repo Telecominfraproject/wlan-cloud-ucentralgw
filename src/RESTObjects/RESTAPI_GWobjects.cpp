@@ -249,7 +249,7 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj, "description", description);
 			field_from_json(Obj, "created", created);
 			field_from_json(Obj, "lastModified", lastModified);
-			field_from_json(Obj, "Platform", platform);
+			field_from_json(Obj, "platform", platform);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
