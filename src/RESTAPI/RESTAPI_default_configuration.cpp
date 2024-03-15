@@ -65,6 +65,10 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
+		if(DefConfig.configuration.empty()) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
 		std::string Error;
 		if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DefConfig.platform),
 										   DefConfig.configuration, Error,
