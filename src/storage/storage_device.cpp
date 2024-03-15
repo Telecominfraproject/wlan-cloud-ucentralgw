@@ -582,10 +582,18 @@ namespace OpenWifi {
 			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
-		} else if (!Found && Caps.Platform()==Platforms::AP) {
-			Config::Config NewConfig;
-			NewConfig.SetUUID(Now);
-			D.Configuration = NewConfig.get();
+		} else if (!Found) {
+			if(Caps.Platform()==Platforms::AP) {
+				Config::Config NewConfig;
+				NewConfig.SetUUID(Now);
+				D.Configuration = NewConfig.get();
+			} else {
+				Poco::JSON::Object Obj;
+				Obj.set("uuid", Now);
+				std::ostringstream os;
+				Obj.stringify(os);
+				D.Configuration = os.str();
+			}
 		}
 
 		//	We need to insert the country code according to the IP in the radios section...
