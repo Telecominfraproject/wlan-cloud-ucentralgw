@@ -56,23 +56,23 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
-		if (DefConfig.Models.empty()) {
+		if (DefConfig.models.empty()) {
 			return BadRequest(RESTAPI::Errors::ModelIDListCannotBeEmpty);
 		}
 
-		DefConfig.Platform = DefConfig.Platform.empty() ? Platforms::AP : DefConfig.Platform;
-		if(DefConfig.Platform != Platforms::AP && DefConfig.Platform != Platforms::SWITCH) {
+		DefConfig.platform = DefConfig.platform.empty() ? Platforms::AP : DefConfig.platform;
+		if(DefConfig.platform != Platforms::AP && DefConfig.platform != Platforms::SWITCH) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
 		std::string Error;
-		if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DefConfig.Platform),
-										   DefConfig.Configuration, Error,
+		if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DefConfig.platform),
+										   DefConfig.configuration, Error,
 										   GetBoolParameter("strict", false))) {
 			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid, Error);
 		}
 
-		DefConfig.Created = DefConfig.LastModified = Utils::Now();
+		DefConfig.created = DefConfig.lastModified = Utils::Now();
 		if (StorageService()->CreateDefaultConfiguration(Name, DefConfig)) {
 			return OK();
 		}
@@ -94,31 +94,31 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
-		if(Existing.Platform.empty()) {
-			Existing.Platform = Platforms::AP;
+		if(Existing.platform.empty()) {
+			Existing.platform = Platforms::AP;
 		}
 
 		if(ParsedBody_->has("platform")) {
-			if(NewConfig.Platform.empty() || (NewConfig.Platform != Platforms::AP && NewConfig.Platform != Platforms::SWITCH)) {
+			if(NewConfig.platform.empty() || (NewConfig.platform != Platforms::AP && NewConfig.platform != Platforms::SWITCH)) {
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			}
-			Existing.Platform = NewConfig.Platform;
+			Existing.platform = NewConfig.platform;
 		}
 
-		if (!NewConfig.Configuration.empty()) {
+		if (!NewConfig.configuration.empty()) {
 			std::string Error;
-			if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(Existing.Platform),
-											   NewConfig.Configuration, Error,
+			if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(Existing.platform),
+											   NewConfig.configuration, Error,
 											   GetBoolParameter("strict", false))) {
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid, Error);
 			}
-			Existing.Configuration = NewConfig.Configuration;
+			Existing.configuration = NewConfig.configuration;
 		}
 
-		Existing.LastModified = Utils::Now();
-		AssignIfPresent(Obj, "description", Existing.Description);
+		Existing.lastModified = Utils::Now();
+		AssignIfPresent(Obj, "description", Existing.description);
 		if (Obj->has("modelIds"))
-			Existing.Models = NewConfig.Models;
+			Existing.models = NewConfig.models;
 
 		if (StorageService()->UpdateDefaultConfiguration(Name, Existing)) {
 			GWObjects::DefaultConfiguration ModifiedConfig;
