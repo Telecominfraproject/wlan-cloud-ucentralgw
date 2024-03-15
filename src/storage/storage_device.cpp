@@ -579,7 +579,7 @@ namespace OpenWifi {
 
 		if (!Found && AP_WS_Server()->UseDefaults() &&
 			FindDefaultConfigurationForModel(Caps.Compatible(), Caps.Platform(), DefConfig)) {
-			Config::Config NewConfig(DefConfig.Configuration);
+			Config::Config NewConfig(DefConfig.configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
 		} else if (!Found) {

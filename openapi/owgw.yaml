@@ -554,7 +554,7 @@ components:
           enum:
             - ap
             - switch
-          default: AP
+          default: ap
 
     DefaultConfigurationList:
       properties:

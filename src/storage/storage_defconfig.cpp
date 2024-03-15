@@ -35,23 +35,23 @@ namespace OpenWifi {
 	typedef std::vector<DefConfigRecordTuple> DefConfigRecordList;
 
 	void Convert(const DefConfigRecordTuple &R, GWObjects::DefaultConfiguration &T) {
-		T.Name = R.get<0>();
-		T.Configuration = R.get<1>();
-		T.Models = RESTAPI_utils::to_object_array(R.get<2>());
-		T.Description = R.get<3>();
-		T.Created = R.get<4>();
-		T.LastModified = R.get<5>();
-		T.Platform = R.get<6>();
+		T.name = R.get<0>();
+		T.configuration = R.get<1>();
+		T.models = RESTAPI_utils::to_object_array(R.get<2>());
+		T.description = R.get<3>();
+		T.created = R.get<4>();
+		T.lastModified = R.get<5>();
+		T.platform = R.get<6>();
 	}
 
 	void Convert(const GWObjects::DefaultConfiguration &R, DefConfigRecordTuple &T) {
-		T.set<0>(R.Name);
-		T.set<1>(R.Configuration);
-		T.set<2>(RESTAPI_utils::to_string(R.Models));
-		T.set<3>(R.Description);
-		T.set<4>(R.Created);
-		T.set<5>(R.LastModified);
-		T.set<6>(R.Platform);
+		T.set<0>(R.name);
+		T.set<1>(R.configuration);
+		T.set<2>(RESTAPI_utils::to_string(R.models));
+		T.set<3>(R.description);
+		T.set<4>(R.created);
+		T.set<5>(R.lastModified);
+		T.set<6>(R.platform);
 	}
 
 	bool Storage::CreateDefaultConfiguration(std::string &Name,
@@ -71,7 +71,7 @@ namespace OpenWifi {
 			if (!TmpName.empty())
 				return false;
 
-			Config::Config Cfg(DefConfig.Configuration);
+			Config::Config Cfg(DefConfig.configuration);
 
 			if (Cfg.Valid()) {
 				Sess.begin();
@@ -126,7 +126,7 @@ namespace OpenWifi {
 			Poco::Data::Session Sess = Pool_->get();
 			Sess.begin();
 			Poco::Data::Statement Update(Sess);
-			DefConfig.LastModified = Now;
+			DefConfig.lastModified = Now;
 
 			std::string St{"UPDATE DefaultConfigs SET Name=?, Configuration=?,  Models=?,  "
 						   "Description=?,  Created=? , LastModified=? , Platform=?  WHERE Name=?"};
@@ -236,8 +236,8 @@ namespace OpenWifi {
 			for (const auto &DefConfig : DefConfigs) {
 				GWObjects::DefaultConfiguration C;
 				Convert(DefConfig, C);
-				for (const auto &Model : C.Models) {
-					if ((Model == "*" || Model == DeviceModel) && (Config.Platform == Platform)){
+				for (const auto &Model : C.models) {
+					if ((Model == "*" || Model == DeviceModel) && (Config.platform == Platform)){
 						Config = C;
 						return true;
 					}
