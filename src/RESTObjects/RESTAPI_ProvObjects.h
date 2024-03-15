@@ -492,7 +492,7 @@ namespace OpenWifi::ProvObjects {
         bool doNotAllowOverrides = false;
         std::uint64_t imported=0;
         std::uint64_t connected=0;
-        std::string platform{"AP"};
+        std::string platform{Platforms::AP};
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);

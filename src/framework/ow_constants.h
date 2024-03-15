@@ -831,6 +831,11 @@ namespace OpenWifi::Provisioning::DeviceClass {
 
 } // namespace OpenWifi::Provisioning::DeviceClass
 
+namespace OpenWifi::Platforms {
+	static const std::string AP = "ap";
+	static const std::string SWITCH = "switch";
+}
+
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif

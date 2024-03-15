@@ -294,6 +294,8 @@ namespace OpenWifi {
 		bool AnalyzeCommands(Types::CountedMap &R);
 		bool AnalyzeDevices(GWObjects::Dashboard &D);
 
+		void FixDeviceTypeBug();
+
 		int Start() override;
 		void Stop() override;
 

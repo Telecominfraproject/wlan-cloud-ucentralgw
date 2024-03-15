@@ -87,7 +87,7 @@ namespace OpenWifi {
 		auto deviceWithStatus = GetBoolParameter(RESTAPI::Protocol::DEVICEWITHSTATUS, false);
 		auto completeInfo = GetBoolParameter("completeInfo", false);
 
-		if(!platform.empty() && (platform!="ap" && platform!="switch" && platform!="all")) {
+		if(!platform.empty() && (platform!=Platforms::AP && platform!=Platforms::SWITCH && platform!="all")) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
