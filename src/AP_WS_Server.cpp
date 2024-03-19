@@ -554,18 +554,23 @@ namespace OpenWifi {
 
 	bool AP_WS_Server::SendFrame(uint64_t SerialNumber, const std::string &Payload) const {
 		auto hashIndex = MACHash::Hash(SerialNumber);
-		std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
-		auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
-		if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
-			return false;
+
+		std::shared_ptr<AP_WS_Connection> Connection;
+		{
+			std::lock_guard Lock(SerialNumbersMutex_[hashIndex]);
+			auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+			if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr) {
+				return false;
+			}
+			Connection = DeviceHint->second;
 		}
 
-		if(DeviceHint->second->Dead_) {
+		if(Connection->Dead_) {
 			return false;
 		}
 
 		try {
-			return DeviceHint->second->Send(Payload);
+			return Connection->Send(Payload);
 		} catch (...) {
 			poco_debug(Logger(), fmt::format(": SendFrame: Could not send data to device '{}'",
 											 Utils::IntToSerialNumber(SerialNumber)));
