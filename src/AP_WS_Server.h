@@ -110,13 +110,16 @@ namespace OpenWifi {
 		}
 
 		[[nodiscard]] inline bool DeviceRequiresSecureRTTY(uint64_t serialNumber) const {
-			auto hashIndex = MACHash::Hash(serialNumber);
-			std::lock_guard	G(SerialNumbersMutex_[hashIndex]);
-
-			auto Connection = SerialNumbers_[hashIndex].find(serialNumber);
-			if (Connection==end(SerialNumbers_[hashIndex]) || Connection->second==nullptr)
-				return false;
-			return Connection->second->RTTYMustBeSecure_;
+			std::shared_ptr<AP_WS_Connection> Connection;
+			{
+				auto hashIndex = MACHash::Hash(serialNumber);
+				std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+				auto DeviceHint = SerialNumbers_[hashIndex].find(serialNumber);
+				if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr)
+					return false;
+				Connection = DeviceHint->second;
+			}
+			return Connection->RTTYMustBeSecure_;
 		}
 
 		inline bool GetStatistics(const std::string &SerialNumber, std::string &Statistics) const {
