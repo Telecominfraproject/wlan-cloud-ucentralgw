@@ -506,6 +506,7 @@ namespace OpenWifi {
 		{
 			poco_information(Logger(), fmt::format("Ending session 2: {} for device: {}", session_id, Utils::IntToSerialNumber(SerialNumber)));
 			auto hashIndex = MACHash::Hash(SerialNumber);
+			auto &L = SerialNumbersMutex_[hashIndex];
 			std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
 			auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 			if (DeviceHint == SerialNumbers_[hashIndex].end()
