@@ -504,10 +504,12 @@ namespace OpenWifi {
 		}
 
 		{
-			poco_information(Logger(), fmt::format("Ending session 2: {} for device: {}", session_id, Utils::IntToSerialNumber(SerialNumber)));
 			auto hashIndex = MACHash::Hash(SerialNumber);
+			poco_information(Logger(), fmt::format("Ending session 2.0: {} for device: {} hi:{}", session_id, Utils::IntToSerialNumber(SerialNumber), hashIndex));
 			std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+			poco_information(Logger(), fmt::format("Ending session 2.1: {} for device: {} hi:{}", session_id, Utils::IntToSerialNumber(SerialNumber), hashIndex));
 			auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+			poco_information(Logger(), fmt::format("Ending session 2.2: {} for device: {} hi:{}", session_id, Utils::IntToSerialNumber(SerialNumber), hashIndex));
 			if (DeviceHint == SerialNumbers_[hashIndex].end()
 				|| DeviceHint->second == nullptr
 				|| DeviceHint->second->State_.sessionId != session_id) {
