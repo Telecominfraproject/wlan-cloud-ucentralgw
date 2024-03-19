@@ -103,7 +103,7 @@ namespace OpenWifi {
 
 		inline void AddConnection(std::shared_ptr<AP_WS_Connection> Connection) {
 			std::uint64_t sessionHash = SessionHash::Hash(Connection->State_.sessionId);
-			std::lock_guard Lock(SessionMutex_[sessionHash]);
+			std::lock_guard SessionLock(SessionMutex_[sessionHash]);
 			if(Sessions_[sessionHash].find(Connection->State_.sessionId)==end(Sessions_[sessionHash])) {
 				Sessions_[sessionHash][Connection->State_.sessionId] = std::move(Connection);
 			}
