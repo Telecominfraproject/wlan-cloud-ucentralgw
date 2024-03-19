@@ -219,8 +219,9 @@ namespace OpenWifi {
 					Session = CleanupSessions_.front();
 					CleanupSessions_.pop_front();
 				}
-				this->Logger().information(fmt::format("Cleaning up session: {} for device: {}", Session.first, Utils::IntToSerialNumber(Session.second)));
+				this->Logger().information(fmt::format("Ending session: {} for device: {}", Session.first, Utils::IntToSerialNumber(Session.second)));
 				EndSession(Session.first, Session.second);
+				this->Logger().information(fmt::format("Ended up session: {} for device: {}", Session.first, Utils::IntToSerialNumber(Session.second)));
 			}
 		}
 	}
@@ -495,21 +496,26 @@ namespace OpenWifi {
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
 		{
+			poco_information(Logger(), fmt::format("Ending session 1: {} for device: {}", session_id, Utils::IntToSerialNumber(SerialNumber)));
 			auto sessionHash = SessionHash::Hash(session_id);
 			std::lock_guard SessionLock(SessionMutex_[sessionHash]);
 			Sessions_[sessionHash].erase(session_id);
+			poco_information(Logger(), fmt::format("Ended session 1: {} for device: {}", session_id, Utils::IntToSerialNumber(SerialNumber)));
 		}
 
 		{
+			poco_information(Logger(), fmt::format("Ending session 2: {} for device: {}", session_id, Utils::IntToSerialNumber(SerialNumber)));
 			auto hashIndex = MACHash::Hash(SerialNumber);
 			std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
 			auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
 			if (DeviceHint == SerialNumbers_[hashIndex].end()
 				|| DeviceHint->second == nullptr
 				|| DeviceHint->second->State_.sessionId != session_id) {
+				poco_information(Logger(), fmt::format("Did not end session 2: {} for device: {}", session_id, Utils::IntToSerialNumber(SerialNumber)));
 				return false;
 			}
 			SerialNumbers_[hashIndex].erase(DeviceHint);
+			poco_information(Logger(), fmt::format("Ended session 2: {} for device: {}", session_id, Utils::IntToSerialNumber(SerialNumber)));
 		}
 		return true;
 	}
