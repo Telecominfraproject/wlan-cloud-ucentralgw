@@ -654,13 +654,18 @@ namespace OpenWifi {
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
+			GWObjects::Device DeviceInfo;
+			if (!StorageService()->GetDevice(SerialNumber_, DeviceInfo)) {
+				return NotFound();
+			}
 			auto Configuration =
 				GetS(RESTAPI::Protocol::CONFIGURATION, Obj, uCentralProtocol::EMPTY_JSON_DOC);
-			std::vector<std::string> Error;
-			if (!ValidateUCentralConfiguration(Configuration, Error,
+			std::string Error;
+			if (!ValidateUCentralConfiguration(ConfigurationValidator::GetType(DeviceInfo.DeviceType),
+											   Configuration, Error,
 											   GetBoolParameter("strict", false))) {
 				CallCanceled("CONFIGURE", CMD_UUID, CMD_RPC, RESTAPI::Errors::ConfigBlockInvalid);
-				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
+				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid, Error);
 			}
 
 			auto When = GetWhen(Obj);

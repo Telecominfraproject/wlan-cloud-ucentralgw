@@ -12,7 +12,6 @@ namespace OpenWifi {
 			return false;
 
 		uint64_t GoodConfig = GetCurrentConfigurationID(SerialNumberInt_);
-// 		std::cout << __LINE__ << ": " << SerialNumber_ << "  INT:" << SerialNumberInt_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 		if (GoodConfig && (GoodConfig == UUID || GoodConfig == State_.PendingUUID)) {
 			UpgradedUUID = UUID;
 			State_.PendingUUID = 0;
@@ -24,16 +23,18 @@ namespace OpenWifi {
 			return false;
 		}
 
-//		std::cout << "D.pendingUUID: " << D.pendingUUID << "  UUID: " << D.UUID << " SerialNumber: " << D.SerialNumber << std::endl;
 		if(State_.PendingUUID!=0 && UUID==State_.PendingUUID) {
-//			std::cout << __LINE__ << ": " << SerialNumber_  << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << std::endl;
 			//	so we sent an upgrade to a device, and now it is completing now...
 			UpgradedUUID = UUID;
 			StorageService()->CompleteDeviceConfigurationChange(Session, SerialNumber_);
 			State_.PendingUUID = 0;
 			return true;
 		}
-//		std::cout << __LINE__ << ": " << SerialNumber_ << "  GoodConfig: " << GoodConfig << "   UUID:" << UUID << "  Pending:" << State_.PendingUUID << " Device:" << D.UUID << std::endl;
+
+		// dont upgrade a switch if it does not have a real config. Config will always be more than 20 characters
+		if (D.DeviceType==Platforms::SWITCH && D.Configuration.size()<20) {
+			return false;
+		}
 
 		Config::Config Cfg(D.Configuration);
 		//	if this is a broken device (UUID==0) just fix it

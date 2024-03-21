@@ -180,12 +180,13 @@ namespace OpenWifi::GWObjects {
 	};
 
 	struct DefaultConfiguration {
-		std::string Name;
-		std::string Configuration;
-		Types::StringVec Models;
-		std::string Description;
-		uint64_t Created;
-		uint64_t LastModified;
+		std::string name;
+		std::string configuration;
+		Types::StringVec models;
+		std::string description;
+		uint64_t created;
+		uint64_t lastModified;
+		std::string platform;
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};

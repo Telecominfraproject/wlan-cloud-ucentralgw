@@ -593,14 +593,22 @@ namespace OpenWifi {
 		}
 
 		if (!Found && AP_WS_Server()->UseDefaults() &&
-			FindDefaultConfigurationForModel(Caps.Compatible(), DefConfig)) {
-			Config::Config NewConfig(DefConfig.Configuration);
+			FindDefaultConfigurationForModel(Caps.Compatible(), Caps.Platform(), DefConfig)) {
+			Config::Config NewConfig(DefConfig.configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
 		} else if (!Found) {
-			Config::Config NewConfig;
-			NewConfig.SetUUID(Now);
-			D.Configuration = NewConfig.get();
+			if(Caps.Platform()==Platforms::AP) {
+				Config::Config NewConfig;
+				NewConfig.SetUUID(Now);
+				D.Configuration = NewConfig.get();
+			} else {
+				Poco::JSON::Object Obj;
+				Obj.set("uuid", Now);
+				std::ostringstream os;
+				Obj.stringify(os);
+				D.Configuration = os.str();
+			}
 		}
 
 		//	We need to insert the country code according to the IP in the radios section...
@@ -1133,6 +1141,27 @@ namespace OpenWifi {
 			Poco::StringTokenizer(DB_DeviceSelectFields, ",", Poco::StringTokenizer::TOK_TRIM);
 		for (const auto &field : fields)
 			FieldList.push_back(field);
+	}
+
+	void Storage::FixDeviceTypeBug() {
+		try {
+			std::vector<std::string> ScriptLines{
+				"update devices set devicetype='ap' where devicetype='AP';",
+				"update devices set devicetype='switch' where devicetype='SWITCH';",
+				"update devices set devicetype='ap' where devicetype!='ap' and devicetype!='switch';"
+			};
+
+			for (const auto &ScriptLine : ScriptLines) {
+				try {
+					Poco::Data::Session Sess = Pool_->get();
+					Poco::Data::Statement SqlStatement(Sess);
+					SqlStatement << ScriptLine, Poco::Data::Keywords::now;
+				} catch (...) {
+				}
+			}
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
 	}
 
 } // namespace OpenWifi

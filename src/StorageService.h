@@ -202,6 +202,7 @@ namespace OpenWifi {
 		bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany,
 									  std::vector<GWObjects::DefaultConfiguration> &Devices);
 		bool FindDefaultConfigurationForModel(const std::string &Model,
+											  const std::string &Platform,
 											  GWObjects::DefaultConfiguration &DefConfig);
 		uint64_t GetDefaultConfigurationsCount();
 		bool DefaultConfigurationAlreadyExists(std::string &Name);
@@ -294,6 +295,8 @@ namespace OpenWifi {
 
 		bool AnalyzeCommands(Types::CountedMap &R);
 		bool AnalyzeDevices(GWObjects::Dashboard &D);
+
+		void FixDeviceTypeBug();
 
 		int Start() override;
 		void Stop() override;

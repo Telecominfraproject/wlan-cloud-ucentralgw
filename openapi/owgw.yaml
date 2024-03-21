@@ -42,12 +42,10 @@ components:
   schemas:
     DeviceType:
       type: string
-      default: AP
+      default: ap
       enum:
-        - AP
-        - SWITCH
-        - IOT
-        - MESH
+        - ap
+        - switch
 
     DeviceRestrictionsKeyInfo:
       type: object
@@ -551,6 +549,12 @@ components:
         lastModified:
           type: integer
           format: int64
+        platform:
+          type: string
+          enum:
+            - ap
+            - switch
+          default: ap
 
     DefaultConfigurationList:
       properties:
@@ -1694,9 +1698,9 @@ paths:
             type: string
             default: ALL
             enum:
-              - ALL
-              - AP
-              - SWITCH
+              - all
+              - ap
+              - switch
           required: false
         - in: query
           description: only devices which are not provisioned

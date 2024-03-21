@@ -19,37 +19,39 @@ namespace OpenWifi {
 																   "Models TEXT, "
 																   "Description TEXT, "
 																   "Created BIGINT , "
-																   "LastModified BIGINT)"};
+																   "LastModified BIGINT, Platform TEXT )"};
 
 	const static std::string DB_DefConfig_SelectFields{"Name, "
 													   "Configuration, "
 													   "Models, "
 													   "Description, "
 													   "Created, "
-													   "LastModified "};
+													   "LastModified, Platform "};
 
-	const static std::string DB_DefConfig_InsertValues{"?,?,?,?,?,?"};
+	const static std::string DB_DefConfig_InsertValues{"?,?,?,?,?,?,?"};
 
-	typedef Poco::Tuple<std::string, std::string, std::string, std::string, uint64_t, uint64_t>
+	typedef Poco::Tuple<std::string, std::string, std::string, std::string, uint64_t, uint64_t, std::string>
 		DefConfigRecordTuple;
 	typedef std::vector<DefConfigRecordTuple> DefConfigRecordList;
 
 	void Convert(const DefConfigRecordTuple &R, GWObjects::DefaultConfiguration &T) {
-		T.Name = R.get<0>();
-		T.Configuration = R.get<1>();
-		T.Models = RESTAPI_utils::to_object_array(R.get<2>());
-		T.Description = R.get<3>();
-		T.Created = R.get<4>();
-		T.LastModified = R.get<5>();
+		T.name = R.get<0>();
+		T.configuration = R.get<1>();
+		T.models = RESTAPI_utils::to_object_array(R.get<2>());
+		T.description = R.get<3>();
+		T.created = R.get<4>();
+		T.lastModified = R.get<5>();
+		T.platform = R.get<6>();
 	}
 
 	void Convert(const GWObjects::DefaultConfiguration &R, DefConfigRecordTuple &T) {
-		T.set<0>(R.Name);
-		T.set<1>(R.Configuration);
-		T.set<2>(RESTAPI_utils::to_string(R.Models));
-		T.set<3>(R.Description);
-		T.set<4>(R.Created);
-		T.set<5>(R.LastModified);
+		T.set<0>(R.name);
+		T.set<1>(R.configuration);
+		T.set<2>(RESTAPI_utils::to_string(R.models));
+		T.set<3>(R.description);
+		T.set<4>(R.created);
+		T.set<5>(R.lastModified);
+		T.set<6>(R.platform);
 	}
 
 	bool Storage::CreateDefaultConfiguration(std::string &Name,
@@ -69,7 +71,7 @@ namespace OpenWifi {
 			if (!TmpName.empty())
 				return false;
 
-			Config::Config Cfg(DefConfig.Configuration);
+			Config::Config Cfg(DefConfig.configuration);
 
 			if (Cfg.Valid()) {
 				Sess.begin();
@@ -124,10 +126,10 @@ namespace OpenWifi {
 			Poco::Data::Session Sess = Pool_->get();
 			Sess.begin();
 			Poco::Data::Statement Update(Sess);
-			DefConfig.LastModified = Now;
+			DefConfig.lastModified = Now;
 
 			std::string St{"UPDATE DefaultConfigs SET Name=?, Configuration=?,  Models=?,  "
-						   "Description=?,  Created=? , LastModified=?  WHERE Name=?"};
+						   "Description=?,  Created=? , LastModified=? , Platform=?  WHERE Name=?"};
 
 			DefConfigRecordTuple R;
 			Convert(DefConfig, R);
@@ -219,31 +221,30 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::FindDefaultConfigurationForModel(const std::string &Model,
-												   GWObjects::DefaultConfiguration &DefConfig) {
+	bool Storage::FindDefaultConfigurationForModel(const std::string &DeviceModel, const std::string &Platform,
+												   GWObjects::DefaultConfiguration &Config) {
 		try {
-			DefConfigRecordList Records;
+			DefConfigRecordList DefConfigs;
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
 			Select << "SELECT " + DB_DefConfig_SelectFields + " FROM DefaultConfigs",
-				Poco::Data::Keywords::into(Records);
+				Poco::Data::Keywords::into(DefConfigs);
 			Select.execute();
 
-			for (const auto &i : Records) {
-				GWObjects::DefaultConfiguration Config;
-				Convert(i, Config);
-				for (const auto &j : Config.Models) {
-					if (j == "*" || j == Model) {
-						DefConfig = Config;
+			for (const auto &DefConfig : DefConfigs) {
+				GWObjects::DefaultConfiguration C;
+				Convert(DefConfig, C);
+				for (const auto &Model : C.models) {
+					if ((Model == "*" || Model == DeviceModel) && (Config.platform == Platform)){
+						Config = C;
 						return true;
 					}
 				}
 			}
 			Logger().information(
-				fmt::format("AUTO-PROVISIONING: no default configuration for model:{}", Model));
-			return false;
+				fmt::format("AUTO-PROVISIONING: no default configuration for model:{}", DeviceModel));
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
 											   E.displayText()));

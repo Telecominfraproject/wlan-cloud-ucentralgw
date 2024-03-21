@@ -22,6 +22,8 @@ namespace OpenWifi {
 		ScriptDB_->Create();
 		ScriptDB_->Initialize();
 
+		FixDeviceTypeBug();
+
 		return 0;
 	}
 

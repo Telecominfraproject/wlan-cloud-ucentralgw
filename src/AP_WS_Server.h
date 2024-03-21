@@ -103,20 +103,23 @@ namespace OpenWifi {
 
 		inline void AddConnection(std::shared_ptr<AP_WS_Connection> Connection) {
 			std::uint64_t sessionHash = SessionHash::Hash(Connection->State_.sessionId);
-			std::lock_guard Lock(SessionMutex_[sessionHash]);
+			std::lock_guard SessionLock(SessionMutex_[sessionHash]);
 			if(Sessions_[sessionHash].find(Connection->State_.sessionId)==end(Sessions_[sessionHash])) {
 				Sessions_[sessionHash][Connection->State_.sessionId] = std::move(Connection);
 			}
 		}
 
 		[[nodiscard]] inline bool DeviceRequiresSecureRTTY(uint64_t serialNumber) const {
-			auto hashIndex = MACHash::Hash(serialNumber);
-			std::lock_guard	G(SerialNumbersMutex_[hashIndex]);
-
-			auto Connection = SerialNumbers_[hashIndex].find(serialNumber);
-			if (Connection==end(SerialNumbers_[hashIndex]) || Connection->second==nullptr)
-				return false;
-			return Connection->second->RTTYMustBeSecure_;
+			std::shared_ptr<AP_WS_Connection> Connection;
+			{
+				auto hashIndex = MACHash::Hash(serialNumber);
+				std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+				auto DeviceHint = SerialNumbers_[hashIndex].find(serialNumber);
+				if (DeviceHint == end(SerialNumbers_[hashIndex]) || DeviceHint->second == nullptr)
+					return false;
+				Connection = DeviceHint->second;
+			}
+			return Connection->RTTYMustBeSecure_;
 		}
 
 		inline bool GetStatistics(const std::string &SerialNumber, std::string &Statistics) const {
@@ -195,13 +198,28 @@ namespace OpenWifi {
 		bool KafkaDisableState() const { return KafkaDisableState_; }
 		bool KafkaDisableHealthChecks() const { return KafkaDisableHealthChecks_; }
 
+		inline void IncrementConnectionCount() {
+			++NumberOfConnectedDevices_;
+		}
+
+		inline void DecrementConnectionCount() {
+			--NumberOfConnectedDevices_;
+		}
+
+		inline void AddCleanupSession(uint64_t session_id, uint64_t SerialNumber) {
+			std::lock_guard G(CleanupMutex_);
+			CleanupSessions_.emplace_back(session_id, SerialNumber);
+		}
+
+		void CleanupSessions();
+
 	  private:
 		std::array<std::mutex,SessionHashMax> 			SessionMutex_;
 		std::array<std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>,SessionHashMax> Sessions_;
 		using SerialNumberMap = std::map<uint64_t /* serial number */,
 										 std::shared_ptr<AP_WS_Connection>>;
 		std::array<SerialNumberMap,MACHashMax>			SerialNumbers_;
-		mutable std::array<std::recursive_mutex,MACHashMax>		SerialNumbersMutex_;
+		mutable std::array<std::mutex,MACHashMax>		SerialNumbersMutex_;
 
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>> WebServers_;
@@ -214,12 +232,17 @@ namespace OpenWifi {
 		bool SimulatorEnabled_ = false;
 		bool AllowSerialNumberMismatch_ = true;
 
+		Poco::Thread            CleanupThread_;
+		std::mutex              CleanupMutex_;
+		std::deque<std::pair<uint64_t, uint64_t>> CleanupSessions_;
+
 		std::unique_ptr<AP_WS_ReactorThreadPool> Reactor_pool_;
 		std::atomic_bool Running_ = false;
 
 		std::uint64_t 			MismatchDepth_ = 2;
-		std::uint64_t 			NumberOfConnectedDevices_ = 0;
-		std::uint64_t 			AverageDeviceConnectionTime_ = 0;
+
+		std::atomic_uint64_t 	NumberOfConnectedDevices_ = 0;
+		std::atomic_uint64_t 	AverageDeviceConnectionTime_ = 0;
 		std::uint64_t 			NumberOfConnectingDevices_ = 0;
 		std::uint64_t 			SessionTimeOut_ = 10*60;
 		std::uint64_t 			LeftOverSessions_ = 0;

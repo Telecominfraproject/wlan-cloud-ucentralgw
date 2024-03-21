@@ -5,7 +5,7 @@
 #pragma once
 
 #include "framework/SubSystemServer.h"
-
+#include "framework/ow_constants.h"
 #include <valijson/adapters/poco_json_adapter.hpp>
 #include <valijson/constraints/constraint.hpp>
 #include <valijson/constraints/constraint_visitor.hpp>
@@ -17,33 +17,42 @@
 namespace OpenWifi {
 	class ConfigurationValidator : public SubSystemServer {
 	  public:
+
+		enum class ConfigurationType { AP = 0 , SWITCH = 1};
+
 		static auto instance() {
 			static auto instance_ = new ConfigurationValidator;
 			return instance_;
 		}
 
-		bool Validate(const std::string &C, std::vector<std::string> &Errors, bool Strict);
+		bool Validate(ConfigurationType Type, const std::string &C, std::string &Errors, bool Strict);
 		int Start() override;
 		void Stop() override;
 		void reinitialize(Poco::Util::Application &self) override;
+
+		inline static ConfigurationType GetType(const std::string &type) {
+			std::string Type = Poco::toUpper(type);
+			if (Type == Platforms::AP)
+				return ConfigurationType::AP;
+			if (Type == Platforms::SWITCH)
+				return ConfigurationType::SWITCH;
+			return ConfigurationType::AP;
+		}
 
 	  private:
 		bool Initialized_ = false;
 		bool Working_ = false;
 		void Init();
-		std::unique_ptr<valijson::Schema> RootSchema_;
-		std::unique_ptr<valijson::SchemaParser> SchemaParser_;
-		std::unique_ptr<valijson::adapters::PocoJsonAdapter> PocoJsonAdapter_;
-		Poco::JSON::Object::Ptr SchemaDocPtr_;
-		bool SetSchema(const std::string &SchemaStr);
+		std::array<valijson::Schema,2> 			RootSchema_;
+		bool SetSchema(ConfigurationType Type, const std::string &SchemaStr);
 
 		ConfigurationValidator()
 			: SubSystemServer("ConfigValidator", "CFG-VALIDATOR", "config.validator") {}
 	};
 
 	inline auto ConfigurationValidator() { return ConfigurationValidator::instance(); }
-	inline bool ValidateUCentralConfiguration(const std::string &C, std::vector<std::string> &Error,
+	inline bool ValidateUCentralConfiguration(ConfigurationValidator::ConfigurationType Type, const std::string &C, std::string &Errors,
 											  bool strict) {
-		return ConfigurationValidator::instance()->Validate(C, Error, strict);
+		return ConfigurationValidator::instance()->Validate(Type, C, Errors, strict);
 	}
 } // namespace OpenWifi

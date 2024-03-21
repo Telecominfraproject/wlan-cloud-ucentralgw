@@ -234,10 +234,11 @@ namespace OpenWifi {
 				if (Updated) {
 					StorageService()->UpdateDevice(DbSession_->Session(), DeviceInfo);
 				}
+			}
 
-				if(!Simulated_) {
-					uint64_t UpgradedUUID = 0;
-					LookForUpgrade(DbSession_->Session(), UUID, UpgradedUUID);
+			if(!Simulated_) {
+				uint64_t UpgradedUUID = 0;
+				if (LookForUpgrade(DbSession_->Session(), UUID, UpgradedUUID)) {
 					State_.UUID = UpgradedUUID;
 				}
 			}

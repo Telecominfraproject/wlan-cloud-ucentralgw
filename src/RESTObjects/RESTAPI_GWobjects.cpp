@@ -184,15 +184,6 @@ namespace OpenWifi::GWObjects {
         return false;
     }
 
-	void DefaultConfiguration::to_json(Poco::JSON::Object &Obj) const {
-		EmbedDocument("configuration", Obj, Configuration);
-		field_to_json(Obj, "name", Name);
-		field_to_json(Obj, "modelIds", Models);
-		field_to_json(Obj, "description", Description);
-		field_to_json(Obj, "created", Created);
-		field_to_json(Obj, "lastModified", LastModified);
-	}
-
 	void DefaultFirmware::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj, "deviceType", deviceType);
 		field_to_json(Obj, "description", Description);
@@ -240,12 +231,25 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "deferred", deferred);
 	}
 
+	void DefaultConfiguration::to_json(Poco::JSON::Object &Obj) const {
+		EmbedDocument("configuration", Obj, configuration);
+		field_to_json(Obj, "name", name);
+		field_to_json(Obj, "modelIds", models);
+		field_to_json(Obj, "description", description);
+		field_to_json(Obj, "created", created);
+		field_to_json(Obj, "lastModified", lastModified);
+		field_to_json(Obj, "platform", platform);
+	}
+
 	bool DefaultConfiguration::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
-			field_from_json(Obj, "name", Name);
-			field_from_json(Obj, "configuration", Configuration);
-			field_from_json(Obj, "modelIds", Models);
-			field_from_json(Obj, "description", Description);
+			field_from_json(Obj, "configuration", configuration);
+			field_from_json(Obj, "name", name);
+			field_from_json(Obj, "modelIds", models);
+			field_from_json(Obj, "description", description);
+			field_from_json(Obj, "created", created);
+			field_from_json(Obj, "lastModified", lastModified);
+			field_from_json(Obj, "platform", platform);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
