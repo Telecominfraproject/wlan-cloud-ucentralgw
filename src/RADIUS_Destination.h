@@ -75,8 +75,10 @@ namespace OpenWifi {
 				} else if ((Utils::Now() - LastKeepAlive) > Pool_.radsecKeepAlive) {
 					RADIUS::RadiusOutputPacket P(Pool_.authConfig.servers[ServerIndex_].radsecSecret);
 					P.MakeStatusMessage(Pool_.authConfig.servers[ServerIndex_].name);
-					poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Pool_.authConfig.servers[ServerIndex_].name));
-					Socket_->sendBytes(P.Data(), P.Len());
+					if(Type_!=GWObjects::RadiusEndpointType::generic) {
+						poco_trace(Logger_, fmt::format("{}: Keep-Alive message.", Pool_.authConfig.servers[ServerIndex_].name));
+						Socket_->sendBytes(P.Data(), P.Len());
+					}
 					LastKeepAlive = Utils::Now();
 				}
 				Poco::Thread::trySleep(2000);
@@ -163,17 +165,16 @@ namespace OpenWifi {
 									 fmt::format("Unknown packet: Type: {} (type={}) Length={}",
 												 P.PacketType(), P.PacketTypeInt(), P.BufferLen()));
 					}
+					return;
 				} else {
 					poco_warning(Logger_, "Invalid packet received. Resetting the connection.");
-					Disconnect();
 				}
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
-				Disconnect();
 			} catch (...) {
-				Disconnect();
 				poco_warning(Logger_, "Exception occurred. Resetting the connection.");
 			}
+			Disconnect();
 		}
 
 		inline void
@@ -324,7 +325,7 @@ namespace OpenWifi {
 				ofs << OpenRoamingRootCert;
 				ofs.close();
 
-				Poco::Net::Context::Ptr SecureContext = Poco::AutoPtr<Poco::Net::Context>(
+				auto SecureContext = Poco::AutoPtr<Poco::Net::Context>(
 					new Poco::Net::Context(Poco::Net::Context::TLS_CLIENT_USE, ""));
 
 				if (Pool_.acctConfig.servers[ServerIndex_].allowSelfSigned) {
@@ -430,7 +431,7 @@ namespace OpenWifi {
 					DecodeFile(CaCertFiles_[CaCertFiles_.size() - 1]->path(), cert);
 				}
 
-				Poco::Net::Context::Ptr SecureContext =
+				auto SecureContext =
 					Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(
 						Poco::Net::Context::TLS_CLIENT_USE, KeyFile_.path(), CertFile_.path(), ""));
 				if (Pool_.acctConfig.servers[ServerIndex_].allowSelfSigned) {
@@ -498,7 +499,9 @@ namespace OpenWifi {
 		}
 
 		inline bool Connect_Generic() {
-			if (TryAgain_) {
+			poco_information(Logger_, fmt::format("Connecting {}", Pool_.name));
+			if (TryAgain_ && !Connected_) {
+
 				std::lock_guard G(LocalMutex_);
 
 				Poco::Net::SocketAddress AuthSockAddrV4(
@@ -520,26 +523,6 @@ namespace OpenWifi {
 					MicroServiceConfigGetInt("radius.proxy.coa.port", DEFAULT_RADIUS_CoA_PORT));
 				CoASocketV4_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV4, true, true);
 
-/*
-				AuthenticationSocketV6_ =
-					std::make_unique<Poco::Net::DatagramSocket>(AuthSockAddrV6, true, true);
- 				Poco::Net::SocketAddress AuthSockAddrV6(
-					Poco::Net::AddressFamily::IPv6,
-					MicroServiceConfigGetInt("radius.proxy.authentication.port",
-											 DEFAULT_RADIUS_AUTHENTICATION_PORT));
-
-				Poco::Net::SocketAddress AcctSockAddrV6(
-					Poco::Net::AddressFamily::IPv6,
-					MicroServiceConfigGetInt("radius.proxy.accounting.port",
-											 DEFAULT_RADIUS_ACCOUNTING_PORT));
-				AccountingSocketV6_ =
-					std::make_unique<Poco::Net::DatagramSocket>(AcctSockAddrV6, true, true);
-
-				Poco::Net::SocketAddress CoASockAddrV6(
-					Poco::Net::AddressFamily::IPv6,
-					MicroServiceConfigGetInt("radius.proxy.coa.port", DEFAULT_RADIUS_CoA_PORT));
-				CoASocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV6, true, true);
-*/
 				Reactor_.addEventHandler(
 					*AuthenticationSocketV4_,
 					Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
@@ -551,7 +534,27 @@ namespace OpenWifi {
 				Reactor_.addEventHandler(
 					*CoASocketV4_, Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
 									   *this, &RADIUS_Destination::OnCoASocketReadable));
+
 /*
+				Poco::Net::SocketAddress AuthSockAddrV6(
+					Poco::Net::AddressFamily::IPv6,
+					MicroServiceConfigGetInt("radius.proxy.authentication.port",
+											 DEFAULT_RADIUS_AUTHENTICATION_PORT));
+				AuthenticationSocketV6_ =
+					std::make_unique<Poco::Net::DatagramSocket>(AuthSockAddrV6, true, true);
+
+				Poco::Net::SocketAddress AcctSockAddrV6(
+					Poco::Net::AddressFamily::IPv6,
+					MicroServiceConfigGetInt("radius.proxy.accounting.port",
+											 DEFAULT_RADIUS_AUTHENTICATION_PORT));
+				AccountingSocketV6_ =
+					std::make_unique<Poco::Net::DatagramSocket>(AcctSockAddrV6, true, true);
+
+				Poco::Net::SocketAddress CoASockAddrV6(
+					Poco::Net::AddressFamily::IPv6,
+					MicroServiceConfigGetInt("radius.proxy.coa.port", DEFAULT_RADIUS_CoA_PORT));
+				CoASocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV6, true, true);
+
 				Reactor_.addEventHandler(
 					*AuthenticationSocketV6_,
 					Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
@@ -565,6 +568,7 @@ namespace OpenWifi {
 					*CoASocketV6_, Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
 									   *this, &RADIUS_Destination::OnCoASocketReadable));
 */
+				Connected_ = true;
 			}
 			return true;
 		}
@@ -590,6 +594,8 @@ namespace OpenWifi {
 			if (Connected_) {
 				std::lock_guard G(LocalMutex_);
 				if(Type_==GWObjects::RadiusEndpointType::generic) {
+					poco_information(Logger_, fmt::format("Disconnecting {} generic server. Releasing all UDP resources.", Pool_.name));
+
 					if(AuthenticationSocketV4_) {
 						Reactor_.removeEventHandler(
 							*AuthenticationSocketV4_,
@@ -617,7 +623,8 @@ namespace OpenWifi {
 						CoASocketV4_.reset();
 					}
 
-/*					if(AuthenticationSocketV6_) {
+/*
+ 					if(AuthenticationSocketV6_) {
 						Reactor_.removeEventHandler(
 							*AuthenticationSocketV6_,
 							Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
@@ -646,7 +653,6 @@ namespace OpenWifi {
 */
 				} else {
 					if(Socket_!=nullptr) {
-						std::lock_guard G(LocalMutex_);
 						Reactor_.removeEventHandler(
 							*Socket_, Poco::NObserver<RADIUS_Destination, Poco::Net::ReadableNotification>(
 										  *this, &RADIUS_Destination::onData));
@@ -660,9 +666,9 @@ namespace OpenWifi {
 						Socket_->close();
 					}
 				}
+				Connected_ = false;
 			}
-			Connected_ = false;
-			poco_information(Logger_, "Disconnecting.");
+			poco_information(Logger_, fmt::format("Disconnecting {}", Pool_.name));
 		}
 
 		static void DecodeFile(const std::string &filename, const std::string &s) {
@@ -724,7 +730,8 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::DatagramSocket> 		AuthenticationSocketV4_;
 		std::unique_ptr<Poco::Net::DatagramSocket> 		CoASocketV4_;
 
-/*		std::unique_ptr<Poco::Net::DatagramSocket> 		CoASocketV6_;
+/*
+ 		std::unique_ptr<Poco::Net::DatagramSocket> 		CoASocketV6_;
 		std::unique_ptr<Poco::Net::DatagramSocket> 		AccountingSocketV6_;
 		std::unique_ptr<Poco::Net::DatagramSocket> 		AuthenticationSocketV6_;
 */

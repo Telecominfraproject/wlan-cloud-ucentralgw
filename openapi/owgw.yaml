@@ -42,12 +42,10 @@ components:
   schemas:
     DeviceType:
       type: string
-      default: AP
+      default: ap
       enum:
-        - AP
-        - SWITCH
-        - IOT
-        - MESH
+        - ap
+        - switch
 
     DeviceRestrictionsKeyInfo:
       type: object
@@ -157,6 +155,9 @@ components:
         lastRecordedContact:
           type: integer
           format: int64
+        blackListed:
+          type: boolean
+          readOnly: true
 
     DeviceWithStatus:
       type: object
@@ -281,6 +282,9 @@ components:
           format: float
         connectReason:
           type: string
+        blackListed:
+          type: boolean
+          readOnly: true
 
     DeviceList:
       type: object
@@ -545,6 +549,12 @@ components:
         lastModified:
           type: integer
           format: int64
+        platform:
+          type: string
+          enum:
+            - ap
+            - switch
+          default: ap
 
     DefaultConfigurationList:
       properties:
@@ -1566,6 +1576,30 @@ components:
           format: base64
           description: This is a base64 encoded string of the certificate bundle (the current bundle .tar.gz file from the PKI portal)
 
+    PowerCycleRequest:
+      type: object
+      properties:
+        serial:
+          type: string
+        when:
+          type: integer
+          format: int64
+        ports:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example:
+                  - Ethernet0
+              cycle:
+                type: integer
+                default: 10000
+                minimum: 1
+                maximum: 60000
+                description: off time in milliseconds
+
 paths:
   /devices:
     get:
@@ -1656,6 +1690,17 @@ paths:
           schema:
             type: integer
             default: 70
+          required: false
+        - in: query
+          description: return only devices matching a certain platform of AP or SWITCH
+          name: platform
+          schema:
+            type: string
+            default: ALL
+            enum:
+              - all
+              - ap
+              - switch
           required: false
       responses:
         200:
@@ -2998,6 +3043,34 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/DeviceCertificateUpdateRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/powercycle:
+    post:
+      tags:
+        - Commands
+      summary: Perform PoE power cycle for some PoE ports.
+      operationId: performPowerCycle
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Certificate update details
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PowerCycleRequest'
       responses:
         200:
           $ref: '#/components/responses/Success'

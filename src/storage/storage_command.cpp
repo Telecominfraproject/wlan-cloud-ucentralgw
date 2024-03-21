@@ -105,6 +105,7 @@ namespace OpenWifi {
 	bool Storage::RemoveOldCommands(std::string &SerialNumber, std::string &Command) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St{
@@ -112,8 +113,7 @@ namespace OpenWifi {
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber),
 				Poco::Data::Keywords::use(Command);
 			Delete.execute();
-			Delete.reset(Sess);
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -146,6 +146,7 @@ namespace OpenWifi {
 			RemoveOldCommands(SerialNumber, Command.Command);
 
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Insert(Sess);
 
 			std::string St{"INSERT INTO CommandList ( " + DB_Command_SelectFields + " ) VALUES( " +
@@ -156,7 +157,7 @@ namespace OpenWifi {
 
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(R);
 			Insert.execute();
-
+			Sess.commit();
 			return true;
 
 		} catch (const Poco::Exception &E) {
@@ -215,6 +216,7 @@ namespace OpenWifi {
 	bool Storage::DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
@@ -237,8 +239,7 @@ namespace OpenWifi {
 
 			Delete << IntroStatement + DateSelector;
 			Delete.execute();
-			Delete.reset(Sess);
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -274,7 +275,6 @@ namespace OpenWifi {
 				if (Records.size() < HowMany)
 					Done = true;
 			}
-			Select.reset(Sess);
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -286,6 +286,7 @@ namespace OpenWifi {
 
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			std::string St{"UPDATE CommandList SET Status=?,  Executed=?,  Completed=?,  "
@@ -299,7 +300,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Command.ErrorCode), Poco::Data::Keywords::use(UUID);
 
 			Update.execute();
-
+			Sess.commit();
 			return true;
 
 		} catch (const Poco::Exception &E) {
@@ -311,6 +312,7 @@ namespace OpenWifi {
 	bool Storage::SetCommandExecuted(std::string &CommandUUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			auto Now = Utils::Now();
@@ -321,6 +323,7 @@ namespace OpenWifi {
 			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(Status), Poco::Data::Keywords::use(CommandUUID);
 			Update.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -331,6 +334,7 @@ namespace OpenWifi {
 	void Storage::RemovedExpiredCommands() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			auto Now = Utils::Now(), Window = Now - CommandManager()->CommandTimeout();
@@ -341,8 +345,7 @@ namespace OpenWifi {
 			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(Status), Poco::Data::Keywords::use(Window);
 			Update.execute();
-			Update.reset(Sess);
-
+			Sess.commit();
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -351,6 +354,7 @@ namespace OpenWifi {
 	bool Storage::SetCommandLastTry(std::string &CommandUUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			auto Now = Utils::Now();
@@ -359,6 +363,7 @@ namespace OpenWifi {
 			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(CommandUUID);
 			Update.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -369,6 +374,7 @@ namespace OpenWifi {
 	void Storage::RemoveTimedOutCommands() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			auto Now = Utils::Now(), Window = Now - CommandManager()->CommandTimeout();
@@ -377,7 +383,7 @@ namespace OpenWifi {
 			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(Window);
 			Update.execute();
-			Update.reset(Sess);
+			Sess.commit();
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -386,6 +392,7 @@ namespace OpenWifi {
 	bool Storage::SetCommandTimedOut(std::string &CommandUUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			auto Now = Utils::Now();
@@ -395,6 +402,7 @@ namespace OpenWifi {
 			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(Status), Poco::Data::Keywords::use(CommandUUID);
 			Update.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -425,6 +433,7 @@ namespace OpenWifi {
 	bool Storage::DeleteCommand(std::string &UUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St{"DELETE FROM CommandList WHERE UUID=?"};
@@ -435,8 +444,7 @@ namespace OpenWifi {
 			St = "DELETE FROM FileUploads WHERE UUID=?";
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(UUID);
 			Delete.execute();
-			Delete.reset(Sess);
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -510,6 +518,7 @@ namespace OpenWifi {
 			auto Now = Utils::Now();
 
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			std::string St{"UPDATE CommandList SET Executed=? WHERE UUID=?"};
@@ -518,7 +527,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(UUID);
 
 			Update.execute();
-
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -555,6 +564,7 @@ namespace OpenWifi {
 			}
 
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			auto Status = to_string(Storage::CommandExecutionType::COMMAND_COMPLETED);
@@ -566,6 +576,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(ResultStr), Poco::Data::Keywords::use(Status),
 				Poco::Data::Keywords::use(tET), Poco::Data::Keywords::use(UUID);
 			Update.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -603,6 +614,7 @@ namespace OpenWifi {
 	bool Storage::CancelWaitFile(std::string &UUID, std::string &ErrorText) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			auto Now = Utils::Now();
 			uint64_t Size = 0, WaitForFile = 0;
 
@@ -616,6 +628,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(ErrorText), Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -631,6 +644,7 @@ namespace OpenWifi {
 			uint64_t Size = FileContent.str().size();
 
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Statement(Sess);
 
 			std::string StatementStr;
@@ -644,14 +658,14 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(Size),
 				Poco::Data::Keywords::use(UUID);
 			Statement.execute();
-
+			Sess.commit();
 			if (Size < FileUploader()->MaxSize()) {
 
 				Poco::Data::BLOB TheBlob;
 
 				TheBlob.appendRaw((const unsigned char *)FileContent.str().c_str(),
 								  FileContent.str().size());
-
+				Sess.begin();
 				Poco::Data::Statement Insert(Sess);
 				std::string FileType{Type};
 
@@ -662,10 +676,12 @@ namespace OpenWifi {
 					Poco::Data::Keywords::use(FileType), Poco::Data::Keywords::use(Now),
 					Poco::Data::Keywords::use(TheBlob);
 				Insert.execute();
-				return true;
+				Sess.commit();
 			} else {
 				poco_warning(Logger(), fmt::format("File {} is too large.", UUID));
 			}
+			Sess.commit();
+			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -712,6 +728,7 @@ namespace OpenWifi {
 	bool Storage::SetCommandResult(std::string &UUID, std::string &Result) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Update(Sess);
 
 			auto Now = Utils::Now();
@@ -722,6 +739,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Result), Poco::Data::Keywords::use(Status),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
+			Sess.commit();
 			return true;
 
 		} catch (const Poco::Exception &E) {
@@ -733,13 +751,14 @@ namespace OpenWifi {
 	bool Storage::RemoveAttachedFile(std::string &UUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St{"DELETE FROM FileUploads WHERE UUID=?"};
 
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(UUID);
 			Delete.execute();
-
+			Sess.commit();
 			return true;
 
 		} catch (const Poco::Exception &E) {
@@ -751,11 +770,13 @@ namespace OpenWifi {
 	bool Storage::RemoveUploadedFilesRecordsOlderThan(uint64_t Date) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St1{"delete from FileUploads where Created<?"};
 			Delete << ConvertParams(St1), Poco::Data::Keywords::use(Date);
 			Delete.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -766,11 +787,13 @@ namespace OpenWifi {
 	bool Storage::RemoveCommandListRecordsOlderThan(uint64_t Date) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
+			Sess.begin();
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St1{"delete from CommandList where Submitted<?"};
 			Delete << ConvertParams(St1), Poco::Data::Keywords::use(Date);
 			Delete.execute();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);

@@ -82,15 +82,23 @@ namespace OpenWifi {
 			}
 		}
 
+		auto platform = Poco::toLower(GetParameter("platform", ""));
 		auto serialOnly = GetBoolParameter(RESTAPI::Protocol::SERIALONLY, false);
 		auto deviceWithStatus = GetBoolParameter(RESTAPI::Protocol::DEVICEWITHSTATUS, false);
 		auto completeInfo = GetBoolParameter("completeInfo", false);
+
+		if(!platform.empty() && (platform!=Platforms::AP && platform!=Platforms::SWITCH && platform!="all")) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		if(platform=="all")
+			platform="";
 
 		Poco::JSON::Object RetObj;
 		if (!QB_.Select.empty()) {
 			Poco::JSON::Array Objects;
 			for (auto &i : SelectedRecords()) {
-				auto SerialNumber = i;
+				auto &SerialNumber = i;
 				if (!Utils::ValidSerialNumber(i))
 					continue;
 				GWObjects::Device D;
@@ -116,14 +124,14 @@ namespace OpenWifi {
 			else
 				RetObj.set(RESTAPI::Protocol::DEVICES, Objects);
 
-		} else if (QB_.CountOnly == true) {
+		} else if (QB_.CountOnly) {
 			uint64_t Count = 0;
-			if (StorageService()->GetDeviceCount(Count)) {
+			if (StorageService()->GetDeviceCount(Count, platform)) {
 				return ReturnCountOnly(Count);
 			}
 		} else if (serialOnly) {
 			std::vector<std::string> SerialNumbers;
-			StorageService()->GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers, OrderBy);
+			StorageService()->GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers, OrderBy, platform);
 			Poco::JSON::Array Objects;
 			for (const auto &i : SerialNumbers) {
 				Objects.add(i);
@@ -141,7 +149,7 @@ namespace OpenWifi {
 			RetObj.set("serialNumbers", Objects);
 		} else {
 			std::vector<GWObjects::Device> Devices;
-			StorageService()->GetDevices(QB_.Offset, QB_.Limit, Devices, OrderBy);
+			StorageService()->GetDevices(QB_.Offset, QB_.Limit, Devices, OrderBy, platform);
 			Poco::JSON::Array Objects;
 			for (const auto &i : Devices) {
 				Poco::JSON::Object Obj;
@@ -175,10 +183,12 @@ namespace OpenWifi {
 		}
 
 		if(GetBoolParameter("simulatedDevices",false)) {
-			if(StorageService()->DeleteSimulatedDevice("")) {
-				return OK();
-			}
-			return NotFound();
+			auto F = []() ->void {
+				StorageService()->DeleteSimulatedDevice("");
+			};
+			std::thread T(F);
+			T.detach();
+			return OK();
 		}
 
 		if(!QB_.Select.empty() && !Utils::ValidSerialNumbers(QB_.Select)) {

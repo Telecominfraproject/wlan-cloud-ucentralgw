@@ -17,8 +17,8 @@ FROM build-base AS poco-build
 
 ARG POCO_VERSION
 
-ADD https://api.github.com/repos/AriliaWireless/poco/git/refs/tags/${POCO_VERSION} version.json
-RUN git clone https://github.com/AriliaWireless/poco --branch ${POCO_VERSION} /poco
+ADD https://api.github.com/repos/Telecominfraproject/wlan-cloud-lib-poco/git/refs/tags/${POCO_VERSION} version.json
+RUN git clone https://github.com/Telecominfraproject/wlan-cloud-lib-poco --branch ${POCO_VERSION} /poco
 
 WORKDIR /poco
 RUN mkdir cmake-build
@@ -31,8 +31,8 @@ FROM build-base AS cppkafka-build
 
 ARG CPPKAFKA_VERSION
 
-ADD https://api.github.com/repos/AriliaWireless/cppkafka/git/refs/tags/${CPPKAFKA_VERSION} version.json
-RUN git clone https://github.com/AriliaWireless/cppkafka --branch ${CPPKAFKA_VERSION} /cppkafka
+ADD https://api.github.com/repos/Telecominfraproject/wlan-cloud-lib-cppkafka/git/refs/tags/${CPPKAFKA_VERSION} version.json
+RUN git clone https://github.com/Telecominfraproject/wlan-cloud-lib-cppkafka --branch ${CPPKAFKA_VERSION} /cppkafka
 
 WORKDIR /cppkafka
 RUN mkdir cmake-build
@@ -45,8 +45,8 @@ FROM build-base AS valijson-build
 
 ARG VALIJASON_VERSION
 
-ADD https://api.github.com/repos/AriliaWireless/valijson/git/refs/tags/${VALIJASON_VERSION} version.json
-RUN git clone https://github.com/AriliaWireless/valijson --branch ${VALIJASON_VERSION} /valijson
+ADD https://api.github.com/repos/Telecominfraproject/wlan-cloud-lib-valijson/git/refs/tags/${VALIJASON_VERSION} version.json
+RUN git clone https://github.com/Telecominfraproject/wlan-cloud-lib-valijson --branch ${VALIJASON_VERSION} /valijson
 
 WORKDIR /valijson
 RUN mkdir cmake-build

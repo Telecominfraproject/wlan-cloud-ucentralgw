@@ -275,9 +275,21 @@ namespace OpenWifi {
 						"Models TEXT, "
 						"Description TEXT, "
 						"Created BIGINT , "
-						"LastModified BIGINT)",
+						"LastModified BIGINT, Platform TEXT)",
 					Poco::Data::Keywords::now;
 			}
+
+			std::vector<std::string> Script{
+				"alter table DefaultConfigs add column Platform text"
+			};
+
+			for (const auto &i : Script) {
+				try {
+					Sess << i, Poco::Data::Keywords::now;
+				} catch (...) {
+				}
+			}
+
 			return 0;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);

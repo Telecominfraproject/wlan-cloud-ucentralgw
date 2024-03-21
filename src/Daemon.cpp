@@ -49,7 +49,7 @@ namespace OpenWifi {
 				SignatureManager(), AP_WS_Server(),
 				RegulatoryInfo(),
 				RADIUSSessionTracker(),
-				AP_WS_ConfigAutoUpgrader(),
+			 	AP_WS_ConfigAutoUpgradeAgent(),
 				FirmwareRevisionCache()
 			});
 		return &instance;
@@ -78,7 +78,7 @@ namespace OpenWifi {
 			if (Id == DeviceType)
 				return Type;
 		}
-		return "AP";
+		return Platforms::AP;
 	}
 
 	void DaemonPostInitialization(Poco::Util::Application &self) {
