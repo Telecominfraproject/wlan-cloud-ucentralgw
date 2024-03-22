@@ -3,6 +3,7 @@
 //
 
 #include "AP_WS_Connection.h"
+#include "AP_WS_Server.h"
 #include "StorageService.h"
 
 #include "fmt/format.h"
@@ -25,6 +26,7 @@ namespace OpenWifi {
 
 			uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 			auto Sanity = ParamsObj->get(uCentralProtocol::SANITY);
+			State_.sanity = Sanity;
 			auto CheckData = ParamsObj->get(uCentralProtocol::DATA).toString();
 			if (CheckData.empty())
 				CheckData = uCentralProtocol::EMPTY_JSON_DOC;
@@ -48,14 +50,14 @@ namespace OpenWifi {
 			Check.Data = CheckData;
 			Check.Sanity = Sanity;
 
-			StorageService()->AddHealthCheckData(Check);
+			StorageService()->AddHealthCheckData(*DbSession_, Check);
 
 			if (!request_uuid.empty()) {
 				StorageService()->SetCommandResult(request_uuid, CheckData);
 			}
 
 			SetLastHealthCheck(Check);
-			if (KafkaManager()->Enabled()) {
+			if (KafkaManager()->Enabled() && !AP_WS_Server()->KafkaDisableHealthChecks()) {
 				KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, *ParamsObj);
 			}
 		} else {

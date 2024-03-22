@@ -36,7 +36,7 @@ namespace OpenWifi {
 										   .Recorded = (uint64_t)time(nullptr),
 										   .LogType = 0,
 										   .UUID = State_.UUID};
-			StorageService()->AddLog(DeviceLog);
+			StorageService()->AddLog(*DbSession_, DeviceLog);
 			DeviceLogKafkaEvent	E(DeviceLog);
 		} else {
 			poco_warning(Logger_, fmt::format("LOG({}): Missing parameters.", CId_));

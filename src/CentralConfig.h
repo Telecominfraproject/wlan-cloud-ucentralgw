@@ -23,6 +23,7 @@ namespace OpenWifi::Config {
 		[[nodiscard]] std::string get() { return Config_; };
 		[[nodiscard]] std::string Default();
 		[[nodiscard]] Poco::JSON::Object::Ptr to_json();
+		[[nodiscard]] std::uint64_t UUID();
 
 	  private:
 		void Init();

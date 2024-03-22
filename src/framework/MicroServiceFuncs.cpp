@@ -133,4 +133,8 @@ namespace OpenWifi {
 		return MicroService::instance().Hash();
 	}
 
+    std::optional<OpenWifi::Types::MicroServiceMeta> MicroServicePrivateAccessKey(const std::string &servicePrivateEndPoint) {
+        return MicroService::instance().GetPrivateEndPointServiceKey(servicePrivateEndPoint);
+    }
+
 } // namespace OpenWifi

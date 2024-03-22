@@ -111,7 +111,6 @@ namespace OpenWifi {
 					}
 				} break;
 				case TelemetryNotification::NotificationType::unregister: {
-					std::lock_guard G(Mutex_);
 
 					auto client = Clients_.find(Notification->Data_);
 					if (client != Clients_.end()) {

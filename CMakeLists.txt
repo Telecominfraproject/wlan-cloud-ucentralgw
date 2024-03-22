@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
-project(owgw VERSION 3.0.0)
+project(owgw VERSION 3.0.2)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(UNIX AND APPLE)
     set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
@@ -148,6 +149,7 @@ add_executable( owgw
         src/RESTAPI/RESTAPI_script_handler.cpp src/RESTAPI/RESTAPI_script_handler.h
         src/RESTAPI/RESTAPI_regulatory.cpp src/RESTAPI/RESTAPI_regulatory.h
         src/RESTAPI/RESTAPI_radiussessions_handler.cpp src/RESTAPI/RESTAPI_radiussessions_handler.h
+
         src/storage/storage_blacklist.cpp src/storage/storage_tables.cpp src/storage/storage_logs.cpp
         src/storage/storage_command.cpp src/storage/storage_healthcheck.cpp src/storage/storage_statistics.cpp
         src/storage/storage_device.cpp src/storage/storage_capabilities.cpp src/storage/storage_defconfig.cpp
@@ -175,7 +177,7 @@ add_executable( owgw
         src/SDKcalls.cpp
         src/SDKcalls.h
         src/StateUtils.cpp src/StateUtils.h
-        src/AP_WS_ReactorPool.h
+        src/AP_WS_Reactor_Pool.h
         src/AP_WS_Connection.h
         src/AP_WS_Connection.cpp
         src/TelemetryClient.h src/TelemetryClient.cpp
@@ -211,7 +213,8 @@ add_executable( owgw
         src/RegulatoryInfo.cpp src/RegulatoryInfo.h
         src/RADIUSSessionTracker.cpp src/RADIUSSessionTracker.h
         src/libs/Scheduler.h src/libs/InterruptableSleep.h src/libs/ctpl_stl.h src/libs/Cron.h
-        src/GenericScheduler.cpp src/GenericScheduler.h src/framework/default_device_types.h src/AP_WS_Process_rebootLog.cpp src/AP_WS_ConfigAutoUpgrader.cpp src/AP_WS_ConfigAutoUpgrader.h src/RESTAPI/RESTAPI_default_firmwares.cpp src/RESTAPI/RESTAPI_default_firmwares.h src/RESTAPI/RESTAPI_default_firmware.cpp src/RESTAPI/RESTAPI_default_firmware.h src/storage/storage_def_firmware.cpp src/firmware_revision_cache.h src/sdks/sdk_fms.h)
+        src/GenericScheduler.cpp src/GenericScheduler.h src/framework/default_device_types.h src/AP_WS_Process_rebootLog.cpp src/AP_WS_ConfigAutoUpgrader.cpp src/AP_WS_ConfigAutoUpgrader.h src/RESTAPI/RESTAPI_default_firmwares.cpp src/RESTAPI/RESTAPI_default_firmwares.h src/RESTAPI/RESTAPI_default_firmware.cpp src/RESTAPI/RESTAPI_default_firmware.h src/storage/storage_def_firmware.cpp src/firmware_revision_cache.h src/sdks/sdk_fms.h
+        src/AP_WS_LookForUpgrade.cpp)
 
 if(NOT SMALL_BUILD)
 

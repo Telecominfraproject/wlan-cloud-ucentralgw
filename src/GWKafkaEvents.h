@@ -50,12 +50,22 @@ namespace OpenWifi {
 	class DeviceConfigurationChangeKafkaEvent : public GWKafkaEvents {
 	  public:
 		DeviceConfigurationChangeKafkaEvent(std::uint64_t serialNumber,
-											std::uint64_t timestamp, const Poco::JSON::Object::Ptr config)
+											std::uint64_t timestamp,
+											const Poco::JSON::Object::Ptr config)
 			: GWKafkaEvents(serialNumber, "unit.configuration_change", timestamp), config_(config) {
 		}
 
 		~DeviceConfigurationChangeKafkaEvent() {
-			payload_->set("configuration", *config_);
+			if(config_!= nullptr) {
+				std::ostringstream os;
+				config_->stringify(os);
+				if(os.str().size()> KafkaManager()->KafkaManagerMaximumPayloadSize()) {
+					payload_->set("configuration", "{}");
+					payload_->set("configurationTooBig", true);
+				} else {
+					payload_->set("configuration", *config_);
+				}
+			}
 			Send();
 		}
 

@@ -177,15 +177,6 @@ namespace OpenWifi {
 		} else {
 			session_hint->second->lastTransaction = Utils::Now();
 		}
-
-/*
-		if(ap_hint!=AccountingSessions_.end()) {
-			std::cout << "Auth table:" << std::endl;
-			for(const auto &session:ap_hint->second) {
-				std::cout << Notification.SerialNumber_ << ":  Index: " << session.first << ": ID: " << session.second->accountingSessionId << "  MID:" << session.second->accountingMultiSessionId << std::endl;
-			}
-		}
-*/
 	}
 
 	std::uint32_t GetUiInt32(const std::uint8_t *buf) {
@@ -423,14 +414,14 @@ namespace OpenWifi {
 	}
 
 	void RADIUSSessionTracker::DisconnectSession(const std::string &SerialNumber) {
-		poco_information(Logger(),fmt::format("{}: Disconnecting.", SerialNumber));
 
 		std::lock_guard		Guard(Mutex_);
-
 		auto hint = AccountingSessions_.find(SerialNumber);
 		if(hint==end(AccountingSessions_)) {
 			return;
 		}
+
+		poco_information(Logger(),fmt::format("{}: Disconnecting.", SerialNumber));
 
 		//	we need to go through all sessions and send an accounting stop
 		for(const auto &session:hint->second) {

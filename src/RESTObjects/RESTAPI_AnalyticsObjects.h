@@ -7,6 +7,7 @@
 #include "RESTAPI_ProvObjects.h"
 #include "framework/utils.h"
 #include <vector>
+#include "framework/ow_constants.h"
 
 namespace OpenWifi {
 

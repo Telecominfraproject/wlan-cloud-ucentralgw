@@ -94,11 +94,14 @@ namespace OpenWifi {
 			return ConsumerThr_.UnregisterTopicWatcher(Topic,Id);
 		}
 
+		std::uint64_t KafkaManagerMaximumPayloadSize() const { return MaxPayloadSize_; }
+
 	  private:
 		bool KafkaEnabled_ = false;
 		std::string SystemInfoWrapper_;
 		KafkaProducer ProducerThr_;
 		KafkaConsumer ConsumerThr_;
+		std::uint64_t MaxPayloadSize_ = 250000;
 
 		void PartitionAssignment(const cppkafka::TopicPartitionList &partitions);
 		void PartitionRevocation(const cppkafka::TopicPartitionList &partitions);

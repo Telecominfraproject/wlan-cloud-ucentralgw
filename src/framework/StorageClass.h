@@ -47,6 +47,8 @@ namespace OpenWifi {
 
         }
 
+		Poco::Data::SessionPool &Pool() { return *Pool_; }
+
 	  private:
 		inline int Setup_SQLite();
 		inline int Setup_MySQL();

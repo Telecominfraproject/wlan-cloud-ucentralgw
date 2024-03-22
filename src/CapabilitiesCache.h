@@ -10,6 +10,7 @@
 #include <string>
 
 #include "framework/MicroServiceFuncs.h"
+#include "framework/ow_constants.h"
 
 #include "CentralConfig.h"
 #include "nlohmann/json.hpp"
@@ -34,7 +35,7 @@ namespace OpenWifi {
 			std::lock_guard G(Mutex_);
 			if (!PlatformsLoaded_)
 				LoadPlatforms();
-			auto P = Poco::toUpper(Caps.Platform());
+			auto P = Poco::toLower(Caps.Platform());
 			auto Hint = Platforms_.find(Caps.Compatible());
 			if (Hint == Platforms_.end()) {
 				Platforms_.insert(std::make_pair(Caps.Compatible(), P));
@@ -68,7 +69,7 @@ namespace OpenWifi {
 
 			auto Hint = Platforms_.find(DeviceType);
 			if (Hint == Platforms_.end())
-				return "AP";
+				return Platforms::AP;
 			return Hint->second;
 		}
 
@@ -110,7 +111,7 @@ namespace OpenWifi {
 				i >> cache;
 
 				for (const auto &[Type, Platform] : cache.items()) {
-					Platforms_[Type] = Platform;
+					Platforms_[Type] = Poco::toLower(to_string(Platform));
 				}
 			} catch (...) {
 			}
