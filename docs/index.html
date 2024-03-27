@@ -25013,7 +25013,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/devices?offset=56&limit=56&filter=filter_example&select=serial1,serial2,serial3&serialOnly=true&countOnly=false&deviceWithStatus=true&orderBy=serialNumber:a,created:d&orderSpec=true&connectionStatistics=true&health=true&lowLimit=56&highLimits=56&platform=platform_example"
+ "https://localhost:16001/api/v1/devices?offset=56&limit=56&filter=filter_example&select=serial1,serial2,serial3&serialOnly=true&countOnly=false&deviceWithStatus=true&orderBy=serialNumber:a,created:d&orderSpec=true&connectionStatistics=true&health=true&lowLimit=56&highLimits=56&platform=platform_example&includeProvisioned=true"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Devices-getDeviceList-0-java">
@@ -25055,9 +25055,10 @@ public class DevicesApiExample {
         Integer lowLimit = 56; // Integer | lowLimit for the health selection criteria
         Integer highLimits = 56; // Integer | highLimit for the health selection criteria
         String platform = platform_example; // String | return only devices matching a certain platform of AP or SWITCH
+        Boolean includeProvisioned = true; // Boolean | only devices which are not provisioned
 
         try {
-            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform);
+            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform, includeProvisioned);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DevicesApi#getDeviceList");
@@ -25088,9 +25089,10 @@ public class DevicesApiExample {
         Integer lowLimit = 56; // Integer | lowLimit for the health selection criteria
         Integer highLimits = 56; // Integer | highLimit for the health selection criteria
         String platform = platform_example; // String | return only devices matching a certain platform of AP or SWITCH
+        Boolean includeProvisioned = true; // Boolean | only devices which are not provisioned
 
         try {
-            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform);
+            getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform, includeProvisioned);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling DevicesApi#getDeviceList");
@@ -25130,6 +25132,7 @@ Boolean *health = true; // return devices with their health value in between low
 Integer *lowLimit = 56; // lowLimit for the health selection criteria (optional) (default to 30)
 Integer *highLimits = 56; // highLimit for the health selection criteria (optional) (default to 70)
 String *platform = platform_example; // return only devices matching a certain platform of AP or SWITCH (optional) (default to ALL)
+Boolean *includeProvisioned = true; // only devices which are not provisioned (optional) (default to null)
 
 // Returns a list of devices.
 [apiInstance getDeviceListWith:offset
@@ -25146,6 +25149,7 @@ String *platform = platform_example; // return only devices matching a certain p
     lowLimit:lowLimit
     highLimits:highLimits
     platform:platform
+    includeProvisioned:includeProvisioned
               completionHandler: ^(getDeviceList_200_response output, NSError* error) {
     if (output) {
         NSLog(@"%@", output);
@@ -25187,7 +25191,8 @@ var opts = {
   'health': true, // {Boolean} return devices with their health value in between lowLimit and highLimit
   'lowLimit': 56, // {Integer} lowLimit for the health selection criteria
   'highLimits': 56, // {Integer} highLimit for the health selection criteria
-  'platform': platform_example // {String} return only devices matching a certain platform of AP or SWITCH
+  'platform': platform_example, // {String} return only devices matching a certain platform of AP or SWITCH
+  'includeProvisioned': true // {Boolean} only devices which are not provisioned
 };
 
 var callback = function(error, data, response) {
@@ -25240,10 +25245,11 @@ namespace Example
             var lowLimit = 56;  // Integer | lowLimit for the health selection criteria (optional)  (default to 30)
             var highLimits = 56;  // Integer | highLimit for the health selection criteria (optional)  (default to 70)
             var platform = platform_example;  // String | return only devices matching a certain platform of AP or SWITCH (optional)  (default to ALL)
+            var includeProvisioned = true;  // Boolean | only devices which are not provisioned (optional)  (default to null)
 
             try {
                 // Returns a list of devices.
-                getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform);
+                getDeviceList_200_response result = apiInstance.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform, includeProvisioned);
                 Debug.WriteLine(result);
             } catch (Exception e) {
                 Debug.Print("Exception when calling DevicesApi.getDeviceList: " + e.Message );
@@ -25282,9 +25288,10 @@ $health = true; // Boolean | return devices with their health value in between l
 $lowLimit = 56; // Integer | lowLimit for the health selection criteria
 $highLimits = 56; // Integer | highLimit for the health selection criteria
 $platform = platform_example; // String | return only devices matching a certain platform of AP or SWITCH
+$includeProvisioned = true; // Boolean | only devices which are not provisioned
 
 try {
-    $result = $api_instance->getDeviceList($offset, $limit, $filter, $select, $serialOnly, $countOnly, $deviceWithStatus, $orderBy, $orderSpec, $connectionStatistics, $health, $lowLimit, $highLimits, $platform);
+    $result = $api_instance->getDeviceList($offset, $limit, $filter, $select, $serialOnly, $countOnly, $deviceWithStatus, $orderBy, $orderSpec, $connectionStatistics, $health, $lowLimit, $highLimits, $platform, $includeProvisioned);
     print_r($result);
 } catch (Exception $e) {
     echo 'Exception when calling DevicesApi->getDeviceList: ', $e->getMessage(), PHP_EOL;
@@ -25321,9 +25328,10 @@ my $health = true; # Boolean | return devices with their health value in between
 my $lowLimit = 56; # Integer | lowLimit for the health selection criteria
 my $highLimits = 56; # Integer | highLimit for the health selection criteria
 my $platform = platform_example; # String | return only devices matching a certain platform of AP or SWITCH
+my $includeProvisioned = true; # Boolean | only devices which are not provisioned
 
 eval {
-    my $result = $api_instance->getDeviceList(offset => $offset, limit => $limit, filter => $filter, select => $select, serialOnly => $serialOnly, countOnly => $countOnly, deviceWithStatus => $deviceWithStatus, orderBy => $orderBy, orderSpec => $orderSpec, connectionStatistics => $connectionStatistics, health => $health, lowLimit => $lowLimit, highLimits => $highLimits, platform => $platform);
+    my $result = $api_instance->getDeviceList(offset => $offset, limit => $limit, filter => $filter, select => $select, serialOnly => $serialOnly, countOnly => $countOnly, deviceWithStatus => $deviceWithStatus, orderBy => $orderBy, orderSpec => $orderSpec, connectionStatistics => $connectionStatistics, health => $health, lowLimit => $lowLimit, highLimits => $highLimits, platform => $platform, includeProvisioned => $includeProvisioned);
     print Dumper($result);
 };
 if ($@) {
@@ -25362,10 +25370,11 @@ health = true # Boolean | return devices with their health value in between lowL
 lowLimit = 56 # Integer | lowLimit for the health selection criteria (optional) (default to 30)
 highLimits = 56 # Integer | highLimit for the health selection criteria (optional) (default to 70)
 platform = platform_example # String | return only devices matching a certain platform of AP or SWITCH (optional) (default to ALL)
+includeProvisioned = true # Boolean | only devices which are not provisioned (optional) (default to null)
 
 try:
     # Returns a list of devices.
-    api_response = api_instance.get_device_list(offset=offset, limit=limit, filter=filter, select=select, serialOnly=serialOnly, countOnly=countOnly, deviceWithStatus=deviceWithStatus, orderBy=orderBy, orderSpec=orderSpec, connectionStatistics=connectionStatistics, health=health, lowLimit=lowLimit, highLimits=highLimits, platform=platform)
+    api_response = api_instance.get_device_list(offset=offset, limit=limit, filter=filter, select=select, serialOnly=serialOnly, countOnly=countOnly, deviceWithStatus=deviceWithStatus, orderBy=orderBy, orderSpec=orderSpec, connectionStatistics=connectionStatistics, health=health, lowLimit=lowLimit, highLimits=highLimits, platform=platform, includeProvisioned=includeProvisioned)
     pprint(api_response)
 except ApiException as e:
     print("Exception when calling DevicesApi->getDeviceList: %s\n" % e)</code></pre>
@@ -25389,9 +25398,10 @@ pub fn main() {
     let lowLimit = 56; // Integer
     let highLimits = 56; // Integer
     let platform = platform_example; // String
+    let includeProvisioned = true; // Boolean
 
     let mut context = DevicesApi::Context::default();
-    let result = client.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform, &context).wait();
+    let result = client.getDeviceList(offset, limit, filter, select, serialOnly, countOnly, deviceWithStatus, orderBy, orderSpec, connectionStatistics, health, lowLimit, highLimits, platform, includeProvisioned, &context).wait();
 
     println!("{:?}", result);
 }
@@ -25689,6 +25699,26 @@ highLimit for the health selection criteria
 
                     <div class="inner description marked">
 return only devices matching a certain platform of AP or SWITCH
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">includeProvisioned</td>
+<td>
+
+
+    <div id="d2e199_getDeviceList_includeProvisioned">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    Boolean
+                </span>
+
+                    <div class="inner description marked">
+only devices which are not provisioned
                     </div>
             </div>
         </div>
