@@ -31,7 +31,7 @@ namespace OpenWifi {
 		void reinitialize(Poco::Util::Application &self) override;
 
 		inline static ConfigurationType GetType(const std::string &type) {
-			std::string Type = Poco::toUpper(type);
+                       std::string Type = Poco::toLower(type);
 			if (Type == Platforms::AP)
 				return ConfigurationType::AP;
 			if (Type == Platforms::SWITCH)
