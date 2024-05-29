@@ -141,6 +141,7 @@ namespace OpenWifi {
 
 		bool Connected(uint64_t SerialNumber, GWObjects::DeviceRestrictions &Restrictions) const;
 		bool Connected(uint64_t SerialNumber) const;
+		bool Disconnect(uint64_t SerialNumber);
 		bool SendFrame(uint64_t SerialNumber, const std::string &Payload) const;
 		bool SendRadiusAuthenticationData(const std::string &SerialNumber,
 										  const unsigned char *buffer, std::size_t size);

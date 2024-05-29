@@ -207,6 +207,28 @@ namespace OpenWifi {
 		return 0;
 	}
 
+	bool AP_WS_Server::Disconnect(uint64_t SerialNumber) {
+		std::shared_ptr<AP_WS_Connection> Connection;
+		{
+			auto hashIndex = MACHash::Hash(SerialNumber);
+			std::lock_guard DeviceLock(SerialNumbersMutex_[hashIndex]);
+			auto DeviceHint = SerialNumbers_[hashIndex].find(SerialNumber);
+			if (DeviceHint == SerialNumbers_[hashIndex].end() || DeviceHint->second == nullptr) {
+				return false;
+			}
+			Connection = DeviceHint->second;
+			SerialNumbers_[hashIndex].erase(DeviceHint);
+		}
+
+		{
+			auto H = SessionHash::Hash(Connection->State_.sessionId);
+			std::lock_guard SessionLock(SessionMutex_[H]);
+			Sessions_[H].erase(Connection->State_.sessionId);
+		}
+
+		return true;
+	}
+
 	void AP_WS_Server::CleanupSessions() {
 
 		while(Running_) {
