@@ -61,7 +61,6 @@ namespace OpenWifi {
 		};
 
 		const std::map<std::string, std::set<std::string>> API_WHITELIST = {
-			{"/api/v1/device", {Poco::Net::HTTPRequest::HTTP_POST, Poco::Net::HTTPRequest::HTTP_PUT, Poco::Net::HTTPRequest::HTTP_DELETE}}
 		};
 
 		enum USER_ROLE {
