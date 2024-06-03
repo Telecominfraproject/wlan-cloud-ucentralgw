@@ -17,6 +17,8 @@
 
 #include "RESTAPI_device_helper.h"
 
+#include "AP_WS_Server.h"
+
 namespace OpenWifi {
 	void RESTAPI_device_handler::DoGet() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
@@ -80,6 +82,9 @@ namespace OpenWifi {
 			return OK();
 
 		} else if (StorageService()->DeleteDevice(SerialNumber)) {
+			if(AP_WS_Server()->Connected(Utils::SerialNumberToInt(SerialNumber))) {
+				AP_WS_Server()->Disconnect(Utils::SerialNumberToInt(SerialNumber));
+			}
 			return OK();
 		}
 
