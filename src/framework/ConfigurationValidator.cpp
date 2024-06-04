@@ -3758,8 +3758,40 @@ static std::string DefaultAPSchema = R"foo(
             }
         },
         "service.fingerprint": {
-            "description": "This section option enables fingerprinting.",
-            "type": "boolean"
+            "description": "This section can be used to configure device fingerprinting.",
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "description": "Enable this option if you would like to enable the MDNS server on the unit.",
+                    "type": "string",
+                    "enum": [
+                        "polled",
+                        "final",
+                        "raw-data"
+                    ],
+                    "default": "always"
+                },
+                "minimum-age": {
+                    "description": "The minimum age a fingerprint must have before it is reported.",
+                    "type": "number",
+                    "default": 60
+                },
+                "maximum-age": {
+                    "description": "The age at which fingerprints get flushed from the local state.",
+                    "type": "number",
+                    "default": 60
+                },
+                "periodicity": {
+                    "description": "This value defines the period at which entries get reported.",
+                    "type": "number",
+                    "default": 600
+                },
+                "allow-wan": {
+                    "description": "Allow fingerprinting devices found on the WAN port.",
+                    "type": "boolean",
+                    "default": false
+                }
+            }
         },
         "service": {
             "description": "This section describes all of the services that may be present on the AP. Each service is then referenced via its name inside an interface, ssid, ...",
