@@ -83,7 +83,7 @@ namespace OpenWifi {
 			State_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 			CId_ = SerialNumber_ + "@" + CId_;
 
-			auto &Platform = Caps.Platform();
+			auto Platform = Poco::toLower(Caps.Platform());
 
 			if(ParamsObj->has("reason")) {
 				State_.connectReason = ParamsObj->get("reason").toString();
