@@ -155,6 +155,7 @@ namespace OpenWifi {
 		bool DeleteDevice(std::string &SerialNumber);
 		bool DeleteDevices(std::string &SerialPattern, bool SimulatedOnly);
 		bool DeleteDevices(std::uint64_t OlderContact, bool SimulatedOnly);
+		std::string GetPlatform(const std::string &SerialNumber);
 
 		bool UpdateDevice(GWObjects::Device &);
 		bool UpdateDevice(LockedDbSession &Session, GWObjects::Device &);

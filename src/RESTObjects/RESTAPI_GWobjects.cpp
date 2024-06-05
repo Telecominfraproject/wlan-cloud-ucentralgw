@@ -30,7 +30,7 @@ namespace OpenWifi::GWObjects {
 	void Device::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj, "serialNumber", SerialNumber);
 #ifdef TIP_GATEWAY_SERVICE
-		field_to_json(Obj, "deviceType", CapabilitiesCache::instance()->GetPlatform(Compatible));
+		field_to_json(Obj, "deviceType", StorageService()->GetPlatform(SerialNumber));
 		field_to_json(Obj, "blackListed", StorageService()->IsBlackListed(Utils::MACToInt(SerialNumber)));
 #endif
 		field_to_json(Obj, "macAddress", MACAddress);

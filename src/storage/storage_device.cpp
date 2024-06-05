@@ -615,7 +615,9 @@ namespace OpenWifi {
 		D.locale = InsertRadiosCountyRegulation(D.Configuration, IPAddress);
 		D.SerialNumber = Poco::toLower(SerialNumber);
 		D.Compatible = Caps.Compatible();
-		D.DeviceType = Caps.Platform();
+		if(D.Compatible.empty())
+			D.Compatible = Caps.Model();
+		D.DeviceType = Poco::toLower(Caps.Platform());
 		D.MACAddress = Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
@@ -662,6 +664,22 @@ namespace OpenWifi {
 			Logger().log(E);
 		}
 		return false;
+	}
+
+	std::string Storage::GetPlatform(const std::string &SerialNumber) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Select(Sess);
+
+			std::string St = fmt::format("SELECT DeviceType FROM Devices WHERE SerialNumber='{}'", SerialNumber);
+			std::string Platform;
+			Select << ConvertParams(St), Poco::Data::Keywords::into(Platform);
+			Select.execute();
+			return Platform;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return "";
 	}
 
 	bool Storage::DeleteDevice(std::string &SerialNumber) {
