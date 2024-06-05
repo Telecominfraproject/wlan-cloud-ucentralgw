@@ -265,7 +265,11 @@ namespace OpenWifi::Config {
 				Model_ = Caps->get("model").toString();
 
 			if (Caps->has("platform"))
-				Platform_ = Caps->get("platform").toString();
+				Platform_ = Poco::toLower(Caps->get("platform").toString());
+
+			if(Compatible_.empty()) {
+				Compatible_ = Model_;
+			}
 
 			std::ostringstream OS;
 			Caps->stringify(OS);
