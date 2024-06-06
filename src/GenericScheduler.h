@@ -26,7 +26,7 @@ namespace OpenWifi {
 	  private:
 		GenericScheduler() noexcept
 			: SubSystemServer("Scheduler", "SCHEDULER", "scheduler"),
-			  Scheduler_(Poco::Environment::processorCount()*2) {
+			  Scheduler_(((int)std::stoi(Poco::Environment::get("GENERIC_SCHEDULER_CORES", std::to_string(Poco::Environment::processorCount()))))*2) {
 
 		}
 		Bosma::Scheduler	Scheduler_;
