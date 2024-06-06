@@ -3769,7 +3769,7 @@ static std::string DefaultAPSchema = R"foo(
                         "final",
                         "raw-data"
                     ],
-                    "default": "always"
+                    "default": "final"
                 },
                 "minimum-age": {
                     "description": "The minimum age a fingerprint must have before it is reported.",
