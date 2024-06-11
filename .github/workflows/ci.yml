@@ -5,15 +5,15 @@ on:
     paths-ignore:
       - 'openapi/**'
       - '**.md'
+      - 'version'
+      - 'package*.json'
+      - 'helm/*.yaml'
+      - 'CMakeLists.txt'
     branches:
       - kinara
-      - 'release/*'
-    tags:
-      - 'v*'
   pull_request:
     branches:
       - kinara
-      - 'release/*'
 
 defaults:
   run:
@@ -28,18 +28,28 @@ jobs:
       AWS_REGION: us-east-1
 
     steps:
-      # may attempt to put the following code in common area.
-      # not really that useful if I have to have secrets in every repo anyways
-      #- name: Checkout actions repo
-      #  uses: actions/checkout@v3
-      #  with:
-      #    repository: kinarasystems/.github
-      #    path: github
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 1
-          path: docker-image-build
+          path: build
+          token: ${{ secrets.GIT_PUSH_PAT }}
+          persist-credentials: true
+
+      - name: Checkout dot github repo
+        uses: actions/checkout@v4
+        with:
+          repository: kinarasystems/.github
+          ref: main
+          path: tools
+          token: ${{ secrets.GIT_PUSH_PAT }}
+
+      - name: Bump version and checkin
+        if: github.ref == 'refs/heads/kinara'
+        id: bump-version
+        run: |
+          cd build
+          ../tools/utils/setup-git-credentials "${{ secrets.GIT_PUSH_PAT}}"
+          ../tools/utils/ver-bump -b -a -p -V kv -y helm/Chart.yaml -Y helm/values.yaml -M CMakeLists.txt
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -59,15 +69,14 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
           GITHUB_REF: ${{ github.ref }}
         run: |
-          # Build a docker container and push it to ECR so that it can be deployed to EKS.
-          cd docker-image-build
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          if [[ "$GITHUB_REF" == "refs/heads/kinara" ]] ; then
-            docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          fi
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          cd build
+          version=$(cat version)
+          ../tools/utils/docker_build \
+              -m kinara \
+              -b "$GITHUB_REF" \
+              -t "$IMAGE_TAG" \
+              -r "$ECR_REGISTRY/$ECR_REPOSITORY" \
+              -v "kv${version}"
 
       - name: Notify via Teams
         #if: failure() && github.ref == 'refs/heads/kinara'
@@ -80,24 +89,34 @@ jobs:
           steps: ${{ toJson(steps) }}
           dry_run: False
 
-#  trigger-deploy-to-dev:
-#    runs-on: ubuntu-latest
-#    if: github.ref == 'refs/heads/kinara'
-#    needs:
-#      - docker
-#    steps:
-#    - name: Checkout actions repo
-#      uses: actions/checkout@v3
-#      with:
-#        repository: Telecominfraproject/.github
-#        path: github
-#
-#    - name: Trigger deployment of the latest version to dev instance and wait for result
-#      uses: ./github/composite-actions/trigger-workflow-and-wait
-#      with:
-#        owner: Telecominfraproject
-#        repo: wlan-testing
-#        workflow: ucentralgw-dev-deployment.yaml
-#        token: ${{ secrets.WLAN_TESTING_PAT }}
-#        ref: master
-#        inputs: '{"force_latest": "true"}'
+  deploy-to-dev:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/kinara'
+    env:
+      DEPLOY_NAME: owgw
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_NAMESPACE: kic-dev1
+      AWS_EKS_NAME: kinara-dev
+      KUBECTL_VERSION: "v1.27.14"
+    needs:
+      - docker
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Fetch kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ env.AWS_EKS_NAME }} --region ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Install kubectl
+        run: |
+          curl -s -LO "https://dl.k8s.io/release/${{ env.KUBECTL_VERSION }}/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+      - name: Rolling update of deployment
+        run: |
+          kubectl rollout restart deployment/${{ env.DEPLOY_NAME }} -n ${{ env.AWS_NAMESPACE }}
