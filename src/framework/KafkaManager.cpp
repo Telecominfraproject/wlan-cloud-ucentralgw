@@ -123,6 +123,7 @@ namespace OpenWifi {
 			}
 			Note = Queue_.waitDequeueNotification();
 		}
+		Producer.flush();
 		poco_information(Logger_, "Stopped...");
 	}
 
