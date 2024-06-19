@@ -172,18 +172,27 @@ namespace OpenWifi {
 		R.set<30>(D.connectReason);
 	}
 
-	bool Storage::GetDeviceCount(uint64_t &Count, const std::string &platform) {
+	bool Storage::GetDeviceCount(uint64_t &Count, const std::string &platform, bool includeProvisioned) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
+			std::string st;
+			std::string whereClause = "";
+
 			if(!platform.empty()) {
-				std::string st{"SELECT COUNT(*) FROM Devices WHERE DeviceType='" + platform + "'"};
-				Select << st, Poco::Data::Keywords::into(Count);
+				if (includeProvisioned == false) {
+					whereClause = fmt::format("WHERE entity='' and venue='' and DeviceType='" + platform + "'");
+				} else {
+					whereClause = fmt::format("WHERE DeviceType='" + platform + "'");
+				}
 			} else {
-				std::string st{"SELECT COUNT(*) FROM Devices"};
-				Select << st, Poco::Data::Keywords::into(Count);
+				if (includeProvisioned == false) {
+					whereClause = fmt::format("WHERE entity='' and venue=''");
+				}
 			}
+			st = fmt::format("SELECT COUNT(*) FROM Devices {}", whereClause);
+			Select << st, Poco::Data::Keywords::into(Count);
 			Select.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
