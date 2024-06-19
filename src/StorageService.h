@@ -162,7 +162,7 @@ namespace OpenWifi {
 		bool UpdateDevice(Poco::Data::Session &Sess, GWObjects::Device &NewDeviceDetails);
 		bool DeviceExists(std::string &SerialNumber);
 		bool SetConnectInfo(std::string &SerialNumber, std::string &Firmware);
-		bool GetDeviceCount(uint64_t &Count, const std::string &platform = "");
+		bool GetDeviceCount(uint64_t &Count, const std::string &platform = "", bool includeProvisioned = true);
 		bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany,
 									std::vector<std::string> &SerialNumbers,
 									const std::string &orderBy = "",

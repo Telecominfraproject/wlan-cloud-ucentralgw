@@ -127,7 +127,7 @@ namespace OpenWifi {
 
 		} else if (QB_.CountOnly) {
 			uint64_t Count = 0;
-			if (StorageService()->GetDeviceCount(Count, platform)) {
+			if (StorageService()->GetDeviceCount(Count, platform, includeProvisioned)) {
 				return ReturnCountOnly(Count);
 			}
 		} else if (serialOnly) {
