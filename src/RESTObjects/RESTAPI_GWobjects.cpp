@@ -295,7 +295,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "started", started);
 		field_to_json(Obj, "sessionId", sessionId);
 		field_to_json(Obj, "connectionCompletionTime", connectionCompletionTime);
-		field_to_json(Obj, "totalConnectionTime", Utils::Now() - started);
+		field_to_json(Obj, "totalConnectionTime", started ? Utils::Now() - started : 0);
 		field_to_json(Obj, "certificateExpiryDate", certificateExpiryDate);
 		field_to_json(Obj, "connectReason", connectReason);
 		field_to_json(Obj, "uptime", uptime);
