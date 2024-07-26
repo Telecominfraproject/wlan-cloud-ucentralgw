@@ -552,8 +552,8 @@ namespace OpenWifi {
 
 		inline bool IsAuthorized(bool &Expired, bool &Contacted, bool SubOnly = false);
 
-		inline void ReturnObject(Poco::JSON::Object &Object) {
-			PrepareResponse();
+		inline void ReturnObject(Poco::JSON::Object &Object, Poco::Net::HTTPResponse::HTTPStatus Status = Poco::Net::HTTPResponse::HTTP_OK) {
+			PrepareResponse(Status);
 			if (Request != nullptr) {
 				//   can we compress ???
 				auto AcceptedEncoding = Request->find("Accept-Encoding");

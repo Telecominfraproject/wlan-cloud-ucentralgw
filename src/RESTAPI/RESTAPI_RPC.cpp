@@ -26,6 +26,9 @@ namespace OpenWifi::RESTAPI_RPC {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
 			if (Handler != nullptr)
+				if (Cmd.ErrorCode){
+					return Handler->ReturnObject(RetObj, Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
+				}
 				return Handler->ReturnObject(RetObj);
 			return;
 		}
@@ -167,6 +170,15 @@ namespace OpenWifi::RESTAPI_RPC {
 				Cmd.AttachType = "";
 			}
 
+			// If the command fails on the device we should show it as failed and not return 200 OK
+			if (Cmd.ErrorCode) {
+				Logger.information(fmt::format(
+				"Command failed with error on device: {}  Reason: {}.",
+				Cmd.ErrorCode, Cmd.ErrorText));
+				return SetCommandStatus(Cmd, Request, Response, Handler,
+								Storage::CommandExecutionType::COMMAND_FAILED, Logger);
+			}
+
 			if (Cmd.ErrorCode == 0 && Cmd.Command == uCentralProtocol::CONFIGURE) {
 				//	we need to post a kafka event for this.
 				if (Params.has(uCentralProtocol::CONFIG) && Params.isObject(uCentralProtocol::CONFIG)) {
@@ -175,6 +187,7 @@ namespace OpenWifi::RESTAPI_RPC {
 					DeviceConfigurationChangeKafkaEvent KEvent(
 						Utils::SerialNumberToInt(Cmd.SerialNumber), Utils::Now(),
 						Config);
+						
 				}
 			}
 
