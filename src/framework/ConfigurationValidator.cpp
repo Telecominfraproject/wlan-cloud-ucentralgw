@@ -966,15 +966,23 @@ static std::string DefaultAPSchema = R"foo(
                 },
                 "use-dns": {
                     "description": "Define which DNS servers shall be used. This can either be a list of static IPv4 addresse or dhcp (use the server provided by the DHCP lease)",
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "format": "ipv4",
-                        "examples": [
-                            "8.8.8.8",
-                            "4.4.4.4"
-                        ]
-                    }
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "format": "ipv4"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "ipv4"
+                                "examples": [
+                                    "8.8.8.8",
+                                    "4.4.4.4"
+                                ]
+                            }
+                        }
+                    ]
                 },
                 "disallow-upstream-subnet": {
                     "description": "This option only applies to \"downstream\" interfaces. The downstream interface will prevent traffic going out to the listed CIDR4s. This can be used to prevent a guest / captive interface being able to communicate with RFC1918 ranges.",
@@ -5359,15 +5367,23 @@ static std::string DefaultSWITCHSchema = R"foo(
                     ]
                 },
                 "use-dns": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "format": "ipv4",
-                        "examples": [
-                            "8.8.8.8",
-                            "4.4.4.4"
-                        ]
-                    }
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "format": "ipv4"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "ipv4"
+                                "examples": [
+                                    "8.8.8.8",
+                                    "4.4.4.4"
+                                ]
+                            }
+                        }
+                    ]
                 },
                 "dhcp": {
                     "$ref": "#/$defs/interface.ipv4.dhcp"
