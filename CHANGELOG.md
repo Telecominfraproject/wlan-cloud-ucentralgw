@@ -1,3 +1,7 @@
+## 3.0.6 (July 30, 2024)
+- chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.5 -> 3.0.6
+- chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.4 -> 3.0.5
+
 ## 3.0.5 (July 22, 2024)
 - chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.4 -> 3.0.5
 - Merge pull request #8 from kinarasystems/command
