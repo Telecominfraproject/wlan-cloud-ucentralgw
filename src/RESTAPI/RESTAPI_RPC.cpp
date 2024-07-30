@@ -26,7 +26,7 @@ namespace OpenWifi::RESTAPI_RPC {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
 			if (Handler != nullptr)
-				if (Cmd.ErrorCode){
+				if (Handler->GetBoolParameter("strict", false) && Cmd.ErrorCode){
 					return Handler->ReturnObject(RetObj, Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
 				}
 				return Handler->ReturnObject(RetObj);
@@ -171,7 +171,7 @@ namespace OpenWifi::RESTAPI_RPC {
 			}
 
 			// If the command fails on the device we should show it as failed and not return 200 OK
-			if (Cmd.ErrorCode) {
+			if (Handler->GetBoolParameter("strict", false) && Cmd.ErrorCode) {
 				Logger.information(fmt::format(
 				"Command failed with error on device: {}  Reason: {}.",
 				Cmd.ErrorCode, Cmd.ErrorText));
