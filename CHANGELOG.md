@@ -1,3 +1,7 @@
+## 3.0.7 (August 07, 2024)
+- chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.6 -> 3.0.7
+- Merge branch 'Telecominfraproject:master' into kinara
+
 ## 3.0.6 (July 30, 2024)
 - chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.5 -> 3.0.6
 - chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.4 -> 3.0.5
