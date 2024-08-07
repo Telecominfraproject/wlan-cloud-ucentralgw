@@ -25,12 +25,23 @@ namespace OpenWifi::RESTAPI_RPC {
 		if (StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Status)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
-			if (Handler != nullptr)
-				if (Cmd.ErrorCode){
-					return Handler->ReturnObject(RetObj, Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
+			if (Handler == nullptr) {
+				// nothing to process/return
+				return;
+			}
+			Poco::Net::HTTPResponse::HTTPStatus cmd_status = Poco::Net::HTTPResponse::HTTP_OK;
+            if (Cmd.ErrorCode > 0) {
+				// command returned error
+				cmd_status = Poco::Net::HTTPResponse::HTTP_BAD_REQUEST;
+				if (Cmd.Command == uCentralProtocol::CONFIGURE) {
+					// special handling for configure command
+					if (!Handler->GetBoolParameter("strict", false)) {
+						// in non-strict mode return success for failed configure command
+						cmd_status = Poco::Net::HTTPResponse::HTTP_OK;
+					}
 				}
-				return Handler->ReturnObject(RetObj);
-			return;
+			}
+			return Handler->ReturnObject(RetObj, cmd_status);
 		}
 		if (Handler != nullptr)
 			return Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
@@ -171,7 +182,12 @@ namespace OpenWifi::RESTAPI_RPC {
 			}
 
 			// If the command fails on the device we should show it as failed and not return 200 OK
-			if (Cmd.ErrorCode) {
+			// exception is configure command which only reported failed in strict validation mode
+			if (Cmd.ErrorCode &&
+				(Cmd.Command != uCentralProtocol::CONFIGURE ||
+					(Cmd.Command == uCentralProtocol::CONFIGURE && Handler->GetBoolParameter("strict", false))
+				))
+			{
 				Logger.information(fmt::format(
 				"Command failed with error on device: {}  Reason: {}.",
 				Cmd.ErrorCode, Cmd.ErrorText));

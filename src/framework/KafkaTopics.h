@@ -27,6 +27,7 @@ namespace OpenWifi::KafkaTopics {
 		inline const char * EVENT_LEAVE = "leave";
 		inline const char * EVENT_KEEP_ALIVE = "keep-alive";
 		inline const char * EVENT_REMOVE_TOKEN = "remove-token";
+		inline const char * EVENT_PERMISSIONS_UPDATE = "permissions-update";
 
 		namespace Fields {
 			inline const char * EVENT = "event";
@@ -37,6 +38,7 @@ namespace OpenWifi::KafkaTopics {
 			inline const char * KEY = "key";
 			inline const char * VRSN = "version";
 			inline const char * TOKEN = "token";
+			inline const char * ROLE = "role";
 		} // namespace Fields
 	}	  // namespace ServiceEvents
 } // namespace OpenWifi::KafkaTopics

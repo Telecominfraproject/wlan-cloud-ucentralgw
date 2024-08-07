@@ -60,9 +60,52 @@ namespace OpenWifi {
 			  AlwaysAuthorize_(AlwaysAuthorize), Server_(Server), MyRates_(Profile),
 			  TransactionId_(TransactionId) {}
 
+		inline int nthOccurrence(const std::string& str, const std::string& findMe, int nth) {
+			/*
+			Helper function to get the index of the nth occurence of string findMe in string str.
+			if there are not n occurrences of findMe in str, returns -1.
+			*/
+			size_t  pos = 0;
+			int     count = 0;
+
+			while(count != nth)
+			{
+				pos+=1;
+				pos = str.find(findMe, pos);
+				if (pos == std::string::npos)
+					return -1;
+				count++;
+			}
+			return pos;
+		}
+
 		inline bool RoleIsAuthorized([[maybe_unused]] const std::string &Path,
 									 [[maybe_unused]] const std::string &Method,
 									 [[maybe_unused]] std::string &Reason) {
+			// If user role is admin or root, authorized is true
+			if (UserInfo_.userinfo.userRole == SecurityObjects::USER_ROLE::ADMIN || UserInfo_.userinfo.userRole == SecurityObjects::USER_ROLE::ROOT) {
+				return true;
+			}
+			
+			// We just want the /api/v1/x part of the path so we need to account for
+			// extra path variables as well as query variables.
+			std::string pathstubtmp = Path.substr(0, nthOccurrence(Path, "/", 3));
+			std::string pathstub = pathstubtmp.substr(0, nthOccurrence(pathstubtmp, "?", 1));
+
+			// Next check the pathstub against the whitelist
+			if (SecurityObjects::API_WHITELIST.find(pathstub) != SecurityObjects::API_WHITELIST.end()) {
+				std::set<std::string> allowed_methods = SecurityObjects::API_WHITELIST.at(pathstub);
+				// The API stub is in the whitelist, but we also need to check that this method is whitelisted for this stub.
+				if (allowed_methods.find(Method) != allowed_methods.end()) {
+					return true;
+				}
+			}
+
+			// At this point, the user is not root/admin and the API + method is not whitelisted, so we disallow any method that is not a GET.
+			if (Method != Poco::Net::HTTPRequest::HTTP_GET) {
+				return false;
+			}
+			
 			return true;
 		}
 
