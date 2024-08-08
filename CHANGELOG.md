@@ -1,3 +1,7 @@
+## 3.0.8 (August 08, 2024)
+- chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.7 -> 3.0.8
+- Merge pull request #10 from kinarasystems/WIFI-13875-fix-use-dns
+
 ## 3.0.7 (August 07, 2024)
 - chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.6 -> 3.0.7
 - Merge branch 'Telecominfraproject:master' into kinara
