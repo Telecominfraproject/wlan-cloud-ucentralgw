@@ -170,7 +170,6 @@ namespace OpenWifi {
 		{APCommands::Commands::powercycle, false, true, &RESTAPI_device_commandHandler::PowerCycle, 60000ms},
 		{APCommands::Commands::fixedconfig, false, true, &RESTAPI_device_commandHandler::FixedConfig, 120000ms},
 		{APCommands::Commands::cablediagnostics, false, true, &RESTAPI_device_commandHandler::CableDiagnostics, 120000ms},
-
 	};
 
 	void RESTAPI_device_commandHandler::DoPost() {
