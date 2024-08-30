@@ -167,7 +167,9 @@ namespace OpenWifi {
 		{APCommands::Commands::certupdate, false, true, &RESTAPI_device_commandHandler::CertUpdate, 60000ms},
 		{APCommands::Commands::transfer, false, true, &RESTAPI_device_commandHandler::Transfer, 60000ms},
 		{APCommands::Commands::script, false, true, &RESTAPI_device_commandHandler::Script, 60000ms},
-		{APCommands::Commands::powercycle, false, true, &RESTAPI_device_commandHandler::PowerCycle, 60000ms}
+		{APCommands::Commands::powercycle, false, true, &RESTAPI_device_commandHandler::PowerCycle, 60000ms},
+		{APCommands::Commands::fixedconfig, false, true, &RESTAPI_device_commandHandler::FixedConfig, 120000ms},
+
 	};
 
 	void RESTAPI_device_commandHandler::DoPost() {
@@ -1548,4 +1550,35 @@ namespace OpenWifi {
 										   Logger_);
 	}
 
+	void RESTAPI_device_commandHandler::FixedConfig(
+		const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout,
+		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
+		poco_debug(Logger_, fmt::format("FIXEDCONFIG({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC,
+										TransactionId_, Requester(), SerialNumber_));
+		if(IsDeviceSimulated(SerialNumber_)) {
+			CallCanceled("FIXEDCONFIG", CMD_UUID, CMD_RPC, RESTAPI::Errors::SimulatedDeviceNotSupported);
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
+		GWObjects::FixedConfig fixed_config;
+		if(!fixed_config.from_json(ParsedBody_)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.SubmittedBy = Requester();
+		Cmd.UUID = CMD_UUID;
+		Cmd.Command = uCentralProtocol::FIXEDCONFIG;
+		std::ostringstream os;
+		ParsedBody_->stringify(os);
+		Cmd.Details = os.str();
+		Cmd.RunAt = 0;
+		Cmd.ErrorCode = 0;
+		Cmd.WaitingForFile = 0;
+
+		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::fixedconfig, false, Cmd,
+										   *ParsedBody_, *Request, *Response, timeout, nullptr, this,
+										   Logger_);
+	}
 } // namespace OpenWifi
