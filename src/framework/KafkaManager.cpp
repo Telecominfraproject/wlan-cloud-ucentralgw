@@ -118,6 +118,10 @@ namespace OpenWifi {
 						Producer.poll((std::chrono::milliseconds) 0);
 					}
 				}
+				if (Queue_.size() == 0) {
+					// message queue is empty, flush all previously sent messages
+					Producer.flush();
+				}
 			} catch (const cppkafka::HandleException &E) {
 				poco_warning(Logger_,
 							 fmt::format("Caught a Kafka exception (producer): {}", E.what()));
@@ -125,10 +129,6 @@ namespace OpenWifi {
 				Logger_.log(E);
 			} catch (...) {
 				poco_error(Logger_, "std::exception");
-			}
-			if (Queue_.size() == 0) {
-				// message queue is empty, flush all previously sent messages
-				Producer.flush();
 			}
 			Note = Queue_.waitDequeueNotification();
 		}
