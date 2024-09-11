@@ -580,6 +580,8 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char *INTERVAL = "interval";
 	static const char *UI = "UI";
 	static const char *BANDWIDTH = "bandwidth";
+
+	static const char *FIXEDCONFIG = "fixedconfig";
 } // namespace OpenWifi::RESTAPI::Protocol
 
 namespace OpenWifi::uCentralProtocol {
@@ -692,6 +694,8 @@ namespace OpenWifi::uCentralProtocol {
 	static const char *RRM = "rrm";
 	static const char *ACTIONS = "actions";
 
+	static const char *FIXEDCONFIG = "fixedconfig";
+
 } // namespace OpenWifi::uCentralProtocol
 
 namespace OpenWifi::uCentralProtocol::Events {
@@ -788,6 +792,7 @@ namespace OpenWifi::APCommands {
 		certupdate,
 		transfer,
 		powercycle,
+		fixedconfig,
 		unknown
 	};
 
@@ -802,7 +807,8 @@ namespace OpenWifi::APCommands {
 		RESTAPI::Protocol::EVENTQUEUE,	 RESTAPI::Protocol::TELEMETRY,
 		RESTAPI::Protocol::PING,		 RESTAPI::Protocol::SCRIPT,
 		RESTAPI::Protocol::RRM,		 	 RESTAPI::Protocol::CERTUPDATE,
-		RESTAPI::Protocol::TRANSFER,	 RESTAPI::Protocol::POWERCYCLE
+		RESTAPI::Protocol::TRANSFER,	 RESTAPI::Protocol::POWERCYCLE,
+		RESTAPI::Protocol::FIXEDCONFIG
 	};
 
 	inline const char *to_string(Commands Cmd) { return uCentralAPCommands[(uint8_t)Cmd]; }
