@@ -534,4 +534,10 @@ namespace OpenWifi::GWObjects {
 
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
+	struct FixedConfig {
+		std::string 	serialNumber;
+		std::string 	country;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
 } // namespace OpenWifi::GWObjects
