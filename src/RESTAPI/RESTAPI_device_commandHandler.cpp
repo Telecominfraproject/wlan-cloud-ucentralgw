@@ -169,6 +169,7 @@ namespace OpenWifi {
 		{APCommands::Commands::script, false, true, &RESTAPI_device_commandHandler::Script, 60000ms},
 		{APCommands::Commands::powercycle, false, true, &RESTAPI_device_commandHandler::PowerCycle, 60000ms},
 		{APCommands::Commands::fixedconfig, false, true, &RESTAPI_device_commandHandler::FixedConfig, 120000ms},
+		{APCommands::Commands::cablediagnostics, false, true, &RESTAPI_device_commandHandler::CableDiagnostics, 120000ms},
 
 	};
 
@@ -1578,6 +1579,47 @@ namespace OpenWifi {
 		Cmd.WaitingForFile = 0;
 
 		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::fixedconfig, false, Cmd,
+										   *ParsedBody_, *Request, *Response, timeout, nullptr, this,
+										   Logger_);
+	}
+
+	void RESTAPI_device_commandHandler::CableDiagnostics(
+		const std::string &CMD_UUID, uint64_t CMD_RPC,
+		[[maybe_unused]] std::chrono::milliseconds timeout,
+		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
+
+		if(UserInfo_.userinfo.userRole != SecurityObjects::ROOT &&
+			UserInfo_.userinfo.userRole != SecurityObjects::ADMIN) {
+			CallCanceled("CABLEDIAGNOSTICS", CMD_UUID, CMD_RPC, RESTAPI::Errors::ACCESS_DENIED);
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
+		poco_debug(Logger_, fmt::format("CABLEDIAGNOSTICS({},{}): TID={} user={} serial={}", CMD_UUID,
+										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+		if(IsDeviceSimulated(SerialNumber_)) {
+			CallCanceled("CABLEDIAGNOSTICS", CMD_UUID, CMD_RPC, RESTAPI::Errors::SimulatedDeviceNotSupported);
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
+		GWObjects::CableDiagnostics	PR;
+		if(!PR.from_json(ParsedBody_)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.SubmittedBy = Requester();
+		Cmd.UUID = CMD_UUID;
+		Cmd.Command = uCentralProtocol::CABLEDIAGNOSTICS;
+		std::ostringstream os;
+		ParsedBody_->stringify(os);
+		Cmd.Details = os.str();
+		Cmd.RunAt = PR.when;
+		Cmd.ErrorCode = 0;
+		Cmd.WaitingForFile = 0;
+
+		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::cablediagnostics, false, Cmd,
 										   *ParsedBody_, *Request, *Response, timeout, nullptr, this,
 										   Logger_);
 	}
