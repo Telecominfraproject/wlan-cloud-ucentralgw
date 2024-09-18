@@ -1,3 +1,7 @@
+## 3.0.10 (September 18, 2024)
+- chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.9 -> 3.0.10
+- Merge pull request #12 from kinarasystems/cable_diag
+
 ## 3.0.9 (August 30, 2024)
 - chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.8 -> 3.0.9
 - Merge pull request #11 from kinarasystems/fixedconfig
