@@ -72,6 +72,8 @@ namespace OpenWifi {
 					  const GWObjects::DeviceRestrictions &R);
 		void FixedConfig(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout,
 					  const GWObjects::DeviceRestrictions &R);
+		void CableDiagnostics(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout,
+					  const GWObjects::DeviceRestrictions &R);
 
 		static auto PathName() {
 			return std::list<std::string>{"/api/v1/device/{serialNumber}/{command}"};
