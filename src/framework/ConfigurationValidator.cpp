@@ -6603,10 +6603,17 @@ static std::string DefaultSWITCHSchema = R"foo(
                     "$ref": "#/$defs/interface.ssid.encryption"
                 },
                 "multi-psk": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/$defs/interface.ssid.multi-psk"
-                    }
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/$defs/interface.ssid.multi-psk"
+                            }
+                        },
+                        {
+                            "type": "boolean"
+                        }
+                    ]
                 },
                 "rrm": {
                     "$ref": "#/$defs/interface.ssid.rrm"
