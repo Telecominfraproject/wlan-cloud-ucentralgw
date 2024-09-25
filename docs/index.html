@@ -3299,7 +3299,7 @@ ul.nav-tabs {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/blacklist/{serialNumber}" \
+ "https://localhost:16002/api/v1/blacklist/{serialNumber}" \
  -d '{
   &quot;reason&quot; : &quot;reason&quot;,
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
@@ -3756,7 +3756,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/blacklist/{serialNumber}"
+ "https://localhost:16002/api/v1/blacklist/{serialNumber}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Blacklist-deleteFromBlackList-0-java">
@@ -4147,7 +4147,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/blacklist/{serialNumber}"
+ "https://localhost:16002/api/v1/blacklist/{serialNumber}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Blacklist-getBlacklistDevice-0-java">
@@ -4590,7 +4590,7 @@ Pagination start (starts at 1. If not specified, 1 is assumed)
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/blacklist?offset=56&limit=56&filter=filter_example"
+ "https://localhost:16002/api/v1/blacklist?offset=56&limit=56&filter=filter_example"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Blacklist-getBlacklistDeviceList-0-java">
@@ -5092,7 +5092,7 @@ Filter the results
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/blacklist/{serialNumber}" \
+ "https://localhost:16002/api/v1/blacklist/{serialNumber}" \
  -d '{
   &quot;reason&quot; : &quot;reason&quot;,
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
@@ -5554,7 +5554,7 @@ $(document).ready(function() {
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/ping" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/ping" \
  -d ''
 </code></pre>
                           </div>
@@ -6053,7 +6053,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/script" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/script" \
  -d '{
   &quot;deferred&quot; : true,
   &quot;scriptId&quot; : &quot;scriptId&quot;,
@@ -6513,7 +6513,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/command/{commandUUID}"
+ "https://localhost:16002/api/v1/command/{commandUUID}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-deleteACommand-0-java">
@@ -6956,7 +6956,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/commands?serialNumber=serialNumber_example&startDate=789&endDate=789"
+ "https://localhost:16002/api/v1/commands?serialNumber=serialNumber_example&startDate=789&endDate=789"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-deleteCommands-0-java">
@@ -7458,7 +7458,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/capabilities"
+ "https://localhost:16002/api/v1/device/{serialNumber}/capabilities"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-deleteDeviceCapabilities-0-java">
@@ -7898,7 +7898,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/healthchecks?startDate=789&endDate=789"
+ "https://localhost:16002/api/v1/device/{serialNumber}/healthchecks?startDate=789&endDate=789"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-deleteDeviceHealthChecks-0-java">
@@ -8407,7 +8407,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/logs?startDate=789&endDate=789&logType=789"
+ "https://localhost:16002/api/v1/device/{serialNumber}/logs?startDate=789&endDate=789&logType=789"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-deleteDeviceLogs-0-java">
@@ -8949,7 +8949,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/statistics?startDate=789&endDate=789"
+ "https://localhost:16002/api/v1/device/{serialNumber}/statistics?startDate=789&endDate=789"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-deleteDeviceStats-0-java">
@@ -9458,7 +9458,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/eventqueue" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/eventqueue" \
  -d '{
   &quot;types&quot; : [ &quot;dhcp&quot;, &quot;dhcp&quot; ],
   &quot;serialNumber&quot; : &quot;serialNumber&quot;
@@ -9911,7 +9911,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/telemetry?statusOnly=true" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/telemetry?statusOnly=true" \
  -d '{
   &quot;types&quot; : [ &quot;dhcp-snooping&quot;, &quot;dhcp-snooping&quot; ],
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
@@ -10402,7 +10402,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/factory" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/factory" \
  -d '{
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
   &quot;when&quot; : 0,
@@ -10856,7 +10856,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/command/{commandUUID}"
+ "https://localhost:16002/api/v1/command/{commandUUID}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-getACommandDetails-0-java">
@@ -11299,7 +11299,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/commands?serialNumber=serialNumber_example&startDate=789&endDate=789&offset=789&limit=789&newest=true"
+ "https://localhost:16002/api/v1/commands?serialNumber=serialNumber_example&startDate=789&endDate=789&offset=789&limit=789&newest=true"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-getCommandList-0-java">
@@ -11888,7 +11888,7 @@ Selecting this option means the newest record will be returned. Use limit to sel
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/capabilities"
+ "https://localhost:16002/api/v1/device/{serialNumber}/capabilities"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-getDeviceCapabilities-0-java">
@@ -12328,7 +12328,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/healthchecks?startDate=789&endDate=789&offset=789&limit=789&newest=true&lastOnly=true"
+ "https://localhost:16002/api/v1/device/{serialNumber}/healthchecks?startDate=789&endDate=789&offset=789&limit=789&newest=true&lastOnly=true"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-getDeviceHealthChecks-0-java">
@@ -12957,7 +12957,7 @@ Selecting this option means the last healthcheck will be returned. All other par
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/logs?startDate=789&endDate=789&offset=789&limit=789&logType=789&newest=true"
+ "https://localhost:16002/api/v1/device/{serialNumber}/logs?startDate=789&endDate=789&offset=789&limit=789&logType=789&newest=true"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-getDeviceLogs-0-java">
@@ -13589,7 +13589,7 @@ Selecting this option means the newest record will be returned. Use limit to sel
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/statistics?startDate=789&endDate=789&offset=789&limit=789&lastOnly=true&newest=true&countOnly=true"
+ "https://localhost:16002/api/v1/device/{serialNumber}/statistics?startDate=789&endDate=789&offset=789&limit=789&lastOnly=true&newest=true&countOnly=true"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-getDeviceStats-0-java">
@@ -14248,7 +14248,7 @@ Return the number of matching records.
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/status"
+ "https://localhost:16002/api/v1/device/{serialNumber}/status"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-getDeviceStatus-0-java">
@@ -14688,7 +14688,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/rtty"
+ "https://localhost:16002/api/v1/device/{serialNumber}/rtty"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Commands-getRttySessionInfo-0-java">
@@ -15128,7 +15128,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/leds" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/leds" \
  -d '{
   &quot;duration&quot; : 6,
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
@@ -15583,7 +15583,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/request" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/request" \
  -d '{
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
   &quot;message&quot; : &quot;state&quot;,
@@ -16037,7 +16037,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/powercycle" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/powercycle" \
  -d '{
   &quot;serial&quot; : &quot;serial&quot;,
   &quot;ports&quot; : [ {
@@ -16500,7 +16500,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/reboot" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/reboot" \
  -d '{
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
   &quot;when&quot; : 0
@@ -16953,7 +16953,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/rrm" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/rrm" \
  -d ''
 </code></pre>
                           </div>
@@ -17403,7 +17403,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/trace" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/trace" \
  -d '{
   &quot;duration&quot; : 6,
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
@@ -17860,7 +17860,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/transfer" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/transfer" \
  -d '{
   &quot;server&quot; : &quot;server&quot;,
   &quot;serialNumber&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
@@ -18317,7 +18317,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/certupdate" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/certupdate" \
  -d '{
   &quot;encodedCertificate&quot; : &quot;encodedCertificate&quot;,
   &quot;serialNumber&quot; : &quot;serialNumber&quot;
@@ -18773,7 +18773,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/configure" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/configure" \
  -d '{
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
   &quot;configuration&quot; : &quot;configuration&quot;,
@@ -19228,7 +19228,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/upgrade?FWsignature=fWsignature_example" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/upgrade?FWsignature=fWsignature_example" \
  -d '{
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
   &quot;uri&quot; : &quot;uri&quot;,
@@ -19717,7 +19717,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}/wifiscan" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/wifiscan" \
  -d '{
   &quot;activeScan&quot; : true,
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
@@ -20175,7 +20175,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/default_configuration/{name}" \
+ "https://localhost:16002/api/v1/default_configuration/{name}" \
  -d '{
   &quot;configuration&quot; : &quot;configuration&quot;,
   &quot;modelIds&quot; : [ &quot;modelIds&quot;, &quot;modelIds&quot; ],
@@ -20632,7 +20632,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/default_configuration/{name}"
+ "https://localhost:16002/api/v1/default_configuration/{name}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Configurations-deleteDefaultConfiguration-0-java">
@@ -21023,7 +21023,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/default_configuration/{name}"
+ "https://localhost:16002/api/v1/default_configuration/{name}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Configurations-getDefaultConfiguration-0-java">
@@ -21463,7 +21463,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/default_configurations"
+ "https://localhost:16002/api/v1/default_configurations"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Configurations-getDefaultConfigurations-0-java">
@@ -21866,7 +21866,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/default_configuration/{name}" \
+ "https://localhost:16002/api/v1/default_configuration/{name}" \
  -d '{
   &quot;configuration&quot; : &quot;configuration&quot;,
   &quot;modelIds&quot; : [ &quot;modelIds&quot;, &quot;modelIds&quot; ],
@@ -22326,7 +22326,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X GET \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/deviceDashboard"
+ "https://localhost:16002/api/v1/deviceDashboard"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Dashboards-getDeviceDashboard-0-java">
@@ -22684,7 +22684,7 @@ pub fn main() {
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}?validateOnly=true" \
+ "https://localhost:16002/api/v1/device/{serialNumber}?validateOnly=true" \
  -d '{
   &quot;venue&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
   &quot;notes&quot; : [ {
@@ -23264,7 +23264,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/device/{serialNumber}"
+ "https://localhost:16002/api/v1/device/{serialNumber}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Devices-deleteDevice-0-java">
@@ -23654,7 +23654,7 @@ pub fn main() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/devices?select=serial1,serial2,serial3&simulatedOnly=true&macPattern=["aabbcc*","*aabbcc*","*cccddee"]&oldestContact=789&simulatedDevices=true"
+ "https://localhost:16002/api/v1/devices?select=serial1,serial2,serial3&simulatedOnly=true&macPattern=["aabbcc*","*aabbcc*","*cccddee"]&oldestContact=789&simulatedDevices=true"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Devices-deleteDeviceList-0-java">
@@ -24170,7 +24170,7 @@ Filter the results
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/capabilities"
+ "https://localhost:16002/api/v1/capabilities"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Devices-getCapabilitiesList-0-java">
@@ -24573,7 +24573,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}"
+ "https://localhost:16002/api/v1/device/{serialNumber}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Devices-getDeviceInformation-0-java">
@@ -25013,7 +25013,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/devices?offset=56&limit=56&filter=filter_example&select=serial1,serial2,serial3&serialOnly=true&countOnly=false&deviceWithStatus=true&orderBy=serialNumber:a,created:d&orderSpec=true&connectionStatistics=true&health=true&lowLimit=56&highLimits=56&platform=platform_example&includeProvisioned=true"
+ "https://localhost:16002/api/v1/devices?offset=56&limit=56&filter=filter_example&select=serial1,serial2,serial3&serialOnly=true&countOnly=false&deviceWithStatus=true&orderBy=serialNumber:a,created:d&orderSpec=true&connectionStatistics=true&health=true&lowLimit=56&highLimits=56&platform=platform_example&includeProvisioned=true"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Devices-getDeviceList-0-java">
@@ -25876,7 +25876,7 @@ only devices which are not provisioned
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/device/{serialNumber}" \
+ "https://localhost:16002/api/v1/device/{serialNumber}" \
  -d '{
   &quot;venue&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
   &quot;notes&quot; : [ {
@@ -26425,7 +26425,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/file/{uuid}?serialNumber=serialNumber_example"
+ "https://localhost:16002/api/v1/file/{uuid}?serialNumber=serialNumber_example"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Files-deleteUploadFidelete-0-java">
@@ -26856,7 +26856,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/octet-stream" \
- "https://localhost:16001/api/v1/file/{uuid}?serialNumber=serialNumber_example"
+ "https://localhost:16002/api/v1/file/{uuid}?serialNumber=serialNumber_example"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Files-getUploadFile-0-java">
@@ -27339,7 +27339,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/default_firmware/{deviceType}" \
+ "https://localhost:16002/api/v1/default_firmware/{deviceType}" \
  -d '{
   &quot;deviceType&quot; : &quot;deviceType&quot;,
   &quot;created&quot; : 6,
@@ -27796,7 +27796,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/default_firmware/{deviceType}"
+ "https://localhost:16002/api/v1/default_firmware/{deviceType}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Firmware-deleteDefaultFirmware-0-java">
@@ -28187,7 +28187,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/default_firmware/{deviceType}"
+ "https://localhost:16002/api/v1/default_firmware/{deviceType}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Firmware-getDefaultFirmware-0-java">
@@ -28627,7 +28627,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/default_firmwares"
+ "https://localhost:16002/api/v1/default_firmwares"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Firmware-getDefaultFirmwares-0-java">
@@ -29030,7 +29030,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/default_firmware/{deviceType}" \
+ "https://localhost:16002/api/v1/default_firmware/{deviceType}" \
  -d '{
   &quot;deviceType&quot; : &quot;deviceType&quot;,
   &quot;created&quot; : 6,
@@ -29490,7 +29490,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X GET \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/ouis?macList=macList_example"
+ "https://localhost:16002/api/v1/ouis?macList=macList_example"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-OUIs-getOUIs-0-java">
@@ -29883,7 +29883,7 @@ pub fn main() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/radiusProxyConfig"
+ "https://localhost:16002/api/v1/radiusProxyConfig"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-RADIUSProxy-deleteRadiusProxyConfig-0-java">
@@ -30214,7 +30214,7 @@ pub fn main() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X GET \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/radiusProxyConfig"
+ "https://localhost:16002/api/v1/radiusProxyConfig"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-RADIUSProxy-getRadiusProxyConfig-0-java">
@@ -30546,7 +30546,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/radiusProxyConfig" \
+ "https://localhost:16002/api/v1/radiusProxyConfig" \
  -d '{
   &quot;pools&quot; : [ {
     &quot;radsecPoolType&quot; : &quot;generic&quot;,
@@ -31178,7 +31178,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/radiusSessions/{serialNumber}?serialNumberOnly=true&userName=userName_example&mac=aa:bb:cc:dd:ee:ff"
+ "https://localhost:16002/api/v1/radiusSessions/{serialNumber}?serialNumberOnly=true&userName=userName_example&mac=aa:bb:cc:dd:ee:ff"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-RadiusSessions-getAPRadiusSessions-0-java">
@@ -31708,7 +31708,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/radiusSessions/{serialNumber}?operation=operation_example" \
+ "https://localhost:16002/api/v1/radiusSessions/{serialNumber}?operation=operation_example" \
  -d ''
 </code></pre>
                           </div>
@@ -32195,7 +32195,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/script/{uuid}" \
+ "https://localhost:16002/api/v1/script/{uuid}" \
  -d '{
   &quot;deferred&quot; : false,
   &quot;defaultUploadURI&quot; : &quot;defaultUploadURI&quot;,
@@ -32665,7 +32665,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/script/{uuid}"
+ "https://localhost:16002/api/v1/script/{uuid}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Scripting-deleteScript-0-java">
@@ -33059,7 +33059,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/script/{uuid}"
+ "https://localhost:16002/api/v1/script/{uuid}"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Scripting-getScript-0-java">
@@ -33505,7 +33505,7 @@ The UUID of the script
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/scripts?offset=56&limit=56&filter=filter_example"
+ "https://localhost:16002/api/v1/scripts?offset=56&limit=56&filter=filter_example"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Scripting-getScripts-0-java">
@@ -34007,7 +34007,7 @@ Filter the results
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/script/{uuid}" \
+ "https://localhost:16002/api/v1/script/{uuid}" \
  -d '{
   &quot;deferred&quot; : false,
   &quot;defaultUploadURI&quot; : &quot;defaultUploadURI&quot;,
@@ -34480,7 +34480,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X GET \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/system?command=command_example"
+ "https://localhost:16002/api/v1/system?command=command_example"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-SystemCommands-getSystemCommand-0-java">
@@ -34875,7 +34875,7 @@ Get a value
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/system" \
+ "https://localhost:16002/api/v1/system" \
  -d ''
 </code></pre>
                           </div>
@@ -35339,7 +35339,7 @@ $(document).ready(function() {
                             <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
- "https://localhost:16001/api/v1/systemConfiguration"
+ "https://localhost:16002/api/v1/systemConfiguration"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-SystemConfiguration-deleteSystemConfiguration-0-java">
@@ -35693,7 +35693,7 @@ pub fn main() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/systemConfiguration?entries=["element1","element1,element2,element3"]"
+ "https://localhost:16002/api/v1/systemConfiguration?entries=["element1","element1,element2,element3"]"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-SystemConfiguration-getSystemConfiguration-0-java">
@@ -36135,7 +36135,7 @@ Which parameters you want to retrieve
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Content-Type: application/json" \
- "https://localhost:16001/api/v1/systemConfiguration" \
+ "https://localhost:16002/api/v1/systemConfiguration" \
  -d '{
   &quot;parameterName&quot; : &quot;parameterName&quot;,
   &quot;parameterValue&quot; : &quot;parameterValue&quot;
@@ -36553,7 +36553,7 @@ $(document).ready(function() {
 -H "X-API-KEY: [[apiKey]]" \
  -H "Authorization: Bearer [[accessToken]]" \
  -H "Accept: application/json" \
- "https://localhost:16001/api/v1/iptocountry?iplist=10.2.2.2,10.3.4.3"
+ "https://localhost:16002/api/v1/iptocountry?iplist=10.2.2.2,10.3.4.3"
 </code></pre>
                           </div>
                           <div class="tab-pane" id="examples-Utility-getIpToCountry-0-java">
