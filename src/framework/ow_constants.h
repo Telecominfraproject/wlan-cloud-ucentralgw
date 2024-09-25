@@ -582,7 +582,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char *BANDWIDTH = "bandwidth";
 
 	static const char *FIXEDCONFIG = "fixedconfig";
-	static const char *CABLEDIAGNOSTICS = "cablediagnostics";
+	static const char *CABLEDIAGNOSTICS = "cable-diagnostics";
 } // namespace OpenWifi::RESTAPI::Protocol
 
 namespace OpenWifi::uCentralProtocol {
@@ -696,7 +696,7 @@ namespace OpenWifi::uCentralProtocol {
 	static const char *ACTIONS = "actions";
 
 	static const char *FIXEDCONFIG = "fixedconfig";
-	static const char *CABLEDIAGNOSTICS = "cablediagnostics";
+	static const char *CABLEDIAGNOSTICS = "cable-diagnostics";
 
 } // namespace OpenWifi::uCentralProtocol
 
