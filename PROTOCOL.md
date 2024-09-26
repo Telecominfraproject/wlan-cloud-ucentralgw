@@ -306,8 +306,40 @@ The device should answer:
          },
      "id" : <same number>
 }
+```
+
+#### Controller wants the device to apply a given fixed configuration
+
+Controller sends this command when it requires the device to apply fixed configuration, eg. country code. The device
+should respond with message indicating failure or success.
+
+```json
+{   "jsonrpc" : "2.0",
+    "method" : "fixedconfig",
+    "params" : {
+        "serial" : <serial number>,
+        "when" : Optional - <UTC time when to apply this config, 0 means immediate, this is a suggestion>
+        "country" : "<country-code>"
+     },
+}
+```
+
+The device should answer:
+```json
+{   "jsonrpc" : "2.0",
+    "result" : {
+        "serial": <serial number>,
+        "status": {
+            "error": 0 or an error number,
+            "text": <description of the error or success, eg. "Applied fixed config, rebooting">
+        },
+        "uuid": <UUID>
+    }
+}
 
 ```
+
+
 ##### The Answer
 The device can answer and tell the controller it has rejected certain parts of the config and potentially replaced them with
 appropriate values. This could be used to allow a device to replace frequencies for the regions it is located in. The device 

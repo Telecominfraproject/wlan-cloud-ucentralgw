@@ -799,4 +799,24 @@ namespace OpenWifi::GWObjects {
 		return false;
 	}
 
+	bool FixedConfig::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serial", serialNumber);
+			field_from_json(Obj, "country", country);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
+
+	bool CableDiagnostics::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serial", serialNumber);
+			field_from_json(Obj, "when", when);
+			field_from_json(Obj, "ports", ports);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
 } // namespace OpenWifi::GWObjects

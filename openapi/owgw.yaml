@@ -12,7 +12,7 @@ info:
     url: https://www.ucentral.info/support
 
 servers:
-  - url: 'https://localhost:16001/api/v1'
+  - url: 'https://localhost:16002/api/v1'
 
 security:
   - bearerAuth: []
