@@ -22,9 +22,16 @@ namespace OpenWifi {
 
 		std::string FileType;
 		std::string FileContent;
-		if (!StorageService()->GetAttachedFileContent(UUID, SerialNumber, FileContent, FileType) || FileContent.empty()) {
+		int WaitingForFile = 0;
+		if (!StorageService()->GetAttachedFileContent(UUID, SerialNumber, FileContent, FileType, WaitingForFile) && !WaitingForFile) {
 			return NotFound();
 		}
+		else if (WaitingForFile)
+		{
+			// waiting for file to be uploaded, return Accepted
+			return Accepted();
+		}
+
 		if (FileType == "pcap") {
 			SendFileContent(FileContent, "application/vnd.tcpdump.pcap", UUID + ".pcap");
 		}

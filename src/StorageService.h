@@ -243,7 +243,7 @@ namespace OpenWifi {
 									 const std::string &Type);
 		bool CancelWaitFile(std::string &UUID, std::string &ErrorText);
 		bool GetAttachedFileContent(std::string &UUID, const std::string &SerialNumber,
-									std::string &FileContent, std::string &Type);
+									std::string &FileContent, std::string &Type, int& WaitingForFile);
 		bool RemoveAttachedFile(std::string &UUID);
 		bool SetCommandResult(std::string &UUID, std::string &Result);
 		bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany,

@@ -647,18 +647,6 @@ namespace OpenWifi {
 			Sess.begin();
 			Poco::Data::Statement Statement(Sess);
 
-			std::string StatementStr;
-
-			//	Get the existing command
-
-			StatementStr =
-				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?";
-
-			Statement << ConvertParams(StatementStr), Poco::Data::Keywords::use(WaitForFile),
-				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(Size),
-				Poco::Data::Keywords::use(UUID);
-			Statement.execute();
-			Sess.commit();
 			if (Size < FileUploader()->MaxSize()) {
 
 				Poco::Data::BLOB TheBlob;
@@ -681,6 +669,18 @@ namespace OpenWifi {
 				poco_warning(Logger(), fmt::format("File {} is too large.", UUID));
 			}
 			Sess.commit();
+
+			// update CommandList here to ensure that file us uploaded
+			std::string StatementStr;
+			StatementStr =
+				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?";
+
+			Statement << ConvertParams(StatementStr), Poco::Data::Keywords::use(WaitForFile),
+				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(Size),
+				Poco::Data::Keywords::use(UUID);
+			Statement.execute();
+			Sess.commit();
+
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -689,7 +689,7 @@ namespace OpenWifi {
 	}
 
 	bool Storage::GetAttachedFileContent(std::string &UUID, const std::string &SerialNumber,
-										 std::string &FileContent, std::string &Type) {
+										 std::string &FileContent, std::string &Type, int &WaitingForFile) {
 		try {
 			Poco::Data::BLOB L;
 			/*
@@ -702,10 +702,10 @@ namespace OpenWifi {
 			Poco::Data::Statement Select1(Sess);
 
 			std::string TmpSerialNumber;
-			std::string st1{"SELECT SerialNumber, Command FROM CommandList WHERE UUID=?"};
+			std::string st1{"SELECT SerialNumber, Command , WaitingForFile FROM CommandList WHERE UUID=?"};
 			std::string Command;
 			Select1 << ConvertParams(st1), Poco::Data::Keywords::into(TmpSerialNumber),
-				Poco::Data::Keywords::into(Command), Poco::Data::Keywords::use(UUID);
+				Poco::Data::Keywords::into(Command), Poco::Data::Keywords::into(WaitingForFile), Poco::Data::Keywords::use(UUID);
 			Select1.execute();
 
 			if (TmpSerialNumber != SerialNumber) {
