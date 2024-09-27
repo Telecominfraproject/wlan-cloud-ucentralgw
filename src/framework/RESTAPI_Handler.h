@@ -431,6 +431,11 @@ namespace OpenWifi {
 			}
 		}
 
+		inline void Accepted() {
+			PrepareResponse(Poco::Net::HTTPResponse::HTTP_ACCEPTED);
+			Response->send();
+		}
+
 		inline void SendCompressedTarFile(const std::string &FileName, const std::string &Content) {
 			Response->setStatus(Poco::Net::HTTPResponse::HTTPStatus::HTTP_OK);
 			SetCommonHeaders();
