@@ -1,3 +1,7 @@
+## 3.0.12 (September 27, 2024)
+- chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.11 -> 3.0.12
+- Merge pull request #15 from kinarasystems/WIFI-14134-fix_file_upload_status
+
 ## 3.0.11 (September 27, 2024)
 - chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.10 -> 3.0.11
 - Merge pull request #14 from kinarasystems/WIFI-14134-fix_file_upload_status
