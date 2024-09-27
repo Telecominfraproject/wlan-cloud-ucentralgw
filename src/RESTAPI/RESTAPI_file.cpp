@@ -26,8 +26,7 @@ namespace OpenWifi {
 		if (!StorageService()->GetAttachedFileContent(UUID, SerialNumber, FileContent, FileType, WaitingForFile) && !WaitingForFile) {
 			return NotFound();
 		}
-		else if (WaitingForFile)
-		{
+		else if (WaitingForFile) {
 			// waiting for file to be uploaded, return Accepted
 			return Accepted();
 		}
