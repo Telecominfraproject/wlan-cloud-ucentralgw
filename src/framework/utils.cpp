@@ -590,6 +590,26 @@ namespace OpenWifi::Utils {
 		return false;
 	}
 
+	//
+	// Compress given data using utility function and encode it in base64 format.
+	//
+	bool CompressAndEncodeBase64(const std::string& UnCompressedData, std::string& CompressedBase64Data) {
+
+		unsigned long CompressedDataSize = UnCompressedData.size();
+		std::vector<Bytef> CompressedData(CompressedDataSize);
+		auto status = compress(&CompressedData[0], &CompressedDataSize,
+								(Bytef*) UnCompressedData.c_str(), UnCompressedData.size());
+		if (status == Z_OK) {
+			CompressedBase64Data = OpenWifi::Utils::base64encode(&CompressedData[0], CompressedDataSize);
+		}
+		else {
+			// failed to compress data
+			return false;
+		}
+
+		return true;
+	}
+
 	bool IsAlphaNumeric(const std::string &s) {
 		return std::all_of(s.begin(), s.end(), [](char c) -> bool { return isalnum(c); });
 	}
