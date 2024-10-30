@@ -151,6 +151,8 @@ namespace OpenWifi::Utils {
 	bool ExtractBase64CompressedData(const std::string &CompressedData,
 									 std::string &UnCompressedData, uint64_t compress_sz);
 
+	bool CompressAndEncodeBase64(const std::string& UnCompressedData, std::string& CompressedData);
+
 	inline bool match(const char* first, const char* second)
 	{
 		// If we reach at the end of both strings, we are done
