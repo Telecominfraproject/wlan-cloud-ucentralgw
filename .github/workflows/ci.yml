@@ -91,7 +91,7 @@ jobs:
 
   deploy-to-dev1:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/kinara'
     env:
       DEPLOY_NAME: owgw
       HOSTNAME: dev1.dev.kinsights.io
