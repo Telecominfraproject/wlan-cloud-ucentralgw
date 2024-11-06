@@ -89,9 +89,31 @@ jobs:
           steps: ${{ toJson(steps) }}
           dry_run: False
 
-  deploy-to-dev:
+  deploy-to-dev1:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/kinara'
+    if: github.ref == 'refs/heads/main'
+    env:
+      DEPLOY_NAME: owgw
+      HOSTNAME: dev1.dev.kinsights.io
+      NAMESPACE: openlan
+    needs:
+      - docker
+    steps:
+      - name: Set up SSH key
+        run: |
+          echo "${{ secrets.PRIVATE_SSH_KEY }}" > .ssh_host_key
+          chmod 600 .ssh_host_key
+      - name: Rolling update of deployment
+        run: |
+          ssh -i .ssh_host_key \
+            -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" \
+            ubuntu@${{ env.HOSTNAME }} \
+            kubectl rollout restart deployment/${{ env.DEPLOY_NAME }} -n ${{ env.NAMESPACE }}
+
+  # OLD EKS method - disabled via if:
+  deploy-to-dev-old-eks:
+    runs-on: ubuntu-latest
+    if: false
     env:
       DEPLOY_NAME: owgw
       AWS_DEFAULT_REGION: us-east-1
