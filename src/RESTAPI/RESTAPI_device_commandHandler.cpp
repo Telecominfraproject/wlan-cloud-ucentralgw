@@ -711,7 +711,6 @@ namespace OpenWifi {
 							CompressedParams.set(uCentralProtocol::COMPRESS_64, CompressedBase64Data);
 							CompressedParams.set(uCentralProtocol::COMPRESS_SZ, UncompressedDataLen);
 							ConfigParams = CompressedParams;
-							Cmd.Details.append(" (compressed: " + CompressedBase64Data + ")");
 						}
 					}
 				}
