@@ -4652,16 +4652,22 @@ static std::string DefaultSWITCHSchema = R"foo(
             "type": "object",
             "properties": {
                 "port-mirror": {
-                    "type": "object",
-                    "properties": {
-                        "monitor-ports": {
-                            "type": "array",
-                            "items": {
+                    "description": "Enable mirror of traffic from multiple minotor ports to a single analysis port.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "monitor-ports": {
+                                "description": "The list of ports that we want to mirror.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "analysis-port": {
+                                "description": "The port that mirror'ed packets should be sent to.",
                                 "type": "string"
                             }
-                        },
-                        "analysis-port": {
-                            "type": "string"
                         }
                     }
                 },
