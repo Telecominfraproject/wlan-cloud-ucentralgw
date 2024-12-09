@@ -54,8 +54,8 @@ namespace OpenWifi::RESTAPI_RPC {
 						std::chrono::milliseconds WaitTimeInMs, Poco::JSON::Object *ObjectToReturn,
 						RESTAPIHandler *Handler, Poco::Logger &Logger, bool Deferred) {
 
-		Logger.information(fmt::format("{},{}: New {} command. User={} Serial={}. ", Cmd.UUID,
-									   RPCID, Cmd.Command, Cmd.SubmittedBy, Cmd.SerialNumber));
+		Logger.information(fmt::format("{},{}: New {} command. User={} Serial={} Details={}. ", Cmd.UUID,
+									   RPCID, Cmd.Command, Cmd.SubmittedBy, Cmd.SerialNumber, Cmd.Details));
 		Cmd.Submitted = Utils::Now();
 		Cmd.Executed = 0;
 

@@ -611,6 +611,7 @@ namespace OpenWifi::uCentralProtocol {
 	static const char *CFGPENDING = "cfgpending";
 	static const char *RECOVERY = "recovery";
 	static const char *COMPRESS_64 = "compress_64";
+	static const char *COMPRESS_SZ = "compress_sz";
 	static const char *CAPABILITIES = "capabilities";
 	static const char *REQUEST_UUID = "request_uuid";
 	static const char *SANITY = "sanity";

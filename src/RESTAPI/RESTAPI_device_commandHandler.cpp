@@ -694,9 +694,31 @@ namespace OpenWifi {
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 
+				// retrieve capabilities and encode/compress parameters, if required
+				Poco::JSON::Object ConfigParams = Params;
+				GWObjects::Capabilities Caps;
+				if (StorageService()->GetDeviceCapabilities(SerialNumber_, Caps)) {
+					Poco::JSON::Object CapsJson;
+					Caps.to_json(CapsJson);
+					auto DeviceCaps = CapsJson.getObject(uCentralProtocol::CAPABILITIES);
+					if (DeviceCaps->has("compress_cmd") && DeviceCaps->get("compress_cmd")) {
+						// compressed command capability present and it is set, compress parameters
+						Poco::JSON::Object CompressedParams;
+						std::string CompressedBase64Data;
+						std::uint64_t UncompressedDataLen = ParamStream.str().length();
+						if (Utils::CompressAndEncodeBase64(ParamStream.str(), CompressedBase64Data)) {
+							// set compressed, base 64 encoded data and length of uncompressed data
+							CompressedParams.set(uCentralProtocol::COMPRESS_64, CompressedBase64Data);
+							CompressedParams.set(uCentralProtocol::COMPRESS_SZ, UncompressedDataLen);
+							ConfigParams = CompressedParams;
+						}
+					}
+				}
+
+
 				// AP_WS_Server()->SetPendingUUID(SerialNumber_, NewUUID);
 				RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::configure, true,
-												   Cmd, Params, *Request, *Response, timeout,
+												   Cmd, ConfigParams, *Request, *Response, timeout,
 												   nullptr, this, Logger_);
 
 				if(!Cmd.Executed) {
