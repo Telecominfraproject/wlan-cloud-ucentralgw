@@ -324,6 +324,20 @@ should respond with message indicating failure or success.
 }
 ```
 
+If AP supports compressed configuration feature by inidcating `compress_cmd=true` in its capabilities, controller
+will send a compressed configuration message where configuration payload (i.e. contents of `params`) is compressed
+and encoded in base64 format:
+```json
+{   "jsonrpc" : "2.0",
+    "method" : "configure",
+    "params" : {
+        "compress_64" : "<b64 encoded zlib compressed payload>",
+        "compress_sz" : "<size of uncompressed data in bytes>"
+     },
+     "id" : <some number>
+}
+```
+
 The device should answer:
 ```json
 {   "jsonrpc" : "2.0",
