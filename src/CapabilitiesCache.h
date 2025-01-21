@@ -111,7 +111,7 @@ namespace OpenWifi {
 				i >> cache;
 
 				for (const auto &[Type, Platform] : cache.items()) {
-					Platforms_[Type] = Poco::toLower(to_string(Platform));
+					Platforms_[Type] = Poco::toLower(Platform.get<std::string>());
 				}
 			} catch (...) {
 			}
