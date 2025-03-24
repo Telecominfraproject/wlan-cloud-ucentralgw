@@ -561,14 +561,14 @@ namespace OpenWifi {
 	void AP_WS_Connection::OnSocketShutdown(
 		[[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		poco_trace(Logger_, fmt::format("SOCKET-SHUTDOWN({}): Closing.", CId_));
-//		std::lock_guard	G(ConnectionMutex_);
+		std::lock_guard	G(ConnectionMutex_);
 		return EndConnection();
 	}
 
 	void AP_WS_Connection::OnSocketError(
 		[[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
 		poco_trace(Logger_, fmt::format("SOCKET-ERROR({}): Closing.", CId_));
-//		std::lock_guard	G(ConnectionMutex_);
+		std::lock_guard	G(ConnectionMutex_);
 		return EndConnection();
 	}
 
@@ -651,10 +651,18 @@ namespace OpenWifi {
 				} break;
 
 				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-					poco_trace(Logger_,
-							   fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
-										   CId_, IncomingSize, flags, IncomingFrame.begin()));
-
+					if (SerialNumber_ == "e046ee9fed1f") {
+						// Temporary hack for Galgus device
+						poco_information(Logger_,
+							fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
+										CId_, IncomingSize, flags, IncomingFrame.begin()));
+					}
+					else{
+						poco_trace(Logger_,
+							fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
+										CId_, IncomingSize, flags, IncomingFrame.begin()));
+					}
+					
 					Poco::JSON::Parser parser;
 					auto ParsedMessage = parser.parse(IncomingFrame.begin());
 					auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
@@ -694,6 +702,12 @@ namespace OpenWifi {
 				} break;
 
 				default: {
+					if (SerialNumber_ == "e046ee9fed1f") {
+						// Temporary hack for Galgus device
+						poco_warning(Logger_,
+							fmt::format("FRAME({}): Illegal Frame received (length={}, flags={}). Msg={}",
+										CId_, IncomingSize, flags, IncomingFrame.begin()));
+					}
 					poco_warning(Logger_, fmt::format("UNKNOWN({}): unknown WS Frame operation: {}",
 													  CId_, std::to_string(Op)));
 					Errors_++;

@@ -57,8 +57,9 @@ namespace OpenWifi {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
 				Utils::SetThreadName("ws:conn-init");
-				session_id_++;
-				return new AP_WS_RequestHandler(Logger_, session_id_);
+				//session_id_++;
+				auto new_session_id =  session_id_.fetch_add(1, std::memory_order_seq_cst) + 1;
+				return new AP_WS_RequestHandler(Logger_, new_session_id);
 			} else {
 				return nullptr;
 			}
