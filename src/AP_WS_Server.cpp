@@ -515,10 +515,27 @@ namespace OpenWifi {
 			Connection = SessionHint->second;
 			Sessions_[sessionHash].erase(SessionHint);
 		}
-
-		auto deviceHash = MACHash::Hash(SerialNumber);
-		std::lock_guard DeviceLock(SerialNumbersMutex_[deviceHash]);
-		SerialNumbers_[deviceHash][SerialNumber] = Connection;
+		std::atomic_bool duplicate_session = false;
+		{
+			auto deviceHash = MACHash::Hash(SerialNumber);
+			std::lock_guard DeviceLock(SerialNumbersMutex_[deviceHash]);
+			auto DeviceHint = SerialNumbers_[deviceHash].find(SerialNumber);
+            if (DeviceHint == SerialNumbers_[deviceHash].end()) {
+                // No duplicate connection go ahead and add new connection
+		        SerialNumbers_[deviceHash][SerialNumber] = Connection;
+            }
+            else {
+                // Mark a duplicate session
+                duplicate_session = true;
+				poco_information(Logger(), fmt::format("[session ID: {}] Found a duplicate connection for device serial: {}", session_id, Utils::IntToSerialNumber(SerialNumber)));
+            }
+		}
+		if (duplicate_session.load()){
+            // This is only called if we have a duplicate session
+            // We remove the new incoming session that we just added a few lines above, forcing the destructor for this new session while not impacting the pointers to the old session.
+            std::lock_guard SessionLock(SessionMutex_[sessionHash]);
+			Sessions_[sessionHash].erase(session_id);
+        }
 	}
 
 	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t SerialNumber) {
