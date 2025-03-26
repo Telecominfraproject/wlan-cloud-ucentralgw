@@ -651,17 +651,10 @@ namespace OpenWifi {
 				} break;
 
 				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-					if (SerialNumber_ == "e046ee9fed1f") {
-						// Temporary hack for Galgus device
-						poco_information(Logger_,
-							fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
-										CId_, IncomingSize, flags, IncomingFrame.begin()));
-					}
-					else{
-						poco_trace(Logger_,
-							fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
-										CId_, IncomingSize, flags, IncomingFrame.begin()));
-					}
+					poco_trace(Logger_,
+						fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
+									CId_, IncomingSize, flags, IncomingFrame.begin()));
+
 					
 					Poco::JSON::Parser parser;
 					auto ParsedMessage = parser.parse(IncomingFrame.begin());
@@ -702,12 +695,6 @@ namespace OpenWifi {
 				} break;
 
 				default: {
-					if (SerialNumber_ == "e046ee9fed1f") {
-						// Temporary hack for Galgus device
-						poco_warning(Logger_,
-							fmt::format("FRAME({}): Illegal Frame received (length={}, flags={}). Msg={}",
-										CId_, IncomingSize, flags, IncomingFrame.begin()));
-					}
 					poco_warning(Logger_, fmt::format("UNKNOWN({}): unknown WS Frame operation: {}",
 													  CId_, std::to_string(Op)));
 					Errors_++;
