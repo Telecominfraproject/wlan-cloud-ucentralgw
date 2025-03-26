@@ -561,14 +561,14 @@ namespace OpenWifi {
 	void AP_WS_Connection::OnSocketShutdown(
 		[[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		poco_trace(Logger_, fmt::format("SOCKET-SHUTDOWN({}): Closing.", CId_));
-//		std::lock_guard	G(ConnectionMutex_);
+		std::lock_guard	G(ConnectionMutex_);
 		return EndConnection();
 	}
 
 	void AP_WS_Connection::OnSocketError(
 		[[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
 		poco_trace(Logger_, fmt::format("SOCKET-ERROR({}): Closing.", CId_));
-//		std::lock_guard	G(ConnectionMutex_);
+		std::lock_guard	G(ConnectionMutex_);
 		return EndConnection();
 	}
 
@@ -652,9 +652,10 @@ namespace OpenWifi {
 
 				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 					poco_trace(Logger_,
-							   fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
-										   CId_, IncomingSize, flags, IncomingFrame.begin()));
+						fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
+									CId_, IncomingSize, flags, IncomingFrame.begin()));
 
+					
 					Poco::JSON::Parser parser;
 					auto ParsedMessage = parser.parse(IncomingFrame.begin());
 					auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
