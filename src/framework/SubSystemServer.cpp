@@ -68,6 +68,16 @@ namespace OpenWifi {
 				Context->addCertificateAuthority(Issuing);
 			}
 
+			if (!client_cas_.empty()) {
+				// add certificates specified in clientcas
+				std::vector<Poco::Crypto::X509Certificate> Certs =
+					Poco::Net::X509Certificate::readPEM(client_cas_);
+				for (const auto &cert : Certs) {
+					Context->addChainCertificate(cert);
+					Context->addCertificateAuthority(cert);
+				}
+			}
+
 			Poco::Crypto::RSAKey Key("", key_file_, key_file_password_);
 			Context->usePrivateKey(Key);
 
