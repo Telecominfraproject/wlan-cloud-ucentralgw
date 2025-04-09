@@ -45,6 +45,7 @@ namespace OpenWifi {
 		[[nodiscard]] inline auto KeyFile() const { return key_file_; };
 		[[nodiscard]] inline auto CertFile() const { return cert_file_; };
 		[[nodiscard]] inline auto RootCA() const { return root_ca_; };
+		[[nodiscard]] inline auto ClientCas() const { return client_cas_; };
 		[[nodiscard]] inline auto KeyFilePassword() const { return key_file_password_; };
 		[[nodiscard]] inline auto IssuerCertFile() const { return issuer_cert_file_; };
 		[[nodiscard]] inline auto Name() const { return name_; };

@@ -223,6 +223,7 @@ namespace OpenWifi {
 		mutable std::array<std::mutex,MACHashMax>		SerialNumbersMutex_;
 
 		std::unique_ptr<Poco::Crypto::X509Certificate> IssuerCert_;
+		std::vector<Poco::Crypto::X509Certificate> ClientCasCerts_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>> WebServers_;
 		Poco::ThreadPool DeviceConnectionPool_{"ws:dev-pool", 4, 256};
 		Poco::Net::SocketReactor Reactor_;
