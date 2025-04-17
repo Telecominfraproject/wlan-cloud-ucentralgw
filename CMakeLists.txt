@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-<<<<<<< HEAD
 project(owgw VERSION 3.2.1)
-=======
-project(owgw VERSION 3.0.15)
->>>>>>> 455c0be1 (chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.14 -> 3.0.15)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)

@@ -1,3 +1,7 @@
+## 3.0.16 (April 17, 2025)
+- chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.15 -> 3.0.16
+- Merge pull request #18 from kinarasystems/WIFI-14292-fix-json-parse-error
+
 ## 3.0.15 (November 06, 2024)
 - chore: updated package.json, updated helm/Chart.yaml, updated helm/values.yaml, updated CMakeLists.txt, updated version, updated CHANGELOG.md, bumped 3.0.14 -> 3.0.15
 - Merge branch 'kinara' of github.com:kinarasystems/wlan-cloud-ucentralgw into kinara
