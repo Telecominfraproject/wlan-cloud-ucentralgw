@@ -21,7 +21,7 @@ defaults:
 
 jobs:
   docker:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       DOCKER_REGISTRY_URL: tip-tip-wlan-cloud-ucentral.jfrog.io
       DOCKER_REGISTRY_USERNAME: ucentral

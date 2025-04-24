@@ -11,7 +11,7 @@ defaults:
 
 jobs:
   helm-package:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       HELM_REPO_URL: https://tip.jfrog.io/artifactory/tip-wlan-cloud-ucentral-helm/
       HELM_REPO_USERNAME: ucentral
