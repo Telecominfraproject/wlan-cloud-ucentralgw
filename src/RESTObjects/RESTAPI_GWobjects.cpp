@@ -819,4 +819,19 @@ namespace OpenWifi::GWObjects {
 		}
 		return false;
 	}
+
+	void Package::to_json(Poco::JSON::Object &Obj) const {
+		// field_to_json(Obj, "serialNumber", serialNumber);
+		field_to_json(Obj, "packageName", pkgName);
+		field_to_json(Obj, "packageVersion", pkgVersion);
+		field_to_json(Obj, "firstUpdate", FirstUpdate);
+		field_to_json(Obj, "lastUpdate", LastUpdate);
+	}
+
+	void PackageList::to_json(Poco::JSON::Object &Obj) const {
+		// field_to_json(Obj, "serialNumber", serialNumber);
+		// field_to_json(Obj, "packages", packages);
+		// field_to_json(Obj, "firstUpdate", FirstUpdate);
+		// field_to_json(Obj, "lastUpdate", LastUpdate);
+	}
 } // namespace OpenWifi::GWObjects

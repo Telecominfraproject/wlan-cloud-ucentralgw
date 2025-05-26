@@ -66,6 +66,11 @@ namespace OpenWifi {
 				DevicePassword = ParamsObj->get("password").toString();
 			}
 
+			auto Packages = ParamsObj->getObject(uCentralProtocol::PACKAGES);
+			if(Packages.empty()) {
+				Packages = uCentralProtocol::EMPTY_JSON_DOC;
+			}
+
 			SerialNumber_ = Serial;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 

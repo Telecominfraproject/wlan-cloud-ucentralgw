@@ -1,0 +1,37 @@
+[
+    {
+        "jsonrpc": "2.0",
+        "result": {
+            "serial": "serial number",
+            "status": {
+                "error": 0,
+                "text": "<description of the error or success>"
+            },
+            "packages": "<installed packages>",
+            "lastUpdate": ""
+        },
+        "id": "xxxx"
+    },
+    {
+        "jsonrpc": "2.0",
+        "result": {
+            "serial": "serial number",
+            "status": {
+                "error": 0,
+                "text": "<description of the error or success>"
+            }
+        },
+        "id": "yyyy"
+    },
+    {
+        "jsonrpc": "2.0",
+        "result": {
+            "serial": "serial number",
+            "status": {
+                "error": 0,
+                "text": "<description of the error or success>"
+            }
+        },
+        "id": "zzzz"
+    }
+]

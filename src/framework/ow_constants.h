@@ -550,6 +550,8 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char *DEBUG = "debug";
 	static const char *SCRIPT = "script";
 	static const char *TIMEOUT = "timeout";
+	static const char *PACKAGE = "package";
+	static const char *PACKAGES = "packages";
 
 	static const char *NEWPASSWORD = "newPassword";
 	static const char *USERS = "users";
@@ -668,6 +670,9 @@ namespace OpenWifi::uCentralProtocol {
 	static const char *SIGNATURE = "signature";
 	static const char *INFO = "info";
 	static const char *DATE = "date";
+	static const char *PACKAGE = "package";
+	static const char *PACKAGES = "packages";
+	static const char *CATEGORY = "category";
 
 	static const char *SERIALNUMBER = "serialNumber";
 	static const char *COMPATIBLE = "compatible";
@@ -733,7 +738,8 @@ namespace OpenWifi::uCentralProtocol::Events {
 		ET_EVENT,
 		ET_WIFISCAN,
 		ET_ALARM,
-		ET_REBOOTLOG
+		ET_REBOOTLOG,
+		ET_PACKAGE
 	};
 
 	inline EVENT_MSG EventFromString(const std::string &Method) {
@@ -767,6 +773,8 @@ namespace OpenWifi::uCentralProtocol::Events {
 			return ET_ALARM;
 		else if (strcmp(REBOOTLOG, Method.c_str()) == 0)
 			return ET_REBOOTLOG;
+		else if (strcmp(PACKAGE, Method.c_str()) == 0)
+			return ET_PACKAGE;
 		return ET_UNKNOWN;
 	};
 } // namespace OpenWifi::uCentralProtocol::Events
@@ -797,6 +805,7 @@ namespace OpenWifi::APCommands {
 		powercycle,
 		fixedconfig,
 		cablediagnostics,
+		package,
 		unknown
 	};
 
@@ -812,7 +821,8 @@ namespace OpenWifi::APCommands {
 		RESTAPI::Protocol::PING,		 RESTAPI::Protocol::SCRIPT,
 		RESTAPI::Protocol::RRM,		 	 RESTAPI::Protocol::CERTUPDATE,
 		RESTAPI::Protocol::TRANSFER,	 RESTAPI::Protocol::POWERCYCLE,
-		RESTAPI::Protocol::FIXEDCONFIG,  RESTAPI::Protocol::CABLEDIAGNOSTICS
+		RESTAPI::Protocol::FIXEDCONFIG,  RESTAPI::Protocol::CABLEDIAGNOSTICS,
+		RESTAPI::Protocol::PACKAGE
 	};
 
 	inline const char *to_string(Commands Cmd) { return uCentralAPCommands[(uint8_t)Cmd]; }

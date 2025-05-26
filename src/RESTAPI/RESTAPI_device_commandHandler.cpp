@@ -91,6 +91,8 @@ namespace OpenWifi {
 					TransactionId_, UUID, RPC, Poco::Thread::current()->id()));
 			return Rtty(UUID, RPC, 60000ms, Restrictions);
 		};
+		case APCommands::Commands::package:
+			return GetPackages();
 		default:
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
@@ -128,6 +130,28 @@ namespace OpenWifi {
 			return DeleteChecks();
 		case APCommands::Commands::statistics:
 			return DeleteStatistics();
+		// case APCommands::Commands::package:
+		// 	GWObjects::DeviceRestrictions Restrictions;
+		// 	if (!AP_WS_Server()->Connected(SerialNumberInt_, Restrictions)) {
+		// 		CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
+		// 		return BadRequest(RESTAPI::Errors::DeviceNotConnected);
+		// 	}
+		// 	std::string Command_UUID;
+		// 	APCommands::Commands CommandName;
+		// 	if (CommandManager()->CommandRunningForDevice(SerialNumberInt_, Command_UUID,
+		// 													CommandName)) {
+		// 		auto Extra = fmt::format("UUID={} Command={}", Command_UUID,
+		// 									APCommands::to_string(CommandName));
+		// 		CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
+		// 		return BadRequest(RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
+		// 	}
+		// 	auto UUID = MicroServiceCreateUUID();
+		// 	auto RPC = CommandManager()->Next_RPC_ID();
+		// 	poco_debug(Logger_, fmt::format("Command {} TID={} can proceed. Identified as {} "
+		// 									"and RPCID as {}. thr_id={}",
+		// 									Command_, TransactionId_, UUID, RPC,
+		// 									Poco::Thread::current()->id()));
+		// 	return DeletePackages(UUID, RPC, 12000, Restrictions);
 		default:
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
@@ -170,7 +194,7 @@ namespace OpenWifi {
 		{APCommands::Commands::powercycle, false, true, &RESTAPI_device_commandHandler::PowerCycle, 60000ms},
 		{APCommands::Commands::fixedconfig, false, true, &RESTAPI_device_commandHandler::FixedConfig, 120000ms},
 		{APCommands::Commands::cablediagnostics, false, true, &RESTAPI_device_commandHandler::CableDiagnostics, 120000ms},
-
+		// {APCommands::Commands::package, false, true, &RESTAPI_device_commandHandler::PackageInstall, 120000ms},
 	};
 
 	void RESTAPI_device_commandHandler::DoPost() {
@@ -407,6 +431,52 @@ namespace OpenWifi {
 		}
 		BadRequest(RESTAPI::Errors::NoRecordsDeleted);
 	}
+
+	void RESTAPI_device_commandHandler::GetPackages() {
+		poco_debug(Logger_, fmt::format("GET-PACKAGES({},{}): TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
+
+		if(IsDeviceSimulated(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
+		std::vector<GWObjects::Package> Pkgs;
+		StorageService()->GetDeviceInstalledPackages(SerialNumber_, Pkgs);
+		
+		Poco::JSON::Array::Ptr ArrayObj = Poco::SharedPtr<Poco::JSON::Array>(new Poco::JSON::Array);
+		for (const auto &i : Pkgs) {
+			Poco::JSON::Object::Ptr Obj =
+				Poco::SharedPtr<Poco::JSON::Object>(new Poco::JSON::Object);
+			i.to_json(*Obj);
+			ArrayObj->add(Obj);
+		}
+
+		Poco::JSON::Object RetObj;
+		RetObj.set(RESTAPI::Protocol::PACKAGES, ArrayObj);
+		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
+		return ReturnObject(RetObj);
+	}
+
+	// void RESTAPI_device_commandHandler::DeletePackages() {
+	// 	poco_debug(Logger_, fmt::format("DELETE-PACKAGES({},{}): TID={} user={} serial={}. thr_id={}",
+	// 									TransactionId_, Requester(), SerialNumber_,
+	// 									Poco::Thread::current()->id()));
+
+	// 	if(IsDeviceSimulated(SerialNumber_)) {
+	// 		CallCanceled("PACKAGEDELETE", CMD_UUID, CMD_RPC, RESTAPI::Errors::SimulatedDeviceNotSupported);
+	// 		return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+	// 	}
+
+	// 	GWObjects::PackageList Pkgs;
+	// 	if (StorageService()->GetDeviceInstalledPackages(SerialNumber_, Pkgs)) {
+	// 		Poco::JSON::Object RetObj;
+	// 		Pkgs.to_json(RetObj);
+	// 		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
+	// 		return ReturnObject(RetObj);
+	// 	}
+	// 	NotFound();
+	// }
 
 	void RESTAPI_device_commandHandler::Ping(
 		const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout,
@@ -1651,4 +1721,27 @@ namespace OpenWifi {
 										   *ParsedBody_, *Request, *Response, timeout, nullptr, this,
 										   Logger_);
 	}
+
+	// void RESTAPI_device_commandHandler::InstallPackage(
+	// 	const std::string &CMD_UUID, uint64_t CMD_RPC,
+	// 	[[maybe_unused]] std::chrono::milliseconds timeout,
+	// 	[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
+
+	// 	poco_debug(Logger_, fmt::format("INSTALLPACKAGE({},{}): TID={} user={} serial={}", CMD_UUID,
+	// 									CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+	// 	if(IsDeviceSimulated(SerialNumber_)) {
+	// 		CallCanceled("INSTALLPACKAGE", CMD_UUID, CMD_RPC, RESTAPI::Errors::SimulatedDeviceNotSupported);
+	// 		return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+	// 	}
+
+	// 	GWObjects::PackageList Pkgs;
+	// 	if (StorageService()->GetDeviceInstalledPackages(SerialNumber_, Pkgs)) {
+	// 		Poco::JSON::Object RetObj;
+	// 		Pkgs.to_json(RetObj);
+	// 		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
+	// 		return ReturnObject(RetObj);
+	// 	}
+	// 	NotFound();
+	// }
 } // namespace OpenWifi

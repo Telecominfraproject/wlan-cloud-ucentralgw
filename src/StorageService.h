@@ -282,6 +282,12 @@ namespace OpenWifi {
 		bool SetDeviceLastRecordedContact(std::string & SerialNumber, std::uint64_t lastRecordedContact);
 		bool SetDeviceLastRecordedContact(Poco::Data::Session & Session, std::string & SerialNumber, std::uint64_t lastRecordedContact);
 
+		bool GetDeviceInstalledPackages(std::string &SerialNumber, std::vector<GWObjects::Package> &pkgList);
+		bool CreateDeviceInstalledPackages(std::string &SerialNumber, std::vector<GWObjects::Package> &pkgList);
+		bool UpdateDeviceInstalledPackages(Poco::Data::Session &Session, std::string &SerialNumber,
+										   GWObjects::PackageList &pkgList);
+		bool DeleteDeviceInstalledPackages(std::string &SerialNumber);
+
 		int Create_Tables();
 		int Create_Statistics();
 		int Create_Devices();
@@ -293,6 +299,7 @@ namespace OpenWifi {
 		int Create_BlackList();
 		int Create_FileUploads();
 		int Create_DefaultFirmwares();
+		int Create_Packages();
 
 		bool AnalyzeCommands(Types::CountedMap &R);
 		bool AnalyzeDevices(GWObjects::Dashboard &D);

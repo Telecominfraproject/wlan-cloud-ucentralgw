@@ -1,0 +1,24 @@
+[
+    {
+        "jsonrpc": "2.0",
+        "method": "package_list",
+        "id": "xxxx"
+    },
+    {
+        "jsonrpc": "2.0",
+        "method": "package_install",
+        "params": {
+            "category": "base/telephony/luci...",
+            "package": "package_name"
+        },
+        "id": "yyyy"
+    },
+    {
+        "jsonrpc": "2.0",
+        "method": "package_remove",
+        "params": {
+            "package": "package_name"
+        },
+        "id": "zzzz"
+    }
+]

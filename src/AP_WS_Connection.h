@@ -168,6 +168,9 @@ namespace OpenWifi {
 		void Process_wifiscan(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_alarm(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_rebootLog(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_packagelist(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_packageinstall(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_packageremove(Poco::JSON::Object::Ptr ParamsObj);
 
 		inline void SetLastHealthCheck(const GWObjects::HealthCheck &H) {
 			RawLastHealthcheck_ = H;

@@ -22,6 +22,7 @@ namespace OpenWifi {
 		Create_BlackList();
 		Create_FileUploads();
 		Create_DefaultFirmwares();
+		Create_Packages();
 
 		return 0;
 	}
@@ -49,8 +50,7 @@ namespace OpenWifi {
 						"Data TEXT, "
 						"Recorded BIGINT, "
 						"INDEX StatSerial0 (SerialNumber)), ",
-						"INDEX StatSerial (SerialNumber ASC, Recorded ASC))",
-					Poco::Data::Keywords::now;
+					"INDEX StatSerial (SerialNumber ASC, Recorded ASC))", Poco::Data::Keywords::now;
 			}
 			return 0;
 		} catch (const Poco::Exception &E) {
@@ -154,8 +154,7 @@ namespace OpenWifi {
 				"alter table devices add column lastRecordedContact bigint",
 				"alter table devices add column simulated boolean",
 				"alter table devices add column certificateExpiryDate bigint",
-				"alter table devices add column connectReason TEXT"
-			};
+				"alter table devices add column connectReason TEXT"};
 
 			for (const auto &i : Script) {
 				try {
@@ -279,9 +278,7 @@ namespace OpenWifi {
 					Poco::Data::Keywords::now;
 			}
 
-			std::vector<std::string> Script{
-				"alter table DefaultConfigs add column Platform text"
-			};
+			std::vector<std::string> Script{"alter table DefaultConfigs add column Platform text"};
 
 			for (const auto &i : Script) {
 				try {
@@ -448,6 +445,39 @@ namespace OpenWifi {
 			}
 
 			return 0;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return -1;
+	}
+
+	int Storage::Create_Packages() {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+
+			std::string id_column;
+			if (dbType_ == pgsql) {
+				id_column = "Id SERIAL PRIMARY KEY";
+			} else if (dbType_ == mysql) {
+				id_column = "Id INT AUTO_INCREMENT PRIMARY KEY";
+			} else if (dbType_ == sqlite) {
+				id_column = "Id INTEGER PRIMARY KEY";
+			}
+
+			Sess << "CREATE TABLE IF NOT EXISTS Packages ("
+					+ id_column + ", "
+					"SerialNumber 	VARCHAR(30), "
+					"PackageName 	TEXT, "
+					"PackageVersion TEXT, "
+					"FirstUpdate 	BIGINT, "
+					"LastUpdate 	BIGINT, "
+					"CONSTRAINT 	unique_device_package UNIQUE (SerialNumber, PackageName) "
+					")",
+				Poco::Data::Keywords::now;
+			Sess << "CREATE INDEX IF NOT EXISTS idx_packages_serialnumber ON Packages (SerialNumber)",
+				Poco::Data::Keywords::now;
+
+				return 0;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
