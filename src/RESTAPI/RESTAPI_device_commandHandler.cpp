@@ -51,10 +51,10 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
-		GWObjects::Device TheDevice;
-		if (!StorageService()->GetDevice(SerialNumber_, TheDevice)) {
-			return NotFound();
-		}
+		// GWObjects::Device TheDevice;
+		// if (!StorageService()->GetDevice(SerialNumber_, TheDevice)) {
+		// 	return NotFound();
+		// }
 
 		auto Command = APCommands::to_apcommand(Command_.c_str());
 		if (Command == APCommands::Commands::unknown) {
@@ -441,11 +441,11 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
 		}
 
-		std::vector<GWObjects::Package> Pkgs;
+		GWObjects::PackagesOnDevice Pkgs;
 		StorageService()->GetDeviceInstalledPackages(SerialNumber_, Pkgs);
 		
 		Poco::JSON::Array::Ptr ArrayObj = Poco::SharedPtr<Poco::JSON::Array>(new Poco::JSON::Array);
-		for (const auto &i : Pkgs) {
+		for (const auto &i : Pkgs.packageArray) {
 			Poco::JSON::Object::Ptr Obj =
 				Poco::SharedPtr<Poco::JSON::Object>(new Poco::JSON::Object);
 			i.to_json(*Obj);

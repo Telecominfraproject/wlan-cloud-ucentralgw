@@ -455,26 +455,12 @@ namespace OpenWifi {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
-			std::string id_column;
-			if (dbType_ == pgsql) {
-				id_column = "Id SERIAL PRIMARY KEY";
-			} else if (dbType_ == mysql) {
-				id_column = "Id INT AUTO_INCREMENT PRIMARY KEY";
-			} else if (dbType_ == sqlite) {
-				id_column = "Id INTEGER PRIMARY KEY";
-			}
-
 			Sess << "CREATE TABLE IF NOT EXISTS Packages ("
-					+ id_column + ", "
-					"SerialNumber 	VARCHAR(30), "
-					"PackageName 	TEXT, "
-					"PackageVersion TEXT, "
+					"SerialNumber 	VARCHAR(30) PRIMARY KEY, "
+					"Packages		JSON, "
 					"FirstUpdate 	BIGINT, "
-					"LastUpdate 	BIGINT, "
-					"CONSTRAINT 	unique_device_package UNIQUE (SerialNumber, PackageName) "
+					"LastUpdate 	BIGINT"
 					")",
-				Poco::Data::Keywords::now;
-			Sess << "CREATE INDEX IF NOT EXISTS idx_packages_serialnumber ON Packages (SerialNumber)",
 				Poco::Data::Keywords::now;
 
 				return 0;

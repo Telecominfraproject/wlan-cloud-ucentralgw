@@ -9,6 +9,7 @@
 #include "CentralConfig.h"
 #include "Poco/Data/RecordSet.h"
 #include "Poco/JSON/Object.h"
+#include "Poco/JSON/Parser.h"
 #include "StorageService.h"
 #include "framework/utils.h"
 
@@ -16,54 +17,33 @@
 
 namespace OpenWifi {
 
-	const static std::string DB_PackageSelectField{"SerialNumber, PackageName, PackageVersion, FirstUpdate, LastUpdate"};
+	const static std::string DB_PackageSelectField{"SerialNumber, Packages, FirstUpdate, LastUpdate"};
 
-	// 					serial		 pkgName	  pkgVer	   f_update  l_update
-	typedef Poco::Tuple<std::string, std::string, std::string, uint64_t, uint64_t> PackageTuple;
-	typedef std::vector<PackageTuple> PackageList;
+	// 					serial		 pkgs		  f_update  l_update
+	typedef Poco::Tuple<std::string, std::string, uint64_t, uint64_t> PackageTuple;
 
-	void ConvertPackagesRecord(const PackageTuple &R, GWObjects::Package &Pkg) {
-		Pkg.serialNumber = R.get<0>();
-		Pkg.pkgName = R.get<1>();
-		Pkg.pkgVersion = R.get<2>();
-		Pkg.FirstUpdate = R.get<3>();
-		Pkg.LastUpdate = R.get<4>();
-	}
 
-	void ConvertPackagesRecord(const GWObjects::Package &Pkg, PackageTuple &R) {
-		R.set<0>(Pkg.serialNumber);
-		R.set<1>(Pkg.pkgName);
-		R.set<2>(Pkg.pkgVersion);
-		R.set<3>(Pkg.FirstUpdate);
-		R.set<4>(Pkg.LastUpdate);
-	}
-
-	bool Storage::CreateDeviceInstalledPackages(std::string &SerialNumber, std::vector<GWObjects::Package> &pkgList) {
+	bool Storage::CreateDeviceInstalledPackages(std::string &SerialNumber,
+												GWObjects::PackagesOnDevice &Pkgs) {
 		try {
-			Session.begin();
-			Poco::Data::Statement UpSert(Session);
+			Poco::Data::Session Sess(Pool_->get());
+			Poco::Data::Statement UpSert(Sess);
 
 			uint64_t Now = Utils::Now();
 
-			std::string St{"INSERT INTO Packages (SerialNumber, PackageName, PackageVersion, FirstUpdate, LastUpdate) "
-                         "VALUES (?,?,?,?,?) "
-                         "ON CONFLICT (SerialNumber, PackageName) DO "
-                         "UPDATE SET PackageVersion = ?, LastUpdate = ?"};
-			
-			std::vector<string> PackageNames;
-			std::vector<string> PackageVersions;
-			
-			for (const auto& pkg : packages) {
-				PackageNames.push_back(pkg.pkgName);
-				PackageVersions.push_back(pkg.pkgVersion);
-			}
+			std::string St{
+				"INSERT INTO Packages (SerialNumber, Packages, FirstUpdate, LastUpdate) "
+				"VALUES (?,?,?,?) "
+				"ON CONFLICT (SerialNumber) DO "
+				"UPDATE SET Packages = ?, LastUpdate = ?"};
 
 			UpSert << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber),
-				Poco::Data::Keywords::use(PackageNames), Poco::Data::Keywords::use(PackageVersions),
+				Poco::Data::Keywords::use(Pkgs.packageStringArray),
 				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(PackageVersions), Poco::Data::Keywords::use(Now);
+				Poco::Data::Keywords::use(Pkgs.packageStringArray),
+				Poco::Data::Keywords::use(Now);
 			UpSert.execute();
-			Session.commit();
+			Sess.commit();
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
@@ -72,10 +52,9 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::UpdateDeviceInstalledPackages(Poco::Data::Session &Session, std::string &SerialNumber,
-										   GWObjects::PackageList &pkgList) {
+	bool Storage::UpdateDeviceInstalledPackages(std::string &SerialNumber, GWObjects::PackagesOnDevice &Pkgs) {
 		try {
-			Session.begin();
+			Poco::Data::Session Sess(Pool_->get());
 			// Poco::Data::Statement UpSert(Session);
 
 			// uint64_t Now = Utils::Now();
@@ -93,28 +72,48 @@ namespace OpenWifi {
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
 											   E.displayText()));
-		}	
+		}
 		return false;
 	}
 
-	bool Storage::GetDeviceInstalledPackages(std::string &SerialNumber, std::vector<GWObjects::Package> &PkgList) {
+	bool Storage::GetDeviceInstalledPackages(std::string &SerialNumber,
+											 GWObjects::PackagesOnDevice &DevicePackages) {
 		try {
 			Poco::Data::Session Sess(Pool_->get());
 			Poco::Data::Statement Select(Sess);
 
-			PackageList Pkgs;
+			PackageTuple packageTuple;
+			std::string TmpSerialNumber;
+			std::string packageStringArray;
+			std::string St{"SELECT " + DB_PackageSelectField +
+						   " FROM Packages WHERE SerialNumber=?"};
 
-			std::string St{"SELECT " + DB_PackageSelectField + " FROM Packages WHERE SerialNumber=?"};
+			Select << ConvertParams(St), Poco::Data::Keywords::into(TmpSerialNumber),
+				Poco::Data::Keywords::into(packageStringArray),
+				Poco::Data::Keywords::into(DevicePackages.FirstUpdate),
+				Poco::Data::Keywords::into(DevicePackages.LastUpdate),
+				Poco::Data::Keywords::use(SerialNumber);
 
-			Select << ConvertParams(St), Poco::Data::Keywords::into(Pkgs), Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
-			for (const auto &i : Pkgs) {
-				GWObjects::Package R;
-				ConvertPackagesRecord(i, R);
-				PkgList.emplace_back(R);
+			if (!TmpSerialNumber.empty()) {
+				Poco::JSON::Parser parser;
+				Poco::Dynamic::Var result = parser.parse(packageStringArray);
+				Poco::JSON::Array::Ptr jsonArray = result.extract<Poco::JSON::Array::Ptr>();
+				DevicePackages.serialNumber = TmpSerialNumber;
+				DevicePackages.packageArray.clear();
+
+				for (const auto &item : *jsonArray) {
+					Poco::JSON::Object::Ptr obj = item.extract<Poco::JSON::Object::Ptr>();
+					GWObjects::PackageInfo pkg;
+					pkg.name = obj->getValue<std::string>("name");
+					pkg.version = obj->getValue<std::string>("version");
+					DevicePackages.packageArray.emplace_back(pkg);
+				}
+			} else {
+				DevicePackages.packageArray.clear();
 			}
-			Select.reset(Sess);
+
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),

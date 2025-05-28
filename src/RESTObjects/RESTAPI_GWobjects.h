@@ -547,19 +547,21 @@ namespace OpenWifi::GWObjects {
 
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
-	struct Package {
-		std::string 	serialNumber;
-		std::string		pkgName;
-		std::string		pkgVersion;
-		uint64_t 		FirstUpdate = 0;
-		uint64_t 		LastUpdate = 0;
+	struct PackageInfo {
+		std::string	 name;
+		std::string	 version;
 
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
-	struct PackageList {
-		std::string 	serialNumber;
-		std::vector<Package> packages;
+	struct PackagesOnDevice {
+		std::string	serialNumber;
+		std::vector<PackageInfo>	packageArray;
+		uint64_t 	FirstUpdate = 0;
+		uint64_t 	LastUpdate = 0;
+		std::string packageStringArray;
 
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 	struct PackageInstall {
