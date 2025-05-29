@@ -561,7 +561,7 @@ namespace OpenWifi::GWObjects {
 		uint64_t 	LastUpdate = 0;
 		std::string packageStringArray;
 
-		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		bool from_json(const Poco::JSON::Array::Ptr &Obj);
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 	struct PackageInstall {

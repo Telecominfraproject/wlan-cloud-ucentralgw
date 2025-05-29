@@ -109,8 +109,8 @@ namespace OpenWifi {
 				RTTYMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
 			}
 
-			if (ParamsObj->has(uCentralProtocol::PACKAGES)) {
-				auto Packages = ParamsObj->getObject(uCentralProtocol::PACKAGES);
+			if (ParamsObj->has("packages")) {
+				auto Packages = ParamsObj->getArray("packages");
 				DevicePackages_.from_json(Packages);
 			}
 

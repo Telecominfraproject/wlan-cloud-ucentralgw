@@ -836,24 +836,13 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "version", version);
 	}
 
-	bool PackagesOnDevice::from_json(const Poco::JSON::Object::Ptr &Obj) {
+	bool PackagesOnDevice::from_json(const Poco::JSON::Array::Ptr &Obj) {
 		try {
-			Poco::JSON::Array::Ptr packageJsonArray = Obj->getArray("packageArray");
-			if (!packageJsonArray.isNull()) {				// Check if the array exists
-				for (const auto &pkg : *packageJsonArray) { // Dereference the Ptr
-					Poco::JSON::Object::Ptr pkgObj = pkg.extract<Poco::JSON::Object::Ptr>();
-					PackageInfo package;
-					if (package.from_json(pkgObj)) {
-						packageArray.emplace_back(package);
-					}
-				}
-
-				std::ostringstream oss;
-				Poco::JSON::Stringifier::stringify(packageJsonArray, oss);
-				packageStringArray = oss.str();
-			}
+			std::ostringstream oss;
+			Poco::JSON::Stringifier::stringify(Obj, oss);
+			packageStringArray = oss.str();
+			
 			return true;
-
 		} catch (const Poco::Exception &E) {
 		}
 		return false;

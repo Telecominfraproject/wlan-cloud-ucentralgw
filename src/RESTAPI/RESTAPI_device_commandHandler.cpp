@@ -51,10 +51,10 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
-		// GWObjects::Device TheDevice;
-		// if (!StorageService()->GetDevice(SerialNumber_, TheDevice)) {
-		// 	return NotFound();
-		// }
+		GWObjects::Device TheDevice;
+		if (!StorageService()->GetDevice(SerialNumber_, TheDevice)) {
+			return NotFound();
+		}
 
 		auto Command = APCommands::to_apcommand(Command_.c_str());
 		if (Command == APCommands::Commands::unknown) {
