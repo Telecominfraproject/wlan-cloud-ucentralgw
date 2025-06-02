@@ -53,27 +53,7 @@ namespace OpenWifi {
 	}
 
 	bool Storage::UpdateDeviceInstalledPackages(std::string &SerialNumber, GWObjects::PackagesOnDevice &Pkgs) {
-		try {
-			Poco::Data::Session Sess(Pool_->get());
-			// Poco::Data::Statement UpSert(Session);
-
-			// uint64_t Now = Utils::Now();
-
-			// std::string St{"insert into Packages (SerialNumber, Packages, FirstUpdate, "
-			// 			   "LastUpdate) values(?,?,?,?) on conflict (SerialNumber) do "
-			// 			   " update set Packages=?, LastUpdate=?"};
-			// UpSert << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber),
-			// 	Poco::Data::Keywords::use(pkgList.packages), Poco::Data::Keywords::use(Now),
-			// 	Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(pkgList.packages),
-			// 	Poco::Data::Keywords::use(Now);
-			// UpSert.execute();
-			// Session.commit();
-			return true;
-		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
-											   E.displayText()));
-		}
-		return false;
+		return CreateDeviceInstalledPackages(SerialNumber, Pkgs);
 	}
 
 	bool Storage::GetDeviceInstalledPackages(std::string &SerialNumber,
