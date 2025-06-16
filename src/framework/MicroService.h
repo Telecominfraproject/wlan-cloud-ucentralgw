@@ -14,6 +14,7 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <optional>
 
 // This must be defined for poco_debug and poco_trace macros to function.
 
