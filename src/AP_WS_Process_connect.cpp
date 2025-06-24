@@ -154,8 +154,10 @@ namespace OpenWifi {
 					StorageService()->CreateDefaultDevice( DbSession_->Session(),
 						SerialNumber_, Caps, Firmware, PeerAddress_,
 						State_.VerifiedCertificate == GWObjects::SIMULATED);
-					StorageService()->CreateDeviceInstalledPackages(SerialNumber_,
+					if (ParamsObj->has("packages")) {
+						StorageService()->CreateDeviceInstalledPackages(SerialNumber_,
 																 DevicePackages_);
+					}
 				}
 			} else if (!Daemon()->AutoProvisioning() && !DeviceExists) {
 				SendKafkaDeviceNotProvisioned(SerialNumber_, Firmware, Compatible_, CId_);
@@ -163,7 +165,9 @@ namespace OpenWifi {
 				return EndConnection();
 			} else if (DeviceExists) {
 				StorageService()->UpdateDeviceCapabilities(DbSession_->Session(), SerialNumber_, Caps);
-				StorageService()->CreateDeviceInstalledPackages(SerialNumber_, DevicePackages_);
+				if (ParamsObj->has("packages")) {
+					StorageService()->UpdateDeviceInstalledPackages(SerialNumber_, DevicePackages_);
+				}
 				int Updated{0};
 				if (!Firmware.empty()) {
 					if (Firmware != DeviceInfo.Firmware) {

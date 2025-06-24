@@ -17,14 +17,17 @@
 
 namespace OpenWifi {
 
-	const static std::string DB_PackageSelectField{"SerialNumber, Packages, FirstUpdate, LastUpdate"};
+	const static std::string DB_PackageSelectField{"SerialNumber, Packages, FirstUpdate, LastUpdate "};
+
+	const static std::string DB_MYSQL_JSON_QUERY{"WHERE JSON_SEARCH(Packages, 'one', ?, NULL, '$[*].name') IS NOT NULL"};
+	const static std::string DB_POSTGRES_JSON_QUERY{"WHERE Packages::jsonb @> '[{\"name\": \"?\"}]'"};
 
 	// 					serial		 pkgs		  f_update  l_update
 	typedef Poco::Tuple<std::string, std::string, uint64_t, uint64_t> PackageTuple;
 
 
 	bool Storage::CreateDeviceInstalledPackages(std::string &SerialNumber,
-												GWObjects::PackagesOnDevice &Pkgs) {
+												GWObjects::PackageList &Pkgs) {
 		try {
 			Poco::Data::Session Sess(Pool_->get());
 			Poco::Data::Statement UpSert(Sess);
@@ -32,7 +35,8 @@ namespace OpenWifi {
 			uint64_t Now = Utils::Now();
 
 			std::string St{
-				"INSERT INTO Packages (SerialNumber, Packages, FirstUpdate, LastUpdate) "
+				"INSERT INTO DevicePackages ("
+				+ DB_PackageSelectField + ") "
 				"VALUES (?,?,?,?) "
 				"ON CONFLICT (SerialNumber) DO "
 				"UPDATE SET Packages = ?, LastUpdate = ?"};
@@ -52,12 +56,12 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::UpdateDeviceInstalledPackages(std::string &SerialNumber, GWObjects::PackagesOnDevice &Pkgs) {
+	bool Storage::UpdateDeviceInstalledPackages(std::string &SerialNumber, GWObjects::PackageList &Pkgs) {
 		return CreateDeviceInstalledPackages(SerialNumber, Pkgs);
 	}
 
 	bool Storage::GetDeviceInstalledPackages(std::string &SerialNumber,
-											 GWObjects::PackagesOnDevice &DevicePackages) {
+											 GWObjects::PackageList &DevicePackages) {
 		try {
 			Poco::Data::Session Sess(Pool_->get());
 			Poco::Data::Statement Select(Sess);
@@ -66,7 +70,7 @@ namespace OpenWifi {
 			std::string TmpSerialNumber;
 			std::string packageStringArray;
 			std::string St{"SELECT " + DB_PackageSelectField +
-						   " FROM Packages WHERE SerialNumber=?"};
+						   "FROM DevicePackages WHERE SerialNumber=?"};
 
 			Select << ConvertParams(St), Poco::Data::Keywords::into(TmpSerialNumber),
 				Poco::Data::Keywords::into(packageStringArray),
@@ -102,6 +106,29 @@ namespace OpenWifi {
 
 		return false;
 	}
+
+	// bool Storage::CheckIfPackageAlreadyInstalled(std::string &SerialNumber, std::string packageName) {
+	// 	try {
+	// 		Poco::Data::Session Sess(Pool_->get());
+	// 		Poco::Data::Statement Delete(Sess);
+
+	// 		std::string St{ "SELECT 1 AS is_present FROM DevicePackages "
+	// 						"WHERE SerialNumber = ? "
+	// 						"AND "
+	// 						+  +
+
+	// 					};
+
+	// 		Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber);
+	// 		Delete.execute();
+	// 		Sess.commit();
+	// 		return true;
+	// 	} catch (const Poco::Exception &E) {
+	// 		poco_warning(Logger(), fmt::format("{}: Failed with: {}", std::string(__func__),
+	// 										   E.displayText()));
+	// 	}
+	// 	return false;
+	// }
 
 	bool Storage::DeleteDeviceInstalledPackages(std::string &SerialNumber) {
 		try {

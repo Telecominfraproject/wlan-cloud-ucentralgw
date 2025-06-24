@@ -1,5 +1,9 @@
 {
     "files.associations": {
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "compare": "cpp",
+        "iosfwd": "cpp",
+        "condition_variable": "cpp",
+        "future": "cpp"
     }
 }

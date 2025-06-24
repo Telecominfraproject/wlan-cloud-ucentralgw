@@ -836,19 +836,19 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "version", version);
 	}
 
-	bool PackagesOnDevice::from_json(const Poco::JSON::Array::Ptr &Obj) {
+	bool PackageList::from_json(const Poco::JSON::Array::Ptr &Obj) {
 		try {
 			std::ostringstream oss;
 			Poco::JSON::Stringifier::stringify(Obj, oss);
 			packageStringArray = oss.str();
-			
+
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
 		return false;
 	}
 
-	void PackagesOnDevice::to_json(Poco::JSON::Object &Obj) const {
+	void PackageList::to_json(Poco::JSON::Object &Obj) const {
 		Obj.set("serialNumber", serialNumber);
 
 		Poco::JSON::Array packageJsonArray;
@@ -861,5 +861,64 @@ namespace OpenWifi::GWObjects {
 
 		Obj.set("FirstUpdate", Poco::UInt64(FirstUpdate));
 		Obj.set("LastUpdate", Poco::UInt64(LastUpdate));
+	}
+
+	bool ToBeInstalled::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "name", name);
+			field_from_json(Obj, "url", url);
+
+			Poco::URI uri(url);
+			std::string scheme = uri.getScheme();
+			if (scheme != "http" && scheme != "https") {
+				return false;
+			}
+
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
+
+	void ToBeInstalled::to_json(Poco::JSON::Object &Obj) const {
+		Obj.set("name", name);
+		Obj.set("url", url);
+	}
+
+	bool PackageInstall::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serialNumber", serialNumber);
+			field_from_json(Obj, "when", when);
+			field_from_json(Obj, "packages", pkgs);
+
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
+
+	bool ToBeRemoved::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "name", name);
+
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
+
+	void ToBeRemoved::to_json(Poco::JSON::Object &Obj) const {
+		Obj.set("name", name);
+	}
+
+	bool PackageRemove::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serialNumber", serialNumber);
+			field_from_json(Obj, "packages", pkgs);
+
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
 	}
 } // namespace OpenWifi::GWObjects

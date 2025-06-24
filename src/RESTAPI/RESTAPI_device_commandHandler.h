@@ -34,7 +34,8 @@ namespace OpenWifi {
 		void GetChecks();
 		void DeleteChecks();
 		void GetPackages();
-		void DeletePackages();
+		void DeletePackages(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout,
+					   const GWObjects::DeviceRestrictions &R);
 
 		bool IsDeviceSimulated(std::string &Serial);
 

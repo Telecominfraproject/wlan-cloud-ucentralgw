@@ -433,6 +433,9 @@ namespace OpenWifi::RESTAPI::Errors {
 
 	static const struct msg InvalidRRMAction { 1192, "Invalid RRM Action." };
 
+	static const struct msg InvalidPackageURL { 1193, "Invalid URL, must start with http:// or https://." };
+	static const struct msg FailedToDownload { 1194, "Failed to download package." };
+
     static const struct msg SimulationDoesNotExist {
         7000, "Simulation Instance ID does not exist."
     };
@@ -552,6 +555,8 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char *TIMEOUT = "timeout";
 	static const char *PACKAGE = "package";
 	static const char *PACKAGES = "packages";
+	static const char *PACKAGEINST = "packageInstall";
+	static const char *PACKAGEDEL = "packageDelete";
 
 	static const char *NEWPASSWORD = "newPassword";
 	static const char *USERS = "users";
@@ -703,6 +708,10 @@ namespace OpenWifi::uCentralProtocol {
 
 	static const char *FIXEDCONFIG = "fixedconfig";
 	static const char *CABLEDIAGNOSTICS = "cable-diagnostics";
+
+	static const char *OPERATION = "op";
+	static const char *PACKAGEINST = "pkginst";
+	static const char *PACKAGEDEL = "pkgdel";
 
 } // namespace OpenWifi::uCentralProtocol
 

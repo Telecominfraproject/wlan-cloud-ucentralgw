@@ -455,7 +455,7 @@ namespace OpenWifi {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
-			Sess << "CREATE TABLE IF NOT EXISTS Packages ("
+			Sess << "CREATE TABLE IF NOT EXISTS DevicePackages ("
 					"SerialNumber 	VARCHAR(30) PRIMARY KEY, "
 					"Packages		JSON, "
 					"FirstUpdate 	BIGINT, "
@@ -463,7 +463,7 @@ namespace OpenWifi {
 					")",
 				Poco::Data::Keywords::now;
 
-				return 0;
+			return 0;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
