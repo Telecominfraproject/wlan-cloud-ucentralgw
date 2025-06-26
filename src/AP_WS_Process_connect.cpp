@@ -105,8 +105,13 @@ namespace OpenWifi {
 				Restrictions_.developer = Capabilities->getValue<bool>("developer");
 			}
 
-			if(Capabilities->has("secure-rtty")) {
+			if (Capabilities->has("secure-rtty")) {
 				RTTYMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
+			}
+
+			if (ParamsObj->has("packages")) {
+				auto Packages = ParamsObj->getArray("packages");
+				DevicePackages_.from_json(Packages);
 			}
 
 			State_.locale = FindCountryFromIP()->Get(IP);
@@ -149,6 +154,10 @@ namespace OpenWifi {
 					StorageService()->CreateDefaultDevice( DbSession_->Session(),
 						SerialNumber_, Caps, Firmware, PeerAddress_,
 						State_.VerifiedCertificate == GWObjects::SIMULATED);
+					if (ParamsObj->has("packages")) {
+						StorageService()->CreateDeviceInstalledPackages(SerialNumber_,
+																 DevicePackages_);
+					}
 				}
 			} else if (!Daemon()->AutoProvisioning() && !DeviceExists) {
 				SendKafkaDeviceNotProvisioned(SerialNumber_, Firmware, Compatible_, CId_);
@@ -156,6 +165,9 @@ namespace OpenWifi {
 				return EndConnection();
 			} else if (DeviceExists) {
 				StorageService()->UpdateDeviceCapabilities(DbSession_->Session(), SerialNumber_, Caps);
+				if (ParamsObj->has("packages")) {
+					StorageService()->UpdateDeviceInstalledPackages(SerialNumber_, DevicePackages_);
+				}
 				int Updated{0};
 				if (!Firmware.empty()) {
 					if (Firmware != DeviceInfo.Firmware) {

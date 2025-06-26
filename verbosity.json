@@ -1,0 +1,19 @@
+[
+    {
+        "serialNumber": "xxxxx",
+        "packages": "akiho - 98-10-16-71a3b533e-1 \n erichi - 98-12-06-98e79a27f-1 \n ucrun - 2022-02-19-05be6abeb-1 \n vxlan - 7 ..."
+    },
+    {
+        "serialNumber": "xxxxx",
+        "packages": [
+            {
+                "packageName": "akiho",
+                "version": "98-10-16-71a3b533e-1"
+            },
+            {
+                "packageName": "erichi",
+                "version": "98-12-06-98e79a27f-1"
+            }
+        ]
+    }
+]

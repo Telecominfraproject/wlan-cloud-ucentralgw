@@ -145,6 +145,7 @@ namespace OpenWifi {
 		std::uint64_t 	uuid_=0;
 		bool	Simulated_=false;
 		std::atomic_uint64_t 	LastContact_=0;
+		GWObjects::PackageList DevicePackages_;
 
 		static inline std::atomic_uint64_t ConcurrentStartingDevices_ = 0;
 
@@ -168,6 +169,9 @@ namespace OpenWifi {
 		void Process_wifiscan(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_alarm(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_rebootLog(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_packagelist(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_packageinstall(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_packageremove(Poco::JSON::Object::Ptr ParamsObj);
 
 		inline void SetLastHealthCheck(const GWObjects::HealthCheck &H) {
 			RawLastHealthcheck_ = H;
