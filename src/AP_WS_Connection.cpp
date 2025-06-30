@@ -213,6 +213,7 @@ namespace OpenWifi {
 			}
 
 			State_.certificateExpiryDate = PeerCert.expiresOn().timestamp().epochTime();
+			State_.certificateIssuerName = PeerCert.issuerName();
 
 			poco_trace(Logger_,
 					   fmt::format("TLS-CONNECTION({}): Session={} CN={} Completed. (t={})", CId_,

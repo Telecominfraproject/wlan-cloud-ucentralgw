@@ -297,6 +297,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "connectionCompletionTime", connectionCompletionTime);
 		field_to_json(Obj, "totalConnectionTime", Utils::Now() - started);
 		field_to_json(Obj, "certificateExpiryDate", certificateExpiryDate);
+		field_to_json(Obj, "certificateIssuerName", certificateIssuerName);
 		field_to_json(Obj, "connectReason", connectReason);
 		field_to_json(Obj, "uptime", uptime);
         field_to_json(Obj, "compatible", Compatible);
@@ -358,6 +359,7 @@ namespace OpenWifi::GWObjects {
             field_from_json(Obj, "connectionCompletionTime", connectionCompletionTime);
             field_from_json(Obj, "totalConnectionTime", totalConnectionTime);
             field_from_json(Obj, "certificateExpiryDate", certificateExpiryDate);
+			field_from_json(Obj, "certificateIssuerName", certificateIssuerName);
             field_from_json(Obj, "connectReason", connectReason);
             field_from_json(Obj, "uptime", uptime);
             field_from_json(Obj, "hasRADIUSSessions", hasRADIUSSessions );
