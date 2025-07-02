@@ -583,6 +583,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 
 	static const char *FIXEDCONFIG = "fixedconfig";
 	static const char *CABLEDIAGNOSTICS = "cable-diagnostics";
+	static const char *REENROLL = "re-enroll";
 } // namespace OpenWifi::RESTAPI::Protocol
 
 namespace OpenWifi::uCentralProtocol {
@@ -698,6 +699,8 @@ namespace OpenWifi::uCentralProtocol {
 
 	static const char *FIXEDCONFIG = "fixedconfig";
 	static const char *CABLEDIAGNOSTICS = "cable-diagnostics";
+	static const char *REENROLL = "re-enroll";
+
 
 } // namespace OpenWifi::uCentralProtocol
 
@@ -797,6 +800,7 @@ namespace OpenWifi::APCommands {
 		powercycle,
 		fixedconfig,
 		cablediagnostics,
+		reenroll,
 		unknown
 	};
 
@@ -812,7 +816,8 @@ namespace OpenWifi::APCommands {
 		RESTAPI::Protocol::PING,		 RESTAPI::Protocol::SCRIPT,
 		RESTAPI::Protocol::RRM,		 	 RESTAPI::Protocol::CERTUPDATE,
 		RESTAPI::Protocol::TRANSFER,	 RESTAPI::Protocol::POWERCYCLE,
-		RESTAPI::Protocol::FIXEDCONFIG,  RESTAPI::Protocol::CABLEDIAGNOSTICS
+		RESTAPI::Protocol::FIXEDCONFIG,  RESTAPI::Protocol::CABLEDIAGNOSTICS,
+		RESTAPI::Protocol::REENROLL
 	};
 
 	inline const char *to_string(Commands Cmd) { return uCentralAPCommands[(uint8_t)Cmd]; }

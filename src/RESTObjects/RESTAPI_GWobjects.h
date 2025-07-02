@@ -548,4 +548,10 @@ namespace OpenWifi::GWObjects {
 
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
+	struct ReEnroll {
+		std::string 	serialNumber;
+		std::uint64_t 	when;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
 } // namespace OpenWifi::GWObjects
