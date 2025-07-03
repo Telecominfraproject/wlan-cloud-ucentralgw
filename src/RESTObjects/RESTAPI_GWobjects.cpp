@@ -821,4 +821,14 @@ namespace OpenWifi::GWObjects {
 		}
 		return false;
 	}
+
+	bool ReEnroll::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj, "serial", serialNumber);
+			field_from_json(Obj, "when", when);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
 } // namespace OpenWifi::GWObjects
