@@ -583,7 +583,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 
 	static const char *FIXEDCONFIG = "fixedconfig";
 	static const char *CABLEDIAGNOSTICS = "cable-diagnostics";
-	static const char *REENROLL = "re-enroll";
+	static const char *REENROLL = "reenroll";
 } // namespace OpenWifi::RESTAPI::Protocol
 
 namespace OpenWifi::uCentralProtocol {
@@ -699,7 +699,7 @@ namespace OpenWifi::uCentralProtocol {
 
 	static const char *FIXEDCONFIG = "fixedconfig";
 	static const char *CABLEDIAGNOSTICS = "cable-diagnostics";
-	static const char *REENROLL = "re-enroll";
+	static const char *REENROLL = "reenroll";
 
 
 } // namespace OpenWifi::uCentralProtocol
