@@ -3952,8 +3952,10 @@ static std::string DefaultAPSchema = R"foo(
                             "inactive-deauth",
                             "key-mismatch",
                             "beacon-report",
-                            "radar-detected"
-                        ]
+                            "radar-detected",
+                            "ft-finish",
+                            "sta-authorized"
+			 ]
                     }
                 }
             }
@@ -7920,7 +7922,9 @@ static std::string DefaultSWITCHSchema = R"foo(
                             "inactive-deauth",
                             "key-mismatch",
                             "beacon-report",
-                            "radar-detected"
+                            "radar-detected",
+                            "ft-finish",
+                            "sta-authorized"
                         ]
                     }
                 }
