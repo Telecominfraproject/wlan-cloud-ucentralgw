@@ -1600,6 +1600,77 @@ components:
                 maximum: 60000
                 description: off time in milliseconds
 
+    PackageGetResponse:
+      type: object
+      properties:
+        serial:
+          type: string
+        status:
+          type: object
+          properties:
+            packages:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  version:
+                    type: string
+
+
+    PackageInstallRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        packages:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              url:
+                type: string
+    
+    PackageInstallResponse:
+      type: object
+      properties:
+        serial:
+          type: string
+        status:
+          type: object
+          properties:
+            error:
+              type: number
+            packages:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  result:
+                    type: string
+            text:
+              type: string
+        uuid:
+          type: number
+
+    PackageRemoveRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        packages: 
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+
 paths:
   /devices:
     get:
@@ -3079,6 +3150,92 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/package:
+    get:
+      tags:
+        - Commands
+      summary: Get package installed on the remote device.
+      operationId: getDevicePackages
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Successful command execution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageGetResponse'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags:
+        - Commands
+      summary: Install IPK files to remote device.
+      operationId: postDevicePackages
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Packages to be installed
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackageInstallRequest'
+      responses:
+        200:
+          description: Successful command execution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageInstallResponse'
+
+        400:
+          $ref: '#/components/responses/BadRequest'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Commands
+      summary: Remove install packages from remote device.
+      operationId: deleteDevicePackages
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Packages to be removed
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackageRemoveRequest'
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageInstallResponse'
+        400:
+          $ref: '#/components/responses/BadRequest'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
