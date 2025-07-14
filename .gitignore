@@ -29,4 +29,4 @@ helm/charts/*
 !helm/charts/.gitkeep
 /portal-test/
 /src/ow_version.h
-
+.vscode/*
