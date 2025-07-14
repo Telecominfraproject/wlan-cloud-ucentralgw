@@ -33,7 +33,8 @@ namespace OpenWifi {
 		void GetStatus();
 		void GetChecks();
 		void DeleteChecks();
-		void GetPackages();
+		void GetPackages(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout,
+					   const GWObjects::DeviceRestrictions &R);
 		void DeletePackages(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout,
 					   const GWObjects::DeviceRestrictions &R);
 

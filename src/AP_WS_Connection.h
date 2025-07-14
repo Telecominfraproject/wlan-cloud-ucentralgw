@@ -145,7 +145,6 @@ namespace OpenWifi {
 		std::uint64_t 	uuid_=0;
 		bool	Simulated_=false;
 		std::atomic_uint64_t 	LastContact_=0;
-		GWObjects::PackageList DevicePackages_;
 
 		static inline std::atomic_uint64_t ConcurrentStartingDevices_ = 0;
 

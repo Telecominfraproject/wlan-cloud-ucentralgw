@@ -153,7 +153,6 @@ add_executable( owgw
         src/storage/storage_blacklist.cpp src/storage/storage_tables.cpp src/storage/storage_logs.cpp
         src/storage/storage_command.cpp src/storage/storage_healthcheck.cpp src/storage/storage_statistics.cpp
         src/storage/storage_device.cpp src/storage/storage_capabilities.cpp src/storage/storage_defconfig.cpp
-        src/storage/storage_packages.cpp
         src/storage/storage_scripts.cpp src/storage/storage_scripts.h
         src/storage/storage_tables.cpp
         src/RESTAPI/RESTAPI_routers.cpp

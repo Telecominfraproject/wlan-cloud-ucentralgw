@@ -22,7 +22,6 @@ namespace OpenWifi {
 		Create_BlackList();
 		Create_FileUploads();
 		Create_DefaultFirmwares();
-		Create_Packages();
 
 		return 0;
 	}
@@ -443,25 +442,6 @@ namespace OpenWifi {
 						") ",
 					Poco::Data::Keywords::now;
 			}
-
-			return 0;
-		} catch (const Poco::Exception &E) {
-			Logger().log(E);
-		}
-		return -1;
-	}
-
-	int Storage::Create_Packages() {
-		try {
-			Poco::Data::Session Sess = Pool_->get();
-
-			Sess << "CREATE TABLE IF NOT EXISTS DevicePackages ("
-					"SerialNumber 	VARCHAR(30) PRIMARY KEY, "
-					"Packages		JSON, "
-					"FirstUpdate 	BIGINT, "
-					"LastUpdate 	BIGINT"
-					")",
-				Poco::Data::Keywords::now;
 
 			return 0;
 		} catch (const Poco::Exception &E) {
