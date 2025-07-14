@@ -34,7 +34,7 @@ password=${OWSEC_PASSWORD}
 
 if [[ "${FLAGS}" == "" ]]
 then
-  FLAGS="-s"
+  FLAGS="-s -k"
 fi
 
 token=""

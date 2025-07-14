@@ -155,13 +155,7 @@ namespace OpenWifi::RESTAPI_RPC {
 					auto ScanObj = rpc_answer->get(uCentralProtocol::RESULT)
 									   .extract<Poco::JSON::Object::Ptr>();
 					ParseWifiScan(ScanObj, ResultText, Logger);
-				}
-				// else if (Cmd.Command == uCentralProtocol::PACKAGE) {
-				// 	auto PkgObj = rpc_answer->get(uCentralProtocol::RESULT)
-				// 					   .extract<Poco::JSON::Object::Ptr>();
-				// 	ParsePackageList(PkgObj, ResultText, Logger);
-				// } 
-				else {
+				} else {
 					Poco::JSON::Stringifier::stringify(rpc_answer->get(uCentralProtocol::RESULT),
 													   ResultText);
 				}

@@ -91,8 +91,21 @@ namespace OpenWifi {
 					TransactionId_, UUID, RPC, Poco::Thread::current()->id()));
 			return Rtty(UUID, RPC, 60000ms, Restrictions);
 		};
-		case APCommands::Commands::package:
-			return GetPackages();
+		case APCommands::Commands::package:{
+			GWObjects::DeviceRestrictions Restrictions;
+			if (!AP_WS_Server()->Connected(SerialNumberInt_, Restrictions)) {
+				CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
+				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
+			}
+			auto UUID = MicroServiceCreateUUID();
+			auto RPC = CommandManager()->Next_RPC_ID();
+			poco_debug(
+				Logger_,
+				fmt::format(
+					"Command RTTY TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
+					TransactionId_, UUID, RPC, Poco::Thread::current()->id()));
+			return GetPackages(UUID, RPC, 300000ms, Restrictions);
+		}
 		default:
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
@@ -425,30 +438,48 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::NoRecordsDeleted);
 	}
 
-	void RESTAPI_device_commandHandler::GetPackages() {
+	void RESTAPI_device_commandHandler::GetPackages(const std::string &CMD_UUID, uint64_t CMD_RPC,
+		[[maybe_unused]] std::chrono::milliseconds timeout,
+		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
 		poco_debug(Logger_, fmt::format("GET-PACKAGES({},{}): TID={} user={} serial={}. thr_id={}",
 										TransactionId_, Requester(), SerialNumber_,
 										Poco::Thread::current()->id()));
 
-		if(IsDeviceSimulated(SerialNumber_)) {
+		if (IsDeviceSimulated(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
 		}
 
-		GWObjects::PackageList Pkgs;
-		StorageService()->GetDeviceInstalledPackages(SerialNumber_, Pkgs);
-		
-		Poco::JSON::Array::Ptr ArrayObj = Poco::SharedPtr<Poco::JSON::Array>(new Poco::JSON::Array);
-		for (const auto &i : Pkgs.packageArray) {
-			Poco::JSON::Object::Ptr Obj =
-				Poco::SharedPtr<Poco::JSON::Object>(new Poco::JSON::Object);
-			i.to_json(*Obj);
-			ArrayObj->add(Obj);
-		}
+		Poco::JSON::Object Params;
+		Params.set(uCentralProtocol::OPERATION, "list");
+		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 
-		Poco::JSON::Object RetObj;
-		RetObj.set(RESTAPI::Protocol::PACKAGES, ArrayObj);
-		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
-		return ReturnObject(RetObj);
+		std::ostringstream os2;
+		Params.stringify(os2);
+
+		poco_information(Logger_, fmt::format("GET_OBJECT: {} for device {}", os2.str(), SerialNumber_));
+
+
+		std::stringstream ParamStream;
+		Params.stringify(ParamStream);
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.UUID = CMD_UUID;
+		Cmd.SubmittedBy = Requester();
+		Cmd.Command = uCentralProtocol::PACKAGE;
+		Cmd.RunAt = 0;
+		Cmd.Details = ParamStream.str();
+
+		RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::package, false, Cmd, Params,
+										*Request, *Response, timeout, nullptr, nullptr, Logger_);
+
+		Poco::JSON::Object O, P;
+		Cmd.to_json(O);
+
+		Poco::Dynamic::Var resultsVar = O.get("results");
+		Poco::JSON::Object::Ptr resultsObj = resultsVar.extract<Poco::JSON::Object::Ptr>();
+
+		return ReturnObject(*resultsObj);
 	}
 
 	void RESTAPI_device_commandHandler::PackageInstall(
