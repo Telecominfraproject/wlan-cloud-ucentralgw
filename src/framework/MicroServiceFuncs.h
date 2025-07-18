@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <optional>
 
 #include "framework/OpenWifiTypes.h"
 
