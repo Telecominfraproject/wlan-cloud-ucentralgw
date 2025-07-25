@@ -22,7 +22,7 @@
 namespace OpenWifi {
 
 	class AP_WS_Connection {
-		static constexpr int BufSize = 256000;
+		static constexpr int BufSize = 512000;
 
 	  public:
 		explicit AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
