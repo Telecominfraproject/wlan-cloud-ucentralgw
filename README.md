@@ -14,7 +14,7 @@ the OWGW, you either need to [build it](#building) or use the [Docker version](#
 To build the microservice from source, please follow the instructions in [here](./BUILDING.md)
 
 ## Docker
-To use the CLoudSDK deployment please follow [here](https://github.com/Telecominfraproject/wlan-cloud-ucentral-deploy)
+To use the CloudSDK deployment please follow [here](https://github.com/Telecominfraproject/wlan-cloud-ucentral-deploy)
 
 #### Expected directory layout
 From the directory where your cloned source is, you will need to create the `certs`, `logs`, and `uploads` directories.

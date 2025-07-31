@@ -1,7 +1,6 @@
 //
 // Created by stephane bourque on 2022-07-16.
 //
-
 #pragma once
 
 #include "Poco/Notification.h"
