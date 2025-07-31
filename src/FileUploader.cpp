@@ -217,7 +217,7 @@ namespace OpenWifi {
 							Reader.nextPart(Hdr);
 
 							const auto PartContentType = Hdr.get("Content-Type", "");
-							if (PartContentType == "application/octet-stream") {
+							if (PartContentType == "application/octet-stream" || PartContentType == "text/plain") {
 								std::stringstream FileContent;
 								Poco::StreamCopier::copyStream(Reader.stream(), FileContent);
 								Answer.set("filename", UUID_);
