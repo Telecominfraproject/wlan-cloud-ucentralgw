@@ -454,14 +454,10 @@ namespace OpenWifi {
 		Params.set(uCentralProtocol::OPERATION, "list");
 		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 
-		std::ostringstream os2;
-		Params.stringify(os2);
-
-		poco_information(Logger_, fmt::format("GET_OBJECT: {} for device {}", os2.str(), SerialNumber_));
-
-
 		std::stringstream ParamStream;
 		Params.stringify(ParamStream);
+
+		poco_information(Logger_, fmt::format("GET_OBJECT: {} for device {}", ParamStream.str(), SerialNumber_));
 
 		GWObjects::CommandDetails Cmd;
 		Cmd.SerialNumber = SerialNumber_;
@@ -479,6 +475,61 @@ namespace OpenWifi {
 
 		Poco::Dynamic::Var resultsVar = O.get("results");
 		Poco::JSON::Object::Ptr resultsObj = resultsVar.extract<Poco::JSON::Object::Ptr>();
+		Poco::JSON::Object::Ptr packages;
+
+		std::string UncompressedData;
+		try {
+			if (resultsObj->has("status")) {
+				Poco::Dynamic::Var statusVar = resultsObj->get("status");
+				Poco::JSON::Object::Ptr statusObj = statusVar.extract<Poco::JSON::Object::Ptr>();
+
+				if (statusObj->has(uCentralProtocol::COMPRESS_64)) {
+					auto CompressedData = statusObj->get(uCentralProtocol::COMPRESS_64).toString();
+					uint64_t compress_sz = 0;
+					if (statusObj->has("compress_sz")) {
+						compress_sz = statusObj->get("compress_sz").convert<uint64_t>();
+					}
+
+					if (Utils::ExtractBase64CompressedData(CompressedData, UncompressedData, compress_sz)) {
+						poco_information(Logger_,
+								fmt::format("EVENT: Found compressed payload expanded to '{}'.",
+											UncompressedData));
+						Poco::JSON::Parser Parser;
+						packages = Parser.parse(UncompressedData).extract<Poco::JSON::Object::Ptr>();
+					} else {
+						poco_warning(Logger_,
+									fmt::format("INVALID-COMPRESSED-DATA: Cannot decompress data - content may be corrupt: size={}",
+												CompressedData.size()));
+						return;
+					}
+				} else {
+					poco_trace(Logger_, "No compressed data found in status.");
+				}
+			} else {
+				poco_warning(Logger_, "No status object found in results.");
+				return;
+			}
+		} catch (const Poco::Exception &E) {
+			poco_warning(Logger_,
+						fmt::format("INVALID-COMPRESSED-JSON-DATA: Failed to parse compressed data: {}",
+									E.displayText()));
+			Logger_.log(E);
+			return;
+		} catch (const std::exception &E) {
+			poco_warning(Logger_,
+						fmt::format("INVALID-COMPRESSED-JSON-DATA: Unexpected error: {}",
+									E.what()));
+			return;
+		}
+
+		if (resultsObj->has("status")) {
+			Poco::Dynamic::Var statusVar = resultsObj->get("status");
+			Poco::JSON::Object::Ptr statusObj = statusVar.extract<Poco::JSON::Object::Ptr>();
+			statusObj->remove("compress_sz");
+			statusObj->remove("compress_64");
+		}
+
+		resultsObj->set("packages", packages->get("packages"));
 
 		return ReturnObject(*resultsObj);
 	}
