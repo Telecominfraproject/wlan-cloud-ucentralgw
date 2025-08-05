@@ -87,6 +87,7 @@ namespace OpenWifi {
 				Poco::Crypto::X509Certificate Cert(CertFileName);
 				Poco::Crypto::X509Certificate Root(RootCaFileName);
 				Poco::Crypto::X509Certificate Issuing(IssuerFileName);
+                std::vector<Poco::Crypto::X509Certificate> ClientCasCerts;
 				Poco::Crypto::RSAKey Key("", KeyFileName, KeyPassword);
 
 				DeviceSecureContext->useCertificate(Cert);
@@ -94,8 +95,8 @@ namespace OpenWifi {
 				DeviceSecureContext->addCertificateAuthority(Root);
 				DeviceSecureContext->addChainCertificate(Issuing);
 				DeviceSecureContext->addCertificateAuthority(Issuing);
-                ClientCasCerts_ = Poco::Net::X509Certificate::readPEM(Cas);
-                for (const auto &cert : ClientCasCerts_) {
+                ClientCasCerts = Poco::Net::X509Certificate::readPEM(Cas);
+                for (const auto &cert : ClientCasCerts) {
                     DeviceSecureContext->addChainCertificate(cert);
                     DeviceSecureContext->addCertificateAuthority(cert);
                 }
