@@ -14,6 +14,7 @@
 #include "nlohmann/json.hpp"
 
 #include "Poco/NObserver.h"
+#include <Poco/Net/Context.h>
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/WebSocketImpl.h"
@@ -93,7 +94,7 @@ namespace OpenWifi {
 				DeviceSecureContext->addCertificateAuthority(Root);
 				DeviceSecureContext->addChainCertificate(Issuing);
 				DeviceSecureContext->addCertificateAuthority(Issuing);
-                ClientCasCerts_ = Poco::Net::X509Certificate::readPEM(cas);
+                ClientCasCerts_ = Poco::Net::X509Certificate::readPEM(Cas);
                 for (const auto &cert : ClientCasCerts_) {
                     DeviceSecureContext->addChainCertificate(cert);
                     DeviceSecureContext->addCertificateAuthority(cert);
