@@ -93,7 +93,11 @@ namespace OpenWifi {
 				DeviceSecureContext->addCertificateAuthority(Root);
 				DeviceSecureContext->addChainCertificate(Issuing);
 				DeviceSecureContext->addCertificateAuthority(Issuing);
-				DeviceSecureContext->addCertificateAuthority(Root);
+                ClientCasCerts_ = Poco::Net::X509Certificate::readPEM(cas);
+                for (const auto &cert : ClientCasCerts_) {
+                    DeviceSecureContext->addChainCertificate(cert);
+                    DeviceSecureContext->addCertificateAuthority(cert);
+                }
 				DeviceSecureContext->enableSessionCache(true);
 				DeviceSecureContext->setSessionCacheSize(0);
 				DeviceSecureContext->setSessionTimeout(120);
