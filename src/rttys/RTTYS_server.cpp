@@ -72,6 +72,7 @@ namespace OpenWifi {
 				const auto &RootCas =
 					MicroServiceConfigPath("ucentral.websocket.host.0.rootca", "");
 				const auto &Cas = MicroServiceConfigPath("ucentral.websocket.host.0.cas", "");
+				const auto &ClientCasFile = MicroServiceConfigPath("ucentral.websocket.host.0.clientcas", "");
 
 				Poco::Net::Context::Params P;
 
@@ -95,7 +96,7 @@ namespace OpenWifi {
 				DeviceSecureContext->addCertificateAuthority(Root);
 				DeviceSecureContext->addChainCertificate(Issuing);
 				DeviceSecureContext->addCertificateAuthority(Issuing);
-                ClientCasCerts = Poco::Net::X509Certificate::readPEM(Cas);
+                ClientCasCerts = Poco::Net::X509Certificate::readPEM(ClientCasFile);
                 for (const auto &cert : ClientCasCerts) {
                     DeviceSecureContext->addChainCertificate(cert);
                     DeviceSecureContext->addCertificateAuthority(cert);
