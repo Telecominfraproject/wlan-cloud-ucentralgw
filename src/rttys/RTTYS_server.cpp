@@ -14,6 +14,7 @@
 #include "nlohmann/json.hpp"
 
 #include "Poco/NObserver.h"
+#include <Poco/Net/Context.h>
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/WebSocketImpl.h"
@@ -71,6 +72,7 @@ namespace OpenWifi {
 				const auto &RootCas =
 					MicroServiceConfigPath("ucentral.websocket.host.0.rootca", "");
 				const auto &Cas = MicroServiceConfigPath("ucentral.websocket.host.0.cas", "");
+				const auto &ClientCasFile = MicroServiceConfigPath("ucentral.websocket.host.0.clientcas", "");
 
 				Poco::Net::Context::Params P;
 
@@ -86,6 +88,7 @@ namespace OpenWifi {
 				Poco::Crypto::X509Certificate Cert(CertFileName);
 				Poco::Crypto::X509Certificate Root(RootCaFileName);
 				Poco::Crypto::X509Certificate Issuing(IssuerFileName);
+                std::vector<Poco::Crypto::X509Certificate> ClientCasCerts;
 				Poco::Crypto::RSAKey Key("", KeyFileName, KeyPassword);
 
 				DeviceSecureContext->useCertificate(Cert);
@@ -93,7 +96,11 @@ namespace OpenWifi {
 				DeviceSecureContext->addCertificateAuthority(Root);
 				DeviceSecureContext->addChainCertificate(Issuing);
 				DeviceSecureContext->addCertificateAuthority(Issuing);
-				DeviceSecureContext->addCertificateAuthority(Root);
+                ClientCasCerts = Poco::Net::X509Certificate::readPEM(ClientCasFile);
+                for (const auto &cert : ClientCasCerts) {
+                    DeviceSecureContext->addChainCertificate(cert);
+                    DeviceSecureContext->addCertificateAuthority(cert);
+                }
 				DeviceSecureContext->enableSessionCache(true);
 				DeviceSecureContext->setSessionCacheSize(0);
 				DeviceSecureContext->setSessionTimeout(120);
