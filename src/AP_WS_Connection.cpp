@@ -35,7 +35,7 @@ namespace OpenWifi {
 
     void AP_WS_Connection::LogOpenSslErrors() {
         if (ERR_peek_error() == 0) {
-            poco_warning("No OpenSsl errors");
+            poco_warning(Logger_, "No OpenSsl errors");
             return;
         }
 
