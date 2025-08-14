@@ -625,6 +625,9 @@ static std::string DefaultAPSchema = R"foo(
                     ],
                     "default": 80
                 },
+                "enable": {
+                    "type": "boolean"
+                },
                 "require-mode": {
                     "description": "Stations that do no fulfill these HT modes will be rejected.",
                     "type": "string",
@@ -4957,6 +4960,9 @@ static std::string DefaultSWITCHSchema = R"foo(
                         8080
                     ],
                     "default": 80
+                },
+                "enable": {
+                    "type": "boolean"
                 },
                 "require-mode": {
                     "type": "string",
