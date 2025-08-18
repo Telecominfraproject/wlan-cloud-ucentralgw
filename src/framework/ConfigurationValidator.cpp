@@ -552,7 +552,8 @@ static std::string DefaultAPSchema = R"foo(
                         "5G",
                         "5G-lower",
                         "5G-upper",
-                        "6G"
+                        "6G",
+                        "HaLow"
                     ]
                 },
                 "bandwidth": {
@@ -626,6 +627,7 @@ static std::string DefaultAPSchema = R"foo(
                     "default": 80
                 },
                 "enable": {
+                    "description": "Specifies radio is enabled/disabled.",
                     "type": "boolean"
                 },
                 "require-mode": {
@@ -2312,7 +2314,8 @@ static std::string DefaultAPSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
@@ -3745,7 +3748,8 @@ static std::string DefaultAPSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
@@ -4895,7 +4899,8 @@ static std::string DefaultSWITCHSchema = R"foo(
                         "5G",
                         "5G-lower",
                         "5G-upper",
-                        "6G"
+                        "6G",
+                        "HaLow"
                     ]
                 },
                 "bandwidth": {
@@ -4962,6 +4967,7 @@ static std::string DefaultSWITCHSchema = R"foo(
                     "default": 80
                 },
                 "enable": {
+                    "description": "Specifies radio is enabled/disabled.",
                     "type": "boolean"
                 },
                 "require-mode": {
@@ -6536,7 +6542,8 @@ static std::string DefaultSWITCHSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
@@ -7759,7 +7766,8 @@ static std::string DefaultSWITCHSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
