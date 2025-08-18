@@ -627,6 +627,7 @@ static std::string DefaultAPSchema = R"foo(
                     "default": 80
                 },
                 "enable": {
+                    "description": "Specifies radio is enabled/disabled.",
                     "type": "boolean"
                 },
                 "require-mode": {
@@ -4966,6 +4967,7 @@ static std::string DefaultSWITCHSchema = R"foo(
                     "default": 80
                 },
                 "enable": {
+                    "description": "Specifies radio is enabled/disabled.",
                     "type": "boolean"
                 },
                 "require-mode": {
