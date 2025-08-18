@@ -552,7 +552,8 @@ static std::string DefaultAPSchema = R"foo(
                         "5G",
                         "5G-lower",
                         "5G-upper",
-                        "6G"
+                        "6G",
+                        "HaLow"
                     ]
                 },
                 "bandwidth": {
@@ -2312,7 +2313,8 @@ static std::string DefaultAPSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
@@ -3745,7 +3747,8 @@ static std::string DefaultAPSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
@@ -4895,7 +4898,8 @@ static std::string DefaultSWITCHSchema = R"foo(
                         "5G",
                         "5G-lower",
                         "5G-upper",
-                        "6G"
+                        "6G",
+                        "HaLow"
                     ]
                 },
                 "bandwidth": {
@@ -6536,7 +6540,8 @@ static std::string DefaultSWITCHSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
@@ -7759,7 +7764,8 @@ static std::string DefaultSWITCHSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
