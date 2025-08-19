@@ -1576,6 +1576,15 @@ components:
           format: base64
           description: This is a base64 encoded string of the certificate bundle (the current bundle .tar.gz file from the PKI portal)
 
+    ReenrollRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        when:
+          type: integer
+          format: int64
+
     PowerCycleRequest:
       type: object
       properties:
@@ -3048,6 +3057,32 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/DeviceCertificateUpdateRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/reenroll:
+    post:
+      tags:
+        - Commands
+      summary: Reenroll operational certificate for the device.
+      operationId: reenrollCertificate
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Reenroll operational certificate for the device
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReenrollRequest'
       responses:
         200:
           $ref: '#/components/responses/Success'

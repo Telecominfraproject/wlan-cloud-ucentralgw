@@ -552,7 +552,8 @@ static std::string DefaultAPSchema = R"foo(
                         "5G",
                         "5G-lower",
                         "5G-upper",
-                        "6G"
+                        "6G",
+                        "HaLow"
                     ]
                 },
                 "bandwidth": {
@@ -624,6 +625,10 @@ static std::string DefaultAPSchema = R"foo(
                         8080
                     ],
                     "default": 80
+                },
+                "enable": {
+                    "description": "Specifies radio is enabled/disabled.",
+                    "type": "boolean"
                 },
                 "require-mode": {
                     "description": "Stations that do no fulfill these HT modes will be rejected.",
@@ -2309,7 +2314,8 @@ static std::string DefaultAPSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
@@ -3742,7 +3748,8 @@ static std::string DefaultAPSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
@@ -4892,7 +4899,8 @@ static std::string DefaultSWITCHSchema = R"foo(
                         "5G",
                         "5G-lower",
                         "5G-upper",
-                        "6G"
+                        "6G",
+                        "HaLow"
                     ]
                 },
                 "bandwidth": {
@@ -4957,6 +4965,10 @@ static std::string DefaultSWITCHSchema = R"foo(
                         8080
                     ],
                     "default": 80
+                },
+                "enable": {
+                    "description": "Specifies radio is enabled/disabled.",
+                    "type": "boolean"
                 },
                 "require-mode": {
                     "type": "string",
@@ -6530,7 +6542,8 @@ static std::string DefaultSWITCHSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
@@ -7753,7 +7766,8 @@ static std::string DefaultSWITCHSchema = R"foo(
                             "5G",
                             "5G-lower",
                             "5G-upper",
-                            "6G"
+                            "6G",
+                            "HaLow"
                         ]
                     }
                 },
