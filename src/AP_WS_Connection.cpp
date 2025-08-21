@@ -628,14 +628,7 @@ namespace OpenWifi {
 		bool	KillConnection=false;
 		try {
 			int Op, flags;
-            int IncomingSize;
-            //auto TS = Poco::Timespan(360, 0);
-
-            //if (WS_->poll(TS, 1)) {
-            IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
-            //} else{
-            //    return;
-            //}
+            auto IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
 
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
@@ -782,7 +775,7 @@ namespace OpenWifi {
 									 E.displayText(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-			//KillConnection=true;
+			KillConnection=true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger_,
 						 fmt::format("Exception({}): Text:{} Payload:{} Session:{}", CId_,
