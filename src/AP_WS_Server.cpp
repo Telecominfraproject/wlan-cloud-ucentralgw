@@ -120,7 +120,6 @@ namespace OpenWifi {
 			P.verificationDepth = 9;
 			P.loadDefaultCAs = Svr.RootCA().empty();
 			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
-			P.dhUse2048Bits = true;
 			P.caLocation = Svr.Cas();
 
 			auto Context = Poco::AutoPtr<Poco::Net::Context>(
