@@ -18,8 +18,6 @@
 #include <framework/ow_constants.h>
 
 #include <fmt/format.h>
-#include <openssl/err.h>
-#include <openssl/bio.h>
 
 #include <AP_WS_Connection.h>
 #include <AP_WS_Server.h>
@@ -32,26 +30,6 @@
 #include <UI_GW_WebSocketNotifications.h>
 
 namespace OpenWifi {
-
-    void AP_WS_Connection::LogOpenSslErrors() {
-        if (ERR_peek_error() == 0) {
-            poco_warning(Logger_, "No OpenSsl errors");
-            return;
-        }
-
-        BIO* bio = BIO_new(BIO_s_mem());
-        if (!bio)
-            return;
-
-        ERR_print_errors(bio); // writes and clears the error queue
-
-        char* data = nullptr;
-        long len = BIO_get_mem_data(bio, &data);
-        if (len > 0 && data) {
-            poco_warning(Logger_, std::string(data, static_cast<std::size_t>(len)));
-        }
-        BIO_free(bio);
-    }
 
 	void AP_WS_Connection::LogException(const Poco::Exception &E) {
 		poco_information(Logger_, fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
@@ -627,15 +605,8 @@ namespace OpenWifi {
 
 		bool	KillConnection=false;
 		try {
-			int Op, flags;
-            int IncomingSize;
-            //auto TS = Poco::Timespan(360, 0);
-
-            //if (WS_->poll(TS, 1)) {
-            IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
-            //} else{
-            //    return;
-            //}
+			int 	Op, flags;
+			auto IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
 
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
@@ -759,7 +730,6 @@ namespace OpenWifi {
 					CId_, E.displayText(),
 					IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 					State_.sessionId));
-            LogOpenSslErrors();
 			KillConnection=true;
 		} catch (const Poco::Net::SSLException &E) {
 			poco_warning(Logger_,
@@ -767,7 +737,6 @@ namespace OpenWifi {
 									 E.displayText(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-            LogOpenSslErrors();
 			KillConnection=true;
 		} catch (const Poco::Net::NetException &E) {
 			poco_warning(Logger_,
@@ -782,7 +751,7 @@ namespace OpenWifi {
 									 E.displayText(),
 									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
 									 State_.sessionId));
-			//KillConnection=true;
+			KillConnection=true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger_,
 						 fmt::format("Exception({}): Text:{} Payload:{} Session:{}", CId_,

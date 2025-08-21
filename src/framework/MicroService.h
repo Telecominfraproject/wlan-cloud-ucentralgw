@@ -41,6 +41,7 @@ namespace OpenWifi {
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/PropertyFileConfiguration.h"
 #include "Poco/Util/ServerApplication.h"
+#include "Poco/ThreadPool.h"
 
 #include "framework/OpenWifiTypes.h"
 

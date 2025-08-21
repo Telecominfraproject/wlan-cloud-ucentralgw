@@ -35,7 +35,6 @@ namespace OpenWifi {
 		P.verificationDepth = 9;
 		P.loadDefaultCAs = root_ca_.empty();
 		P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
-		P.dhUse2048Bits = true;
 		P.caLocation = cas_;
         // P.securityLevel =
 
