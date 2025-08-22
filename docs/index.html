@@ -1938,6 +1938,120 @@ ul.nav-tabs {
     }
   }
 };
+    defs["PackageGetResponse"] = {
+  "type" : "object",
+  "properties" : {
+    "serial" : {
+      "type" : "string"
+    },
+    "status" : {
+      "$ref" : "#/components/schemas/PackageGetResponse_status"
+    },
+    "uuid" : {
+      "type" : "number"
+    }
+  }
+};
+    defs["PackageGetResponse_status"] = {
+  "type" : "object",
+  "properties" : {
+    "package" : {
+      "type" : "string"
+    },
+    "text" : {
+      "type" : "string"
+    }
+  }
+};
+    defs["PackageInstallRequest"] = {
+  "type" : "object",
+  "properties" : {
+    "serialNumber" : {
+      "type" : "string"
+    },
+    "packages" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/components/schemas/PackageInstallRequest_packages_inner"
+      }
+    }
+  }
+};
+    defs["PackageInstallRequest_packages_inner"] = {
+  "type" : "object",
+  "properties" : {
+    "name" : {
+      "type" : "string"
+    },
+    "url" : {
+      "type" : "string"
+    }
+  }
+};
+    defs["PackageInstallResponse"] = {
+  "type" : "object",
+  "properties" : {
+    "serial" : {
+      "type" : "string"
+    },
+    "status" : {
+      "$ref" : "#/components/schemas/PackageInstallResponse_status"
+    },
+    "uuid" : {
+      "type" : "number"
+    }
+  }
+};
+    defs["PackageInstallResponse_status"] = {
+  "type" : "object",
+  "properties" : {
+    "error" : {
+      "type" : "number"
+    },
+    "packages" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/components/schemas/PackageInstallResponse_status_packages_inner"
+      }
+    },
+    "text" : {
+      "type" : "string"
+    }
+  }
+};
+    defs["PackageInstallResponse_status_packages_inner"] = {
+  "type" : "object",
+  "properties" : {
+    "name" : {
+      "type" : "string"
+    },
+    "result" : {
+      "type" : "string"
+    }
+  }
+};
+    defs["PackageRemoveRequest"] = {
+  "type" : "object",
+  "properties" : {
+    "serialNumber" : {
+      "type" : "string"
+    },
+    "packages" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/components/schemas/PackageRemoveRequest_packages_inner"
+      }
+    }
+  }
+};
+    defs["PackageRemoveRequest_packages_inner"] = {
+  "type" : "object",
+  "properties" : {
+    "name" : {
+      "type" : "string"
+    }
+  }
+};
     defs["PowerCycleRequest"] = {
   "type" : "object",
   "properties" : {
@@ -3059,6 +3173,9 @@ ul.nav-tabs {
                     <li data-group="Commands" data-name="deleteDeviceLogs" class="">
                       <a href="#api-Commands-deleteDeviceLogs">deleteDeviceLogs</a>
                     </li>
+                    <li data-group="Commands" data-name="deleteDevicePackages" class="">
+                      <a href="#api-Commands-deleteDevicePackages">deleteDevicePackages</a>
+                    </li>
                     <li data-group="Commands" data-name="deleteDeviceStats" class="">
                       <a href="#api-Commands-deleteDeviceStats">deleteDeviceStats</a>
                     </li>
@@ -3086,6 +3203,9 @@ ul.nav-tabs {
                     <li data-group="Commands" data-name="getDeviceLogs" class="">
                       <a href="#api-Commands-getDeviceLogs">getDeviceLogs</a>
                     </li>
+                    <li data-group="Commands" data-name="getDevicePackages" class="">
+                      <a href="#api-Commands-getDevicePackages">getDevicePackages</a>
+                    </li>
                     <li data-group="Commands" data-name="getDeviceStats" class="">
                       <a href="#api-Commands-getDeviceStats">getDeviceStats</a>
                     </li>
@@ -3103,6 +3223,9 @@ ul.nav-tabs {
                     </li>
                     <li data-group="Commands" data-name="performPowerCycle" class="">
                       <a href="#api-Commands-performPowerCycle">performPowerCycle</a>
+                    </li>
+                    <li data-group="Commands" data-name="postDevicePackages" class="">
+                      <a href="#api-Commands-postDevicePackages">postDevicePackages</a>
                     </li>
                     <li data-group="Commands" data-name="rebootDevice" class="">
                       <a href="#api-Commands-rebootDevice">rebootDevice</a>
@@ -8927,6 +9050,535 @@ pub fn main() {
                         </article>
                       </div>
                       <hr>
+                    <div id="api-Commands-deleteDevicePackages">
+                      <article id="api-Commands-deleteDevicePackages-0" data-group="User" data-name="deleteDevicePackages" data-version="0">
+                        <div class="pull-left">
+                          <h1>deleteDevicePackages</h1>
+                          <p>Remove install packages from remote device.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="delete"><code><span class="pln">/device/{serialNumber}/package</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Commands-deleteDevicePackages-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Commands-deleteDevicePackages-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Commands-deleteDevicePackages-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Commands-deleteDevicePackages-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Commands-deleteDevicePackages-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Commands-deleteDevicePackages-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Commands-deleteDevicePackages-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Commands-deleteDevicePackages-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Commands-deleteDevicePackages-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Commands-deleteDevicePackages-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Commands-deleteDevicePackages-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Commands-deleteDevicePackages-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Commands-deleteDevicePackages-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Accept: application/json" \
+ -H "Content-Type: application/json" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/package" \
+ -d '{
+  &quot;serialNumber&quot; : &quot;serialNumber&quot;,
+  &quot;packages&quot; : [ {
+    &quot;name&quot; : &quot;name&quot;
+  }, {
+    &quot;name&quot; : &quot;name&quot;
+  } ]
+}'
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.CommandsApi;
+
+import java.io.File;
+import java.util.*;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        PackageRemoveRequest packageRemoveRequest = ; // PackageRemoveRequest | 
+
+        try {
+            PackageInstallResponse result = apiInstance.deleteDevicePackages(serialNumber, packageRemoveRequest);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#deleteDevicePackages");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.CommandsApi;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        PackageRemoveRequest packageRemoveRequest = ; // PackageRemoveRequest | 
+
+        try {
+            PackageInstallResponse result = apiInstance.deleteDevicePackages(serialNumber, packageRemoveRequest);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#deleteDevicePackages");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+CommandsApi *apiInstance = [[CommandsApi alloc] init];
+String *serialNumber = serialNumber_example; //  (default to null)
+PackageRemoveRequest *packageRemoveRequest = ; //  (optional)
+
+// Remove install packages from remote device.
+[apiInstance deleteDevicePackagesWith:serialNumber
+    packageRemoveRequest:packageRemoveRequest
+              completionHandler: ^(PackageInstallResponse output, NSError* error) {
+    if (output) {
+        NSLog(@"%@", output);
+    }
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.CommandsApi()
+var serialNumber = serialNumber_example; // {String} 
+var opts = {
+  'packageRemoveRequest':  // {PackageRemoveRequest} 
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.deleteDevicePackages(serialNumber, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class deleteDevicePackagesExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new CommandsApi();
+            var serialNumber = serialNumber_example;  // String |  (default to null)
+            var packageRemoveRequest = new PackageRemoveRequest(); // PackageRemoveRequest |  (optional) 
+
+            try {
+                // Remove install packages from remote device.
+                PackageInstallResponse result = apiInstance.deleteDevicePackages(serialNumber, packageRemoveRequest);
+                Debug.WriteLine(result);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling CommandsApi.deleteDevicePackages: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\CommandsApi();
+$serialNumber = serialNumber_example; // String | 
+$packageRemoveRequest = ; // PackageRemoveRequest | 
+
+try {
+    $result = $api_instance->deleteDevicePackages($serialNumber, $packageRemoveRequest);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling CommandsApi->deleteDevicePackages: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::CommandsApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::CommandsApi->new();
+my $serialNumber = serialNumber_example; # String | 
+my $packageRemoveRequest = WWW::OPenAPIClient::Object::PackageRemoveRequest->new(); # PackageRemoveRequest | 
+
+eval {
+    my $result = $api_instance->deleteDevicePackages(serialNumber => $serialNumber, packageRemoveRequest => $packageRemoveRequest);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling CommandsApi->deleteDevicePackages: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.CommandsApi()
+serialNumber = serialNumber_example # String |  (default to null)
+packageRemoveRequest =  # PackageRemoveRequest |  (optional)
+
+try:
+    # Remove install packages from remote device.
+    api_response = api_instance.delete_device_packages(serialNumber, packageRemoveRequest=packageRemoveRequest)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling CommandsApi->deleteDevicePackages: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-deleteDevicePackages-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate CommandsApi;
+
+pub fn main() {
+    let serialNumber = serialNumber_example; // String
+    let packageRemoveRequest = ; // PackageRemoveRequest
+
+    let mut context = CommandsApi::Context::default();
+    let result = client.deleteDevicePackages(serialNumber, packageRemoveRequest, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">serialNumber*</td>
+<td>
+
+
+    <div id="d2e199_deleteDevicePackages_serialNumber">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">packageRemoveRequest </td>
+<td>
+<p class="marked">Packages to be removed</p>
+<script>
+$(document).ready(function() {
+  var schemaWrapper = {
+  "description" : "Packages to be removed",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/PackageRemoveRequest"
+      }
+    }
+  }
+};
+
+  var schema = findNode('schema',schemaWrapper).schema;
+  if (!schema) {
+    schema = schemaWrapper.schema;
+  }
+  if (schema.$ref != null) {
+    schema = defsParser.$refs.get(schema.$ref);
+  } else {
+    schemaWrapper.definitions = Object.assign({}, defs);
+    $RefParser.dereference(schemaWrapper).catch(function(err) {
+      console.log(err);
+    });
+  }
+
+  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+  var result = $('#d2e199_deleteDevicePackages_packageRemoveRequest');
+  result.empty();
+  result.append(view.render());
+});
+</script>
+<div id="d2e199_deleteDevicePackages_packageRemoveRequest"></div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Commands-deleteDevicePackages-title-200"></h3>
+                            <p id="examples-Commands-deleteDevicePackages-description-200" class="marked"></p>
+                            <script>
+                              var responseCommands200_description = ``;
+                              var responseCommands200_description_break = responseCommands200_description.indexOf('\n');
+                              if (responseCommands200_description_break == -1) {
+                                $("#examples-Commands-deleteDevicePackages-title-200").text("Status: 200 - " + responseCommands200_description);
+                              } else {
+                                $("#examples-Commands-deleteDevicePackages-title-200").text("Status: 200 - " + responseCommands200_description.substring(0, responseCommands200_description_break));
+                                $("#examples-Commands-deleteDevicePackages-description-200").html(responseCommands200_description.substring(responseCommands200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-deleteDevicePackages-200" class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-Commands-deleteDevicePackages-200-schema">Schema</a>
+                                </li>
+
+
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-deleteDevicePackages-200-wrapper" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-Commands-deleteDevicePackages-200-schema">
+                                  <div id="responses-Commands-deleteDevicePackages-schema-200" class="exampleStyle">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = ;
+                                        var schema = findNode('schema',schemaWrapper).schema;
+                                        if (!schema) {
+                                          schema = schemaWrapper.schema;
+                                        }
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                          Object.keys(schema.properties).forEach( (item) => {
+                                            if (schema.properties[item].$ref != null) {
+                                              schema.properties[item] = defsParser.$refs.get(schema.properties[item].$ref);
+                                            }
+                                          });
+                                        } else if (schema.items != null && schema.items.$ref != null) {
+                                            schema.items = defsParser.$refs.get(schema.items.$ref);
+                                        } else {
+                                          schemaWrapper.definitions = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-Commands-deleteDevicePackages-200-schema-data').val(JSON.stringify(schema));
+                                        var result = $('#responses-Commands-deleteDevicePackages-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-Commands-deleteDevicePackages-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+                            <h3 id="examples-Commands-deleteDevicePackages-title-400"></h3>
+                            <p id="examples-Commands-deleteDevicePackages-description-400" class="marked"></p>
+                            <script>
+                              var responseCommands400_description = ``;
+                              var responseCommands400_description_break = responseCommands400_description.indexOf('\n');
+                              if (responseCommands400_description_break == -1) {
+                                $("#examples-Commands-deleteDevicePackages-title-400").text("Status: 400 - " + responseCommands400_description);
+                              } else {
+                                $("#examples-Commands-deleteDevicePackages-title-400").text("Status: 400 - " + responseCommands400_description.substring(0, responseCommands400_description_break));
+                                $("#examples-Commands-deleteDevicePackages-description-400").html(responseCommands400_description.substring(responseCommands400_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-deleteDevicePackages-400" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-deleteDevicePackages-400-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-deleteDevicePackages-title-403"></h3>
+                            <p id="examples-Commands-deleteDevicePackages-description-403" class="marked"></p>
+                            <script>
+                              var responseCommands403_description = ``;
+                              var responseCommands403_description_break = responseCommands403_description.indexOf('\n');
+                              if (responseCommands403_description_break == -1) {
+                                $("#examples-Commands-deleteDevicePackages-title-403").text("Status: 403 - " + responseCommands403_description);
+                              } else {
+                                $("#examples-Commands-deleteDevicePackages-title-403").text("Status: 403 - " + responseCommands403_description.substring(0, responseCommands403_description_break));
+                                $("#examples-Commands-deleteDevicePackages-description-403").html(responseCommands403_description.substring(responseCommands403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-deleteDevicePackages-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-deleteDevicePackages-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-deleteDevicePackages-title-404"></h3>
+                            <p id="examples-Commands-deleteDevicePackages-description-404" class="marked"></p>
+                            <script>
+                              var responseCommands404_description = ``;
+                              var responseCommands404_description_break = responseCommands404_description.indexOf('\n');
+                              if (responseCommands404_description_break == -1) {
+                                $("#examples-Commands-deleteDevicePackages-title-404").text("Status: 404 - " + responseCommands404_description);
+                              } else {
+                                $("#examples-Commands-deleteDevicePackages-title-404").text("Status: 404 - " + responseCommands404_description.substring(0, responseCommands404_description_break));
+                                $("#examples-Commands-deleteDevicePackages-description-404").html(responseCommands404_description.substring(responseCommands404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-deleteDevicePackages-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-deleteDevicePackages-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
                     <div id="api-Commands-deleteDeviceStats">
                       <article id="api-Commands-deleteDeviceStats-0" data-group="User" data-name="deleteDeviceStats" data-version="0">
                         <div class="pull-left">
@@ -13567,6 +14219,486 @@ Selecting this option means the newest record will be returned. Use limit to sel
                         </article>
                       </div>
                       <hr>
+                    <div id="api-Commands-getDevicePackages">
+                      <article id="api-Commands-getDevicePackages-0" data-group="User" data-name="getDevicePackages" data-version="0">
+                        <div class="pull-left">
+                          <h1>getDevicePackages</h1>
+                          <p>Get package installed on the remote device.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/device/{serialNumber}/package</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Commands-getDevicePackages-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Commands-getDevicePackages-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Commands-getDevicePackages-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Commands-getDevicePackages-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Commands-getDevicePackages-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Commands-getDevicePackages-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Commands-getDevicePackages-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Commands-getDevicePackages-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Commands-getDevicePackages-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Commands-getDevicePackages-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Commands-getDevicePackages-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Commands-getDevicePackages-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Commands-getDevicePackages-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X GET \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Accept: application/json" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/package?pkgName=pkgName_example"
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Commands-getDevicePackages-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.CommandsApi;
+
+import java.io.File;
+import java.util.*;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        String pkgName = pkgName_example; // String | The name or identifier of the package to retrieve.
+
+        try {
+            PackageGetResponse result = apiInstance.getDevicePackages(serialNumber, pkgName);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#getDevicePackages");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Commands-getDevicePackages-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.CommandsApi;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        String pkgName = pkgName_example; // String | The name or identifier of the package to retrieve.
+
+        try {
+            PackageGetResponse result = apiInstance.getDevicePackages(serialNumber, pkgName);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#getDevicePackages");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Commands-getDevicePackages-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Commands-getDevicePackages-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+CommandsApi *apiInstance = [[CommandsApi alloc] init];
+String *serialNumber = serialNumber_example; //  (default to null)
+String *pkgName = pkgName_example; // The name or identifier of the package to retrieve. (default to null)
+
+// Get package installed on the remote device.
+[apiInstance getDevicePackagesWith:serialNumber
+    pkgName:pkgName
+              completionHandler: ^(PackageGetResponse output, NSError* error) {
+    if (output) {
+        NSLog(@"%@", output);
+    }
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-getDevicePackages-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.CommandsApi()
+var serialNumber = serialNumber_example; // {String} 
+var pkgName = pkgName_example; // {String} The name or identifier of the package to retrieve.
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.getDevicePackages(serialNumber, pkgName, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Commands-getDevicePackages-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Commands-getDevicePackages-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class getDevicePackagesExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new CommandsApi();
+            var serialNumber = serialNumber_example;  // String |  (default to null)
+            var pkgName = pkgName_example;  // String | The name or identifier of the package to retrieve. (default to null)
+
+            try {
+                // Get package installed on the remote device.
+                PackageGetResponse result = apiInstance.getDevicePackages(serialNumber, pkgName);
+                Debug.WriteLine(result);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling CommandsApi.getDevicePackages: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-getDevicePackages-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\CommandsApi();
+$serialNumber = serialNumber_example; // String | 
+$pkgName = pkgName_example; // String | The name or identifier of the package to retrieve.
+
+try {
+    $result = $api_instance->getDevicePackages($serialNumber, $pkgName);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling CommandsApi->getDevicePackages: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-getDevicePackages-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::CommandsApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::CommandsApi->new();
+my $serialNumber = serialNumber_example; # String | 
+my $pkgName = pkgName_example; # String | The name or identifier of the package to retrieve.
+
+eval {
+    my $result = $api_instance->getDevicePackages(serialNumber => $serialNumber, pkgName => $pkgName);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling CommandsApi->getDevicePackages: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-getDevicePackages-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.CommandsApi()
+serialNumber = serialNumber_example # String |  (default to null)
+pkgName = pkgName_example # String | The name or identifier of the package to retrieve. (default to null)
+
+try:
+    # Get package installed on the remote device.
+    api_response = api_instance.get_device_packages(serialNumber, pkgName)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling CommandsApi->getDevicePackages: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-getDevicePackages-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate CommandsApi;
+
+pub fn main() {
+    let serialNumber = serialNumber_example; // String
+    let pkgName = pkgName_example; // String
+
+    let mut context = CommandsApi::Context::default();
+    let result = client.getDevicePackages(serialNumber, pkgName, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">serialNumber*</td>
+<td>
+
+
+    <div id="d2e199_getDevicePackages_serialNumber">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+
+                            <div class="methodsubtabletitle">Query parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">pkgName*</td>
+<td>
+
+
+    <div id="d2e199_getDevicePackages_pkgName">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+                    <div class="inner description marked">
+The name or identifier of the package to retrieve.
+                    </div>
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Commands-getDevicePackages-title-200"></h3>
+                            <p id="examples-Commands-getDevicePackages-description-200" class="marked"></p>
+                            <script>
+                              var responseCommands200_description = `Successful command execution`;
+                              var responseCommands200_description_break = responseCommands200_description.indexOf('\n');
+                              if (responseCommands200_description_break == -1) {
+                                $("#examples-Commands-getDevicePackages-title-200").text("Status: 200 - " + responseCommands200_description);
+                              } else {
+                                $("#examples-Commands-getDevicePackages-title-200").text("Status: 200 - " + responseCommands200_description.substring(0, responseCommands200_description_break));
+                                $("#examples-Commands-getDevicePackages-description-200").html(responseCommands200_description.substring(responseCommands200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-getDevicePackages-200" class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-Commands-getDevicePackages-200-schema">Schema</a>
+                                </li>
+
+
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-getDevicePackages-200-wrapper" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-Commands-getDevicePackages-200-schema">
+                                  <div id="responses-Commands-getDevicePackages-schema-200" class="exampleStyle">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = ;
+                                        var schema = findNode('schema',schemaWrapper).schema;
+                                        if (!schema) {
+                                          schema = schemaWrapper.schema;
+                                        }
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                          Object.keys(schema.properties).forEach( (item) => {
+                                            if (schema.properties[item].$ref != null) {
+                                              schema.properties[item] = defsParser.$refs.get(schema.properties[item].$ref);
+                                            }
+                                          });
+                                        } else if (schema.items != null && schema.items.$ref != null) {
+                                            schema.items = defsParser.$refs.get(schema.items.$ref);
+                                        } else {
+                                          schemaWrapper.definitions = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-Commands-getDevicePackages-200-schema-data').val(JSON.stringify(schema));
+                                        var result = $('#responses-Commands-getDevicePackages-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-Commands-getDevicePackages-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+                            <h3 id="examples-Commands-getDevicePackages-title-403"></h3>
+                            <p id="examples-Commands-getDevicePackages-description-403" class="marked"></p>
+                            <script>
+                              var responseCommands403_description = ``;
+                              var responseCommands403_description_break = responseCommands403_description.indexOf('\n');
+                              if (responseCommands403_description_break == -1) {
+                                $("#examples-Commands-getDevicePackages-title-403").text("Status: 403 - " + responseCommands403_description);
+                              } else {
+                                $("#examples-Commands-getDevicePackages-title-403").text("Status: 403 - " + responseCommands403_description.substring(0, responseCommands403_description_break));
+                                $("#examples-Commands-getDevicePackages-description-403").html(responseCommands403_description.substring(responseCommands403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-getDevicePackages-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-getDevicePackages-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-getDevicePackages-title-404"></h3>
+                            <p id="examples-Commands-getDevicePackages-description-404" class="marked"></p>
+                            <script>
+                              var responseCommands404_description = ``;
+                              var responseCommands404_description_break = responseCommands404_description.indexOf('\n');
+                              if (responseCommands404_description_break == -1) {
+                                $("#examples-Commands-getDevicePackages-title-404").text("Status: 404 - " + responseCommands404_description);
+                              } else {
+                                $("#examples-Commands-getDevicePackages-title-404").text("Status: 404 - " + responseCommands404_description.substring(0, responseCommands404_description_break));
+                                $("#examples-Commands-getDevicePackages-description-404").html(responseCommands404_description.substring(responseCommands404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-getDevicePackages-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-getDevicePackages-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
                     <div id="api-Commands-getDeviceStats">
                       <article id="api-Commands-getDeviceStats-0" data-group="User" data-name="getDeviceStats" data-version="0">
                         <div class="pull-left">
@@ -16474,6 +17606,537 @@ $(document).ready(function() {
 
 
                             <div class="tab-content" id="responses-Commands-performPowerCycle-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Commands-postDevicePackages">
+                      <article id="api-Commands-postDevicePackages-0" data-group="User" data-name="postDevicePackages" data-version="0">
+                        <div class="pull-left">
+                          <h1>postDevicePackages</h1>
+                          <p>Install IPK files to remote device.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/device/{serialNumber}/package</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Commands-postDevicePackages-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Commands-postDevicePackages-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Commands-postDevicePackages-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Commands-postDevicePackages-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Commands-postDevicePackages-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Commands-postDevicePackages-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Commands-postDevicePackages-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Commands-postDevicePackages-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Commands-postDevicePackages-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Commands-postDevicePackages-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Commands-postDevicePackages-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Commands-postDevicePackages-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Commands-postDevicePackages-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X POST \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Accept: application/json" \
+ -H "Content-Type: application/json" \
+ "https://localhost:16002/api/v1/device/{serialNumber}/package" \
+ -d '{
+  &quot;serialNumber&quot; : &quot;serialNumber&quot;,
+  &quot;packages&quot; : [ {
+    &quot;name&quot; : &quot;name&quot;,
+    &quot;url&quot; : &quot;url&quot;
+  }, {
+    &quot;name&quot; : &quot;name&quot;,
+    &quot;url&quot; : &quot;url&quot;
+  } ]
+}'
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Commands-postDevicePackages-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.CommandsApi;
+
+import java.io.File;
+import java.util.*;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        PackageInstallRequest packageInstallRequest = ; // PackageInstallRequest | 
+
+        try {
+            PackageInstallResponse result = apiInstance.postDevicePackages(serialNumber, packageInstallRequest);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#postDevicePackages");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Commands-postDevicePackages-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.CommandsApi;
+
+public class CommandsApiExample {
+    public static void main(String[] args) {
+        CommandsApi apiInstance = new CommandsApi();
+        String serialNumber = serialNumber_example; // String | 
+        PackageInstallRequest packageInstallRequest = ; // PackageInstallRequest | 
+
+        try {
+            PackageInstallResponse result = apiInstance.postDevicePackages(serialNumber, packageInstallRequest);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling CommandsApi#postDevicePackages");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Commands-postDevicePackages-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Commands-postDevicePackages-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+CommandsApi *apiInstance = [[CommandsApi alloc] init];
+String *serialNumber = serialNumber_example; //  (default to null)
+PackageInstallRequest *packageInstallRequest = ; //  (optional)
+
+// Install IPK files to remote device.
+[apiInstance postDevicePackagesWith:serialNumber
+    packageInstallRequest:packageInstallRequest
+              completionHandler: ^(PackageInstallResponse output, NSError* error) {
+    if (output) {
+        NSLog(@"%@", output);
+    }
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-postDevicePackages-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.CommandsApi()
+var serialNumber = serialNumber_example; // {String} 
+var opts = {
+  'packageInstallRequest':  // {PackageInstallRequest} 
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.postDevicePackages(serialNumber, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Commands-postDevicePackages-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Commands-postDevicePackages-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class postDevicePackagesExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new CommandsApi();
+            var serialNumber = serialNumber_example;  // String |  (default to null)
+            var packageInstallRequest = new PackageInstallRequest(); // PackageInstallRequest |  (optional) 
+
+            try {
+                // Install IPK files to remote device.
+                PackageInstallResponse result = apiInstance.postDevicePackages(serialNumber, packageInstallRequest);
+                Debug.WriteLine(result);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling CommandsApi.postDevicePackages: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-postDevicePackages-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\CommandsApi();
+$serialNumber = serialNumber_example; // String | 
+$packageInstallRequest = ; // PackageInstallRequest | 
+
+try {
+    $result = $api_instance->postDevicePackages($serialNumber, $packageInstallRequest);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling CommandsApi->postDevicePackages: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-postDevicePackages-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::CommandsApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::CommandsApi->new();
+my $serialNumber = serialNumber_example; # String | 
+my $packageInstallRequest = WWW::OPenAPIClient::Object::PackageInstallRequest->new(); # PackageInstallRequest | 
+
+eval {
+    my $result = $api_instance->postDevicePackages(serialNumber => $serialNumber, packageInstallRequest => $packageInstallRequest);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling CommandsApi->postDevicePackages: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-postDevicePackages-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.CommandsApi()
+serialNumber = serialNumber_example # String |  (default to null)
+packageInstallRequest =  # PackageInstallRequest |  (optional)
+
+try:
+    # Install IPK files to remote device.
+    api_response = api_instance.post_device_packages(serialNumber, packageInstallRequest=packageInstallRequest)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling CommandsApi->postDevicePackages: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Commands-postDevicePackages-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate CommandsApi;
+
+pub fn main() {
+    let serialNumber = serialNumber_example; // String
+    let packageInstallRequest = ; // PackageInstallRequest
+
+    let mut context = CommandsApi::Context::default();
+    let result = client.postDevicePackages(serialNumber, packageInstallRequest, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">serialNumber*</td>
+<td>
+
+
+    <div id="d2e199_postDevicePackages_serialNumber">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">packageInstallRequest </td>
+<td>
+<p class="marked">Packages to be installed</p>
+<script>
+$(document).ready(function() {
+  var schemaWrapper = {
+  "description" : "Packages to be installed",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/PackageInstallRequest"
+      }
+    }
+  }
+};
+
+  var schema = findNode('schema',schemaWrapper).schema;
+  if (!schema) {
+    schema = schemaWrapper.schema;
+  }
+  if (schema.$ref != null) {
+    schema = defsParser.$refs.get(schema.$ref);
+  } else {
+    schemaWrapper.definitions = Object.assign({}, defs);
+    $RefParser.dereference(schemaWrapper).catch(function(err) {
+      console.log(err);
+    });
+  }
+
+  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+  var result = $('#d2e199_postDevicePackages_packageInstallRequest');
+  result.empty();
+  result.append(view.render());
+});
+</script>
+<div id="d2e199_postDevicePackages_packageInstallRequest"></div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Commands-postDevicePackages-title-200"></h3>
+                            <p id="examples-Commands-postDevicePackages-description-200" class="marked"></p>
+                            <script>
+                              var responseCommands200_description = `Successful command execution`;
+                              var responseCommands200_description_break = responseCommands200_description.indexOf('\n');
+                              if (responseCommands200_description_break == -1) {
+                                $("#examples-Commands-postDevicePackages-title-200").text("Status: 200 - " + responseCommands200_description);
+                              } else {
+                                $("#examples-Commands-postDevicePackages-title-200").text("Status: 200 - " + responseCommands200_description.substring(0, responseCommands200_description_break));
+                                $("#examples-Commands-postDevicePackages-description-200").html(responseCommands200_description.substring(responseCommands200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-postDevicePackages-200" class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-Commands-postDevicePackages-200-schema">Schema</a>
+                                </li>
+
+
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-postDevicePackages-200-wrapper" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-Commands-postDevicePackages-200-schema">
+                                  <div id="responses-Commands-postDevicePackages-schema-200" class="exampleStyle">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = ;
+                                        var schema = findNode('schema',schemaWrapper).schema;
+                                        if (!schema) {
+                                          schema = schemaWrapper.schema;
+                                        }
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                          Object.keys(schema.properties).forEach( (item) => {
+                                            if (schema.properties[item].$ref != null) {
+                                              schema.properties[item] = defsParser.$refs.get(schema.properties[item].$ref);
+                                            }
+                                          });
+                                        } else if (schema.items != null && schema.items.$ref != null) {
+                                            schema.items = defsParser.$refs.get(schema.items.$ref);
+                                        } else {
+                                          schemaWrapper.definitions = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-Commands-postDevicePackages-200-schema-data').val(JSON.stringify(schema));
+                                        var result = $('#responses-Commands-postDevicePackages-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-Commands-postDevicePackages-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+                            <h3 id="examples-Commands-postDevicePackages-title-400"></h3>
+                            <p id="examples-Commands-postDevicePackages-description-400" class="marked"></p>
+                            <script>
+                              var responseCommands400_description = ``;
+                              var responseCommands400_description_break = responseCommands400_description.indexOf('\n');
+                              if (responseCommands400_description_break == -1) {
+                                $("#examples-Commands-postDevicePackages-title-400").text("Status: 400 - " + responseCommands400_description);
+                              } else {
+                                $("#examples-Commands-postDevicePackages-title-400").text("Status: 400 - " + responseCommands400_description.substring(0, responseCommands400_description_break));
+                                $("#examples-Commands-postDevicePackages-description-400").html(responseCommands400_description.substring(responseCommands400_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-postDevicePackages-400" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-postDevicePackages-400-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-postDevicePackages-title-403"></h3>
+                            <p id="examples-Commands-postDevicePackages-description-403" class="marked"></p>
+                            <script>
+                              var responseCommands403_description = ``;
+                              var responseCommands403_description_break = responseCommands403_description.indexOf('\n');
+                              if (responseCommands403_description_break == -1) {
+                                $("#examples-Commands-postDevicePackages-title-403").text("Status: 403 - " + responseCommands403_description);
+                              } else {
+                                $("#examples-Commands-postDevicePackages-title-403").text("Status: 403 - " + responseCommands403_description.substring(0, responseCommands403_description_break));
+                                $("#examples-Commands-postDevicePackages-description-403").html(responseCommands403_description.substring(responseCommands403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-postDevicePackages-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-postDevicePackages-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Commands-postDevicePackages-title-404"></h3>
+                            <p id="examples-Commands-postDevicePackages-description-404" class="marked"></p>
+                            <script>
+                              var responseCommands404_description = ``;
+                              var responseCommands404_description_break = responseCommands404_description.indexOf('\n');
+                              if (responseCommands404_description_break == -1) {
+                                $("#examples-Commands-postDevicePackages-title-404").text("Status: 404 - " + responseCommands404_description);
+                              } else {
+                                $("#examples-Commands-postDevicePackages-title-404").text("Status: 404 - " + responseCommands404_description.substring(0, responseCommands404_description_break));
+                                $("#examples-Commands-postDevicePackages-description-404").html(responseCommands404_description.substring(responseCommands404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Commands-postDevicePackages-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Commands-postDevicePackages-404-wrapper" style='margin-bottom: 10px;'>
                             </div>
                         </article>
                       </div>
