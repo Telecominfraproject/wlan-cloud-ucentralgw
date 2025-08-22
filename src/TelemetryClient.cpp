@@ -120,14 +120,16 @@ namespace OpenWifi {
 		Poco::Buffer<char> IncomingFrame(0);
 
 		try {
-			int Op, flags;
-			int IncomingSize;
+			int Op, flags, IncomingSize;
+
 			IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
-			if (IncomingSize == 0 && flags == 0 && Op == 0) {
-				poco_information(
-					Logger(),
+			if (IncomingSize == -1) {
+				poco_trace(Logger(),
+					fmt::format("TELEMETRY-EMPTY({}): Empty frame, non-blocking try-again.", CId_));
+			} else if (IncomingSize == 0 && flags == 0 && Op == 0) {
+				poco_information(Logger(),
 					fmt::format("TELEMETRY-DISCONNECT({}): device has disconnected.", CId_));
 				MustDisconnect = true;
 			} else {
@@ -138,10 +140,12 @@ namespace OpenWifi {
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 				} else if (Op == Poco::Net::WebSocket::FRAME_OP_CLOSE) {
-					poco_information(
-						Logger(),
+					poco_information(Logger(),
 						fmt::format("TELEMETRY-DISCONNECT({}): device wants to disconnect.", CId_));
 					MustDisconnect = true;
+				} else if (Op == Poco::Net::WebSocket::FRAME_OP_CONT) {
+					poco_information(Logger(),
+						fmt::format("TELEMETRY-CONT({}): rx {} bytes.", CId_, IncomingSize));
 				}
 			}
 		} catch (...) {

@@ -580,14 +580,16 @@ namespace OpenWifi {
 		try {
 			Client = Clients_.find(pNf->socket().impl()->sockfd());
 			if (Client == end(Clients_)) {
-				poco_warning(Logger(), fmt::format("Cannot find client socket: {}",
-												   pNf->socket().impl()->sockfd()));
+				poco_warning(Logger(),
+					fmt::format("Cannot find client socket: {}",
+								pNf->socket().impl()->sockfd()));
 				return;
 			}
 			Connection = Client->second;
 			if(Connection->WSSocket_==nullptr || Connection->WSSocket_->impl()==nullptr) {
-				poco_warning(Logger(), fmt::format("WebSocket is no valid: {}",
-												   Connection->SerialNumber_));
+				poco_warning(Logger(),
+					fmt::format("WebSocket is not valid: {}",
+							    Connection->SerialNumber_));
 				return;
 			}
 
@@ -596,15 +598,25 @@ namespace OpenWifi {
 
 			auto ReceivedBytes = Connection->WSSocket_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
+
+			if (ReceivedBytes == -1) {
+				poco_trace(Logger(),
+					fmt::format("WS-EMPTY{}: Non-blocking try-again empty Frame: flags {}",
+								Connection->SerialNumber_, flags));
+				return;
+			}
+
 			switch (Op) {
 
 			case Poco::Net::WebSocket::FRAME_OP_PING: {
 				Connection->WSSocket_->sendFrame("", 0,
-											   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
-												   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+					(int) Poco::Net::WebSocket::FRAME_FLAG_FIN |
+					(int) Poco::Net::WebSocket::FRAME_OP_BINARY);
 			} break;
+
 			case Poco::Net::WebSocket::FRAME_OP_PONG: {
 			} break;
+
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 				if (ReceivedBytes == 0) {
 					EndConnection(Connection,__func__,__LINE__);
@@ -631,19 +643,29 @@ namespace OpenWifi {
 					}
 				}
 			} break;
+
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
 				if (ReceivedBytes == 0) {
 					EndConnection(Connection,__func__,__LINE__);
 					return;
 				} else {
 					poco_trace(Logger(),
-							   fmt::format("Sending {} key strokes to device.", ReceivedBytes));
+						fmt::format("Sending {} key strokes to device.", ReceivedBytes));
 					if (!RTTYS_server().KeyStrokes(Connection, FrameBuffer, ReceivedBytes)) {
 						EndConnection(Connection,__func__,__LINE__);
 						return;
 					}
 				}
 			} break;
+
+			case Poco::Net::WebSocket::FRAME_OP_CONT: {
+				// may have to handle this, but not sure whether it's a continuation for text or
+				// binary, seems to be a hole in the protocol.
+				poco_warning(Logger(),
+							 fmt::format("CONT Frame {} received, ignoring for now.",
+										 ReceivedBytes));
+			}
+
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
 				EndConnection(Connection,__func__,__LINE__);
 				return;
@@ -689,8 +711,8 @@ namespace OpenWifi {
 		if (Connection->WSSocket_ != nullptr && Connection->WSSocket_->impl()!= nullptr) {
 			try {
 				Connection->WSSocket_->sendFrame(Buf, len,
-												 Poco::Net::WebSocket::FRAME_FLAG_FIN |
-													 Poco::Net::WebSocket::FRAME_OP_BINARY);
+												 (int) Poco::Net::WebSocket::FRAME_FLAG_FIN |
+												 (int) Poco::Net::WebSocket::FRAME_OP_BINARY);
 				return;
 			} catch (...) {
 				poco_error(Logger(), "SendData shutdown.");
@@ -992,8 +1014,9 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(Poco::Net::WebSocket &WebSocket, const u_char *Buf, int len) {
-		WebSocket.sendFrame(
-			Buf, len, Poco::Net::WebSocket::FRAME_FLAG_FIN | Poco::Net::WebSocket::FRAME_OP_BINARY);
+		WebSocket.sendFrame(Buf, len,
+							(int) Poco::Net::WebSocket::FRAME_FLAG_FIN |
+							(int) Poco::Net::WebSocket::FRAME_OP_BINARY);
 		return true;
 	}
 
