@@ -33,6 +33,10 @@ namespace OpenWifi {
 		void GetStatus();
 		void GetChecks();
 		void DeleteChecks();
+		void GetPackages(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout,
+					   const GWObjects::DeviceRestrictions &R, std::string pkg_name);
+		void DeletePackages(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout,
+					   const GWObjects::DeviceRestrictions &R);
 
 		bool IsDeviceSimulated(std::string &Serial);
 
@@ -75,6 +79,8 @@ namespace OpenWifi {
 		void CableDiagnostics(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout,
 					  const GWObjects::DeviceRestrictions &R);
 		void ReEnroll(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout,
+					  const GWObjects::DeviceRestrictions &R);
+		void PackageInstall(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout,
 					  const GWObjects::DeviceRestrictions &R);
 
 		static auto PathName() {

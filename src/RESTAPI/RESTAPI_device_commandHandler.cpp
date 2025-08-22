@@ -91,6 +91,31 @@ namespace OpenWifi {
 					TransactionId_, UUID, RPC, Poco::Thread::current()->id()));
 			return Rtty(UUID, RPC, 60000ms, Restrictions);
 		};
+		case APCommands::Commands::package:{
+			GWObjects::DeviceRestrictions Restrictions;
+			std::string pkg_name = "";
+			if (!AP_WS_Server()->Connected(SerialNumberInt_, Restrictions)) {
+				CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
+				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
+			}
+			Poco::URI uri(Request->getURI());
+			for (const auto &param : uri.getQueryParameters()) {
+				if (param.first == "pkgName") {
+					pkg_name = param.second;
+				}
+			}
+			if (pkg_name.empty()) {
+				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
+			auto UUID = MicroServiceCreateUUID();
+			auto RPC = CommandManager()->Next_RPC_ID();
+			poco_debug(
+				Logger_,
+				fmt::format(
+					"Command RTTY TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
+					TransactionId_, UUID, RPC, Poco::Thread::current()->id()));
+			return GetPackages(UUID, RPC, 300000ms, Restrictions, pkg_name);
+		}
 		default:
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
@@ -128,6 +153,21 @@ namespace OpenWifi {
 			return DeleteChecks();
 		case APCommands::Commands::statistics:
 			return DeleteStatistics();
+		case APCommands::Commands::package: {
+			GWObjects::DeviceRestrictions Restrictions;
+			if (!AP_WS_Server()->Connected(SerialNumberInt_, Restrictions)) {
+				CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
+				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
+			}
+			auto UUID = MicroServiceCreateUUID();
+			auto RPC = CommandManager()->Next_RPC_ID();
+			poco_debug(
+				Logger_,
+				fmt::format(
+					"Command RTTY TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
+					TransactionId_, UUID, RPC, Poco::Thread::current()->id()));
+			return DeletePackages(UUID, RPC, 300000ms, Restrictions);
+		}
 		default:
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
@@ -171,7 +211,7 @@ namespace OpenWifi {
 		{APCommands::Commands::fixedconfig, false, true, &RESTAPI_device_commandHandler::FixedConfig, 120000ms},
 		{APCommands::Commands::cablediagnostics, false, true, &RESTAPI_device_commandHandler::CableDiagnostics, 120000ms},
 		{APCommands::Commands::reenroll, false, true, &RESTAPI_device_commandHandler::ReEnroll, 120000ms},
-
+		{APCommands::Commands::package, false, true, &RESTAPI_device_commandHandler::PackageInstall, 120000ms},
 	};
 
 	void RESTAPI_device_commandHandler::DoPost() {
@@ -407,6 +447,210 @@ namespace OpenWifi {
 			return OK();
 		}
 		BadRequest(RESTAPI::Errors::NoRecordsDeleted);
+	}
+
+	void RESTAPI_device_commandHandler::GetPackages(const std::string &CMD_UUID, uint64_t CMD_RPC,
+		[[maybe_unused]] std::chrono::milliseconds timeout,
+		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions,
+		const std::string pkg_name) {
+		poco_debug(Logger_, fmt::format("GET-PACKAGES({},{}): TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
+
+		if (IsDeviceSimulated(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
+		Poco::JSON::Object Params;
+		Params.set(uCentralProtocol::OPERATION, "list");
+		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+		Params.set(uCentralProtocol::PACKAGE, pkg_name);
+
+		std::stringstream ParamStream;
+		Params.stringify(ParamStream);
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.UUID = CMD_UUID;
+		Cmd.SubmittedBy = Requester();
+		Cmd.Command = uCentralProtocol::PACKAGE;
+		Cmd.RunAt = 0;
+		Cmd.Details = ParamStream.str();
+
+		RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::package, false, Cmd, Params,
+										*Request, *Response, timeout, nullptr, nullptr, Logger_);
+
+		Poco::JSON::Object O, P;
+		Cmd.to_json(O);
+
+		Poco::Dynamic::Var resultsVar = O.get("results");
+		Poco::JSON::Object::Ptr resultsObj = resultsVar.extract<Poco::JSON::Object::Ptr>();
+
+		return ReturnObject(*resultsObj);
+	}
+
+	void RESTAPI_device_commandHandler::PackageInstall(
+		const std::string &CMD_UUID, uint64_t CMD_RPC,
+		[[maybe_unused]] std::chrono::milliseconds timeout,
+		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
+	
+		if (UserInfo_.userinfo.userRole != SecurityObjects::ROOT &&
+			UserInfo_.userinfo.userRole != SecurityObjects::ADMIN) {
+			CallCanceled("INSTALLPACKAGE", CMD_UUID, CMD_RPC, RESTAPI::Errors::ACCESS_DENIED);
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
+		poco_debug(Logger_, fmt::format("INSTALL-PACKAGES({},{}): TID={} user={} serial={}", CMD_UUID,
+										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+		if (IsDeviceSimulated(SerialNumber_)) {
+			CallCanceled("INSTALL-PACKAGES", CMD_UUID, CMD_RPC, RESTAPI::Errors::SimulatedDeviceNotSupported);
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
+		const auto &Obj = ParsedBody_;
+		if (!Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
+		if (SerialNumber_ != SNum) {
+			CallCanceled("INSTALL-PACKAGES", CMD_UUID, CMD_RPC, RESTAPI::Errors::SerialNumberMismatch);
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+		}
+
+		std::ostringstream os;
+		ParsedBody_->stringify(os);
+
+		poco_information(Logger_, fmt::format("INSTALL_OBJECT: {} for device {}", os.str(), SerialNumber_));
+
+		GWObjects::PackageInstall	PI;
+		if (!PI.from_json(ParsedBody_)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		Poco::JSON::Array::Ptr ArrayObj = Poco::SharedPtr<Poco::JSON::Array>(new Poco::JSON::Array);
+		for (const auto &i : PI.pkgs) {
+			Poco::JSON::Object::Ptr Obj =
+				Poco::SharedPtr<Poco::JSON::Object>(new Poco::JSON::Object);
+			i.to_json(*Obj);
+			ArrayObj->add(Obj);
+		}
+
+		Poco::JSON::Object Params;
+		Params.set(uCentralProtocol::OPERATION, "install");
+		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+		Params.set(uCentralProtocol::PACKAGES, ArrayObj);
+
+		std::ostringstream os2;
+		Params.stringify(os2);
+
+		poco_information(Logger_, fmt::format("INSTALL_OBJECT2: {} for device {}", os2.str(), SerialNumber_));
+
+
+		std::stringstream ParamStream;
+		Params.stringify(ParamStream);
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.UUID = CMD_UUID;
+		Cmd.SubmittedBy = Requester();
+		Cmd.Command = uCentralProtocol::PACKAGE;
+		Cmd.RunAt = 0;
+		Cmd.Details = ParamStream.str();
+
+		RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::package, false, Cmd, Params,
+										*Request, *Response, timeout, nullptr, nullptr, Logger_);
+
+		Poco::JSON::Object O, P;
+		Cmd.to_json(O);
+
+		Poco::Dynamic::Var resultsVar = O.get("results");
+		Poco::JSON::Object::Ptr resultsObj = resultsVar.extract<Poco::JSON::Object::Ptr>();
+
+		return ReturnObject(*resultsObj);
+	}
+
+	void RESTAPI_device_commandHandler::DeletePackages(
+		const std::string &CMD_UUID, uint64_t CMD_RPC,
+		[[maybe_unused]] std::chrono::milliseconds timeout,
+		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
+
+		if (UserInfo_.userinfo.userRole != SecurityObjects::ROOT &&
+			UserInfo_.userinfo.userRole != SecurityObjects::ADMIN) {
+			CallCanceled("DELETE-PACKAGES", CMD_UUID, CMD_RPC, RESTAPI::Errors::ACCESS_DENIED);
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
+		poco_debug(Logger_, fmt::format("DELETE-PACKAGES({},{}): TID={} user={} serial={}", CMD_UUID,
+										CMD_RPC, TransactionId_, Requester(), SerialNumber_));
+
+		if (IsDeviceSimulated(SerialNumber_)) {
+			CallCanceled("DELETE-PACKAGES", CMD_UUID, CMD_RPC, RESTAPI::Errors::SimulatedDeviceNotSupported);
+			return BadRequest(RESTAPI::Errors::SimulatedDeviceNotSupported);
+		}
+
+		const auto &Obj = ParsedBody_;
+		if (!Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
+		if (SerialNumber_ != SNum) {
+			CallCanceled("DELETE-PACKAGES", CMD_UUID, CMD_RPC, RESTAPI::Errors::SerialNumberMismatch);
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+		}
+
+		std::ostringstream os;
+		ParsedBody_->stringify(os);
+
+		poco_information(Logger_, fmt::format("DELETE_OBJECT: {} for device {}", os.str(), SerialNumber_));
+
+		GWObjects::PackageRemove	PR;
+		if (!PR.from_json(ParsedBody_)) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		Poco::JSON::Array::Ptr ArrayObj = Poco::SharedPtr<Poco::JSON::Array>(new Poco::JSON::Array);
+		for (const auto &i : PR.pkgs) {
+			Poco::JSON::Object::Ptr Obj =
+				Poco::SharedPtr<Poco::JSON::Object>(new Poco::JSON::Object);
+			i.to_json(*Obj);
+			ArrayObj->add(Obj);
+		}
+
+		Poco::JSON::Object Params;
+		Params.set(uCentralProtocol::OPERATION, "delete");
+		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+		Params.set(uCentralProtocol::PACKAGES, ArrayObj);
+
+		std::ostringstream os2;
+		Params.stringify(os2);
+
+		poco_information(Logger_, fmt::format("DELETE_OBJECT2: {} for device {}", os2.str(), SerialNumber_));
+
+
+		std::stringstream ParamStream;
+		Params.stringify(ParamStream);
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.UUID = CMD_UUID;
+		Cmd.SubmittedBy = Requester();
+		Cmd.Command = uCentralProtocol::PACKAGE;
+		Cmd.RunAt = 0;
+		Cmd.Details = ParamStream.str();
+
+		RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::package, false, Cmd, Params,
+										*Request, *Response, timeout, nullptr, nullptr, Logger_);
+
+		Poco::JSON::Object O, P;
+		Cmd.to_json(O);
+
+		Poco::Dynamic::Var resultsVar = O.get("results");
+		Poco::JSON::Object::Ptr resultsObj = resultsVar.extract<Poco::JSON::Object::Ptr>();
+
+		return ReturnObject(*resultsObj);
 	}
 
 	void RESTAPI_device_commandHandler::Ping(
