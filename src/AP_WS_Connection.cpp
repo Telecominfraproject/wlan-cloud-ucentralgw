@@ -605,10 +605,16 @@ namespace OpenWifi {
 	void AP_WS_Connection::ProcessWSFinalPayload() {
 		auto IncomingSize = IncomingFrame_.size();
 
+		if (IncomingSize == 0) {
+			poco_warning(Logger_,
+						 fmt::format("ProcessWSFrame({}): Final Acc. Frame received but empty",
+									 CId_));
+			return;
+		}
 		IncomingFrame_.append(0);
 
 		poco_trace(Logger_,
-				   fmt::format("ProcessWSFrame({}): Final Frame received (len={}, Msg={}",
+				   fmt::format("ProcessWSFrame({}): Final Acc. Frame received (len={}, Msg={}",
 							   CId_, IncomingSize, IncomingFrame_.begin()));
 
 		Poco::JSON::Parser parser;
@@ -676,7 +682,7 @@ namespace OpenWifi {
 			State_.MessageCount++;
 			State_.LastContact = Utils::Now();
 			poco_trace(Logger_,
-					   fmt::format("FRAME({}): Frame {} rx (len={}, flags={}, acc.len={})",
+					   fmt::format("FRAME({}): Frame rx (op={} len={}, flags={}, acc.len={})",
 								   CId_, Op, IncomingSize, flags, IncomingFrame_.size()));
 
 			switch (Op) {
@@ -698,7 +704,8 @@ namespace OpenWifi {
 						PingDetails.set("locale", State_.locale);
 						PingObject.set(uCentralProtocol::PING, PingDetails);
 						poco_trace(Logger_,fmt::format("Sending PING for {}", SerialNumber_));
-						KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_,PingObject);
+						KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_,
+													PingObject);
 					}
 					return;
 				} break;
@@ -721,7 +728,8 @@ namespace OpenWifi {
 				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 					poco_trace(Logger_,
 							   fmt::format("TEXT({}): Frame received (len={}, flags={}). Msg={}",
-										   CId_, IncomingSize, flags, CurrentFrame.begin()));
+										   CId_, IncomingSize, flags,
+										   CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin()));
 				} break;
 
 				case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
@@ -738,7 +746,7 @@ namespace OpenWifi {
 				}
 			}
 
-			// Check for final frame and process accumlated payload
+			// Check for final frame and process accumulated payload
 			if (!KillConnection && (flags & Poco::Net::WebSocket::FRAME_FLAG_FIN) != 0) {
 				ProcessWSFinalPayload();
 			}

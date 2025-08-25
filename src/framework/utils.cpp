@@ -943,7 +943,6 @@ namespace OpenWifi::Utils {
 
         return naptrRecords;
     }
-#endif
 
     std::vector<SrvRecord> getSRVRecords(const std::string& domain) {
         std::vector<SrvRecord> srvRecords;
@@ -981,6 +980,7 @@ namespace OpenWifi::Utils {
 
         return srvRecords;
     }
+#endif
 
 
 } // namespace OpenWifi::Utils
