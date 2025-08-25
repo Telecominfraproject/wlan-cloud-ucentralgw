@@ -888,6 +888,26 @@ namespace OpenWifi::Utils {
         return password;
     }
 
+#if 0
+/*
+ Note that this function isn't used. It has been removed due to this deprecation warning:
+ #47 3.825 /owgw/src/framework/utils.cpp: In function 'std::vector<OpenWifi::Utils::NAPTRRecord> OpenWifi::Utils::getNAPTRRecords(const std::string&)':
+#47 3.825 /owgw/src/framework/utils.cpp:915:28: warning: 'int ns_sprintrr(const ns_msg*, const ns_rr*, const char*, const char*, char*, size_t)' is deprecated [-Wdeprecated-declarations]
+#47 3.825   915 |                 ns_sprintrr(&handle, &rr, nullptr, nullptr, rdata, sizeof(rdata));
+#47 3.825       |                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#47 3.825 In file included from /usr/include/resolv.h:60,
+#47 3.825                  from /owgw/src/framework/utils.cpp:17:
+#47 3.825 /usr/include/arpa/nameser.h:408:17: note: declared here
+#47 3.825   408 | int             ns_sprintrr (const ns_msg *, const ns_rr *,
+#47 3.825       |                 ^~~~~~~~~~~
+#47 3.833 /owgw/src/framework/utils.cpp: In function 'std::vector<OpenWifi::Utils::SrvRecord> OpenWifi::Utils::getSRVRecords(const std::string&)':
+#47 3.833 /owgw/src/framework/utils.cpp:952:28: warning: 'int ns_sprintrr(const ns_msg*, const ns_rr*, const char*, const char*, char*, size_t)' is deprecated [-Wdeprecated-declarations]
+#47 3.833   952 |                 ns_sprintrr(&handle, &rr, nullptr, nullptr, rdata, sizeof(rdata));
+#47 3.833       |                 ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#47 3.833 /usr/include/arpa/nameser.h:408:17: note: declared here
+#47 3.833   408 | int             ns_sprintrr (const ns_msg *, const ns_rr *,
+#47 3.833       |                 ^~~~~~~~~~~
+ */
 // Function to query NAPTR records for a domain and return them in a vector
     std::vector<NAPTRRecord> getNAPTRRecords(const std::string& domain) {
         std::vector<NAPTRRecord> naptrRecords;
@@ -923,6 +943,7 @@ namespace OpenWifi::Utils {
 
         return naptrRecords;
     }
+#endif
 
     std::vector<SrvRecord> getSRVRecords(const std::string& domain) {
         std::vector<SrvRecord> srvRecords;

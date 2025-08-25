@@ -848,15 +848,6 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj, "version", version);
 	}
 
-	bool PackageList::from_json(const Poco::JSON::Array::Ptr &Obj) {
-		try {
-
-			return true;
-		} catch (const Poco::Exception &E) {
-		}
-		return false;
-	}
-
 	void PackageList::to_json(Poco::JSON::Object &Obj) const {
 		Obj.set("serialNumber", serialNumber);
 

@@ -748,7 +748,6 @@ namespace OpenWifi::uCentralProtocol::Events {
 		ET_WIFISCAN,
 		ET_ALARM,
 		ET_REBOOTLOG,
-		ET_PACKAGE
 	};
 
 	inline EVENT_MSG EventFromString(const std::string &Method) {
@@ -782,8 +781,6 @@ namespace OpenWifi::uCentralProtocol::Events {
 			return ET_ALARM;
 		else if (strcmp(REBOOTLOG, Method.c_str()) == 0)
 			return ET_REBOOTLOG;
-		else if (strcmp(PACKAGE, Method.c_str()) == 0)
-			return ET_PACKAGE;
 		return ET_UNKNOWN;
 	};
 } // namespace OpenWifi::uCentralProtocol::Events
