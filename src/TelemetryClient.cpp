@@ -138,7 +138,7 @@ namespace OpenWifi {
 						fmt::format("TELEMETRY-WS-PING({}): received. PONG sent back.", CId_));
 					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
-									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+								   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 				} else if (Op == Poco::Net::WebSocket::FRAME_OP_CLOSE) {
 					poco_information(Logger(),
 						fmt::format("TELEMETRY-DISCONNECT({}): device wants to disconnect.", CId_));
