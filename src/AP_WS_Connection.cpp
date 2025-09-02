@@ -606,7 +606,7 @@ namespace OpenWifi {
 		auto IncomingSize = IncomingFrame_.size();
 
 		if (IncomingSize == 0) {
-			poco_warning(Logger_,
+			poco_debug(Logger_,
 						 fmt::format("ProcessWSFrame({}): Final Acc. Frame received but empty",
 									 CId_));
 			return;

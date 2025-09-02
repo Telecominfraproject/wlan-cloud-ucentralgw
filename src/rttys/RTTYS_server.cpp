@@ -611,7 +611,7 @@ namespace OpenWifi {
 			case Poco::Net::WebSocket::FRAME_OP_PING: {
 				Connection->WSSocket_->sendFrame("", 0,
 				    (int)Poco::Net::WebSocket::FRAME_OP_PONG |
-					(int)Poco::Net::WebSocket::FRAME_OP_BINARY);
+					(int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 			} break;
 
 			case Poco::Net::WebSocket::FRAME_OP_PONG: {
