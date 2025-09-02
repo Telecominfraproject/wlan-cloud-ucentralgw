@@ -1,5 +1,5 @@
-ARG DEBIAN_VERSION=11.5-slim
-ARG POCO_VERSION=poco-tip-v2
+ARG DEBIAN_VERSION=bookworm
+ARG POCO_VERSION=poco-tip-v4-tag
 ARG CPPKAFKA_VERSION=tip-v1
 ARG VALIJASON_VERSION=tip-v1.0.2
 ARG APP_NAME=owgw
@@ -100,7 +100,7 @@ RUN mkdir -p $APP_ROOT $APP_CONFIG && \
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
     librdkafka++1 gosu gettext ca-certificates bash jq curl wget \
-    libmariadb-dev-compat libpq5 unixodbc postgresql-client libfmt7 sqlite3
+    libmariadb-dev-compat libpq5 unixodbc postgresql-client libfmt9 sqlite3
 
 COPY readiness_check /readiness_check
 COPY test_scripts/curl/cli /cli

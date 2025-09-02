@@ -210,10 +210,16 @@ namespace OpenWifi {
 			n = Client->second->WS_->receiveFrame(IncomingFrame, flags);
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
+			if (n == -1) {
+				poco_warning(Logger(),
+					fmt::format("UI-EMPTY({}): {} Empty Frame flags {}.",
+								Client->second->Id_, Client->second->UserName_, flags));
+				return;
+			}
 			if (n == 0) {
 				poco_debug(Logger(),
-						   fmt::format("CLOSE({}): {} UI Client is closing WS connection.",
-									   Client->second->Id_, Client->second->UserName_));
+					fmt::format("CLOSE({}): {} UI Client is closing WS connection.",
+								Client->second->Id_, Client->second->UserName_));
 				return EndConnection(Client);
 			}
 
@@ -221,7 +227,7 @@ namespace OpenWifi {
 			case Poco::Net::WebSocket::FRAME_OP_PING: {
 				Client->second->WS_->sendFrame("", 0,
 											   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
-												   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+											   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_PONG: {
 			} break;
@@ -230,6 +236,11 @@ namespace OpenWifi {
 						   fmt::format("CLOSE({}): {} UI Client is closing WS connection.",
 									   Client->second->Id_, Client->second->UserName_));
 				return EndConnection(Client);
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_CONT: {
+				poco_warning(Logger(),
+							 fmt::format("CONT({}): {} Unexpected CONT Frame - Ignoring.",
+										 Client->second->Id_, Client->second->UserName_));
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 				constexpr const char *DropMessagesCommand = "drop-notifications";
