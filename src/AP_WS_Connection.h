@@ -33,6 +33,7 @@ namespace OpenWifi {
 		void EndConnection();
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc);
 		void ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc);
+        void ProcessWSFinalPayload();
 		void ProcessIncomingFrame();
 		void ProcessIncomingRadiusData(const Poco::JSON::Object::Ptr &Doc);
 
@@ -145,6 +146,7 @@ namespace OpenWifi {
 		std::uint64_t 	uuid_=0;
 		bool	Simulated_=false;
 		std::atomic_uint64_t 	LastContact_=0;
+		Poco::Buffer<char> IncomingFrame_;
 
 		static inline std::atomic_uint64_t ConcurrentStartingDevices_ = 0;
 

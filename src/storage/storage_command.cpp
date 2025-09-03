@@ -664,12 +664,14 @@ namespace OpenWifi {
 				Insert.execute();
 				Sess.commit();
 			} else {
-				poco_warning(Logger(), fmt::format("File {} is too large.", UUID));
+				poco_warning(Logger(),
+					fmt::format("File {} is too large ({} >= {} max bytes).",
+						UUID, Size, FileUploader()->MaxSize()));
 			}
 
 			// update CommandList here to ensure that file us uploaded
-                        Sess.begin();
-                        Poco::Data::Statement Statement(Sess);
+			Sess.begin();
+			Poco::Data::Statement Statement(Sess);
 			std::string StatementStr;
 			StatementStr =
 				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?";

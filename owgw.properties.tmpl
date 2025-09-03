@@ -52,7 +52,8 @@ openwifi.fileuploader.host.0.cert = ${FILEUPLOADER_HOST_CERT}
 openwifi.fileuploader.host.0.key = ${FILEUPLOADER_HOST_KEY}
 openwifi.fileuploader.host.0.key.password = ${FILEUPLOADER_HOST_KEY_PASSWORD}
 openwifi.fileuploader.path = ${FILEUPLOADER_PATH}
-openwifi.fileuploader.maxsize = 10000
+# maxsize in KB
+openwifi.fileuploader.maxsize = ${FILEUPLOADER_MAXSIZE}
 openwifi.fileuploader.uri = ${FILEUPLOADER_URI}
 
 #
@@ -182,4 +183,4 @@ archiver.db.3.keep = 7
 ########################################################################
 logging.type = console
 logging.path = $OWGW_ROOT/logs
-logging.level = information
+logging.level = ${LOGGING_LEVEL}

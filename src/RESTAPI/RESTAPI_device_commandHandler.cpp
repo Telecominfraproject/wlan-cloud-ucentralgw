@@ -112,9 +112,9 @@ namespace OpenWifi {
 			poco_debug(
 				Logger_,
 				fmt::format(
-					"Command RTTY TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
+					"Command Package TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
 					TransactionId_, UUID, RPC, Poco::Thread::current()->id()));
-			return GetPackages(UUID, RPC, 300000ms, Restrictions, pkg_name);
+			return GetPackages(UUID, RPC, pkg_name, 300000ms, Restrictions);
 		}
 		default:
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
@@ -450,10 +450,10 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::GetPackages(const std::string &CMD_UUID, uint64_t CMD_RPC,
+		const std::string pkg_name,
 		[[maybe_unused]] std::chrono::milliseconds timeout,
-		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions,
-		const std::string pkg_name) {
-		poco_debug(Logger_, fmt::format("GET-PACKAGES({},{}): TID={} user={} serial={}. thr_id={}",
+		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
+		poco_debug(Logger_, fmt::format("GET-PACKAGES: TID={}, user={} serial={}. thr_id={}",
 										TransactionId_, Requester(), SerialNumber_,
 										Poco::Thread::current()->id()));
 
@@ -493,7 +493,7 @@ namespace OpenWifi {
 		const std::string &CMD_UUID, uint64_t CMD_RPC,
 		[[maybe_unused]] std::chrono::milliseconds timeout,
 		[[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
-	
+
 		if (UserInfo_.userinfo.userRole != SecurityObjects::ROOT &&
 			UserInfo_.userinfo.userRole != SecurityObjects::ADMIN) {
 			CallCanceled("INSTALLPACKAGE", CMD_UUID, CMD_RPC, RESTAPI::Errors::ACCESS_DENIED);

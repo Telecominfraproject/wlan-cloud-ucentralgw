@@ -298,8 +298,10 @@ namespace OpenWifi::Utils {
         std::string     replacement;
     };
 
-// Function to query NAPTR records for a domain and return them in a vector
-    std::vector<NAPTRRecord> getNAPTRRecords(const std::string& domain);
+	// removed due to deprecation: see utils.cpp
+    // Function to query NAPTR records for a domain and return them in a vector
+    //std::vector<NAPTRRecord> getNAPTRRecords(const std::string& domain);
+
     struct SrvRecord {
         std::string     name;
         std::string     ttl;
@@ -311,7 +313,8 @@ namespace OpenWifi::Utils {
         std::string     srvname;
     };
 
-    std::vector<SrvRecord> getSRVRecords(const std::string& domain);
+	// removed due to deprecation: see utils.cpp
+    // std::vector<SrvRecord> getSRVRecords(const std::string& domain);
 
     struct HostNameServerResult{
         std::string     Hostname;

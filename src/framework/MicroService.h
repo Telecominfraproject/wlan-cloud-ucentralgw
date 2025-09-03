@@ -14,6 +14,7 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <optional>
 
 // This must be defined for poco_debug and poco_trace macros to function.
 
@@ -40,6 +41,7 @@ namespace OpenWifi {
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/PropertyFileConfiguration.h"
 #include "Poco/Util/ServerApplication.h"
+#include "Poco/ThreadPool.h"
 
 #include "framework/OpenWifiTypes.h"
 
