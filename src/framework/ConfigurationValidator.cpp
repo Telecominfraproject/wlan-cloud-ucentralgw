@@ -276,7 +276,8 @@ static std::string DefaultAPSchema = R"foo(
                         "sae-mixed",
                         "wpa3",
                         "wpa3-192",
-                        "wpa3-mixed"
+                        "wpa3-mixed",
+                        "mpsk-radius"
                     ],
                     "examples": [
                         "psk2"
@@ -2419,6 +2420,11 @@ static std::string DefaultAPSchema = R"foo(
                 "encryption": {
                     "$ref": "#/$defs/interface.ssid.encryption"
                 },
+                "enhanced-mpsk": {
+                    "description": "Optionally disable MPSK",
+                    "type": "boolean",
+                    "default": true
+                },
                 "multi-psk": {
                     "anyOf": [
                         {
@@ -4450,7 +4456,8 @@ static std::string DefaultSWITCHSchema = R"foo(
                         "sae-mixed",
                         "wpa3",
                         "wpa3-192",
-                        "wpa3-mixed"
+                        "wpa3-mixed",
+                        "mpsk-radius"
                     ],
                     "examples": [
                         "psk2"
@@ -6632,6 +6639,11 @@ static std::string DefaultSWITCHSchema = R"foo(
                 },
                 "encryption": {
                     "$ref": "#/$defs/interface.ssid.encryption"
+                },
+                "enhanced-mpsk": {
+                    "description": "Optionally disable MPSK",
+                    "type": "boolean",
+                    "default": true
                 },
                 "multi-psk": {
                     "anyOf": [
