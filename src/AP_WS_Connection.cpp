@@ -7,6 +7,7 @@
 #include <Poco/Net/Context.h>
 #include <Poco/Net/HTTPServerRequestImpl.h>
 #include <Poco/Net/HTTPServerResponseImpl.h>
+#include <Poco/JSON/JSONException.h>
 #include <Poco/Net/NetException.h>
 #include <Poco/Net/SSLException.h>
 #include <Poco/Net/SecureStreamSocketImpl.h>
@@ -39,7 +40,7 @@ namespace OpenWifi {
 									   Poco::Net::HTTPServerResponse &response,
 									   uint64_t session_id, Poco::Logger &L,
 									   std::pair<std::shared_ptr<Poco::Net::SocketReactor>, std::shared_ptr<LockedDbSession>> R)
-		: Logger_(L) {
+		: Logger_(L), IncomingFrame_(0) {
 
 		Reactor_ = R.first;
 		DbSession_ = R.second;
@@ -54,6 +55,7 @@ namespace OpenWifi {
 		WS_->setNoDelay(false);
 		WS_->setKeepAlive(true);
 		WS_->setBlocking(false);
+		IncomingFrame_.resize(0);
 		uuid_ = MicroServiceRandom(std::numeric_limits<std::uint64_t>::max()-1);
 
 		AP_WS_Server()->IncrementConnectionCount();
@@ -213,6 +215,7 @@ namespace OpenWifi {
 			}
 
 			State_.certificateExpiryDate = PeerCert.expiresOn().timestamp().epochTime();
+			State_.certificateIssuerName = PeerCert.issuerName();
 
 			poco_trace(Logger_,
 					   fmt::format("TLS-CONNECTION({}): Session={} CN={} Completed. (t={})", CId_,
@@ -599,36 +602,95 @@ namespace OpenWifi {
 		EndConnection();
 	}
 
-	void AP_WS_Connection::ProcessIncomingFrame() {
-		Poco::Buffer<char> IncomingFrame(0);
+	void AP_WS_Connection::ProcessWSFinalPayload() {
+		auto IncomingSize = IncomingFrame_.size();
 
-		bool	KillConnection=false;
+		if (IncomingSize == 0) {
+			poco_debug(Logger_,
+						 fmt::format("ProcessWSFrame({}): Final Acc. Frame received but empty",
+									 CId_));
+			return;
+		}
+		IncomingFrame_.append(0);
+
+		poco_trace(Logger_,
+				   fmt::format("ProcessWSFrame({}): Final Acc. Frame received (len={}, Msg={}",
+							   CId_, IncomingSize, IncomingFrame_.begin()));
+
+		Poco::JSON::Parser parser;
+		auto ParsedMessage = parser.parse(IncomingFrame_.begin());
+		auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
+
+		if (IncomingJSON->has(uCentralProtocol::JSONRPC)) {
+			if (IncomingJSON->has(uCentralProtocol::METHOD) &&
+				IncomingJSON->has(uCentralProtocol::PARAMS)) {
+				ProcessJSONRPCEvent(IncomingJSON);
+			} else if (IncomingJSON->has(uCentralProtocol::RESULT) &&
+					   IncomingJSON->has(uCentralProtocol::ID)) {
+				poco_trace(Logger_, fmt::format("RPC-RESULT({}): payload: {}", CId_,
+												IncomingFrame_.begin()));
+				ProcessJSONRPCResult(IncomingJSON);
+			} else {
+				poco_warning(
+					Logger_,
+					fmt::format("INVALID-PAYLOAD({}): Payload is not JSON-RPC 2.0: {}",
+								CId_, IncomingFrame_.begin()));
+			}
+		} else if (IncomingJSON->has(uCentralProtocol::RADIUS)) {
+			ProcessIncomingRadiusData(IncomingJSON);
+		} else {
+			std::ostringstream iS;
+			IncomingJSON->stringify(iS);
+			poco_warning(
+				Logger_,
+				fmt::format("FRAME({}): illegal transaction header, missing 'jsonrpc': {}",
+							CId_, iS.str()));
+			Errors_++;
+		}
+		IncomingFrame_.clear();
+		IncomingFrame_.resize(0);
+	}
+
+	void AP_WS_Connection::ProcessIncomingFrame() {
+		Poco::Buffer<char> CurrentFrame(0);
+		bool KillConnection = false;
+		int flags = 0;
+		int IncomingSize = 0;
+
 		try {
-			int 	Op, flags;
-			auto IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
+			IncomingSize = WS_->receiveFrame(CurrentFrame, flags);
+			int Op;
 
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
-			if (IncomingSize == 0 && flags == 0 && Op == 0) {
+			if (IncomingSize < 0 && flags == 0) {
+				poco_trace(Logger_,
+					fmt::format("EMPTY({}): Non-blocking try-again empty frame (len={}, flags={})",
+							   CId_, IncomingSize, flags));
+            } else if (IncomingSize == 0 && flags == 0) {
 				poco_information(Logger_,
 								 fmt::format("DISCONNECT({}): device has disconnected. Session={}",
 											 CId_, State_.sessionId));
 				return EndConnection();
 			}
 
-			IncomingFrame.append(0);
-
-			State_.RX += IncomingSize;
-			AP_WS_Server()->AddRX(IncomingSize);
+			if (IncomingSize > 0) {
+				State_.RX += IncomingSize;
+				AP_WS_Server()->AddRX(IncomingSize);
+				IncomingFrame_.append(CurrentFrame);
+			}
 			State_.MessageCount++;
 			State_.LastContact = Utils::Now();
+			poco_trace(Logger_,
+					   fmt::format("FRAME({}): Frame rx (op={} len={}, flags={}, acc.len={})",
+								   CId_, Op, IncomingSize, flags, IncomingFrame_.size()));
 
 			switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
-					poco_trace(Logger_, fmt::format("WS-PING({}): received. PONG sent back.", CId_));
+					poco_trace(Logger_, fmt::format("PING({}): received. PONG sent back.", CId_));
 					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
-									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+								   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 
 					if (KafkaManager()->Enabled()) {
 						Poco::JSON::Object PingObject;
@@ -642,49 +704,32 @@ namespace OpenWifi {
 						PingDetails.set("locale", State_.locale);
 						PingObject.set(uCentralProtocol::PING, PingDetails);
 						poco_trace(Logger_,fmt::format("Sending PING for {}", SerialNumber_));
-						KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_,PingObject);
+						KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_,
+													PingObject);
 					}
+					return;
 				} break;
 
 				case Poco::Net::WebSocket::FRAME_OP_PONG: {
 					poco_trace(Logger_, fmt::format("PONG({}): received and ignored.", CId_));
+					return;
+				} break;
+
+				case Poco::Net::WebSocket::FRAME_OP_CONT: {
+					poco_trace(Logger_, fmt::format("CONTINUATION({}): registered.", CId_));
+				} break;
+
+				case Poco::Net::WebSocket::FRAME_OP_BINARY: {
+					poco_trace(Logger_, fmt::format("BINARY({}): Invalid frame type.", CId_));
+					KillConnection=true;
+					return;
 				} break;
 
 				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 					poco_trace(Logger_,
-							   fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}",
-										   CId_, IncomingSize, flags, IncomingFrame.begin()));
-
-					Poco::JSON::Parser parser;
-					auto ParsedMessage = parser.parse(IncomingFrame.begin());
-					auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
-
-					if (IncomingJSON->has(uCentralProtocol::JSONRPC)) {
-						if (IncomingJSON->has(uCentralProtocol::METHOD) &&
-							IncomingJSON->has(uCentralProtocol::PARAMS)) {
-							ProcessJSONRPCEvent(IncomingJSON);
-						} else if (IncomingJSON->has(uCentralProtocol::RESULT) &&
-								   IncomingJSON->has(uCentralProtocol::ID)) {
-							poco_trace(Logger_, fmt::format("RPC-RESULT({}): payload: {}", CId_,
-															IncomingFrame.begin()));
-							ProcessJSONRPCResult(IncomingJSON);
-						} else {
-							poco_warning(
-								Logger_,
-								fmt::format("INVALID-PAYLOAD({}): Payload is not JSON-RPC 2.0: {}",
-											CId_, IncomingFrame.begin()));
-						}
-					} else if (IncomingJSON->has(uCentralProtocol::RADIUS)) {
-						ProcessIncomingRadiusData(IncomingJSON);
-					} else {
-						std::ostringstream iS;
-						IncomingJSON->stringify(iS);
-						poco_warning(
-							Logger_,
-							fmt::format("FRAME({}): illegal transaction header, missing 'jsonrpc': {}",
-										CId_, iS.str()));
-						Errors_++;
-					}
+							   fmt::format("TEXT({}): Frame received (len={}, flags={}). Msg={}",
+										   CId_, IncomingSize, flags,
+										   CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin()));
 				} break;
 
 				case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
@@ -700,25 +745,31 @@ namespace OpenWifi {
 					return;
 				}
 			}
+
+			// Check for final frame and process accumulated payload
+			if (!KillConnection && (flags & Poco::Net::WebSocket::FRAME_FLAG_FIN) != 0) {
+				ProcessWSFinalPayload();
+			}
+
 		} catch (const Poco::Net::ConnectionResetException &E) {
 			poco_warning(Logger_,
 						 fmt::format("ConnectionResetException({}): Text:{} Payload:{} Session:{}",
 									 CId_, E.displayText(),
-									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
+									 CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin(),
 									 State_.sessionId));
 			KillConnection=true;
 		} catch (const Poco::JSON::JSONException &E) {
 			poco_warning(Logger_,
 						 fmt::format("JSONException({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
-									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
+									 CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin(),
 									 State_.sessionId));
 			KillConnection=true;
 		} catch (const Poco::Net::WebSocketException &E) {
 			poco_warning(Logger_,
 						 fmt::format("WebSocketException({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
-									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
+									 CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin(),
 									 State_.sessionId));
 			KillConnection=true;
 		} catch (const Poco::Net::SSLConnectionUnexpectedlyClosedException &E) {
@@ -727,42 +778,42 @@ namespace OpenWifi {
 				fmt::format(
 					"SSLConnectionUnexpectedlyClosedException({}): Text:{} Payload:{} Session:{}",
 					CId_, E.displayText(),
-					IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
+					CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin(),
 					State_.sessionId));
 			KillConnection=true;
 		} catch (const Poco::Net::SSLException &E) {
 			poco_warning(Logger_,
 						 fmt::format("SSLException({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
-									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
+									 CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin(),
 									 State_.sessionId));
 			KillConnection=true;
 		} catch (const Poco::Net::NetException &E) {
 			poco_warning(Logger_,
 						 fmt::format("NetException({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
-									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
+									 CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin(),
 									 State_.sessionId));
 			KillConnection=true;
 		} catch (const Poco::IOException &E) {
 			poco_warning(Logger_,
 						 fmt::format("IOException({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
-									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
+									 CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin(),
 									 State_.sessionId));
 			KillConnection=true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger_,
 						 fmt::format("Exception({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.displayText(),
-									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
+									 CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin(),
 									 State_.sessionId));
 			KillConnection=true;
 		} catch (const std::exception &E) {
 			poco_warning(Logger_,
 						 fmt::format("std::exception({}): Text:{} Payload:{} Session:{}", CId_,
 									 E.what(),
-									 IncomingFrame.begin() == nullptr ? "" : IncomingFrame.begin(),
+									 CurrentFrame.begin() == nullptr ? "" : CurrentFrame.begin(),
 									 State_.sessionId));
 			KillConnection=true;
 		} catch (...) {
@@ -775,7 +826,9 @@ namespace OpenWifi {
 		if (!KillConnection && Errors_ < 10)
 			return;
 
-		poco_warning(Logger_, fmt::format("DISCONNECTING({}): ConnectionException: {} Errors: {}", CId_, KillConnection, Errors_ ));
+		poco_warning(Logger_,
+				fmt::format("DISCONNECTING({}): ConnectionException: {} Errors: {}",
+							CId_, KillConnection, Errors_ ));
 		EndConnection();
 	}
 

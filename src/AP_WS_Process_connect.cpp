@@ -105,7 +105,7 @@ namespace OpenWifi {
 				Restrictions_.developer = Capabilities->getValue<bool>("developer");
 			}
 
-			if(Capabilities->has("secure-rtty")) {
+			if (Capabilities->has("secure-rtty")) {
 				RTTYMustBeSecure_ = Capabilities->getValue<bool>("secure-rtty");
 			}
 

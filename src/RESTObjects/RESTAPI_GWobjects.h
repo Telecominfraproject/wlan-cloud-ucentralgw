@@ -42,6 +42,7 @@ namespace OpenWifi::GWObjects {
 		uint64_t sessionId = 0;
 		double connectionCompletionTime = 0.0;
 		std::uint64_t certificateExpiryDate = 0;
+		std::string certificateIssuerName;
 		std::uint64_t hasRADIUSSessions = 0;
 		bool hasGPS = false;
 		std::uint64_t sanity=0;
@@ -544,6 +545,57 @@ namespace OpenWifi::GWObjects {
 		std::string 	serialNumber;
 		std::uint64_t 	when;
 		std::vector<std::string> ports;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+	struct ReEnroll {
+		std::string 	serialNumber;
+		std::uint64_t 	when;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+	struct PackageInfo {
+		std::string	 name;
+		std::string	 version;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
+	struct PackageList {
+		std::string	serialNumber;
+		std::vector<PackageInfo>	packageArray;
+		uint64_t 	FirstUpdate = 0;
+		uint64_t 	LastUpdate = 0;
+		std::string packageStringArray;
+
+		bool from_json(const Poco::JSON::Array::Ptr &Obj);
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
+	struct ToBeInstalled {
+		std::string name;
+		std::string url;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
+	struct PackageInstall {
+		std::string 	serialNumber;
+		std::uint64_t   when;
+		std::vector<ToBeInstalled> pkgs;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
+	struct ToBeRemoved {
+		std::string		name;
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
+	struct PackageRemove {
+		std::string 	serialNumber;
+		std::uint64_t   when;
+		std::vector<ToBeRemoved> pkgs;
 
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};

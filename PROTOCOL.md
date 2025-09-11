@@ -880,6 +880,32 @@ The device should answer:
 }
 ```
 
+#### Controller wants the device to perform re-enrollment
+Controller sends this command to trigger re-enrollment, i.e. update of operational certificate. Extreme care must be taken.
+```json
+{    "jsonrpc" : "2.0" , 
+     "method" : "reenroll" , 
+     "params" : {
+        "serial" : <serial number>,
+        "when" : Optional - <UTC time when to apply this config, 0 mean immediate, this is a suggestion>
+     },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```json
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : <0 or the value of $? from the shell running the command, 255 signifies a timeout>,
+            "txt" : <text describing the error or success>
+      },
+  "id" : <same number as request>
+}
+```
+
 #### Controller wants the device to switch to another controller
 Controller sends this when the device should change the controller it connects to without looking up a new redirector.
 
