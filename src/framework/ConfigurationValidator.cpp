@@ -3787,7 +3787,7 @@ static std::string DefaultAPSchema = R"foo(
                     "enum": [
                         "polled",
                         "final",
-                        "raw-data"
+                        "raw"
                     ],
                     "default": "final"
                 },
