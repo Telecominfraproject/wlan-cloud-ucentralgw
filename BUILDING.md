@@ -1,11 +1,36 @@
 # Building from source
-In order to build OWGW, you will need to install its dependencies, which includes the following:
+
+## Quick Build (Recommended - Using Container)
+The easiest way to build OWGW is using the provided build script that creates a Debian Bookworm container with all dependencies:
+
+```bash
+./build-ucentralgw.sh
+```
+
+This script will:
+- Build all dependencies (POCO, cppkafka, valijson) in a Debian Bookworm container
+- Store dependency builds in `.build-deps/` (gitignored, cached for faster rebuilds)
+- Build the OWGW binary and place it in `./cmake-build/owgw`
+- Work entirely within the repository - no system-wide installation needed
+
+**Requirements:**
+- Docker installed and running
+- Git
+
+**Clean rebuild (if needed):**
+```bash
+rm -rf .build-deps/build-cache
+./build-ucentralgw.sh
+```
+
+## Manual Build from Source
+If you prefer to build manually without Docker, you will need to install the following dependencies:
 - cmake
 - boost
 - POCO 1.10.1 or later
 - a C++17 compiler
 - openssl
-- libpq-dev (PortgreSQL development libraries)
+- libpq-dev (PostgreSQL development libraries)
 - mysql-client (MySQL client)
 - librdkafka
 - cppkafka
@@ -20,7 +45,7 @@ These instructions have proven to work on Ubuntu 20.4.
 ```bash
 sudo apt install git cmake g++ libssl-dev libmariadb-dev \
     libpq-dev libaprutil1-dev apache2-dev libboost-all-dev \
-    librdkafka-dev // default-libmysqlclient-dev \
+    librdkafka-dev default-libmysqlclient-dev \
     nlohmann-json-dev
 
 git clone https://github.com/Telecominfraproject/wlan-cloud-lib-poco --branch poco-tip-v1 poco
