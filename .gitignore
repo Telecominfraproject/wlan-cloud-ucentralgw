@@ -30,3 +30,5 @@ helm/charts/*
 /portal-test/
 /src/ow_version.h
 .vscode/*
+# Build dependencies temporary folder
+.build-deps/
