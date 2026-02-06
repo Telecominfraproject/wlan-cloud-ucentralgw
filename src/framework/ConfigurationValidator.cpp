@@ -568,7 +568,7 @@ static std::string DefaultAPSchema = R"foo(
                     "oneOf": [
                         {
                             "type": "integer",
-                            "maximum": 196,
+                            "maximum": 233,
                             "minimum": 1
                         },
                         {
@@ -582,7 +582,7 @@ static std::string DefaultAPSchema = R"foo(
                     "type": "array",
                     "items": {
                         "type": "integer",
-                        "maximum": 196,
+                        "maximum": 233,
                         "minimum": 1
                     }
                 },
@@ -4916,7 +4916,7 @@ static std::string DefaultSWITCHSchema = R"foo(
                     "oneOf": [
                         {
                             "type": "integer",
-                            "maximum": 196,
+                            "maximum": 233,
                             "minimum": 1
                         },
                         {
@@ -4929,7 +4929,7 @@ static std::string DefaultSWITCHSchema = R"foo(
                     "type": "array",
                     "items": {
                         "type": "integer",
-                        "maximum": 196,
+                        "maximum": 233,
                         "minimum": 1
                     }
                 },
