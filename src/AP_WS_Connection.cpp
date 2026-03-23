@@ -4,6 +4,8 @@
 
 
 #include <Poco/Base64Decoder.h>
+#include <Poco/DateTimeFormat.h>
+#include <Poco/DateTimeFormatter.h>
 #include <Poco/Net/Context.h>
 #include <Poco/Net/HTTPServerRequestImpl.h>
 #include <Poco/Net/HTTPServerResponseImpl.h>
@@ -216,6 +218,8 @@ namespace OpenWifi {
 
 			State_.certificateExpiryDate = PeerCert.expiresOn().timestamp().epochTime();
 			State_.certificateIssuerName = PeerCert.issuerName();
+			CertificateValidFrom_ = Poco::DateTimeFormatter::format(PeerCert.validFrom(), Poco::DateTimeFormat::HTTP_FORMAT);
+			CertificateValidTo_ = Poco::DateTimeFormatter::format(PeerCert.expiresOn(), Poco::DateTimeFormat::HTTP_FORMAT);
 
 			poco_trace(Logger_,
 					   fmt::format("TLS-CONNECTION({}): Session={} CN={} Completed. (t={})", CId_,

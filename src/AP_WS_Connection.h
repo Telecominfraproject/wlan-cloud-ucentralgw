@@ -145,6 +145,8 @@ namespace OpenWifi {
 		std::double_t 	memory_used_=0.0, cpu_load_ = 0.0, temperature_ = 0.0;
 		std::uint64_t 	uuid_=0;
 		bool	Simulated_=false;
+		std::string CertificateValidFrom_;
+		std::string CertificateValidTo_;
 		std::atomic_uint64_t 	LastContact_=0;
 		Poco::Buffer<char> IncomingFrame_;
 
