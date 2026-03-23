@@ -6,6 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
+#include <Poco/Net/AcceptCertificateHandler.h>
 #include <Poco/Net/Context.h>
 #include <Poco/Net/HTTPHeaderStream.h>
 #include <Poco/Net/HTTPServerRequest.h>
@@ -116,7 +117,11 @@ namespace OpenWifi {
 
 			Poco::Net::Context::Params P;
 
-			P.verificationMode = Svr.Level();
+			// If VERIFY_NONE is configured, use VERIFY_RELAXED instead so we still
+			// request client certificates (needed to extract device serial from CN),
+			// but add AcceptCertificateHandler to ignore validation errors like expiration
+			bool acceptAllCerts = (Svr.Level() == Poco::Net::Context::VERIFY_NONE);
+			P.verificationMode = acceptAllCerts ? Poco::Net::Context::VERIFY_RELAXED : Svr.Level();
 			P.verificationDepth = 9;
 			P.loadDefaultCAs = Svr.RootCA().empty();
 			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
@@ -124,6 +129,12 @@ namespace OpenWifi {
 
 			auto Context = Poco::AutoPtr<Poco::Net::Context>(
 				new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
+
+			if (acceptAllCerts) {
+				Context->setInvalidCertificateHandler(
+					Poco::SharedPtr<Poco::Net::InvalidCertificateHandler>(
+						new Poco::Net::AcceptCertificateHandler(true)));
+			}
 
 			Poco::Crypto::X509Certificate Cert(Svr.CertFile());
 			Poco::Crypto::X509Certificate Root(Svr.RootCA());
