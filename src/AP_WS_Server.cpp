@@ -116,7 +116,7 @@ namespace OpenWifi {
 
 			Poco::Net::Context::Params P;
 
-			P.verificationMode = Poco::Net::Context::VERIFY_ONCE;
+			P.verificationMode = Svr.Level();
 			P.verificationDepth = 9;
 			P.loadDefaultCAs = Svr.RootCA().empty();
 			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";

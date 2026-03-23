@@ -51,6 +51,7 @@ namespace OpenWifi {
 		[[nodiscard]] inline auto Name() const { return name_; };
 		[[nodiscard]] inline int Backlog() const { return backlog_; }
 		[[nodiscard]] inline auto Cas() const { return cas_; }
+		[[nodiscard]] inline auto Level() const { return level_; }
 
 		[[nodiscard]] Poco::Net::SecureServerSocket CreateSecureSocket(Poco::Logger &L) const;
 		[[nodiscard]] Poco::Net::ServerSocket CreateSocket([[maybe_unused]] Poco::Logger &L) const;
