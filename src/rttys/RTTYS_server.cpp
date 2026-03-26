@@ -879,7 +879,9 @@ namespace OpenWifi {
 				Connected_.erase(hint);
 				EndPoints_.erase(id);
 			} else {
-				EndPoints_.erase(hint->second->Id_);
+				auto id = hint->second->Id_;
+				Connected_.erase(hint);
+				EndPoints_.erase(id);
 			}
 		}
 
