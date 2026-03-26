@@ -15,6 +15,7 @@
 
 #include "Poco/NObserver.h"
 #include <Poco/Net/Context.h>
+#include <Poco/Net/AcceptCertificateHandler.h>
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/WebSocketImpl.h"
@@ -74,9 +75,32 @@ namespace OpenWifi {
 				const auto &Cas = MicroServiceConfigPath("ucentral.websocket.host.0.cas", "");
 				const auto &ClientCasFile = MicroServiceConfigPath("ucentral.websocket.host.0.clientcas", "");
 
+				// Read the security mode from websocket configuration
+				const auto &SecurityMode =
+					MicroServiceConfigGetString("ucentral.websocket.host.0.security", "relaxed");
+
+				// Parse security mode string to verification mode
+				Poco::Net::Context::VerificationMode VerificationLevel = Poco::Net::Context::VERIFY_RELAXED;
+				if (SecurityMode == "strict") {
+					VerificationLevel = Poco::Net::Context::VERIFY_STRICT;
+				} else if (SecurityMode == "none") {
+					VerificationLevel = Poco::Net::Context::VERIFY_NONE;
+				} else if (SecurityMode == "relaxed") {
+					VerificationLevel = Poco::Net::Context::VERIFY_RELAXED;
+				} else if (SecurityMode == "once") {
+					VerificationLevel = Poco::Net::Context::VERIFY_ONCE;
+				}
+
+				// Determine if we should accept all certificates (when security is "none")
+				bool acceptAllCerts = (VerificationLevel == Poco::Net::Context::VERIFY_NONE);
+
+				poco_information(Logger(),
+					fmt::format("RTTY device socket security mode: {} (acceptAllCerts: {})",
+								SecurityMode, acceptAllCerts));
+
 				Poco::Net::Context::Params P;
 
-				P.verificationMode = Poco::Net::Context::VERIFY_ONCE;
+				P.verificationMode = acceptAllCerts ? Poco::Net::Context::VERIFY_RELAXED : VerificationLevel;
 				P.verificationDepth = 9;
 				P.loadDefaultCAs = RootCas.empty();
 				P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
@@ -108,6 +132,13 @@ namespace OpenWifi {
 				DeviceSecureContext->usePrivateKey(Key);
 				DeviceSecureContext->disableProtocols(Poco::Net::Context::PROTO_TLSV1 |
 													  Poco::Net::Context::PROTO_TLSV1_1);
+
+				// Accept all certificates when security mode is "none"
+				if (acceptAllCerts) {
+					DeviceSecureContext->setInvalidCertificateHandler(
+						Poco::SharedPtr<Poco::Net::InvalidCertificateHandler>(
+							new Poco::Net::AcceptCertificateHandler(true)));
+				}
 
 				SSL_CTX *SSLCtxDevice = DeviceSecureContext->sslContext();
 				SSL_CTX_dane_enable(SSLCtxDevice);
