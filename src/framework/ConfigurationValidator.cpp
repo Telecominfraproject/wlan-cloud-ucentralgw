@@ -377,18 +377,21 @@ static std::string DefaultAPSchema = R"foo(
             "properties": {
                 "port-mirror": {
                     "description": "Enable mirror of traffic from multiple minotor ports to a single analysis port.",
-                    "type": "object",
-                    "properties": {
-                        "monitor-ports": {
-                            "description": "The list of ports that we want to mirror.",
-                            "type": "array",
-                            "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "monitor-ports": {
+                                "description": "The list of ports that we want to mirror.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "analysis-port": {
+                                "description": "The port that mirror'ed packets should be sent to.",
                                 "type": "string"
                             }
-                        },
-                        "analysis-port": {
-                            "description": "The port that mirror'ed packets should be sent to.",
-                            "type": "string"
                         }
                     }
                 },
@@ -4668,19 +4671,19 @@ static std::string DefaultSWITCHSchema = R"foo(
             "type": "object",
             "properties": {
                 "port-mirror": {
-                    "description": "Enable mirror of traffic from multiple minotor ports to a single analysis port.",
-                    "type": "object",
-                    "properties": {
-                        "monitor-ports": {
-                            "description": "The list of ports that we want to mirror.",
-                            "type": "array",
-                            "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "monitor-ports": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "analysis-port": {
                                 "type": "string"
                             }
-                        },
-                        "analysis-port": {
-                            "description": "The port that mirror'ed packets should be sent to.",
-                            "type": "string"
                         }
                     }
                 },
