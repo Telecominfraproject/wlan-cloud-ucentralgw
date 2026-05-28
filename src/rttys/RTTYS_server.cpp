@@ -230,44 +230,101 @@ namespace OpenWifi {
 		poco_information(Logger(),"Stopped...");
 	}
 
-	void RTTYS_server::onDeviceAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
+	// Accept an incoming device connection. The TLS
+	// handshake and certificate validation are performed
+	// without holding ServerMutex_ so that a slow or
+	// stalled handshake cannot block the entire RTTY
+	// server. The mutex is only acquired at the end to
+	// register the socket in the shared Sockets_ map.
+	void RTTYS_server::onDeviceAccept(
+		const Poco::AutoPtr<Poco::Net::ReadableNotification>
+			&pNf) {
 		try {
-			std::lock_guard	Lock(ServerMutex_);
 			Poco::Net::SocketAddress Client;
-			Poco::Net::StreamSocket NewSocket(pNf->socket().impl()->acceptConnection(Client));
-			if (NewSocket.secure()) {
-				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(NewSocket.impl());
-				auto PeerAddress_ = SS->peerAddress().host();
-				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-				std::string cn;
-				poco_debug(Logger(),fmt::format("{}: Completing TLS handshake.", CId_));
-				while (true) {
-					auto V = SS->completeHandshake();
-					if (V == 1)
-						break;
-				}
-				poco_debug(Logger(),fmt::format("{}: Completed TLS handshake.", CId_));
-				std::unique_ptr<Poco::Crypto::X509Certificate>	Cert;
-				if (SS->havePeerCertificate()) {
-					poco_debug(Logger(),fmt::format("{}: Device has certificate.", CId_));
-					Cert = std::make_unique<Poco::Crypto::X509Certificate>(SS->peerCertificate());
-					cn = Poco::trim(Poco::toLower(Cert->commonName()));
-					if (AP_WS_Server()->ValidateCertificate(CId_, *Cert)) {
-						poco_information(
-							Logger(),
-							fmt::format("{}: Device {} has been validated.", cn, CId_));
-						AddNewSocket(NewSocket, std::move(Cert), true, CId_, cn);
-					} else {
-						poco_warning(Logger(),fmt::format("{}: Device {} cannot be validate", CId_, cn));
-						AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
-					}
-				} else {
-					poco_warning(Logger(), fmt::format("{}: Device has no certificate.", CId_));
-					AddNewSocket(NewSocket, std::move(Cert), false, CId_, cn);
-				}
+			Poco::Net::StreamSocket NewSocket(
+				pNf->socket().impl()->acceptConnection(Client));
+			if (!NewSocket.secure()) {
+				NewSocket.close();
 				return;
 			}
-			NewSocket.close();
+
+			auto SS = dynamic_cast<
+				Poco::Net::SecureStreamSocketImpl *>(
+				NewSocket.impl());
+			auto PeerAddress_ = SS->peerAddress().host();
+			auto CId_ = Utils::FormatIPv6(
+				SS->peerAddress().toString());
+			std::string cn;
+			poco_debug(Logger(),
+				fmt::format(
+					"{}: Completing TLS handshake.", CId_));
+
+			// Abort the handshake if the device does not
+			// complete it within 30 seconds. Without this
+			// timeout a misbehaving device could stall
+			// the reactor thread indefinitely.
+			static constexpr uint64_t HandshakeTimeoutSec =
+				30;
+			auto HandshakeStart = Utils::Now();
+			while (true) {
+				auto V = SS->completeHandshake();
+				if (V == 1)
+					break;
+				if ((Utils::Now() - HandshakeStart) >
+					HandshakeTimeoutSec) {
+					poco_warning(Logger(),
+						fmt::format(
+							"{}: TLS handshake timeout.",
+							CId_));
+					NewSocket.close();
+					return;
+				}
+			}
+
+			poco_debug(Logger(),
+				fmt::format(
+					"{}: Completed TLS handshake.", CId_));
+			std::unique_ptr<Poco::Crypto::X509Certificate>
+				Cert;
+			bool valid = false;
+			if (SS->havePeerCertificate()) {
+				poco_debug(Logger(),
+					fmt::format(
+						"{}: Device has certificate.",
+						CId_));
+				Cert = std::make_unique<
+					Poco::Crypto::X509Certificate>(
+					SS->peerCertificate());
+				cn = Poco::trim(
+					Poco::toLower(Cert->commonName()));
+				valid =
+					AP_WS_Server()->ValidateCertificate(
+						CId_, *Cert);
+				if (valid) {
+					poco_information(Logger(),
+						fmt::format(
+							"{}: Device {} has been "
+							"validated.",
+							cn, CId_));
+				} else {
+					poco_warning(Logger(),
+						fmt::format(
+							"{}: Device {} cannot be "
+							"validate",
+							CId_, cn));
+				}
+			} else {
+				poco_warning(Logger(),
+					fmt::format(
+						"{}: Device has no certificate.",
+						CId_));
+			}
+
+			// Only lock while updating the shared map.
+			std::lock_guard Lock(ServerMutex_);
+			AddNewSocket(
+				NewSocket, std::move(Cert),
+				valid, CId_, cn);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -981,9 +1038,13 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool RTTYS_server::Login(const Poco::Net::Socket &Socket, std::shared_ptr<RTTYS_EndPoint> Conn) {
-		Poco::Thread::sleep(500);
-		u_char outBuf[RTTY_HDR_SIZE + RTTY_SESSION_ID_LENGTH]{0};
+	// Send a login message to the device. Callers hold
+	// ServerMutex_, so this must not block or sleep.
+	bool RTTYS_server::Login(
+		const Poco::Net::Socket &Socket,
+		std::shared_ptr<RTTYS_EndPoint> Conn) {
+		u_char outBuf[RTTY_HDR_SIZE + RTTY_SESSION_ID_LENGTH]
+			{0};
 		outBuf[0] = RTTYS_EndPoint::msgTypeLogin;
 		outBuf[1] = 0;
 		outBuf[2] = 0;
