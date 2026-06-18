@@ -493,6 +493,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char *PCAP_FILE_TYPE = "pcap";
 	static const char *DURATION = "duration";
 	static const char *NUMBEROFPACKETS = "numberOfPackets";
+	static const char *SNAPLEN = "snaplen";
 	static const char *FILTER = "filter";
 	static const char *SELECT = "select";
 	static const char *SERIALONLY = "serialOnly";
@@ -653,6 +654,8 @@ namespace OpenWifi::uCentralProtocol {
 	static const char *OFF = "off";
 	static const char *BLINK = "blink";
 	static const char *PACKETS = "packets";
+	static const char *SNAPLEN = "snaplen";
+	static const char *FILTER = "filter";
 	static const char *NETWORK = "network";
 	static const char *INTERFACE = "interface";
 	static const char *TRACE = "trace";
