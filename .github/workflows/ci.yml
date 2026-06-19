@@ -50,16 +50,6 @@ jobs:
         SLACK_ICON: https://raw.githubusercontent.com/quintessence/slack-icons/master/images/github-logo-slack-icon.png
         SLACK_TITLE: Docker build failed for OWGW service
 
-    - name: Test Notify on failure via Slack
-      if: true
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_USERNAME: GitHub Actions failure notifier
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_COLOR: "${{ job.status }}"
-        SLACK_ICON: https://raw.githubusercontent.com/quintessence/slack-icons/master/images/github-logo-slack-icon.png
-        SLACK_TITLE: Just testing slack web hook
-
   trigger-testing:
     #if: startsWith(github.ref, 'refs/pull/')
     if: false
