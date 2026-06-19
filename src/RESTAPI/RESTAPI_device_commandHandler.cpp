@@ -1235,6 +1235,12 @@ namespace OpenWifi {
 			Params.set(uCentralProtocol::INTERFACE, Interface);
 			Params.set(uCentralProtocol::URI, URI);
 
+			if (Obj->has(RESTAPI::Protocol::SNAPLEN))
+				Params.set(uCentralProtocol::SNAPLEN, Get(RESTAPI::Protocol::SNAPLEN, Obj, 65535));
+
+			if (Obj->has(RESTAPI::Protocol::FILTER))
+				Params.set(uCentralProtocol::FILTER, GetS(RESTAPI::Protocol::FILTER, Obj));
+
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
