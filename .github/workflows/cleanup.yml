@@ -14,8 +14,8 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-    - name: Cleanup Docker image with PR branch tag 
-      run: | 
+    - name: Cleanup Docker image with PR branch tag
+      run: |
         export PR_BRANCH_TAG=$(echo ${GITHUB_HEAD_REF#refs/heads/} | tr '/' '-')
 
         if [[ ! $PR_BRANCH_TAG =~ (main|master|release-*) ]]; then
