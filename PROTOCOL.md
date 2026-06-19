@@ -587,6 +587,8 @@ Controller sends this command when it needs the device to perform a trace (i.e. 
 	        "packets" : <integer for the number of packets to capture>
 	        "network" : <string identifying the network to trace>
 	        "interface" : <string identifying the interface to capture on>
+	        "snaplen" : Optional - <bytes per packet to capture; defaults to 65535 (full packet). Use 96 for headers only, 512 for headers + small payloads>
+	        "filter" : Optional - <BPF filter expression passed directly to tcpdump, e.g. "host 192.168.1.1 and port 443". Invalid expressions cause tcpdump to exit nonzero and an error is returned via the result channel>
 	        "uri" : <complete URI where to upload the trace. This URI will be available for 30 minutes following a trace request start>
         },
      "id" : <some number>

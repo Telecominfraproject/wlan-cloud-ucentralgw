@@ -753,6 +753,13 @@ components:
           type: string
         interface:
           type: string
+        snaplen:
+          type: integer
+          format: int64
+          description: Bytes per packet to capture. Defaults to 65535 (full packet). Use 96 for headers only.
+        filter:
+          type: string
+          description: BPF filter expression passed to tcpdump, e.g. "host 192.168.1.1 and port 443". Invalid expressions cause tcpdump to exit nonzero and the error is returned via the result channel.
 
     CommandInfo:
       type: object
