@@ -10,6 +10,12 @@
 #include <Poco/Net/Context.h>
 #include <Poco/Net/HTTPHeaderStream.h>
 #include <Poco/Net/HTTPServerRequest.h>
+#include <Poco/Net/VerificationErrorArgs.h>
+
+#include <openssl/ssl.h>
+
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 #include <AP_WS_Connection.h>
 #include <AP_WS_Server.h>
@@ -67,6 +73,72 @@ namespace OpenWifi {
 	  private:
 		Poco::Logger &Logger_;
 		inline static std::atomic_uint64_t session_id_ = 0;
+	};
+
+	static void ap_ws_ssl_info_cb(
+		const SSL *ssl, int where, int ret) {
+		if (!(where & SSL_CB_ALERT) ||
+			!(where & SSL_CB_READ)) {
+			return;
+		}
+		int fd = SSL_get_fd(ssl);
+		std::string peer = "unknown";
+		if (fd >= 0) {
+			struct sockaddr_storage sa;
+			socklen_t len = sizeof(sa);
+			if (getpeername(
+					fd,
+					reinterpret_cast<sockaddr *>(&sa),
+					&len) == 0) {
+				char buf[INET6_ADDRSTRLEN] = {};
+				if (sa.ss_family == AF_INET) {
+					auto *v4 = reinterpret_cast<
+						sockaddr_in *>(&sa);
+					inet_ntop(AF_INET, &v4->sin_addr,
+						buf, sizeof(buf));
+					peer = buf;
+				} else if (sa.ss_family == AF_INET6) {
+					auto *v6 = reinterpret_cast<
+						sockaddr_in6 *>(&sa);
+					inet_ntop(AF_INET6, &v6->sin6_addr,
+						buf, sizeof(buf));
+					peer = buf;
+				}
+			}
+		}
+		auto &logger = Poco::Logger::get("WS-SVR");
+		poco_warning(logger,
+			fmt::format(
+				"TLS alert from {}: {} ({})",
+				peer,
+				SSL_alert_type_string_long(ret),
+				SSL_alert_desc_string_long(ret)));
+	}
+
+	class LoggingRejectCertHandler
+		: public Poco::Net::InvalidCertificateHandler {
+	public:
+		explicit LoggingRejectCertHandler(bool srv)
+			: InvalidCertificateHandler(srv) {}
+
+		void onInvalidCertificate(
+			const void *,
+			Poco::Net::VerificationErrorArgs &args
+		) override {
+			const auto &cert = args.certificate();
+			auto &logger = Poco::Logger::get("WS-SVR");
+			poco_warning(logger,
+				fmt::format(
+					"TLS client cert rejected:"
+					" err={} ({}) depth={}"
+					" subject='{}' issuer='{}'",
+					args.errorNumber(),
+					args.errorMessage(),
+					args.errorDepth(),
+					cert.subjectName(),
+					cert.issuerName()));
+			args.setIgnoreError(false);
+		}
 	};
 
 	bool AP_WS_Server::ValidateCertificate(const std::string &ConnectionId,
@@ -164,6 +236,16 @@ namespace OpenWifi {
 			Context->enableExtendedCertificateVerification(false);
 			Context->disableProtocols(Poco::Net::Context::PROTO_TLSV1 |
 									  Poco::Net::Context::PROTO_TLSV1_1);
+
+			SSL_CTX *ssl_ctx = Context->sslContext();
+			SSL_CTX_set_info_callback(
+				ssl_ctx, ap_ws_ssl_info_cb);
+			if (!acceptAllCerts) {
+				using HPtr = Poco::SharedPtr<
+					Poco::Net::InvalidCertificateHandler>;
+				Context->setInvalidCertificateHandler(
+					HPtr(new LoggingRejectCertHandler(true)));
+			}
 
 			auto WebServerHttpParams = new Poco::Net::HTTPServerParams;
 			WebServerHttpParams->setMaxThreads(50);
