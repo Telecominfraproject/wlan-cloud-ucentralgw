@@ -260,8 +260,14 @@ namespace OpenWifi {
 												 CId_, State_.sessionId,
 												 State_.connectionCompletionTime));
 					poco_information(Logger_,
-									 fmt::format("CONNECT({}): Certificate validity: NotBefore={} NotAfter={}",
-												 CId_, CertificateValidFrom_, CertificateValidTo_));
+									 fmt::format("CONNECT({}): Certificate"
+												 " validity: NotBefore={}"
+												 " NotAfter={}"
+												 " Issuer={}",
+												 CId_,
+												 CertificateValidFrom_,
+												 CertificateValidTo_,
+												 State_.certificateIssuerName));
 				} else {
 					State_.VerifiedCertificate = GWObjects::MISMATCH_SERIAL;
 					if (AP_WS_Server()->AllowSerialNumberMismatch()) {
@@ -273,8 +279,15 @@ namespace OpenWifi {
 										State_.connectionCompletionTime));
 						poco_information(
 							Logger_,
-							fmt::format("CONNECT({}): Certificate validity: NotBefore={} NotAfter={}",
-										CId_, CertificateValidFrom_, CertificateValidTo_));
+							fmt::format(
+								"CONNECT({}): Certificate"
+								" validity: NotBefore={}"
+								" NotAfter={}"
+								" Issuer={}",
+								CId_,
+								CertificateValidFrom_,
+								CertificateValidTo_,
+								State_.certificateIssuerName));
 					} else {
 						poco_information(
 							Logger_, fmt::format("CONNECT({}): Serial number mismatch disallowed. "
